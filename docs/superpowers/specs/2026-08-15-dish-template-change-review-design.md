@@ -18,9 +18,9 @@
 
 ## 3. 数据模型
 
-V7 为 `dish_templates` 增加 `version bigint NOT NULL DEFAULT 0 COMMENT '模板并发版本号'`。任何模板业务字段或模板食材修改都必须在同一事务内递增该版本，不能只依赖 `updated_at`。
+V8 为 `dish_templates` 增加 `version bigint NOT NULL DEFAULT 0 COMMENT '模板并发版本号'`。V7 已用于家庭餐次默认值回填；任何模板业务字段或模板食材修改都必须在同一事务内递增该版本，不能只依赖 `updated_at`。
 
-V7 新增 `dish_template_change_requests` 表，不创建物理外键：
+V8 新增 `dish_template_change_requests` 表，不创建物理外键：
 
 | 字段 | MySQL 定义 | 含义 |
 | --- | --- | --- |
@@ -50,7 +50,7 @@ V7 新增 `dish_template_change_requests` 表，不创建物理外键：
 
 ## 4. 快照数据契约
 
-`base_snapshot_json` 和 `snapshot_json` 使用同一结构，并禁用未知 JSON 字段。所有字段必须出现且除明确说明外不允许 `null`：
+`base_snapshot_json` 和 `snapshot_json` 使用同一结构。提交 DTO 将 `targetSnapshot` 接收为 `JsonNode`，再由专用快照校验器使用开启 `FAIL_ON_UNKNOWN_PROPERTIES` 的独立 Jackson Reader 转为强类型快照，避免改变其他既有接口的全局 JSON 行为。所有字段必须出现且除明确说明外不允许 `null`：
 
 | JSON 字段 | Java 类型 | 规则 |
 | --- | --- | --- |
@@ -71,7 +71,7 @@ V7 新增 `dish_template_change_requests` 表，不创建物理外键：
 
 `IngredientSnapshot` 的完整字段为：`ingredientName`（1 至 100 字符）、`ingredientCategory`（1 至 50 字符）、`quantity`（`0.00` 至 `99999999.99`，最多 2 位小数）、`unit`（1 至 20 字符）、`calcType`（`FIXED/PER_PERSON/NO_PURCHASE`）和 `sortOrder`（`-1000000` 至 `1000000`）。`FIXED/PER_PERSON` 数量必须大于 0；`NO_PURCHASE` 数量必须为 0，单位仍必填用于展示。食材名称按去首尾空白后的不区分大小写值判重。
 
-完整替换请求缺少任一字段、包含未知字段、超过请求体 1 MB 或使用不支持的 `schemaVersion` 时返回具体中文 `400` 错误。模板和食材技术 ID、创建时间不进入快照。
+完整替换请求缺少任一字段、包含未知字段、目标快照 UTF-8 JSON 超过 1 MB 或使用不支持的 `schemaVersion` 时返回具体中文 `400` 错误。模板和食材技术 ID、创建时间不进入快照。
 
 ## 5. 状态机与并发
 
@@ -135,7 +135,7 @@ GET  /merchant/dish-template-change-requests/{requestId}
 POST /merchant/dish-template-change-requests/{requestId}/withdraw
 ```
 
-提交 DTO 明确定义为 `{ "submitNote": String|null, "targetSnapshot": TemplateSnapshotV1 }`，`submitNote` 最长 500 字符。完整字段、缺失字段和未知字段规则只应用于 `targetSnapshot`；持久化时只将 `targetSnapshot` 序列化到 `snapshot_json`，提交说明单独写入 `submit_note`。响应返回申请 ID、状态和提交时间。列表支持状态、模板名称、页码和每页数量筛选。详情返回 `baseSnapshot`、`targetSnapshot`、当前模板版本、`stale` 标志及审核信息，不能将当前模板描述为提交时原模板。
+提交 DTO 明确定义为 `{ "submitNote": String|null, "targetSnapshot": JsonNode }`，通过 springdoc `@Schema(implementation = DishTemplateSnapshotRequest.class)` 向前端展示强类型结构；`submitNote` 最长 500 字符。完整字段、缺失字段、未知字段和 1 MB 规则只应用于 `targetSnapshot`；持久化时只将校验后的强类型快照重新序列化到 `snapshot_json`，提交说明单独写入 `submit_note`。响应返回申请 ID、状态和提交时间。列表支持状态、模板名称、页码和每页数量筛选。详情返回 `baseSnapshot`、`targetSnapshot`、当前模板版本、`stale` 标志及审核信息，不能将当前模板描述为提交时原模板。
 
 ### 7.2 平台管理端
 
