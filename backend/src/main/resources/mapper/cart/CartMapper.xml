@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.cart.mapper.CartMapper">
+  <resultMap id="CartMap" type="com.familykitchen.cart.model.entity.CartEntity">
+    <id property="id" column="id"/>
+    <result property="merchantId" column="merchant_id"/>
+    <result property="familyId" column="family_id"/>
+    <result property="memberId" column="user_id"/>
+    <result property="mealSlotId" column="meal_slot_id"/>
+    <result property="serviceDate" column="service_date"/>
+    <result property="remark" column="remark"/>
+    <result property="status" column="status"/>
+  </resultMap>
+
+  <resultMap id="CartItemMap" type="com.familykitchen.cart.model.entity.CartItemEntity">
+    <id property="id" column="id"/>
+    <result property="cartId" column="cart_id"/>
+    <result property="dishId" column="dish_id"/>
+    <result property="dishNameSnapshot" column="dish_name_snapshot"/>
+    <result property="price" column="price"/>
+    <result property="quantity" column="quantity"/>
+    <result property="itemRemark" column="item_remark"/>
+  </resultMap>
+
+  <select id="selectActiveCart" resultMap="CartMap">
+    select id, merchant_id, family_id, user_id, meal_slot_id, service_date, remark, status
+    from carts
+    where family_id = #{familyId}
+      and user_id = #{memberId}
+      and meal_slot_id = #{mealSlotId}
+      and service_date = #{serviceDate}
+      and status = 'active'
+    limit 1
+  </select>
+
+  <insert id="insertCart" parameterType="com.familykitchen.cart.model.entity.CartEntity"
+          useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    insert into carts (merchant_id, family_id, user_id, meal_slot_id, service_date, remark, status)
+    values (#{merchantId}, #{familyId}, #{memberId}, #{mealSlotId}, #{serviceDate}, #{remark}, #{status})
+  </insert>
+
+  <select id="selectAvailableDish" resultType="com.familykitchen.cart.model.entity.CartDishSnapshot">
+    select d.id as dishId,
+           d.name as dishName,
+           d.base_price as price
+    from family_menu_items fmd
+    join dishes d on d.id = fmd.dish_id
+    where fmd.family_id = #{familyId}
+      and fmd.dish_id = #{dishId}
+      and fmd.enabled = 1
+      and d.status = 'active'
+    limit 1
+  </select>
+
+  <select id="countAvailableMealSlot" resultType="int">
+    select count(*) from meal_slots
+    where id = #{mealSlotId} and family_id = #{familyId} and enabled = 1
+  </select>
+
+  <select id="selectCartItems" resultMap="CartItemMap">
+    select id, cart_id, dish_id, dish_name_snapshot, price, quantity, item_remark
+    from cart_items
+    where cart_id = #{cartId}
+    order by id asc
+  </select>
+
+  <select id="selectCartItem" resultMap="CartItemMap">
+    select id, cart_id, dish_id, dish_name_snapshot, price, quantity, item_remark
+    from cart_items
+    where cart_id = #{cartId} and dish_id = #{dishId}
+    limit 1
+  </select>
+
+  <select id="selectCartItemById" resultMap="CartItemMap">
+    select ci.id, ci.cart_id, ci.dish_id, ci.dish_name_snapshot, ci.price, ci.quantity, ci.item_remark
+    from cart_items ci
+    join carts c on c.id = ci.cart_id
+    where ci.id = #{itemId}
+      and c.family_id = #{familyId}
+      and c.user_id = #{memberId}
+      and c.status = 'active'
+    limit 1
+  </select>
+
+  <insert id="insertCartItem" parameterType="com.familykitchen.cart.model.entity.CartItemEntity" useGeneratedKeys="true" keyProperty="id">
+    insert into cart_items (cart_id, dish_id, dish_name_snapshot, price, quantity, item_remark)
+    values (#{cartId}, #{dishId}, #{dishNameSnapshot}, #{price}, #{quantity}, #{itemRemark})
+  </insert>
+
+  <update id="updateCartItem" parameterType="com.familykitchen.cart.model.entity.CartItemEntity">
+    update cart_items
+    set quantity = #{quantity},
+        item_remark = #{itemRemark}
+    where id = #{id}
+  </update>
+
+  <delete id="deleteCartItem">
+    delete ci
+    from cart_items ci
+    join carts c on c.id = ci.cart_id
+    where ci.id = #{itemId}
+      and c.family_id = #{familyId}
+      and c.user_id = #{memberId}
+      and c.status = 'active'
+  </delete>
+
+  <update id="updateCartRemark">
+    update carts
+    set remark = #{remark}
+    where id = #{cartId}
+  </update>
+
+  <update id="submitActiveCart">
+    update carts
+    set status = 'submitted'
+    where family_id = #{familyId}
+      and user_id = #{memberId}
+      and meal_slot_id = #{mealSlotId}
+      and service_date = #{serviceDate}
+      and status = 'active'
+  </update>
+</mapper>

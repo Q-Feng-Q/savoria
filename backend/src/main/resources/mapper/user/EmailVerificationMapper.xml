@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.user.mapper.EmailVerificationMapper">
+  <insert id="insert">INSERT INTO email_verification_records(user_id,email,code_hash,status,expires_at,request_ip)
+    VALUES(#{userId},#{email},#{codeHash},'PENDING',DATE_ADD(NOW(),INTERVAL 10 MINUTE),#{requestIp})</insert>
+  <update id="invalidatePending">UPDATE email_verification_records SET status='EXPIRED'
+    WHERE user_id=#{userId} AND email=#{email} AND status='PENDING'</update>
+  <select id="countRecent" resultType="int">SELECT COUNT(*) FROM email_verification_records
+    WHERE created_at&gt;DATE_SUB(NOW(),INTERVAL 1 HOUR)
+    AND (user_id=#{userId} OR email=#{email} OR (request_ip IS NOT NULL AND request_ip=#{requestIp}))</select>
+  <select id="findConsumable" resultType="long">SELECT id FROM email_verification_records
+    WHERE user_id=#{userId} AND email=#{email} AND code_hash=#{codeHash} AND status='PENDING'
+    AND expires_at&gt;NOW() AND failed_attempts&lt;5 ORDER BY id DESC LIMIT 1</select>
+  <update id="incrementLatestFailure">UPDATE email_verification_records SET failed_attempts=failed_attempts+1
+    WHERE id=(SELECT id FROM (SELECT id FROM email_verification_records WHERE user_id=#{userId}
+      AND email=#{email} AND status='PENDING' AND expires_at&gt;NOW() ORDER BY id DESC LIMIT 1) latest)</update>
+  <update id="consume">UPDATE email_verification_records SET status='USED',used_at=NOW()
+    WHERE id=#{id} AND status='PENDING'</update>
+</mapper>

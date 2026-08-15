@@ -1,0 +1,121 @@
+@media (max-width: 359px) {
+  page { font-size: 26rpx; }
+  .warm-page, .page { --warm-page-gap: 22rpx; padding-top: 20rpx; }
+  .warm-title, .title, .sk-page-title { font-size: 42rpx; }
+  .warm-section-head, .sk-section-head { align-items: flex-start; flex-direction: column; gap: 8rpx; }
+  .warm-section-note, .sk-section-note { text-align: left; }
+  .warm-paper, .panel { padding: 22rpx; }
+  .warm-hide-compact, .merchant-scene-piece--decorative { display: none !important; }
+
+  .merchant-page,
+  .orders-page,
+  .detail-page,
+  .purchase-page,
+  .dishes-page,
+  .editor-page,
+  .ingredient-page,
+  .families-page,
+  .family-detail-page,
+  .family-menu-page { padding-right: 22rpx; padding-left: 22rpx; }
+
+  .merchant-helper-stats { grid-template-columns: 1fr; }
+  .family-actions, .detail-actions, .member-actions, .row-controls { gap: 10rpx; }
+  .order-row__action, .compact-action, .toggle-action { min-width: 0; }
+}
+
+@media (min-width: 420px) {
+  .warm-page__content { padding-inline: 10rpx; }
+  .warm-scene { min-height: 300rpx; }
+  .warm-title, .title, .sk-page-title { font-size: 52rpx; }
+
+  .merchant-helper-stats,
+  .merchant-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 480px) {
+  .detail-content,
+  .editor-content { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28rpx; width: 100%; }
+  .detail-heading,
+  .detail-header { grid-column: 1 / -1; width: 100%; }
+
+  .ingredient-workspace { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28rpx; width: 100%; }
+}
+
+@media (max-height: 620px) {
+  .warm-scene { min-height: 220rpx; }
+  .warm-page, .page { padding-top: 18rpx; }
+  .warm-section-head, .sk-section-head { margin-top: 28rpx; }
+}
+
+@media (orientation: landscape) {
+  .warm-page--form .warm-page__content,
+  .warm-page--management .warm-page__content { width: 100%; max-width: 720px; }
+  .warm-landscape-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28rpx; }
+
+  .detail-content,
+  .editor-content,
+  .ingredient-workspace { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28rpx; width: 100%; }
+  .detail-heading,
+  .detail-header { grid-column: 1 / -1; width: 100%; }
+}
+
+.warm-page, .page, text { overflow-wrap: anywhere; }
+.warm-safe-bottom { padding-bottom: calc(24rpx + env(safe-area-inset-bottom)); }
+.warm-bottom-action { padding-bottom: calc(20rpx + env(safe-area-inset-bottom)); }
+
+/* Shared merchant canvas: CSS pixels keep the content bounded on tablets while
+   rpx remains reserved for touch and spacing dimensions. */
+.merchant-page,
+.orders-page,
+.detail-page,
+.purchase-page,
+.dishes-page,
+.editor-page,
+.ingredient-page,
+.families-page,
+.family-detail-page,
+.family-menu-page {
+  width: 100%;
+  max-width: 720px;
+  margin-right: auto;
+  margin-left: auto;
+  overflow-x: hidden;
+}
+
+.merchant-overview,
+.orders-workbench,
+.detail-content,
+.purchase-content,
+.dish-list,
+.editor-content,
+.ingredient-workspace,
+.families-content,
+.menu-content,
+.merchant-identity__copy,
+.merchant-helper-stat,
+.purchase-entry__copy,
+.order-row__main,
+.dish-main,
+.ingredient-main,
+.menu-row__copy,
+.detail-line,
+.dish-line,
+.preview-row,
+.family-row__top,
+.family-actions,
+.detail-actions,
+.member-actions,
+.row-controls,
+.safe-action-bar {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.detail-page .safe-action-bar,
+.editor-page .safe-action-bar,
+.ingredient-page .safe-action-bar {
+  width: 100%;
+  padding-bottom: calc(18rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}

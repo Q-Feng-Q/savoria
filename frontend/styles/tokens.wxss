@@ -1,0 +1,39 @@
+page {
+  --sk-cream: #fff4e4;
+  --sk-chestnut: #8a5b43;
+  --sk-sage: #77977d;
+  --sk-peach: #e98262;
+  --sk-bg: var(--sk-cream);
+  --sk-paper: #fffdf7;
+  --sk-paper-soft: #f8ead2;
+  --sk-ink: var(--sk-sage);
+  --sk-ink-deep: #4f392f;
+  --sk-ink-soft: #8da492;
+  --sk-text: #3a2a24;
+  --sk-muted: #806b5c;
+  --sk-accent: var(--sk-peach);
+  --sk-accent-deep: #cf684d;
+  --sk-danger: #bd4f43;
+  --sk-wheat: #ebcb98;
+  --sk-sprout: #dfeadc;
+  --sk-blush: #f4cfc1;
+  --sk-sky: #dceae5;
+  --sk-line: rgba(138, 91, 67, 0.22);
+  --sk-line-soft: rgba(116, 86, 59, 0.13);
+  --sk-radius-sm: 16rpx;
+  --sk-radius-md: 28rpx;
+  --sk-radius-lg: 42rpx;
+  --sk-space-page: 26rpx;
+  --sk-space-page-compact: 20rpx;
+  --sk-safe-top: env(safe-area-inset-top);
+  --sk-safe-bottom: env(safe-area-inset-bottom);
+  --sk-tap-min: 88rpx;
+  --sk-content-max: 980rpx;
+  --sk-shadow-float: 0 22rpx 50rpx rgba(90, 61, 43, 0.15);
+  --sk-shadow-soft: 0 10rpx 28rpx rgba(90, 61, 43, 0.08);
+  --sk-shadow-pressed: 0 4rpx 12rpx rgba(90, 61, 43, 0.12);
+  --sk-motion-enter: sk-rise-in 420ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+.sk-focus-ring { box-shadow: 0 0 0 4rpx rgba(233, 130, 98, 0.24); }
+.sk-divider { height: 2rpx; background: var(--sk-line-soft); }

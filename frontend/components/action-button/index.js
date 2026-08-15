@@ -1,0 +1,1 @@
+Component({properties:{label:{type:String,value:''},loadingLabel:{type:String,value:'处理中…'},tone:{type:String,value:'primary'},loading:{type:Boolean,value:false},disabled:{type:Boolean,value:false},block:{type:Boolean,value:false}},methods:{handleTap(){if (this.properties.disabled || this.properties.loading) return;this.triggerEvent('action')}}});

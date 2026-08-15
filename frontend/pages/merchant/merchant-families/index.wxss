@@ -1,0 +1,17 @@
+.families-page { padding-bottom: calc(150rpx + env(safe-area-inset-bottom)); }
+.families-header, .family-row__top, .family-actions, .menu-status { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.families-header { padding: 12rpx 0 24rpx; border-bottom: 2rpx solid #eadfce; }
+.families-eyebrow, .families-title, .family-meta { display: block; }
+.families-eyebrow { color: #9a8068; font-size: 22rpx; font-weight: 800; }
+.families-title { margin-top: 6rpx; color: #2b2119; font-size: 40rpx; font-weight: 950; }
+.families-count { color: #218d68; font-size: 26rpx; font-weight: 900; }
+.family-row { padding: 28rpx 0; border-bottom: 2rpx solid #eadfce; }
+.family-name { color: #2b2119; font-size: 31rpx; font-weight: 950; }
+.service-state { color: #745d49; font-size: 22rpx; font-weight: 800; }
+.family-meta { margin-top: 10rpx; color: #806854; font-size: 24rpx; line-height: 1.5; }
+.menu-status { justify-content: flex-start; margin-top: 16rpx; padding-left: 14rpx; border-left: 6rpx solid #218d68; color: #376d59; font-size: 23rpx; }
+.menu-status--attention { border-left-color: #d98532; color: #9a5a1e; }
+.menu-status__label { font-weight: 900; }
+.family-actions { margin-top: 22rpx; }
+.family-action { flex: 1; min-height: 88rpx; display: flex; align-items: center; justify-content: center; border-radius: 22rpx; background: #218d68; color: #fff; font-size: 25rpx; font-weight: 900; }
+.family-action--quiet { background: #fffaf3; color: #3f735f; border: 2rpx solid #cfe2d8; }

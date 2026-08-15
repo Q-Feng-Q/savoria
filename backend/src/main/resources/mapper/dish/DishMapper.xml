@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.dish.mapper.DishMapper">
+  <resultMap id="DishMap" type="com.familykitchen.dish.model.entity.DishEntity">
+    <id property="id" column="id"/>
+    <result property="merchantId" column="merchant_id"/>
+    <result property="categoryId" column="category_id"/>
+    <result property="name" column="name"/>
+    <result property="description" column="description"/>
+    <result property="imageUrl" column="image_url"/>
+    <result property="basePrice" column="base_price"/>
+    <result property="sourceTemplateId" column="source_template_id"/>
+    <result property="status" column="status"/>
+  </resultMap>
+
+  <resultMap id="CategoryMap" type="com.familykitchen.dish.model.entity.DishCategoryEntity">
+    <id property="id" column="id"/>
+    <result property="merchantId" column="merchant_id"/>
+    <result property="name" column="name"/>
+    <result property="sortOrder" column="sort_order"/>
+    <result property="enabled" column="enabled"/>
+  </resultMap>
+
+  <resultMap id="IngredientMap" type="com.familykitchen.dish.model.entity.DishIngredientEntity">
+    <id property="id" column="id"/>
+    <result property="dishId" column="dish_id"/>
+    <result property="ingredientName" column="ingredient_name"/>
+    <result property="quantity" column="quantity"/>
+    <result property="unit" column="unit"/>
+    <result property="calcType" column="calc_type"/>
+  </resultMap>
+
+  <resultMap id="CookingStepMap" type="com.familykitchen.dish.model.entity.DishCookingStepEntity">
+    <id property="id" column="id"/>
+    <result property="dishId" column="dish_id"/>
+    <result property="stepNo" column="step_no"/>
+    <result property="title" column="title"/>
+    <result property="content" column="content"/>
+  </resultMap>
+
+  <resultMap id="IngredientDictionaryMap" type="com.familykitchen.dish.model.entity.IngredientDictionaryEntity">
+    <id property="id" column="id"/>
+    <result property="merchantId" column="merchant_id"/>
+    <result property="name" column="name"/>
+    <result property="category" column="category"/>
+    <result property="unit" column="unit"/>
+    <result property="referencedDishCount" column="referenced_dish_count"/>
+    <result property="referencedDishNames" column="referenced_dish_names"/>
+  </resultMap>
+
+  <select id="selectDishes" resultMap="DishMap">
+    select id, merchant_id, category_id, name, description, image_url, base_price, source_template_id, status
+    from dishes
+    where merchant_id = #{merchantId}
+    order by id desc
+  </select>
+
+  <select id="selectDish" resultMap="DishMap">
+    select id, merchant_id, category_id, name, description, image_url, base_price, source_template_id, status
+    from dishes
+    where merchant_id = #{merchantId} and id = #{dishId}
+  </select>
+
+  <select id="countCategoryOwnership" resultType="int">
+    select count(*) from dish_categories
+    where id = #{categoryId} and merchant_id = #{merchantId}
+  </select>
+
+  <insert id="insertDish" parameterType="com.familykitchen.dish.model.entity.DishEntity"
+          useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    insert into dishes (merchant_id, category_id, name, description, image_url, base_price, source_template_id, status)
+    values (#{merchantId}, #{categoryId}, #{name}, #{description}, #{imageUrl}, #{basePrice}, #{sourceTemplateId}, #{status})
+  </insert>
+
+  <update id="updateDish" parameterType="com.familykitchen.dish.model.entity.DishEntity">
+    update dishes
+    set category_id = #{categoryId},
+        name = #{name},
+        description = #{description},
+        image_url = #{imageUrl},
+        base_price = #{basePrice},
+        status = #{status}
+    where merchant_id = #{merchantId} and id = #{id}
+  </update>
+
+  <update id="updateDishStatus">
+    update dishes set status = #{status}
+    where merchant_id = #{merchantId} and id = #{dishId}
+  </update>
+
+  <delete id="deleteDishIngredients">
+    delete from dish_ingredients where dish_id = #{dishId}
+  </delete>
+
+  <insert id="insertDishIngredient" parameterType="com.familykitchen.dish.model.entity.DishIngredientEntity">
+    insert into dish_ingredients (dish_id, ingredient_name, quantity, unit, calc_type)
+    values (#{dishId}, #{ingredientName}, #{quantity}, #{unit}, #{calcType})
+  </insert>
+
+  <select id="selectDishIngredients" resultMap="IngredientMap">
+    select id, dish_id, ingredient_name, quantity, unit, calc_type
+    from dish_ingredients
+    where dish_id = #{dishId}
+    order by id asc
+  </select>
+
+  <delete id="deleteCookingSteps">
+    delete from dish_cooking_steps where dish_id = #{dishId}
+  </delete>
+
+  <insert id="insertCookingStep" parameterType="com.familykitchen.dish.model.entity.DishCookingStepEntity">
+    insert into dish_cooking_steps (dish_id, step_no, title, content)
+    values (#{dishId}, #{stepNo}, #{title}, #{content})
+  </insert>
+
+  <select id="selectCookingSteps" resultMap="CookingStepMap">
+    select id, dish_id, step_no, title, content
+    from dish_cooking_steps
+    where dish_id = #{dishId}
+    order by step_no asc, id asc
+  </select>
+
+  <select id="selectCategories" resultMap="CategoryMap">
+    select id, merchant_id, name, sort_order, enabled
+    from dish_categories
+    where merchant_id = #{merchantId}
+    order by sort_order asc, id asc
+  </select>
+
+  <insert id="insertCategory" parameterType="com.familykitchen.dish.model.entity.DishCategoryEntity" useGeneratedKeys="true" keyProperty="id">
+    insert into dish_categories (merchant_id, name, sort_order, enabled)
+    values (#{merchantId}, #{name}, #{sortOrder}, #{enabled})
+  </insert>
+
+  <update id="updateCategory" parameterType="com.familykitchen.dish.model.entity.DishCategoryEntity">
+    update dish_categories
+    set name = #{name}, sort_order = #{sortOrder}, enabled = #{enabled}
+    where merchant_id = #{merchantId} and id = #{id}
+  </update>
+
+  <delete id="deleteCategory">
+    delete from dish_categories where merchant_id = #{merchantId} and id = #{categoryId}
+  </delete>
+
+  <select id="countDishesInCategory" resultType="int">
+    select count(*) from dishes where merchant_id = #{merchantId} and category_id = #{categoryId}
+  </select>
+
+  <select id="selectIngredientDictionary" resultMap="IngredientDictionaryMap">
+    select mi.id,
+           mi.merchant_id,
+           mi.name,
+           mi.category,
+           mi.unit,
+           count(distinct di.dish_id) as referenced_dish_count,
+           group_concat(distinct d.name order by d.name separator ',') as referenced_dish_names
+    from merchant_ingredients mi
+    left join dish_ingredients di on di.ingredient_name = mi.name
+    left join dishes d on d.id = di.dish_id and d.merchant_id = mi.merchant_id
+    where mi.merchant_id = #{merchantId}
+    group by mi.id, mi.merchant_id, mi.name, mi.category, mi.unit
+    order by mi.category asc, mi.name asc
+  </select>
+
+  <select id="selectIngredient" resultMap="IngredientDictionaryMap">
+    select id, merchant_id, name, category, unit, 0 as referenced_dish_count, null as referenced_dish_names
+    from merchant_ingredients
+    where merchant_id = #{merchantId} and id = #{ingredientId}
+  </select>
+
+  <insert id="insertIngredient" parameterType="com.familykitchen.dish.model.entity.IngredientDictionaryEntity" useGeneratedKeys="true" keyProperty="id">
+    insert into merchant_ingredients (merchant_id, name, category, unit)
+    values (#{merchantId}, #{name}, #{category}, #{unit})
+  </insert>
+
+  <update id="updateIngredient" parameterType="com.familykitchen.dish.model.entity.IngredientDictionaryEntity">
+    update merchant_ingredients
+    set name = #{name}, category = #{category}, unit = #{unit}
+    where merchant_id = #{merchantId} and id = #{id}
+  </update>
+
+  <delete id="deleteIngredient">
+    delete from merchant_ingredients where merchant_id = #{merchantId} and id = #{ingredientId}
+  </delete>
+
+  <select id="countIngredientReferences" resultType="int">
+    select count(*)
+    from dish_ingredients di
+    join dishes d on d.id = di.dish_id
+    where d.merchant_id = #{merchantId} and di.ingredient_name = #{ingredientName}
+  </select>
+</mapper>

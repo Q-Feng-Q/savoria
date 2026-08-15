@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.user.mapper.UserMapper">
+  <resultMap id="userMap" type="com.familykitchen.user.model.entity.UserDO">
+    <id property="id" column="id"/>
+    <result property="username" column="username"/>
+    <result property="usernameChanged" column="username_changed"/>
+    <result property="passwordHash" column="password_hash"/>
+    <result property="passwordAlgorithm" column="password_algorithm"/>
+    <result property="credentialStatus" column="credential_status"/>
+    <result property="email" column="email"/>
+    <result property="emailVerified" column="email_verified"/>
+    <result property="wechatOpenId" column="wechat_open_id"/>
+    <result property="nickname" column="nickname"/>
+    <result property="avatarUrl" column="avatar_url"/>
+    <result property="mobile" column="mobile"/>
+    <result property="status" column="status"/>
+    <result property="passwordChangedAt" column="password_changed_at"/>
+    <result property="lastLoginAt" column="last_login_at"/>
+    <result property="createdAt" column="created_at"/>
+    <result property="updatedAt" column="updated_at"/>
+  </resultMap>
+
+  <sql id="columns">id, username, username_changed, password_hash, password_algorithm,
+    credential_status, email, email_verified, wechat_open_id, nickname, avatar_url, mobile,
+    status, password_changed_at, last_login_at, created_at, updated_at</sql>
+
+  <select id="findById" resultMap="userMap">SELECT <include refid="columns"/> FROM users WHERE id=#{id}</select>
+  <select id="findByLoginIdentifier" resultMap="userMap">
+    SELECT <include refid="columns"/> FROM users
+    WHERE username=#{identifier} OR (email=#{identifier} AND email_verified=1) LIMIT 1
+  </select>
+  <select id="findByUsername" resultMap="userMap">SELECT <include refid="columns"/> FROM users WHERE username=#{username}</select>
+  <select id="findByEmail" resultMap="userMap">SELECT <include refid="columns"/> FROM users WHERE email=#{email}</select>
+  <select id="findByWechatOpenId" resultMap="userMap">SELECT <include refid="columns"/> FROM users WHERE wechat_open_id=#{openId}</select>
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO users(username,password_hash,password_algorithm,credential_status,nickname,mobile,status)
+    VALUES(#{username},#{passwordHash},#{passwordAlgorithm},#{credentialStatus},#{nickname},#{mobile},#{status})
+  </insert>
+  <update id="updateLastLogin">UPDATE users SET last_login_at=NOW() WHERE id=#{id}</update>
+  <update id="updatePassword">UPDATE users SET password_hash=#{passwordHash},password_algorithm=#{passwordAlgorithm},password_changed_at=NOW() WHERE id=#{id}</update>
+  <update id="updateProfile">UPDATE users SET nickname=#{nickname},avatar_url=#{avatarUrl},mobile=#{mobile} WHERE id=#{id}</update>
+  <update id="bindEmail">UPDATE users SET email=#{email},email_verified=1 WHERE id=#{id}</update>
+  <update id="bindWechat">UPDATE users SET wechat_open_id=#{openId} WHERE id=#{id}</update>
+  <update id="unbindWechat">UPDATE users SET wechat_open_id=NULL WHERE id=#{id}</update>
+  <update id="updateStatus">UPDATE users SET status=#{status} WHERE id=#{id}</update>
+  <update id="updateUsernameOnce">UPDATE users SET username=#{username},username_changed=1
+    WHERE id=#{id} AND username_changed=0 AND status='ACTIVE'</update>
+  <update id="anonymize">UPDATE users SET username=#{username},nickname='已注销用户',avatar_url=NULL,
+    mobile=NULL,email=NULL,email_verified=0,wechat_open_id=NULL,status='CANCELLED',credential_status='CLAIM_REQUIRED'
+    WHERE id=#{id} AND status='CANCELLING'</update>
+</mapper>

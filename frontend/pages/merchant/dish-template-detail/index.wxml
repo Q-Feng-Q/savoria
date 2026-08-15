@@ -1,0 +1,18 @@
+<view class="warm-page detail-page">
+  <page-state wx:if="{{loading}}" phase="loading" title="正在读取模板" description="请稍候" />
+  <block wx:elif="{{detail}}">
+    <image class="detail-image" src="{{detail.imageUrl}}" mode="aspectFill" />
+    <view class="detail-head">
+      <text class="detail-category">{{detail.categoryName}}</text>
+      <text class="detail-name">{{detail.name}}</text>
+      <text class="detail-description">{{detail.description}}</text>
+      <view class="detail-meta"><text>参考价 ¥{{detail.referencePrice}}</text><text>{{detail.tasteText}}</text><text>{{detail.mealText}}</text></view>
+    </view>
+    <text class="section-title">默认食材</text>
+    <view class="ingredient-list">
+      <view wx:for="{{detail.ingredients}}" wx:key="id" class="ingredient-row"><text>{{item.ingredientName}}</text><text>{{item.quantity}} {{item.unit}}</text></view>
+    </view>
+    <view class="source-note">图片：{{detail.imageAuthor}} · {{detail.imageLicense}}</view>
+    <view class="detail-import {{detail.imported ? 'detail-import--disabled' : ''}}" bindtap="importTemplate" aria-role="button" aria-label="{{detail.imported ? '菜品已导入' : '导入这道菜'}}" hover-class="ui-button--pressed">{{detail.imported ? '已导入' : '导入这道菜'}}</view>
+  </block>
+</view>

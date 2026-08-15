@@ -1,0 +1,59 @@
+<view class="warm-page warm-page--management warm-state-host detail-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="orders" bind:retry="retryLoad" />
+
+  <view wx:else class="detail-content">
+    <view class="detail-heading">
+      <text class="detail-heading__status">{{scene.order.statusLabel}}</text>
+      <text class="detail-heading__title">{{scene.order.familyName}} · {{scene.order.orderNo}}</text>
+    </view>
+
+    <view class="detail-section">
+      <text class="detail-section__title">订单信息</text>
+      <text class="detail-line">日期与餐次：{{scene.order.serviceDate}} · {{scene.order.mealLabel}}</text>
+      <text class="detail-line">提交人：{{scene.order.submitterName}}</text>
+      <text class="detail-line">整单备注：{{scene.order.note || '无'}}</text>
+    </view>
+
+    <view class="detail-section">
+      <text class="detail-section__title">菜品明细</text>
+      <block wx:for="{{scene.items}}" wx:key="id">
+        <view class="dish-line">
+          <view><text class="dish-line__name">{{item.dishName}} × {{item.quantity}}</text><text class="detail-line">{{item.ownerName}} · {{item.note || '无单品备注'}}</text></view>
+          <text class="dish-line__amount">￥{{item.amount}}</text>
+        </view>
+      </block>
+    </view>
+
+    <view class="detail-section">
+      <text class="detail-section__title">费用与配送</text>
+      <text class="detail-line">{{scene.order.deliveryMode === 'delivery' ? '配送' : '自取'}} · 配送费 ￥{{scene.order.deliveryFee}}</text>
+      <text class="detail-line">配送规则：{{scene.familyDeliverySummary}}</text>
+      <text class="detail-line">默认地址：{{scene.currentDefaultAddressText}}</text>
+      <block wx:for="{{scene.charges}}" wx:key="memberId">
+        <text class="charge-line">{{item.memberName}} · 菜品 ￥{{item.dishAmount}} · 合计 ￥{{item.totalAmount}}</text>
+      </block>
+      <view wx:if="{{scene.canAdjustDeliveryFee}}" class="fee-edit">
+        <input class="fee-input" type="digit" value="{{feeInput}}" bindinput="bindFeeInput" aria-label="配送费" />
+        <view class="ui-button text-action" bindtap="saveFee" aria-role="button" aria-label="保存配送费" aria-disabled="{{mutationBusy}}" hover-class="ui-button--pressed">保存配送费</view>
+      </view>
+    </view>
+
+    <view class="detail-section">
+      <text class="detail-section__title">状态时间线</text>
+      <block wx:for="{{scene.timeline}}" wx:key="time">
+        <view class="timeline-line"><view class="timeline-dot"></view><view><text class="timeline-label">{{item.label}} · {{item.time}}</text><text class="detail-line">{{item.note}}</text></view></view>
+      </block>
+    </view>
+
+    <view wx:if="{{scene.canCancel}}" class="detail-section">
+      <text class="detail-section__title">处理原因</text>
+      <textarea class="reason-input" value="{{reasonInput}}" bindinput="bindReasonInput" placeholder="取消原因（备餐中取消时必填）"></textarea>
+    </view>
+  </view>
+
+  <view wx:if="{{phase === 'ready'}}" class="safe-action-bar">
+    <view wx:if="{{scene.canAdvance}}" class="ui-button primary-action" bindtap="advanceOrder" aria-role="button" aria-label="{{scene.nextActionText}}" aria-disabled="{{mutationBusy}}" hover-class="ui-button--pressed">{{mutationBusy ? '处理中' : scene.nextActionText}}</view>
+    <view wx:if="{{scene.canReject}}" class="ui-button quiet-action" bindtap="rejectOrder" aria-role="button" aria-label="拒单" aria-disabled="{{mutationBusy}}" hover-class="ui-button--pressed">拒单</view>
+    <view wx:if="{{scene.canCancel}}" class="ui-button quiet-action" bindtap="cancelOrder" aria-role="button" aria-label="取消订单" aria-disabled="{{mutationBusy}}" hover-class="ui-button--pressed">取消</view>
+  </view>
+</view>

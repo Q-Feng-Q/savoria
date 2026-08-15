@@ -1,0 +1,69 @@
+<view class="warm-page warm-state-host page dish-page" wx:if="{{scene}}">
+  <view class="detail-hero">
+    <view class="detail-plate">
+      <image class="detail-dish-image" src="{{scene.dish.imageUrl}}" mode="aspectFill" />
+    </view>
+    <view class="detail-copy">
+      <text class="eyebrow">{{scene.dish.category}}</text>
+      <text class="detail-title">{{scene.dish.name}}</text>
+      <text class="detail-subtitle">{{scene.dish.description}}</text>
+      <view class="tag-row">
+        <block wx:for="{{scene.dish.tasteTags}}" wx:key="*this">
+          <text class="tag">{{item}}</text>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <view class="detail-meta">
+    <view>
+      <text class="meta-label">当前家庭价</text>
+      <text class="meta-value">¥{{scene.dish.finalPrice}}</text>
+    </view>
+    <view>
+      <text class="meta-label">商户基础价</text>
+      <text class="meta-value">¥{{scene.dish.basePrice}}</text>
+    </view>
+  </view>
+
+  <view class="panel explain-panel">
+    <text class="detail-line">当前家庭：{{scene.dish.familyName}}</text>
+    <text class="detail-line">加入目标：{{scene.dish.mealLabel}} 餐篮</text>
+    <text class="detail-line">当前餐篮已选：{{scene.dish.selectedCount}} 份</text>
+    <text class="detail-line">菜品主数据由商户维护，家庭端只能点菜。</text>
+  </view>
+
+  <text class="section-title">主要食材</text>
+  <view class="list">
+    <block wx:for="{{scene.dish.ingredients}}" wx:key="id">
+      <view class="panel ingredient-line">
+        <text class="strong">{{item.name}}</text>
+        <text class="quantity">{{item.quantity}}{{item.unit}}</text>
+      </view>
+    </block>
+  </view>
+
+  <block wx:if="{{false}}">
+    <text class="section-title">商户制作流程</text>
+    <view class="list">
+      <block wx:for="{{scene.dish.cookingSteps}}" wx:key="title">
+        <view class="panel step-line">
+          <text class="step-index">{{index + 1}}</text>
+          <view>
+            <text class="strong">{{item.title}}</text>
+            <text class="step-content">{{item.content}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </block>
+
+  <view class="detail-action-bar">
+    <view>
+      <text class="action-label">加入共享餐篮</text>
+      <text class="action-sub">谁点谁扣，提交订单后会按成员分别冻结余额。</text>
+    </view>
+    <view class="ui-button button detail-submit" bindtap="addDish" aria-role="button" aria-label="加入" hover-class="ui-button--pressed" hover-stay-time="80">加入</view>
+  </view>
+</view>
+

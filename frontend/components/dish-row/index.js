@@ -1,0 +1,1 @@
+Component({properties:{dish:{type:Object,value:{}},quantity:{type:Number,value:0},mode:{type:String,value:'family'}},methods:{noop(){},open(){this.triggerEvent('open',{dish:this.data.dish})},quantityChange(event){this.triggerEvent('quantitychange',{dish:this.data.dish,value:event.detail.value})}}});

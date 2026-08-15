@@ -1,0 +1,27 @@
+.editor-page { padding-bottom: calc(180rpx + env(safe-area-inset-bottom)); background: #fffaf4; }
+.editor-head { padding: 28rpx 0 22rpx; border-bottom: 2rpx solid #e9ddd1; }
+.eyebrow, .editor-title, .section-title, .strong, .muted { display: block; }
+.eyebrow { color: #a56f5e; font-size: 22rpx; font-weight: 800; }
+.editor-title { margin-top: 6rpx; color: #2f2822; font-size: 40rpx; font-weight: 900; }
+.form-section { padding: 28rpx 0; border-bottom: 2rpx solid #e9ddd1; }
+.section-head, .line-row, .image-row { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; }
+.section-title { margin-bottom: 20rpx; color: #352d27; font-size: 30rpx; font-weight: 900; }
+.section-head .section-title { margin-bottom: 0; }
+.field { margin-top: 18rpx; }
+.label { color: #776b61; font-size: 24rpx; }
+input, textarea, .picker-control, .secondary-action, .status-action, .text-action, .save-action { min-height: 88rpx; box-sizing: border-box; }
+input, textarea, .picker-control { margin-top: 10rpx; padding: 20rpx 22rpx; border: 2rpx solid #ddd2c7; border-radius: 14rpx; background: #fff; }
+textarea { width: 100%; min-height: 160rpx; }
+.picker-control, .secondary-action, .status-action, .text-action, .save-action { display: flex; align-items: center; justify-content: center; }
+.image-row { justify-content: flex-start; }
+.dish-image { width: 140rpx; height: 112rpx; border-radius: 14rpx; background: #eee4d8; }
+.secondary-action, .status-action { margin-top: 16rpx; padding: 0 24rpx; border: 2rpx solid #d8ccc0; border-radius: 14rpx; color: #695d54; font-weight: 800; }
+.image-row .secondary-action { flex: 1; margin-top: 0; }
+.status-action { color: #668269; border-color: #aabca9; }
+.line-row { min-height: 92rpx; border-bottom: 2rpx solid #eee4da; }
+.strong { color: #352d27; font-weight: 850; }
+.muted, .empty-copy { margin-top: 6rpx; color: #82766c; font-size: 23rpx; }
+.text-action { flex: none; padding: 0 16rpx; color: #d76552; }
+.safe-action-bar { position: fixed; right: auto; bottom: 0; left: 50%; width: 100%; max-width: 720px; padding: 18rpx 28rpx calc(18rpx + env(safe-area-inset-bottom)); border-top: 2rpx solid #e2d6ca; background: rgba(255,250,244,.97); box-sizing: border-box; transform: translateX(-50%); z-index: 20; }
+.save-action { border-radius: 16rpx; background: #e87561; color: #fff; font-weight: 900; }
+@media (max-width: 320px) { .image-row { align-items: stretch; } .line-row { align-items: flex-start; } }

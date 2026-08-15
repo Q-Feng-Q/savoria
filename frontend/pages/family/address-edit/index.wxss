@@ -1,0 +1,32 @@
+.form-panel {
+  margin-top: 26rpx;
+}
+
+.default-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-height: 72rpx;
+  margin-top: 8rpx;
+  color: #261c14;
+  font-size: 26rpx;
+  font-weight: 850;
+}
+
+.default-check {
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 10rpx;
+  border: 2rpx solid rgba(69, 191, 144, 0.42);
+  background: #fffdf8;
+}
+
+.default-check.checked {
+  background: #45bf90;
+  box-shadow: inset 0 0 0 8rpx #fffdf8;
+}
+
+.save-button {
+  width: 100%;
+  margin-top: 28rpx;
+}

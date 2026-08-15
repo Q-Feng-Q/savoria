@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.common.security.IdentityContextMapper">
+  <select id="findIdentity" resultType="com.familykitchen.common.security.IdentityContextRow">
+    SELECT u.id AS user_id, f.id AS family_id, m.id AS merchant_id, fur.family_role
+    FROM users u
+    LEFT JOIN family_user_relations fur ON fur.user_id=u.id AND fur.status='ACTIVE'
+    LEFT JOIN families f ON f.id=fur.family_id AND f.status='active'
+    LEFT JOIN merchant_user_relations mur ON mur.user_id=u.id AND mur.status='ACTIVE'
+    LEFT JOIN merchants m ON m.id=mur.merchant_id AND m.status='active'
+    WHERE u.id=#{userId} AND u.status IN ('ACTIVE','CANCELLING')
+    ORDER BY mur.id LIMIT 1
+  </select>
+  <select id="findPlatformRoles" resultType="string">
+    SELECT role_code FROM user_role_relations WHERE user_id=#{userId} AND status='ACTIVE'
+  </select>
+  <select id="findMerchantScopes" resultType="string">
+    SELECT merchant_role FROM merchant_user_relations
+    WHERE user_id=#{userId} AND merchant_id=#{merchantId} AND status='ACTIVE'
+  </select>
+</mapper>

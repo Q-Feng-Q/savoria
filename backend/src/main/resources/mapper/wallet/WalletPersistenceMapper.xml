@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.wallet.mapper.WalletPersistenceMapper">
+  <resultMap id="WalletAccountMap" type="com.familykitchen.wallet.model.entity.WalletAccountDO">
+    <id property="memberId" column="user_id"/>
+    <result property="balanceAmount" column="balance_amount"/>
+    <result property="frozenAmount" column="frozen_amount"/>
+  </resultMap>
+  <resultMap id="WalletLedgerMap" type="com.familykitchen.wallet.model.entity.WalletLedgerDO">
+    <id property="id" column="id"/>
+    <result property="memberId" column="user_id"/>
+    <result property="type" column="type"/>
+    <result property="amount" column="amount"/>
+    <result property="balanceBefore" column="balance_before"/>
+    <result property="balanceAfter" column="balance_after"/>
+    <result property="frozenBefore" column="frozen_before"/>
+    <result property="frozenAfter" column="frozen_after"/>
+    <result property="remark" column="remark"/>
+    <result property="createdAt" column="created_at"/>
+  </resultMap>
+
+  <select id="selectWalletsByMemberIds" resultMap="WalletAccountMap">
+    select user_id, balance_amount, frozen_amount
+    from member_wallets
+    where user_id in
+    <foreach collection="memberIds" item="memberId" open="(" separator="," close=")">
+      #{memberId}
+    </foreach>
+  </select>
+
+  <select id="selectWalletsByMemberIdsForUpdate" resultMap="WalletAccountMap">
+    select user_id, balance_amount, frozen_amount
+    from member_wallets
+    where user_id in
+    <foreach collection="memberIds" item="memberId" open="(" separator="," close=")">
+      #{memberId}
+    </foreach>
+    order by user_id
+    for update
+  </select>
+
+  <select id="selectWalletByMemberId" resultMap="WalletAccountMap">
+    select user_id, balance_amount, frozen_amount
+    from member_wallets
+    where user_id = #{memberId}
+  </select>
+
+  <update id="updateWalletAmounts">
+    update member_wallets
+    set balance_amount = #{balanceAmount},
+        frozen_amount = #{frozenAmount}
+    where user_id = #{memberId}
+  </update>
+
+  <insert id="insertWalletLedger" parameterType="com.familykitchen.wallet.model.entity.WalletLedgerDO" useGeneratedKeys="true" keyProperty="id">
+    insert into wallet_ledgers (
+      user_id, type, amount, balance_before, balance_after, frozen_before, frozen_after, remark
+    ) values (
+      #{memberId}, #{type}, #{amount}, #{balanceBefore}, #{balanceAfter}, #{frozenBefore}, #{frozenAfter}, #{remark}
+    )
+  </insert>
+
+  <select id="selectWalletLedgers" resultMap="WalletLedgerMap">
+    select id, user_id, type, amount, balance_before, balance_after, frozen_before, frozen_after, remark, created_at
+    from wallet_ledgers
+    where user_id = #{memberId}
+    order by id desc
+  </select>
+</mapper>

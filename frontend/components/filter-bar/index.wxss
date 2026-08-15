@@ -1,0 +1,1 @@
+.filter-bar{display:flex;align-items:center;gap:12rpx;min-height:82rpx;padding:8rpx 16rpx;border:2rpx solid #e6d5bf;border-radius:28rpx;background:#fffdf8;box-shadow:none;box-sizing:border-box}.filter-bar--compact{min-height:70rpx;padding-top:6rpx;padding-bottom:6rpx}

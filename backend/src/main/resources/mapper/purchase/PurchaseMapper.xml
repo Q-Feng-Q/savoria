@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.purchase.mapper.PurchaseMapper">
+  <resultMap id="PurchaseDemandRowMap" type="com.familykitchen.purchase.model.entity.PurchaseDemandRow">
+    <result property="familyId" column="family_id"/>
+    <result property="mealSlotId" column="meal_slot_id"/>
+    <result property="orderId" column="order_id"/>
+    <result property="dishId" column="dish_id"/>
+    <result property="serviceDate" column="service_date"/>
+    <result property="orderStatus" column="order_status"/>
+    <result property="ingredientName" column="ingredient_name"/>
+    <result property="quantity" column="quantity"/>
+    <result property="unit" column="unit"/>
+    <result property="calcType" column="calc_type"/>
+    <result property="dishQuantity" column="dish_quantity"/>
+  </resultMap>
+
+  <resultMap id="TempItemMap" type="com.familykitchen.purchase.model.entity.TempPurchaseItemEntity">
+    <id property="id" column="id"/>
+    <result property="merchantId" column="merchant_id"/>
+    <result property="serviceDate" column="service_date"/>
+    <result property="mealSlotId" column="meal_slot_id"/>
+    <result property="familyId" column="family_id"/>
+    <result property="ingredientName" column="ingredient_name"/>
+    <result property="quantity" column="quantity"/>
+    <result property="unit" column="unit"/>
+    <result property="remark" column="remark"/>
+    <result property="checked" column="checked"/>
+  </resultMap>
+
+  <select id="selectOrderPurchaseRows" resultMap="PurchaseDemandRowMap">
+    select o.family_id,
+           o.meal_slot_id,
+           o.id as order_id,
+           oi.dish_id,
+           o.service_date,
+           o.status as order_status,
+           di.ingredient_name,
+           di.quantity,
+           di.unit,
+           di.calc_type,
+           oi.quantity as dish_quantity
+    from orders o
+    join order_items oi on oi.order_id = o.id
+    join dish_ingredients di on di.dish_id = oi.dish_id
+    where o.merchant_id = #{merchantId}
+      and o.service_date = #{date}
+      and o.status not in ('CANCELLED', 'REJECTED')
+    <if test="!includePending">
+      and o.status != 'PENDING'
+    </if>
+    order by o.family_id asc, o.meal_slot_id asc, o.id asc
+  </select>
+
+  <select id="selectTempItems" resultMap="TempItemMap">
+    select id, merchant_id, service_date, meal_slot_id, family_id, ingredient_name, quantity, unit, remark, checked
+    from temp_purchase_items
+    where merchant_id = #{merchantId}
+      and service_date = #{date}
+    <if test="familyId != null">
+      and (family_id = #{familyId} or family_id is null)
+    </if>
+    order by checked asc, id asc
+  </select>
+
+  <select id="selectAllTempItems" resultMap="TempItemMap">
+    select id, merchant_id, service_date, meal_slot_id, family_id, ingredient_name, quantity, unit, remark, checked
+    from temp_purchase_items
+    where merchant_id = #{merchantId}
+      and service_date = #{date}
+    order by checked asc, id asc
+  </select>
+
+  <update id="updateTempChecked">
+    update temp_purchase_items
+    set checked = #{checked}
+    where merchant_id = #{merchantId} and id = #{itemId}
+  </update>
+
+  <insert id="insertTempItem" parameterType="com.familykitchen.purchase.model.entity.TempPurchaseItemEntity" useGeneratedKeys="true" keyProperty="id">
+    insert into temp_purchase_items (merchant_id, service_date, meal_slot_id, family_id, ingredient_name, quantity, unit, remark, checked)
+    values (#{merchantId}, #{serviceDate}, #{mealSlotId}, #{familyId}, #{ingredientName}, #{quantity}, #{unit}, #{remark}, #{checked})
+  </insert>
+
+  <delete id="deleteTempItem">
+    delete from temp_purchase_items where merchant_id = #{merchantId} and id = #{itemId}
+  </delete>
+</mapper>

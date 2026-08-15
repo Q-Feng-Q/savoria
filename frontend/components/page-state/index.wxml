@@ -1,0 +1,16 @@
+<view wx:if="{{phase === 'loading'}}" class="warm-component warm-state page-state page-state--loading" aria-label="页面加载中">
+  <view class="skeleton skeleton--title"></view>
+  <view class="skeleton"></view>
+  <view class="skeleton skeleton--short"></view>
+</view>
+
+<view wx:elif="{{phase === 'empty' || phase === 'error'}}" class="warm-component warm-state page-state page-state--{{phase}}">
+  <view class="page-state__art" aria-hidden="true">
+    <image wx:if="{{phase === 'error'}}" class="page-state__animal page-state__animal--{{illustration}}" src="/assets/brand/scenes/network-error.webp" mode="aspectFit" />
+    <image wx:else class="page-state__animal page-state__animal--{{illustration}}" src="/assets/brand/scenes/empty-order.webp" mode="aspectFit" />
+  </view>
+  <text class="page-state__title">{{title}}</text>
+  <text class="page-state__description">{{description}}</text>
+  <view wx:if="{{phase === 'error'}}" class="ui-button page-state__retry" bindtap="retry" aria-role="button" aria-label="{{retryText}}" hover-class="ui-button--pressed" hover-stay-time="80">{{retryText}}</view>
+</view>
+

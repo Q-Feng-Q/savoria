@@ -1,0 +1,37 @@
+<view class="warm-page warm-page--management warm-state-host families-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="orders" bind:retry="retryLoad" />
+
+  <view wx:else class="families-content">
+    <view class="families-header">
+      <view>
+        <text class="families-eyebrow">商户工作台</text>
+        <text class="families-title">服务家庭</text>
+      </view>
+      <text class="families-count">{{familyCount}} 户</text>
+    </view>
+
+    <view class="family-list">
+      <block wx:for="{{families}}" wx:key="id">
+        <view class="family-row">
+          <view class="family-row__top">
+            <text class="family-name">{{item.name}}</text>
+            <text class="service-state">{{item.serviceStateText}}</text>
+          </view>
+          <text class="family-meta">{{item.memberCountText}} · {{item.addressCountText}}</text>
+          <text class="family-meta">{{item.defaultAddressText}}</text>
+          <text class="family-meta">{{item.deliveryText}}</text>
+          <view class="menu-status menu-status--{{item.menuStatus}}" aria-label="菜单状态：{{item.menuStatusText}}">
+            <text class="menu-status__label">菜单状态</text>
+            <text>{{item.menuStatusText}}</text>
+          </view>
+          <view class="family-actions">
+            <view class="ui-button family-action family-action--quiet" data-id="{{item.id}}" bindtap="openFamilyDetail" aria-role="button" aria-label="查看家庭" hover-class="ui-button--pressed" hover-stay-time="80">查看家庭</view>
+            <view class="ui-button family-action" data-id="{{item.id}}" bindtap="openFamilyMenu" aria-role="button" aria-label="配置菜单" hover-class="ui-button--pressed" hover-stay-time="80">配置菜单</view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+</view>
+<merchant-workbench-nav active="families" />

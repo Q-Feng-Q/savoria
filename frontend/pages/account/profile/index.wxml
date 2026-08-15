@@ -1,0 +1,31 @@
+<view class="warm-page warm-state-host profile-page concept-page" wx:if="{{context}}">
+  <view class="design-profile-banner profile-dashboard profile-dashboard--animal warm-profile-portrait">
+    <image class="profile-banner__art profile-animal warm-profile-portrait__art" src="/assets/brand/animal-mascot-trio.webp" mode="aspectFill" />
+    <view class="profile-banner__veil warm-profile-portrait__veil"></view>
+    <view class="warm-profile-portrait__welcome"><text class="warm-profile-portrait__welcome-kicker">暖暖动物私厨</text><text class="warm-profile-portrait__welcome-title">{{isUnbound ? '先认识一下新家' : '今天也一起好好吃饭'}}</text></view>
+    <view class="profile-banner__identity warm-profile-portrait__identity">
+      <view class="profile-avatar">{{avatarInitial}}</view>
+      <view class="profile-hero__copy"><text class="profile-kicker">橘猫试吃员欢迎你</text><text class="profile-name">{{accountProfile.nickname || context.member.name}}</text><text class="profile-account">@{{accountProfile.username}} · {{sessionLabel}}</text></view>
+      <view class="profile-switch-link" aria-role="button" aria-label="切换账号或身份" hover-class="profile-switch-link--pressed" hover-stay-time="80" bindtap="switchIdentity">切换账号/身份</view>
+    </view>
+  </view>
+
+  <view wx:if="{{!isUnbound}}" class="profile-family-summary" bindtap="openFamilyManagement">
+    <view class="profile-family-summary__icon">🏡</view>
+    <view class="profile-family-summary__copy"><text class="profile-family-summary__name">{{context.family.name}}</text><text class="profile-family-summary__meta">{{summaryCards[0].value}} 个地址 · 家庭餐桌</text></view>
+    <text class="profile-family-summary__arrow">›</text>
+  </view>
+
+  <view wx:if="{{isUnbound}}" class="family-guide"><view class="family-guide__copy"><text class="family-guide__eyebrow">一起开饭</text><text class="family-guide__title">还差一步开启家庭餐桌</text><text class="family-guide__note">创建新家庭，或使用家人分享的邀请码加入。</text></view><action-button label="开始设置家庭" block bind:action="openFamilyStart" /></view>
+
+  <view class="profile-settings-group profile-section">
+    <text class="profile-section__title">账号与身份</text>
+    <view class="profile-row" aria-role="button" aria-label="个人资料" hover-class="profile-row--pressed" hover-stay-time="80" bindtap="openProfileEdit"><view class="profile-row__lead"><text class="profile-row__icon">●</text><text>个人资料</text></view><view class="profile-row__tail"><text class="profile-row__edit">编辑资料</text><text class="profile-row__value">{{accountProfile.mobile || '待完善'}} ›</text></view></view>
+    <view class="profile-row" aria-role="button" aria-label="账户与安全" hover-class="profile-row--pressed" hover-stay-time="80" bindtap="openAccountSecurity"><view class="profile-row__lead"><text class="profile-row__icon">◆</text><text>账户与安全</text></view><text class="profile-row__value">{{accountProfile.emailVerified || accountProfile.wechatBound ? '已绑定' : '待完善'}} ›</text></view>
+    <view class="profile-row" aria-role="button" aria-label="账号管理" hover-class="profile-row--pressed" hover-stay-time="80" bindtap="switchIdentity"><view class="profile-row__lead"><text class="profile-row__icon">↔</text><text>账号管理</text></view><text class="profile-row__value">切换身份 ›</text></view>
+  </view>
+
+  <view class="profile-settings-group profile-section"><group-menu groups="{{menuGroups}}" bind:select="selectMenu" /></view>
+
+  <view class="profile-settings-group profile-section profile-section--plain"><view class="profile-row profile-row--danger" aria-role="button" aria-label="退出登录" hover-class="profile-row--pressed" hover-stay-time="80" bindtap="logoutExperience"><text>退出登录</text></view></view>
+</view>

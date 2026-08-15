@@ -1,0 +1,46 @@
+<view class="warm-page warm-state-host page notifications-page" wx:if="{{context}}">
+  <view class="hero notify-hero">
+    <text class="eyebrow">{{actorType === 'merchant' ? '商户消息' : '账号通知'}}</text>
+    <text class="title">通知中心</text>
+    <text class="subtitle">{{actorType === 'merchant' ? '接单、采购和余额提醒都会收在这里。' : '家庭申请、邀请、订单和配送变化都会在这里提醒。'}}</text>
+  </view>
+
+  <view class="panel summary-panel">
+    <view>
+      <text class="summary-label">未读消息</text>
+      <text class="summary-value">{{unreadCount}}</text>
+    </view>
+    <view class="ui-button button secondary summary-button" bindtap="markAllRead" aria-role="button" aria-label="全部已读" hover-class="ui-button--pressed" hover-stay-time="80">全部已读</view>
+  </view>
+
+  <text class="section-title">未读</text>
+  <view wx:if="{{!unreadItems.length}}" class="empty">现在没有新的提醒了。</view>
+  <view wx:else class="list">
+    <block wx:for="{{unreadItems}}" wx:key="id">
+      <view class="panel notify-card unread" data-id="{{item.id}}" bindtap="markRead">
+        <view class="row between">
+          <text class="notify-title">{{item.title}}</text>
+          <text class="notify-tag">{{item.categoryLabel}}</text>
+        </view>
+        <text class="notify-content">{{item.content}}</text>
+        <text class="notify-time">{{item.createdAt}}</text>
+      </view>
+    </block>
+  </view>
+
+  <text class="section-title">已读</text>
+  <view wx:if="{{!readItems.length}}" class="empty">还没有已读消息。</view>
+  <view wx:else class="list">
+    <block wx:for="{{readItems}}" wx:key="id">
+      <view class="panel notify-card">
+        <view class="row between">
+          <text class="notify-title">{{item.title}}</text>
+          <text class="notify-tag muted-tag">{{item.categoryLabel}}</text>
+        </view>
+        <text class="notify-content">{{item.content}}</text>
+        <text class="notify-time">{{item.createdAt}}</text>
+      </view>
+    </block>
+  </view>
+</view>
+

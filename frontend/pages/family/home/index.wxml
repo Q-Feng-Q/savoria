@@ -1,0 +1,50 @@
+<view class="warm-page warm-state-host home-page concept-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="首页暂时没准备好" description="{{errorMessage || '小熊主厨正在准备今天的家庭餐桌'}}" illustration="orders" bind:retry="load" />
+  <block wx:else>
+    <view class="design-home-hero home-story warm-home-poster">
+      <image class="home-hero__scene home-story__scene warm-home-poster__scene" src="/assets/brand/animal-kitchen-hero.webp" mode="aspectFill" />
+      <view class="home-hero__veil home-story__veil warm-home-poster__veil"></view>
+      <view class="home-hero__copy home-story__copy warm-home-poster__copy">
+        <text class="home-hero__eyebrow home-story__brand">食光知味 · 暖暖动物私厨</text>
+        <text class="home-hero__title home-story__title">一家人的\n今日餐桌</text>
+        <text class="home-hero__note home-story__note">{{context.family.name}} · 小厨房，大满足</text>
+        <view class="ui-button home-hero__action home-story__action" bindtap="openMenu" aria-role="button" aria-label="去看看今天吃什么 →" hover-class="ui-button--pressed" hover-stay-time="80">去看看今天吃什么 <text>→</text></view>
+      </view>
+      <view class="home-story__mascot warm-home-poster__status"><text>{{currentMemberName}}</text><text>正在开饭</text></view>
+    </view>
+
+    <view class="home-role-strip animal-crew sk-stagger-in">
+      <view class="home-role"><view class="home-role__badge home-role__badge--bear">熊</view><view><text>小熊主厨</text><text>暖心掌勺</text></view></view>
+      <view class="home-role"><view class="home-role__badge home-role__badge--rabbit">兔</view><view><text>兔子帮厨</text><text>今日配菜</text></view></view>
+      <view class="home-role"><view class="home-role__badge home-role__badge--cat">猫</view><view><text>橘猫试吃员</text><text>进度提醒</text></view></view>
+    </view>
+
+    <view class="home-table-summary today-board sk-stagger-in">
+      <view class="home-summary__item today-board__item"><text>当前餐次</text><text>{{mealSummary.label}}</text><text>{{mealSummary.time}}</text></view>
+      <view class="home-summary__item today-board__item"><text>家庭餐篮</text><text>{{cartSummary.value}}</text><text>继续加菜</text></view>
+      <view class="home-summary__item today-board__item today-board__item--accent"><text>订单状态</text><text>{{orderSummary.statusLabel}}</text><text>及时提醒</text></view>
+    </view>
+
+    <view wx:if="{{featuredDish}}" class="home-recommendation featured-story sk-stagger-in" data-id="{{featuredDish.id}}" bindtap="openDishDetail">
+      <view class="home-recommendation__copy featured-story__copy">
+        <text class="home-recommendation__eyebrow section-kicker">小熊主厨今天推荐</text>
+        <text class="home-recommendation__title featured-story__title">{{featuredDish.name}}</text>
+        <text class="home-recommendation__note featured-story__note">慢火炖煮 · 家庭人气菜</text>
+        <text class="home-recommendation__price featured-story__price">{{featuredDish.priceText}}</text>
+      </view>
+      <view class="home-recommendation__plate featured-story__plate"><image class="home-recommendation__image featured-story__image" src="{{featuredDish.imageUrl || '/assets/brand/dish-placeholder.png'}}" mode="aspectFill" /></view>
+    </view>
+
+    <view class="home-service-section service-section sk-stagger-in">
+      <view class="home-section-head section-heading"><view><text>家里常用</text><text>把今天的餐桌安排明白</text></view><text>{{dailyQuote}}</text></view>
+      <view class="home-service-list service-dock">
+        <view wx:for="{{quickEntries}}" wx:key="key" class="home-service-row service-link" data-key="{{item.key}}" aria-role="button" aria-label="{{item.label}}，{{item.note}}" hover-class="home-service-row--pressed" hover-stay-time="80" bindtap="openQuickEntry">
+          <view class="home-service-row__number service-link__mark">{{index + 1}}</view>
+          <view class="home-service-row__copy service-link__copy"><text class="home-service-row__label service-link__label">{{item.label}}</text><text class="home-service-row__note service-link__note">{{item.note}}</text></view>
+          <text class="home-service-row__arrow service-link__arrow">›</text>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>
+

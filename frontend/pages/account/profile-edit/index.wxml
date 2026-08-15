@@ -1,0 +1,7 @@
+<view class="warm-page warm-page--form warm-state-host warm-submit-state account-form-page">
+  <view class="account-form-avatar">{{avatarInitial}}</view>
+  <label class="account-field"><text>昵称</text><input value="{{form.nickname}}" data-field="nickname" bindinput="input" maxlength="80" /></label>
+  <label class="account-field"><text>头像地址</text><input value="{{form.avatarUrl}}" data-field="avatarUrl" bindinput="input" placeholder="选填" /></label>
+  <label wx:if="{{mobileBindingEnabled}}" class="account-field"><text>手机号</text><input value="{{form.mobile}}" data-field="mobile" bindinput="input" type="number" maxlength="32" /></label>
+  <action-button label="保存资料" loading="{{saving}}" disabled="{{saving}}" block bind:action="save" />
+</view>

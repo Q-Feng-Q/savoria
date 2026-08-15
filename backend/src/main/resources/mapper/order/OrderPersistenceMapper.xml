@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.order.mapper.OrderPersistenceMapper">
+  <resultMap id="OrderRecordMap" type="com.familykitchen.order.model.entity.OrderRecordEntity">
+    <id property="id" column="id"/>
+    <result property="merchantId" column="merchant_id"/>
+    <result property="familyId" column="family_id"/>
+    <result property="submitterMemberId" column="submitter_user_id"/>
+    <result property="mealSlotId" column="meal_slot_id"/>
+    <result property="serviceDate" column="service_date"/>
+    <result property="deliveryMode" column="delivery_mode"/>
+    <result property="deliveryFee" column="delivery_fee"/>
+    <result property="deliveryFeePayerMemberId" column="delivery_fee_payer_user_id"/>
+    <result property="status" column="status"/>
+    <result property="totalAmount" column="total_amount"/>
+    <result property="remark" column="remark"/>
+    <result property="cancelReason" column="cancel_reason"/>
+  </resultMap>
+  <resultMap id="OrderItemMap" type="com.familykitchen.order.model.entity.OrderItemEntity">
+    <result property="orderId" column="order_id"/>
+    <result property="dishId" column="dish_id"/>
+    <result property="ownerMemberId" column="owner_user_id"/>
+    <result property="dishNameSnapshot" column="dish_name_snapshot"/>
+    <result property="price" column="price"/>
+    <result property="quantity" column="quantity"/>
+    <result property="amount" column="amount"/>
+    <result property="itemRemark" column="item_remark"/>
+  </resultMap>
+  <resultMap id="OrderDeliverySnapshotMap" type="com.familykitchen.order.model.entity.OrderDeliverySnapshotEntity">
+    <result property="orderId" column="order_id"/>
+    <result property="contactName" column="contact_name"/>
+    <result property="contactPhone" column="contact_phone"/>
+    <result property="addressText" column="address_text"/>
+  </resultMap>
+
+  <sql id="OrderColumns">id, merchant_id, family_id, submitter_user_id, meal_slot_id, service_date, delivery_mode, delivery_fee, delivery_fee_payer_user_id, status, total_amount, remark, cancel_reason</sql>
+
+  <insert id="insertOrder" parameterType="com.familykitchen.order.model.entity.OrderRecordEntity"
+          useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    insert into orders (merchant_id, family_id, submitter_user_id, meal_slot_id, service_date,
+      delivery_mode, delivery_fee, delivery_fee_payer_user_id, status, total_amount, remark, cancel_reason)
+    values (#{merchantId}, #{familyId}, #{submitterMemberId}, #{mealSlotId}, #{serviceDate},
+      #{deliveryMode}, #{deliveryFee}, #{deliveryFeePayerMemberId}, #{status}, #{totalAmount}, #{remark}, #{cancelReason})
+  </insert>
+
+  <select id="selectOrdersByFamilyId" resultMap="OrderRecordMap">
+    select <include refid="OrderColumns"/>
+    from orders where family_id = #{familyId}
+    order by id desc
+  </select>
+
+  <select id="selectOrdersByMerchantId" resultMap="OrderRecordMap">
+    select <include refid="OrderColumns"/>
+    from orders where merchant_id = #{merchantId}
+    order by id desc
+  </select>
+
+  <select id="selectOrderByFamilyId" resultMap="OrderRecordMap">
+    select <include refid="OrderColumns"/>
+    from orders where family_id = #{familyId} and id = #{orderId}
+  </select>
+
+  <select id="selectOrderByMerchantId" resultMap="OrderRecordMap">
+    select <include refid="OrderColumns"/>
+    from orders where merchant_id = #{merchantId} and id = #{orderId}
+  </select>
+
+  <select id="selectOrderItemsByOrderIds" resultMap="OrderItemMap">
+    select order_id, dish_id, owner_user_id, dish_name_snapshot, price, quantity, amount, item_remark
+    from order_items
+    where order_id in
+    <foreach collection="orderIds" item="orderId" open="(" separator="," close=")">
+      #{orderId}
+    </foreach>
+    order by id asc
+  </select>
+
+  <select id="selectDeliverySnapshotsByOrderIds" resultMap="OrderDeliverySnapshotMap">
+    select order_id, contact_name, contact_phone, address_text
+    from order_delivery_snapshots
+    where order_id in
+    <foreach collection="orderIds" item="orderId" open="(" separator="," close=")">
+      #{orderId}
+    </foreach>
+  </select>
+
+  <update id="updateOrder" parameterType="com.familykitchen.order.model.entity.OrderRecordEntity">
+    update orders
+    set delivery_mode = #{deliveryMode},
+        delivery_fee = #{deliveryFee},
+        status = #{status},
+        total_amount = #{totalAmount},
+        remark = #{remark},
+        cancel_reason = #{cancelReason}
+    where id = #{id}
+  </update>
+
+  <delete id="deleteOrderItems">
+    delete from order_items where order_id = #{orderId}
+  </delete>
+
+  <insert id="insertOrderItem" parameterType="com.familykitchen.order.model.entity.OrderItemEntity">
+    insert into order_items (order_id, dish_id, owner_user_id, dish_name_snapshot, price, quantity, amount, item_remark)
+    values (#{orderId}, #{dishId}, #{ownerMemberId}, #{dishNameSnapshot}, #{price}, #{quantity}, #{amount}, #{itemRemark})
+  </insert>
+
+  <delete id="deleteDeliverySnapshot">
+    delete from order_delivery_snapshots where order_id = #{orderId}
+  </delete>
+
+  <insert id="insertDeliverySnapshot" parameterType="com.familykitchen.order.model.entity.OrderDeliverySnapshotEntity">
+    insert into order_delivery_snapshots (order_id, contact_name, contact_phone, address_text)
+    values (#{orderId}, #{contactName}, #{contactPhone}, #{addressText})
+  </insert>
+</mapper>

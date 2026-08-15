@@ -1,0 +1,12 @@
+<view class="warm-page recovery-page">
+  <brand-scene title="找回餐桌钥匙" subtitle="用绑定邮箱重新设置密码" character="welcome" />
+  <view class="recovery-form">
+    <text class="recovery-title">验证你的邮箱</text>
+    <text class="recovery-note">验证码发送后，请在有效期内完成密码重置。</text>
+    <label class="recovery-field"><text>绑定邮箱</text><input value="{{email}}" data-field="email" bindinput="input" placeholder="name@example.com" /></label>
+    <view class="code-row"><input value="{{code}}" data-field="code" bindinput="input" placeholder="邮箱验证码" /><view class="code-action {{sending ? 'is-disabled' : ''}}" bindtap="sendCode" aria-role="button" aria-disabled="{{sending}}">{{sending ? '发送中…' : (codeSent ? '重新发送' : '发送验证码')}}</view></view>
+    <label class="recovery-field"><text>新密码</text><input password value="{{newPassword}}" data-field="newPassword" bindinput="input" placeholder="至少 6 位" /></label>
+    <label class="recovery-field"><text>确认新密码</text><input password value="{{confirmPassword}}" data-field="confirmPassword" bindinput="input" placeholder="再次输入新密码" /></label>
+    <action-button label="{{saving ? '重置中…' : '确认重置密码'}}" loading="{{saving}}" disabled="{{saving}}" block bind:action="submit" />
+  </view>
+</view>

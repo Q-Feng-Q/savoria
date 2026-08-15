@@ -1,0 +1,102 @@
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+
+.summary-card {
+  min-height: 148rpx;
+  padding: 22rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 253, 0.96);
+  border: 2rpx solid rgba(241, 223, 200, 0.72);
+  box-shadow: 0 14rpx 34rpx rgba(132, 95, 52, 0.08);
+  box-sizing: border-box;
+}
+
+.summary-label,
+.summary-value,
+.summary-note {
+  display: block;
+}
+
+.summary-label {
+  color: #8f7865;
+  font-size: 22rpx;
+  font-weight: 850;
+}
+
+.summary-value {
+  margin-top: 12rpx;
+  color: #261c14;
+  font-size: 34rpx;
+  line-height: 1.12;
+  font-weight: 950;
+}
+
+.summary-note {
+  margin-top: 10rpx;
+  color: #8f7865;
+  font-size: 22rpx;
+  line-height: 1.35;
+}
+
+.section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.compact-title {
+  margin-bottom: 0;
+}
+
+.ledger-button {
+  min-width: 164rpx;
+}
+
+.tx-title,
+.tx-note,
+.tx-time,
+.tx-amount,
+.tx-status {
+  display: block;
+}
+
+.tx-title {
+  color: #261c14;
+  font-size: 30rpx;
+  font-weight: 950;
+}
+
+.tx-note {
+  margin-top: 10rpx;
+  color: #8f7865;
+  font-size: 24rpx;
+}
+
+.tx-side {
+  text-align: right;
+}
+
+.tx-amount {
+  font-size: 30rpx;
+  font-weight: 950;
+}
+
+.tx-amount.income {
+  color: #218d68;
+}
+
+.tx-amount.expense {
+  color: #e27942;
+}
+
+.tx-status,
+.tx-time {
+  margin-top: 8rpx;
+  color: #9a8a7b;
+  font-size: 22rpx;
+}

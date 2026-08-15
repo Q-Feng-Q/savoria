@@ -1,0 +1,10 @@
+{
+  "name": "shi-guang-zhi-wei-mini-program",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node dev-proxy.js",
+    "proxy": "node dev-proxy.js",
+    "test": "node --test tests"
+  }
+}

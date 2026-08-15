@@ -1,0 +1,70 @@
+<view class="warm-page warm-page--management warm-state-host family-detail-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="orders" bind:retry="retryLoad" />
+
+  <view wx:else class="detail-content">
+    <view class="detail-header">
+      <text class="detail-eyebrow">家庭概览</text>
+      <text class="detail-title">{{family.name}}</text>
+      <text class="detail-copy">{{family.note}}</text>
+      <text class="detail-copy">{{family.defaultAddressText}}</text>
+    </view>
+
+    <view class="detail-section">
+      <text class="section-heading">配送规则</text>
+      <view class="detail-line"><text>配送状态</text><text>{{family.deliverySummary}}</text></view>
+      <view class="detail-actions">
+        <view class="ui-button detail-action {{deliveryBusy ? 'is-disabled' : ''}}" bindtap="toggleDeliveryEnabled" aria-role="button" aria-label="切换配送状态" aria-disabled="{{deliveryBusy}}" hover-class="ui-button--pressed" hover-stay-time="80">{{family.deliveryEnabled ? '关闭配送' : '开启配送'}}</view>
+        <view class="ui-button detail-action detail-action--quiet {{deliveryBusy ? 'is-disabled' : ''}}" bindtap="toggleDeliveryFree" aria-role="button" aria-label="切换免配送费" aria-disabled="{{deliveryBusy}}" hover-class="ui-button--pressed" hover-stay-time="80">{{family.deliveryFeeFree ? '取消免配送费' : '设为免配送费'}}</view>
+      </view>
+      <view class="fee-line">
+        <input class="fee-input" type="digit" value="{{feeInput}}" bindinput="bindFeeInput" aria-label="默认配送费" />
+        <view class="ui-button detail-action {{deliveryBusy ? 'is-disabled' : ''}}" bindtap="saveDeliveryFee" aria-role="button" aria-label="保存配送费" aria-disabled="{{deliveryBusy}}" hover-class="ui-button--pressed" hover-stay-time="80">{{deliveryBusy ? '保存中…' : '保存配送费'}}</view>
+      </view>
+    </view>
+
+    <view class="detail-section">
+      <text class="section-heading">成员与余额</text>
+      <text wx:if="{{optionalStates.ledger.phase === 'loading'}}" class="empty-line">正在加载余额流水…</text>
+      <view wx:elif="{{optionalStates.ledger.phase === 'error'}}" class="local-state">
+        <text>{{optionalStates.ledger.message}}</text><view class="ui-button local-retry" bindtap="retryLedger" aria-role="button" aria-label="重试流水" hover-class="ui-button--pressed" hover-stay-time="80">重试流水</view>
+      </view>
+      <block wx:for="{{members}}" wx:key="id">
+        <view class="member-row">
+          <view class="detail-line"><text class="strong">{{item.name}}</text><text>{{item.roleText}}</text></view>
+          <text class="detail-copy">{{item.balanceText}} · {{item.frozenText}}</text>
+          <text wx:if="{{item.warningText}}" class="low-balance">余额偏低 · {{item.warningText}}</text>
+          <view class="member-actions">
+            <input class="amount-input" type="digit" value="{{memberAdjustValues[item.id]}}" data-member-id="{{item.id}}" bindinput="bindMemberAdjustValue" aria-label="调整金额" />
+            <view class="ui-button compact-action" data-member-id="{{item.id}}" data-direction="increase" bindtap="adjustMemberBalance" aria-role="button" aria-label="充值余额" aria-disabled="{{busyMemberId !== null}}" hover-class="ui-button--pressed" hover-stay-time="80">充值</view>
+            <view class="ui-button compact-action" data-member-id="{{item.id}}" data-direction="decrease" bindtap="adjustMemberBalance" aria-role="button" aria-label="扣减余额" aria-disabled="{{busyMemberId !== null}}" hover-class="ui-button--pressed" hover-stay-time="80">扣减</view>
+            <view class="ui-button compact-action compact-action--quiet" data-member-id="{{item.id}}" bindtap="openMemberLedger" aria-role="button" aria-label="查看余额流水" hover-class="ui-button--pressed" hover-stay-time="80">流水</view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="detail-section">
+      <text class="section-heading">地址</text>
+      <text wx:if="{{!addresses.length}}" class="empty-line">暂无地址，请提醒家庭成员补充配送地址。</text>
+      <block wx:else>
+        <view wx:for="{{addresses}}" wx:key="id" class="address-row"><text class="strong">{{item.contactName}} · {{item.phone}}</text><text class="detail-copy">{{item.address}}</text></view>
+      </block>
+    </view>
+
+    <view class="detail-section">
+      <view class="section-top"><text class="section-heading">菜单预览</text><view class="ui-button section-link" bindtap="openFamilyMenu" aria-role="button" aria-label="配置菜单" hover-class="ui-button--pressed" hover-stay-time="80">配置菜单</view></view>
+      <text wx:if="{{optionalStates.menu.phase === 'loading'}}" class="empty-line">正在加载菜单…</text>
+      <view wx:elif="{{optionalStates.menu.phase === 'error'}}" class="local-state"><text>{{optionalStates.menu.message}}</text><view class="ui-button local-retry" bindtap="retryMenu" aria-role="button" aria-label="重试菜单" hover-class="ui-button--pressed" hover-stay-time="80">重试菜单</view></view>
+      <text wx:elif="{{optionalStates.menu.phase === 'ready' && !menuPreview.length}}" class="empty-line">暂无生效菜单，配置后家庭才可点餐。</text>
+      <block wx:else><view wx:for="{{menuPreview}}" wx:key="id" class="preview-row"><text>{{item.name}}</text><text>{{item.priceText}}</text></view></block>
+    </view>
+
+    <view class="detail-section">
+      <view class="section-top"><text class="section-heading">订单预览</text><view class="ui-button section-link" bindtap="openOrders" aria-role="button" aria-label="查看订单" hover-class="ui-button--pressed" hover-stay-time="80">查看订单</view></view>
+      <text wx:if="{{optionalStates.orders.phase === 'loading'}}" class="empty-line">正在加载订单…</text>
+      <view wx:elif="{{optionalStates.orders.phase === 'error'}}" class="local-state"><text>{{optionalStates.orders.message}}</text><view class="ui-button local-retry" bindtap="retryOrders" aria-role="button" aria-label="重试订单" hover-class="ui-button--pressed" hover-stay-time="80">重试订单</view></view>
+      <text wx:elif="{{optionalStates.orders.phase === 'ready' && !orderPreview.length}}" class="empty-line">暂无订单。</text>
+      <block wx:else><view wx:for="{{orderPreview}}" wx:key="id" class="preview-row"><view><text class="strong">{{item.orderNo}}</text><text class="detail-copy">{{item.serviceDate}} · {{item.mealLabel}}</text></view><text>{{item.statusLabel}}</text></view></block>
+    </view>
+  </view>
+</view>

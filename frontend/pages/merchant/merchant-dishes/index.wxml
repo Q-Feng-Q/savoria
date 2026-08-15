@@ -1,0 +1,44 @@
+<view class="warm-page dishes-page">
+  <view class="page-head">
+    <view>
+      <text class="eyebrow">菜品工作台</text>
+      <text class="page-title">菜品管理</text>
+      <text class="page-copy">维护价格、分类与上架状态</text>
+    </view>
+    <view class="page-actions">
+      <view class="ui-button secondary-action" bindtap="openDishTemplates" aria-role="button" aria-label="打开系统菜库" hover-class="ui-button--pressed">系统菜库</view>
+      <view class="ui-button primary-action" bindtap="openCreateDish" aria-role="button" aria-label="新增菜品" hover-class="ui-button--pressed">新增菜品</view>
+    </view>
+  </view>
+
+  <view class="tools">
+    <input class="search-input" value="{{query}}" bindinput="bindSearch" placeholder="搜索菜名、分类或状态" aria-label="搜索菜品" />
+    <view class="filter-row">
+      <view class="filter {{statusFilter === 'all' ? 'filter--active' : ''}}" data-status="all" bindtap="selectStatusFilter" aria-role="button" aria-label="全部菜品" hover-class="ui-button--pressed">全部</view>
+      <view class="filter {{statusFilter === 'active' ? 'filter--active' : ''}}" data-status="active" bindtap="selectStatusFilter" aria-role="button" aria-label="已上架菜品" hover-class="ui-button--pressed">已上架</view>
+      <view class="filter {{statusFilter === 'inactive' ? 'filter--active' : ''}}" data-status="inactive" bindtap="selectStatusFilter" aria-role="button" aria-label="已下架菜品" hover-class="ui-button--pressed">已下架</view>
+    </view>
+    <view class="dish-tool-links"><view class="ingredient-entry" bindtap="openIngredients" aria-role="button" aria-label="打开食材库，共{{ingredientCount}}种食材" hover-class="ui-button--pressed">食材库 · {{ingredientCount}} 种</view><view wx:if="{{reviewEnabled}}" class="ingredient-entry" bindtap="openReviews" aria-role="button" aria-label="查看菜品审核记录" hover-class="ui-button--pressed">审核记录</view></view>
+  </view>
+
+  <page-state wx:if="{{phase === 'loading' || phase === 'error'}}" phase="{{phase}}" title="菜品加载中" description="{{errorMessage}}" bind:retry="retryLoad" />
+  <page-state wx:elif="{{phase === 'empty'}}" phase="empty" title="还没有菜品" description="新增第一道菜，或先整理食材库。" />
+  <view wx:else class="dish-list">
+    <view wx:if="{{!filteredDishRows.length}}" class="local-empty">没有符合当前条件的菜品</view>
+    <block wx:for="{{filteredDishRows}}" wx:key="id">
+      <view class="dish-row">
+        <image class="dish-thumb" src="{{item.imageUrl}}" mode="aspectFill" />
+        <view class="dish-main">
+          <view class="dish-heading"><text class="dish-name">{{item.name}}</text><text class="dish-price">{{item.priceText}}</text></view>
+          <text class="dish-meta">{{item.category}} · {{item.statusText}}</text>
+          <text class="dish-description">{{item.description}}</text>
+        </view>
+        <view class="row-actions">
+          <view class="row-action" data-id="{{item.id}}" bindtap="openEditDish" aria-role="button" aria-label="编辑{{item.name}}" hover-class="ui-button--pressed">编辑</view>
+          <view class="row-action row-action--status {{busyDishMap[item.id] ? 'row-action--busy' : ''}}" data-id="{{item.id}}" bindtap="toggleStatus" aria-role="button" aria-label="{{item.toggleLabel}}{{item.name}}" aria-disabled="{{busyDishMap[item.id]}}" aria-busy="{{busyDishMap[item.id]}}" hover-class="ui-button--pressed">{{busyDishMap[item.id] ? '处理中' : item.toggleLabel}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>
+<merchant-workbench-nav active="dishes" />

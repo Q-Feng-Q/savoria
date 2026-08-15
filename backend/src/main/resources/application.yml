@@ -1,0 +1,51 @@
+server:
+  port: 8080
+
+spring:
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: ""
+    password: ""
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+  application:
+    name: family-kitchen-backend
+  datasource:
+    url: jdbc:mysql://192.168.5.100:3308/family_kitchen?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 4MB
+      max-request-size: 4MB
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+mybatis:
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.familykitchen
+  configuration:
+    map-underscore-to-camel-case: true
+
+family-kitchen:
+  file-storage:
+    local-root: ./uploads
+  jwt:
+    secret: ${FAMILY_KITCHEN_JWT_SECRET:d6a4f7e9c2b8a1f3e5d7c9b1a3f5e7d9c2b4a6f8e0d2c4b6a8f0e2d4c6b8a0f2 }
+    expires-in-seconds: 7200
+  auth:
+    bootstrap-admin:
+      username: admin
+      display-name: 系统管理员
+      password: ${FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_PASSWORD:123456}
+  wechat:
+    app-id: ""
+    app-secret: ""

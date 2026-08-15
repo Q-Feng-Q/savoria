@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.dish.mapper.DishTemplateMapper">
+  <resultMap id="TemplateCategoryMap" type="com.familykitchen.dish.model.entity.DishTemplateCategoryEntity">
+    <id property="id" column="id"/><result property="code" column="code"/><result property="name" column="name"/>
+    <result property="sortOrder" column="sort_order"/><result property="enabled" column="enabled"/>
+  </resultMap>
+  <resultMap id="TemplateMap" type="com.familykitchen.dish.model.entity.DishTemplateEntity">
+    <id property="id" column="id"/><result property="templateCode" column="template_code"/>
+    <result property="categoryId" column="category_id"/><result property="categoryName" column="category_name"/>
+    <result property="name" column="name"/><result property="description" column="description"/>
+    <result property="imageUrl" column="image_url"/><result property="imageSourceUrl" column="image_source_url"/>
+    <result property="imageAuthor" column="image_author"/><result property="imageLicense" column="image_license"/>
+    <result property="referencePrice" column="reference_price"/><result property="tasteTags" column="taste_tags"/>
+    <result property="mealTags" column="meal_tags"/><result property="sortOrder" column="sort_order"/>
+    <result property="enabled" column="enabled"/><result property="imported" column="imported"/>
+    <result property="ingredientCount" column="ingredient_count"/>
+  </resultMap>
+  <resultMap id="TemplateIngredientMap" type="com.familykitchen.dish.model.entity.DishTemplateIngredientEntity">
+    <id property="id" column="id"/><result property="templateId" column="template_id"/>
+    <result property="ingredientName" column="ingredient_name"/><result property="ingredientCategory" column="ingredient_category"/>
+    <result property="quantity" column="quantity"/><result property="unit" column="unit"/>
+    <result property="calcType" column="calc_type"/><result property="sortOrder" column="sort_order"/>
+  </resultMap>
+  <sql id="TemplateColumns">
+    t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.image_url,
+    t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
+    t.sort_order,t.enabled,(d.id is not null) imported,
+    (select count(*) from dish_template_ingredients ti where ti.template_id=t.id) ingredient_count
+  </sql>
+  <sql id="TemplateFilters">
+    t.enabled=1
+    <if test="categoryId != null">and t.category_id=#{categoryId}</if>
+    <if test="keyword != null and keyword != ''">and t.name like concat('%',#{keyword},'%')</if>
+    <if test="imported != null and imported">and d.id is not null</if>
+    <if test="imported != null and !imported">and d.id is null</if>
+  </sql>
+  <select id="selectTemplateCategories" resultMap="TemplateCategoryMap">
+    select id,code,name,sort_order,enabled from dish_template_categories where enabled=1 order by sort_order,id
+  </select>
+  <select id="countTemplates" resultType="long">
+    select count(*) from dish_templates t
+    left join dishes d on d.source_template_id=t.id and d.merchant_id = #{merchantId}
+    where <include refid="TemplateFilters"/>
+  </select>
+  <select id="selectTemplates" resultMap="TemplateMap">
+    select <include refid="TemplateColumns"/> from dish_templates t
+    join dish_template_categories c on c.id=t.category_id and c.enabled=1
+    left join dishes d on d.source_template_id=t.id and d.merchant_id = #{merchantId}
+    where <include refid="TemplateFilters"/>
+    order by c.sort_order,t.sort_order,t.id limit #{offset},#{pageSize}
+  </select>
+  <select id="selectTemplate" resultMap="TemplateMap">
+    select <include refid="TemplateColumns"/> from dish_templates t
+    join dish_template_categories c on c.id=t.category_id and c.enabled=1
+    left join dishes d on d.source_template_id=t.id and d.merchant_id = #{merchantId}
+    where t.id=#{templateId} and t.enabled=1
+  </select>
+  <select id="selectTemplateIngredients" resultMap="TemplateIngredientMap">
+    select id,template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order
+    from dish_template_ingredients where template_id=#{templateId} order by sort_order,id
+  </select>
+  <select id="selectTemplatesByIds" resultMap="TemplateMap">
+    select t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.image_url,
+      t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
+      t.sort_order,t.enabled,false imported,0 ingredient_count
+    from dish_templates t join dish_template_categories c on c.id=t.category_id and c.enabled=1
+    where t.enabled=1 and t.id in <foreach collection="templateIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+    order by t.id
+  </select>
+  <select id="selectAllEnabledTemplates" resultMap="TemplateMap">
+    select t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.image_url,
+      t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
+      t.sort_order,t.enabled,false imported,0 ingredient_count
+    from dish_templates t join dish_template_categories c on c.id=t.category_id and c.enabled=1
+    where t.enabled=1
+    order by c.sort_order,t.sort_order,t.id
+  </select>
+  <select id="selectTemplateIngredientsByIds" resultMap="TemplateIngredientMap">
+    select id,template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order
+    from dish_template_ingredients where template_id in
+    <foreach collection="templateIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+    order by template_id,sort_order,id
+  </select>
+  <select id="selectImportedTemplateIds" resultType="long">
+    select source_template_id from dishes d where d.merchant_id = #{merchantId} and source_template_id in
+    <foreach collection="templateIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+  </select>
+  <select id="selectMerchantCategoryByName" resultType="com.familykitchen.dish.model.entity.DishCategoryEntity">
+    select id,merchant_id merchantId,name,sort_order sortOrder,enabled from dish_categories
+    where merchant_id=#{merchantId} and name=#{name} limit 1
+  </select>
+  <insert id="insertMerchantCategoryIgnore" parameterType="com.familykitchen.dish.model.entity.DishCategoryEntity">
+    insert ignore into dish_categories (merchant_id,name,sort_order,enabled)
+    values (#{merchantId},#{name},#{sortOrder},#{enabled})
+  </insert>
+  <insert id="insertImportedDishIgnore" parameterType="com.familykitchen.dish.model.entity.DishEntity"
+      useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    insert ignore into dishes (merchant_id,category_id,name,description,image_url,base_price,source_template_id,status)
+    values (#{merchantId},#{categoryId},#{name},#{description},#{imageUrl},#{basePrice},#{sourceTemplateId},#{status})
+  </insert>
+  <select id="selectImportedDishId" resultType="long">
+    select id from dishes where merchant_id=#{merchantId} and source_template_id=#{templateId} limit 1
+  </select>
+  <insert id="insertMerchantIngredientIgnore" parameterType="com.familykitchen.dish.model.entity.IngredientDictionaryEntity">
+    insert ignore into merchant_ingredients (merchant_id,name,category,unit)
+    values (#{merchantId},#{name},#{category},#{unit})
+  </insert>
+</mapper>
