@@ -1,0 +1,1 @@
+Component({properties:{summary:{type:String,value:''},primaryText:{type:String,value:'确认'},loading:{type:Boolean,value:false},disabled:{type:Boolean,value:false}},methods:{primary(){if (this.properties.disabled || this.properties.loading) return;this.triggerEvent('primary')}}});

@@ -1,0 +1,42 @@
+<view class="warm-page warm-state-host page wallet-page" wx:if="{{context}}">
+  <view class="hero wallet-hero">
+    <text class="eyebrow">成员余额</text>
+    <text class="title">{{context.member.name}}</text>
+    <text class="subtitle">谁点的菜扣谁的余额，提交订单后先冻结，完成后再正式扣减。</text>
+  </view>
+
+  <view class="summary-strip">
+    <block wx:for="{{balanceCards}}" wx:key="key">
+      <view class="summary-card">
+        <text class="summary-label">{{item.label}}</text>
+        <text class="summary-value">{{item.value}}</text>
+        <text class="summary-note">{{item.note}}</text>
+      </view>
+    </block>
+  </view>
+
+  <view class="section-row">
+    <text class="section-title compact-title">最近流水</text>
+    <view class="ui-button button secondary ledger-button" bindtap="openLedger" aria-role="button" aria-label="查看全部" hover-class="ui-button--pressed" hover-stay-time="80">查看全部</view>
+  </view>
+
+  <view wx:if="{{!latestTransactions.length}}" class="empty">最近还没有余额变动。</view>
+  <view wx:else class="list">
+    <block wx:for="{{latestTransactions}}" wx:key="id">
+      <view class="panel tx-card">
+        <view class="row between">
+          <view>
+            <text class="tx-title">{{item.title}}</text>
+            <text class="tx-note">{{item.note}}</text>
+          </view>
+          <view class="tx-side">
+            <text class="tx-amount {{item.amountClass}}">{{item.amountText}}</text>
+            <text class="tx-status">{{item.statusText}}</text>
+          </view>
+        </view>
+        <text class="tx-time">{{item.createdAt}}</text>
+      </view>
+    </block>
+  </view>
+</view>
+

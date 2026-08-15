@@ -1,0 +1,13 @@
+<view class="warm-component warm-brand-scene brand-scene {{compact ? 'brand-scene--compact' : ''}} {{image ? 'brand-scene--image' : ''}}">
+  <image wx:if="{{image}}" class="brand-scene__image" src="{{image}}" mode="aspectFill" />
+  <view wx:if="{{image}}" class="brand-scene__scrim"></view>
+  <view class="brand-scene__copy">
+    <text class="brand-scene__eyebrow">暖暖动物私厨</text>
+    <text class="brand-scene__title">{{title}}</text>
+    <text wx:if="{{subtitle}}" class="brand-scene__subtitle">{{subtitle}}</text>
+    <slot></slot>
+  </view>
+  <view wx:if="{{showCharacter}}" class="brand-scene__character brand-scene__character--{{character}}" aria-hidden="true">
+    <image class="brand-scene__mascots" src="/assets/brand/animal-mascot-trio.webp" mode="aspectFit" />
+  </view>
+</view>

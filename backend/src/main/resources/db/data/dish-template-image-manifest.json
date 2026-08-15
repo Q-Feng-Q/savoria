@@ -1,0 +1,4304 @@
+[
+  {
+    "id": 1,
+    "templateCode": "DISH_001",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "红烧肉",
+    "description": "红烧肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "红烧肉 中国菜 成品",
+    "imageFileName": "dish-001.jpg"
+  },
+  {
+    "id": 2,
+    "templateCode": "DISH_002",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "糖醋排骨",
+    "description": "糖醋排骨，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "酸甜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "糖醋排骨 中国菜 成品",
+    "imageFileName": "dish-002.jpg"
+  },
+  {
+    "id": 3,
+    "templateCode": "DISH_003",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "土豆烧牛腩",
+    "description": "土豆烧牛腩，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 36,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "土豆烧牛腩 中国菜 成品",
+    "imageFileName": "dish-003.jpg"
+  },
+  {
+    "id": 4,
+    "templateCode": "DISH_004",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "番茄炒蛋",
+    "description": "番茄炒蛋，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "番茄炒蛋 中国菜 成品",
+    "imageFileName": "dish-004.jpg"
+  },
+  {
+    "id": 5,
+    "templateCode": "DISH_005",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "青椒肉丝",
+    "description": "青椒肉丝，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "青椒肉丝 中国菜 成品",
+    "imageFileName": "dish-005.jpg"
+  },
+  {
+    "id": 6,
+    "templateCode": "DISH_006",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "鱼香肉丝",
+    "description": "鱼香肉丝，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "鱼香肉丝 中国菜 成品",
+    "imageFileName": "dish-006.jpg"
+  },
+  {
+    "id": 7,
+    "templateCode": "DISH_007",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "宫保鸡丁",
+    "description": "宫保鸡丁，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "宫保鸡丁 中国菜 成品",
+    "imageFileName": "dish-007.jpg"
+  },
+  {
+    "id": 8,
+    "templateCode": "DISH_008",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "麻婆豆腐",
+    "description": "麻婆豆腐，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "香辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "麻婆豆腐 中国菜 成品",
+    "imageFileName": "dish-008.jpg"
+  },
+  {
+    "id": 9,
+    "templateCode": "DISH_009",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "回锅肉",
+    "description": "回锅肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "回锅肉 中国菜 成品",
+    "imageFileName": "dish-009.jpg"
+  },
+  {
+    "id": 10,
+    "templateCode": "DISH_010",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "木须肉",
+    "description": "木须肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "木须肉 中国菜 成品",
+    "imageFileName": "dish-010.jpg"
+  },
+  {
+    "id": 11,
+    "templateCode": "DISH_011",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "京酱肉丝",
+    "description": "京酱肉丝，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "京酱肉丝 中国菜 成品",
+    "imageFileName": "dish-011.jpg"
+  },
+  {
+    "id": 12,
+    "templateCode": "DISH_012",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "尖椒炒肉",
+    "description": "尖椒炒肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "尖椒炒肉 中国菜 成品",
+    "imageFileName": "dish-012.jpg"
+  },
+  {
+    "id": 13,
+    "templateCode": "DISH_013",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "蒜薹炒肉",
+    "description": "蒜薹炒肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "蒜薹炒肉 中国菜 成品",
+    "imageFileName": "dish-013.jpg"
+  },
+  {
+    "id": 14,
+    "templateCode": "DISH_014",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "芹菜炒肉",
+    "description": "芹菜炒肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "芹菜炒肉 中国菜 成品",
+    "imageFileName": "dish-014.jpg"
+  },
+  {
+    "id": 15,
+    "templateCode": "DISH_015",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "洋葱炒肉",
+    "description": "洋葱炒肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "洋葱炒肉 中国菜 成品",
+    "imageFileName": "dish-015.jpg"
+  },
+  {
+    "id": 16,
+    "templateCode": "DISH_016",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "莴笋炒肉",
+    "description": "莴笋炒肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "莴笋炒肉 中国菜 成品",
+    "imageFileName": "dish-016.jpg"
+  },
+  {
+    "id": 17,
+    "templateCode": "DISH_017",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "白菜炒肉",
+    "description": "白菜炒肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "白菜炒肉 中国菜 成品",
+    "imageFileName": "dish-017.jpg"
+  },
+  {
+    "id": 18,
+    "templateCode": "DISH_018",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "香菇炒鸡",
+    "description": "香菇炒鸡，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "香菇炒鸡 中国菜 成品",
+    "imageFileName": "dish-018.jpg"
+  },
+  {
+    "id": 19,
+    "templateCode": "DISH_019",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "黄焖鸡",
+    "description": "黄焖鸡，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "黄焖鸡 中国菜 成品",
+    "imageFileName": "dish-019.jpg"
+  },
+  {
+    "id": 20,
+    "templateCode": "DISH_020",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "可乐鸡翅",
+    "description": "可乐鸡翅，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "可乐鸡翅 中国菜 成品",
+    "imageFileName": "dish-020.jpg"
+  },
+  {
+    "id": 21,
+    "templateCode": "DISH_021",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "红烧鸡翅",
+    "description": "红烧鸡翅，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "红烧鸡翅 中国菜 成品",
+    "imageFileName": "dish-021.jpg"
+  },
+  {
+    "id": 22,
+    "templateCode": "DISH_022",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "辣子鸡",
+    "description": "辣子鸡，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "香辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "辣子鸡 中国菜 成品",
+    "imageFileName": "dish-022.jpg"
+  },
+  {
+    "id": 23,
+    "templateCode": "DISH_023",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "三杯鸡",
+    "description": "三杯鸡，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "三杯鸡 中国菜 成品",
+    "imageFileName": "dish-023.jpg"
+  },
+  {
+    "id": 24,
+    "templateCode": "DISH_024",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "葱油鸡",
+    "description": "葱油鸡，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "葱油鸡 中国菜 成品",
+    "imageFileName": "dish-024.jpg"
+  },
+  {
+    "id": 25,
+    "templateCode": "DISH_025",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "白切鸡",
+    "description": "白切鸡，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "白切鸡 中国菜 成品",
+    "imageFileName": "dish-025.jpg"
+  },
+  {
+    "id": 26,
+    "templateCode": "DISH_026",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "红烧排骨",
+    "description": "红烧排骨，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "红烧排骨 中国菜 成品",
+    "imageFileName": "dish-026.jpg"
+  },
+  {
+    "id": 27,
+    "templateCode": "DISH_027",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "蒜香排骨",
+    "description": "蒜香排骨，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "蒜香排骨 中国菜 成品",
+    "imageFileName": "dish-027.jpg"
+  },
+  {
+    "id": 28,
+    "templateCode": "DISH_028",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "粉蒸排骨",
+    "description": "粉蒸排骨，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "粉蒸排骨 中国菜 成品",
+    "imageFileName": "dish-028.jpg"
+  },
+  {
+    "id": 29,
+    "templateCode": "DISH_029",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "梅菜扣肉",
+    "description": "梅菜扣肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "梅菜扣肉 中国菜 成品",
+    "imageFileName": "dish-029.jpg"
+  },
+  {
+    "id": 30,
+    "templateCode": "DISH_030",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "红烧狮子头",
+    "description": "红烧狮子头，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "红烧狮子头 中国菜 成品",
+    "imageFileName": "dish-030.jpg"
+  },
+  {
+    "id": 31,
+    "templateCode": "DISH_031",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "四喜丸子",
+    "description": "四喜丸子，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "四喜丸子 中国菜 成品",
+    "imageFileName": "dish-031.jpg"
+  },
+  {
+    "id": 32,
+    "templateCode": "DISH_032",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "农家小炒肉",
+    "description": "农家小炒肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "农家小炒肉 中国菜 成品",
+    "imageFileName": "dish-032.jpg"
+  },
+  {
+    "id": 33,
+    "templateCode": "DISH_033",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "土豆炖排骨",
+    "description": "土豆炖排骨，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "土豆炖排骨 中国菜 成品",
+    "imageFileName": "dish-033.jpg"
+  },
+  {
+    "id": 34,
+    "templateCode": "DISH_034",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "豆角炖排骨",
+    "description": "豆角炖排骨，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "豆角炖排骨 中国菜 成品",
+    "imageFileName": "dish-034.jpg"
+  },
+  {
+    "id": 35,
+    "templateCode": "DISH_035",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "冬瓜烧肉",
+    "description": "冬瓜烧肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "冬瓜烧肉 中国菜 成品",
+    "imageFileName": "dish-035.jpg"
+  },
+  {
+    "id": 36,
+    "templateCode": "DISH_036",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "鹌鹑蛋红烧肉",
+    "description": "鹌鹑蛋红烧肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "鹌鹑蛋红烧肉 中国菜 成品",
+    "imageFileName": "dish-036.jpg"
+  },
+  {
+    "id": 37,
+    "templateCode": "DISH_037",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "水煮肉片",
+    "description": "水煮肉片，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "香辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "水煮肉片 中国菜 成品",
+    "imageFileName": "dish-037.jpg"
+  },
+  {
+    "id": 38,
+    "templateCode": "DISH_038",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "孜然牛肉",
+    "description": "孜然牛肉，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "孜然牛肉 中国菜 成品",
+    "imageFileName": "dish-038.jpg"
+  },
+  {
+    "id": 39,
+    "templateCode": "DISH_039",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "黑椒牛柳",
+    "description": "黑椒牛柳，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "黑椒牛柳 中国菜 成品",
+    "imageFileName": "dish-039.jpg"
+  },
+  {
+    "id": 40,
+    "templateCode": "DISH_040",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "土豆烧鸡",
+    "description": "土豆烧鸡，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "土豆烧鸡 中国菜 成品",
+    "imageFileName": "dish-040.jpg"
+  },
+  {
+    "id": 41,
+    "templateCode": "DISH_041",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "咖喱鸡块",
+    "description": "咖喱鸡块，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "咖喱鸡块 中国菜 成品",
+    "imageFileName": "dish-041.jpg"
+  },
+  {
+    "id": 42,
+    "templateCode": "DISH_042",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "板栗烧鸡",
+    "description": "板栗烧鸡，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "板栗烧鸡 中国菜 成品",
+    "imageFileName": "dish-042.jpg"
+  },
+  {
+    "id": 43,
+    "templateCode": "DISH_043",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "香煎鸡胸",
+    "description": "香煎鸡胸，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "香煎鸡胸 中国菜 成品",
+    "imageFileName": "dish-043.jpg"
+  },
+  {
+    "id": 44,
+    "templateCode": "DISH_044",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "清蒸鲈鱼",
+    "description": "清蒸鲈鱼，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "清蒸鲈鱼 中国菜 成品",
+    "imageFileName": "dish-044.jpg"
+  },
+  {
+    "id": 45,
+    "templateCode": "DISH_045",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "红烧鲫鱼",
+    "description": "红烧鲫鱼，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "红烧鲫鱼 中国菜 成品",
+    "imageFileName": "dish-045.jpg"
+  },
+  {
+    "id": 46,
+    "templateCode": "DISH_046",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "糖醋鱼",
+    "description": "糖醋鱼，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "酸甜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "糖醋鱼 中国菜 成品",
+    "imageFileName": "dish-046.jpg"
+  },
+  {
+    "id": 47,
+    "templateCode": "DISH_047",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "剁椒鱼头",
+    "description": "剁椒鱼头，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 34,
+    "tasteTags": [
+      "香辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "剁椒鱼头 中国菜 成品",
+    "imageFileName": "dish-047.jpg"
+  },
+  {
+    "id": 48,
+    "templateCode": "DISH_048",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "酸菜鱼",
+    "description": "酸菜鱼，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "酸菜鱼 中国菜 成品",
+    "imageFileName": "dish-048.jpg"
+  },
+  {
+    "id": 49,
+    "templateCode": "DISH_049",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "水煮鱼",
+    "description": "水煮鱼，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "香辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "水煮鱼 中国菜 成品",
+    "imageFileName": "dish-049.jpg"
+  },
+  {
+    "id": 50,
+    "templateCode": "DISH_050",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "豉汁蒸鱼",
+    "description": "豉汁蒸鱼，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "豉汁蒸鱼 中国菜 成品",
+    "imageFileName": "dish-050.jpg"
+  },
+  {
+    "id": 51,
+    "templateCode": "DISH_051",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "蒜蓉粉丝虾",
+    "description": "蒜蓉粉丝虾，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "蒜蓉粉丝虾 中国菜 成品",
+    "imageFileName": "dish-051.jpg"
+  },
+  {
+    "id": 52,
+    "templateCode": "DISH_052",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "油焖大虾",
+    "description": "油焖大虾，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 34,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "油焖大虾 中国菜 成品",
+    "imageFileName": "dish-052.jpg"
+  },
+  {
+    "id": 53,
+    "templateCode": "DISH_053",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "香辣虾",
+    "description": "香辣虾，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "香辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "香辣虾 中国菜 成品",
+    "imageFileName": "dish-053.jpg"
+  },
+  {
+    "id": 54,
+    "templateCode": "DISH_054",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "韭菜炒虾仁",
+    "description": "韭菜炒虾仁，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "韭菜炒虾仁 中国菜 成品",
+    "imageFileName": "dish-054.jpg"
+  },
+  {
+    "id": 55,
+    "templateCode": "DISH_055",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "西兰花炒虾仁",
+    "description": "西兰花炒虾仁，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "西兰花炒虾仁 中国菜 成品",
+    "imageFileName": "dish-055.jpg"
+  },
+  {
+    "id": 56,
+    "templateCode": "DISH_056",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "番茄炖豆腐",
+    "description": "番茄炖豆腐，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "番茄炖豆腐 中国菜 成品",
+    "imageFileName": "dish-056.jpg"
+  },
+  {
+    "id": 57,
+    "templateCode": "DISH_057",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "地三鲜",
+    "description": "地三鲜，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "地三鲜 中国菜 成品",
+    "imageFileName": "dish-057.jpg"
+  },
+  {
+    "id": 58,
+    "templateCode": "DISH_058",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "干煸豆角",
+    "description": "干煸豆角，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "干煸豆角 中国菜 成品",
+    "imageFileName": "dish-058.jpg"
+  },
+  {
+    "id": 59,
+    "templateCode": "DISH_059",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "醋溜白菜",
+    "description": "醋溜白菜，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "醋溜白菜 中国菜 成品",
+    "imageFileName": "dish-059.jpg"
+  },
+  {
+    "id": 60,
+    "templateCode": "DISH_060",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "手撕包菜",
+    "description": "手撕包菜，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "手撕包菜 中国菜 成品",
+    "imageFileName": "dish-060.jpg"
+  },
+  {
+    "id": 61,
+    "templateCode": "DISH_061",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "清炒西兰花",
+    "description": "清炒西兰花，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "清炒西兰花 中国菜 成品",
+    "imageFileName": "dish-061.jpg"
+  },
+  {
+    "id": 62,
+    "templateCode": "DISH_062",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "蒜蓉油麦菜",
+    "description": "蒜蓉油麦菜，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "蒜蓉油麦菜 中国菜 成品",
+    "imageFileName": "dish-062.jpg"
+  },
+  {
+    "id": 63,
+    "templateCode": "DISH_063",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "蒜蓉生菜",
+    "description": "蒜蓉生菜，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "蒜蓉生菜 中国菜 成品",
+    "imageFileName": "dish-063.jpg"
+  },
+  {
+    "id": 64,
+    "templateCode": "DISH_064",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "荷塘小炒",
+    "description": "荷塘小炒，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "荷塘小炒 中国菜 成品",
+    "imageFileName": "dish-064.jpg"
+  },
+  {
+    "id": 65,
+    "templateCode": "DISH_065",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "香菇油菜",
+    "description": "香菇油菜，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "香菇油菜 中国菜 成品",
+    "imageFileName": "dish-065.jpg"
+  },
+  {
+    "id": 66,
+    "templateCode": "DISH_066",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "蚝油杏鲍菇",
+    "description": "蚝油杏鲍菇，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "蚝油杏鲍菇 中国菜 成品",
+    "imageFileName": "dish-066.jpg"
+  },
+  {
+    "id": 67,
+    "templateCode": "DISH_067",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "干锅花菜",
+    "description": "干锅花菜，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "干锅花菜 中国菜 成品",
+    "imageFileName": "dish-067.jpg"
+  },
+  {
+    "id": 68,
+    "templateCode": "DISH_068",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "红烧茄子",
+    "description": "红烧茄子，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "红烧茄子 中国菜 成品",
+    "imageFileName": "dish-068.jpg"
+  },
+  {
+    "id": 69,
+    "templateCode": "DISH_069",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "肉末茄子",
+    "description": "肉末茄子，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "肉末茄子 中国菜 成品",
+    "imageFileName": "dish-069.jpg"
+  },
+  {
+    "id": 70,
+    "templateCode": "DISH_070",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "家常豆腐",
+    "description": "家常豆腐，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "家常豆腐 中国菜 成品",
+    "imageFileName": "dish-070.jpg"
+  },
+  {
+    "id": 71,
+    "templateCode": "DISH_071",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "韭菜炒鸡蛋",
+    "description": "韭菜炒鸡蛋，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "韭菜炒鸡蛋 中国菜 成品",
+    "imageFileName": "dish-071.jpg"
+  },
+  {
+    "id": 72,
+    "templateCode": "DISH_072",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "西葫芦炒鸡蛋",
+    "description": "西葫芦炒鸡蛋，经典家常做法，食材易采购，适合午餐或晚餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "西葫芦炒鸡蛋 中国菜 成品",
+    "imageFileName": "dish-072.jpg"
+  },
+  {
+    "id": 73,
+    "templateCode": "DISH_073",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "拍黄瓜",
+    "description": "拍黄瓜，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 9,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "拍黄瓜 中国菜 成品",
+    "imageFileName": "dish-073.jpg"
+  },
+  {
+    "id": 74,
+    "templateCode": "DISH_074",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌木耳",
+    "description": "凉拌木耳，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 11,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌木耳 中国菜 成品",
+    "imageFileName": "dish-074.jpg"
+  },
+  {
+    "id": 75,
+    "templateCode": "DISH_075",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌海带丝",
+    "description": "凉拌海带丝，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 13,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌海带丝 中国菜 成品",
+    "imageFileName": "dish-075.jpg"
+  },
+  {
+    "id": 76,
+    "templateCode": "DISH_076",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌腐竹",
+    "description": "凉拌腐竹，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 15,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌腐竹 中国菜 成品",
+    "imageFileName": "dish-076.jpg"
+  },
+  {
+    "id": 77,
+    "templateCode": "DISH_077",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌豆皮",
+    "description": "凉拌豆皮，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 17,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌豆皮 中国菜 成品",
+    "imageFileName": "dish-077.jpg"
+  },
+  {
+    "id": 78,
+    "templateCode": "DISH_078",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌三丝",
+    "description": "凉拌三丝，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 9,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌三丝 中国菜 成品",
+    "imageFileName": "dish-078.jpg"
+  },
+  {
+    "id": 79,
+    "templateCode": "DISH_079",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌菠菜",
+    "description": "凉拌菠菜，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 11,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌菠菜 中国菜 成品",
+    "imageFileName": "dish-079.jpg"
+  },
+  {
+    "id": 80,
+    "templateCode": "DISH_080",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌莴笋",
+    "description": "凉拌莴笋，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 13,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌莴笋 中国菜 成品",
+    "imageFileName": "dish-080.jpg"
+  },
+  {
+    "id": 81,
+    "templateCode": "DISH_081",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌西兰花",
+    "description": "凉拌西兰花，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 15,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌西兰花 中国菜 成品",
+    "imageFileName": "dish-081.jpg"
+  },
+  {
+    "id": 82,
+    "templateCode": "DISH_082",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌藕片",
+    "description": "凉拌藕片，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 17,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌藕片 中国菜 成品",
+    "imageFileName": "dish-082.jpg"
+  },
+  {
+    "id": 83,
+    "templateCode": "DISH_083",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌土豆丝",
+    "description": "凉拌土豆丝，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 9,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌土豆丝 中国菜 成品",
+    "imageFileName": "dish-083.jpg"
+  },
+  {
+    "id": 84,
+    "templateCode": "DISH_084",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌金针菇",
+    "description": "凉拌金针菇，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 11,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌金针菇 中国菜 成品",
+    "imageFileName": "dish-084.jpg"
+  },
+  {
+    "id": 85,
+    "templateCode": "DISH_085",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "皮蛋豆腐",
+    "description": "皮蛋豆腐，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 13,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "皮蛋豆腐 中国菜 成品",
+    "imageFileName": "dish-085.jpg"
+  },
+  {
+    "id": 86,
+    "templateCode": "DISH_086",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "老醋花生",
+    "description": "老醋花生，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 15,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "老醋花生 中国菜 成品",
+    "imageFileName": "dish-086.jpg"
+  },
+  {
+    "id": 87,
+    "templateCode": "DISH_087",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌鸡丝",
+    "description": "凉拌鸡丝，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 25,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌鸡丝 中国菜 成品",
+    "imageFileName": "dish-087.jpg"
+  },
+  {
+    "id": 88,
+    "templateCode": "DISH_088",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "口水鸡",
+    "description": "口水鸡，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 17,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "口水鸡 中国菜 成品",
+    "imageFileName": "dish-088.jpg"
+  },
+  {
+    "id": 89,
+    "templateCode": "DISH_089",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "白切肉",
+    "description": "白切肉，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 19,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "白切肉 中国菜 成品",
+    "imageFileName": "dish-089.jpg"
+  },
+  {
+    "id": 90,
+    "templateCode": "DISH_090",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "蒜泥白肉",
+    "description": "蒜泥白肉，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 21,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "蒜泥白肉 中国菜 成品",
+    "imageFileName": "dish-090.jpg"
+  },
+  {
+    "id": 91,
+    "templateCode": "DISH_091",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌牛肉",
+    "description": "凉拌牛肉，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 23,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌牛肉 中国菜 成品",
+    "imageFileName": "dish-091.jpg"
+  },
+  {
+    "id": 92,
+    "templateCode": "DISH_092",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "夫妻肺片",
+    "description": "夫妻肺片，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 17,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "夫妻肺片 中国菜 成品",
+    "imageFileName": "dish-092.jpg"
+  },
+  {
+    "id": 93,
+    "templateCode": "DISH_093",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "糖拌西红柿",
+    "description": "糖拌西红柿，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 9,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "糖拌西红柿 中国菜 成品",
+    "imageFileName": "dish-093.jpg"
+  },
+  {
+    "id": 94,
+    "templateCode": "DISH_094",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "果仁菠菜",
+    "description": "果仁菠菜，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 11,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "果仁菠菜 中国菜 成品",
+    "imageFileName": "dish-094.jpg"
+  },
+  {
+    "id": 95,
+    "templateCode": "DISH_095",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "东北大拉皮",
+    "description": "东北大拉皮，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 13,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "东北大拉皮 中国菜 成品",
+    "imageFileName": "dish-095.jpg"
+  },
+  {
+    "id": 96,
+    "templateCode": "DISH_096",
+    "categoryCode": "COLD",
+    "categoryName": "清爽凉菜",
+    "name": "凉拌秋葵",
+    "description": "凉拌秋葵，清爽开胃，适合作为家庭餐桌配菜。",
+    "referencePrice": 15,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌秋葵 中国菜 成品",
+    "imageFileName": "dish-096.jpg"
+  },
+  {
+    "id": 97,
+    "templateCode": "DISH_097",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "紫菜蛋花汤",
+    "description": "紫菜蛋花汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 10,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "紫菜蛋花汤 中国菜 成品",
+    "imageFileName": "dish-097.jpg"
+  },
+  {
+    "id": 98,
+    "templateCode": "DISH_098",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "西红柿鸡蛋汤",
+    "description": "西红柿鸡蛋汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "西红柿鸡蛋汤 中国菜 成品",
+    "imageFileName": "dish-098.jpg"
+  },
+  {
+    "id": 99,
+    "templateCode": "DISH_099",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "冬瓜排骨汤",
+    "description": "冬瓜排骨汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "冬瓜排骨汤 中国菜 成品",
+    "imageFileName": "dish-099.jpg"
+  },
+  {
+    "id": 100,
+    "templateCode": "DISH_100",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "玉米排骨汤",
+    "description": "玉米排骨汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "玉米排骨汤 中国菜 成品",
+    "imageFileName": "dish-100.jpg"
+  },
+  {
+    "id": 101,
+    "templateCode": "DISH_101",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "莲藕排骨汤",
+    "description": "莲藕排骨汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "莲藕排骨汤 中国菜 成品",
+    "imageFileName": "dish-101.jpg"
+  },
+  {
+    "id": 102,
+    "templateCode": "DISH_102",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "海带排骨汤",
+    "description": "海带排骨汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "海带排骨汤 中国菜 成品",
+    "imageFileName": "dish-102.jpg"
+  },
+  {
+    "id": 103,
+    "templateCode": "DISH_103",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "山药排骨汤",
+    "description": "山药排骨汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "山药排骨汤 中国菜 成品",
+    "imageFileName": "dish-103.jpg"
+  },
+  {
+    "id": 104,
+    "templateCode": "DISH_104",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "萝卜排骨汤",
+    "description": "萝卜排骨汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "萝卜排骨汤 中国菜 成品",
+    "imageFileName": "dish-104.jpg"
+  },
+  {
+    "id": 105,
+    "templateCode": "DISH_105",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "菌菇鸡汤",
+    "description": "菌菇鸡汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "菌菇鸡汤 中国菜 成品",
+    "imageFileName": "dish-105.jpg"
+  },
+  {
+    "id": 106,
+    "templateCode": "DISH_106",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "香菇炖鸡汤",
+    "description": "香菇炖鸡汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "香菇炖鸡汤 中国菜 成品",
+    "imageFileName": "dish-106.jpg"
+  },
+  {
+    "id": 107,
+    "templateCode": "DISH_107",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "番茄牛腩汤",
+    "description": "番茄牛腩汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "番茄牛腩汤 中国菜 成品",
+    "imageFileName": "dish-107.jpg"
+  },
+  {
+    "id": 108,
+    "templateCode": "DISH_108",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "萝卜牛肉汤",
+    "description": "萝卜牛肉汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "萝卜牛肉汤 中国菜 成品",
+    "imageFileName": "dish-108.jpg"
+  },
+  {
+    "id": 109,
+    "templateCode": "DISH_109",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "鲫鱼豆腐汤",
+    "description": "鲫鱼豆腐汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "鲫鱼豆腐汤 中国菜 成品",
+    "imageFileName": "dish-109.jpg"
+  },
+  {
+    "id": 110,
+    "templateCode": "DISH_110",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "丝瓜蛋汤",
+    "description": "丝瓜蛋汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "丝瓜蛋汤 中国菜 成品",
+    "imageFileName": "dish-110.jpg"
+  },
+  {
+    "id": 111,
+    "templateCode": "DISH_111",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "冬瓜虾皮汤",
+    "description": "冬瓜虾皮汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "冬瓜虾皮汤 中国菜 成品",
+    "imageFileName": "dish-111.jpg"
+  },
+  {
+    "id": 112,
+    "templateCode": "DISH_112",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "榨菜肉丝汤",
+    "description": "榨菜肉丝汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "榨菜肉丝汤 中国菜 成品",
+    "imageFileName": "dish-112.jpg"
+  },
+  {
+    "id": 113,
+    "templateCode": "DISH_113",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "酸辣汤",
+    "description": "酸辣汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 12,
+    "tasteTags": [
+      "香辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "酸辣汤 中国菜 成品",
+    "imageFileName": "dish-113.jpg"
+  },
+  {
+    "id": 114,
+    "templateCode": "DISH_114",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "家常豆腐羹",
+    "description": "家常豆腐羹，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 14,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "家常豆腐羹 中国菜 成品",
+    "imageFileName": "dish-114.jpg"
+  },
+  {
+    "id": 115,
+    "templateCode": "DISH_115",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "银耳莲子羹",
+    "description": "银耳莲子羹，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "银耳莲子羹 中国菜 成品",
+    "imageFileName": "dish-115.jpg"
+  },
+  {
+    "id": 116,
+    "templateCode": "DISH_116",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "绿豆汤",
+    "description": "绿豆汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "绿豆汤 中国菜 成品",
+    "imageFileName": "dish-116.jpg"
+  },
+  {
+    "id": 117,
+    "templateCode": "DISH_117",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "红豆汤",
+    "description": "红豆汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 10,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "红豆汤 中国菜 成品",
+    "imageFileName": "dish-117.jpg"
+  },
+  {
+    "id": 118,
+    "templateCode": "DISH_118",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "羊肉萝卜汤",
+    "description": "羊肉萝卜汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "羊肉萝卜汤 中国菜 成品",
+    "imageFileName": "dish-118.jpg"
+  },
+  {
+    "id": 119,
+    "templateCode": "DISH_119",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "西湖牛肉羹",
+    "description": "西湖牛肉羹，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "西湖牛肉羹 中国菜 成品",
+    "imageFileName": "dish-119.jpg"
+  },
+  {
+    "id": 120,
+    "templateCode": "DISH_120",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "宋嫂鱼羹",
+    "description": "宋嫂鱼羹，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "宋嫂鱼羹 中国菜 成品",
+    "imageFileName": "dish-120.jpg"
+  },
+  {
+    "id": 121,
+    "templateCode": "DISH_121",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "白菜豆腐汤",
+    "description": "白菜豆腐汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "白菜豆腐汤 中国菜 成品",
+    "imageFileName": "dish-121.jpg"
+  },
+  {
+    "id": 122,
+    "templateCode": "DISH_122",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "青菜肉丸汤",
+    "description": "青菜肉丸汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "青菜肉丸汤 中国菜 成品",
+    "imageFileName": "dish-122.jpg"
+  },
+  {
+    "id": 123,
+    "templateCode": "DISH_123",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "海鲜菇豆腐汤",
+    "description": "海鲜菇豆腐汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 12,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "海鲜菇豆腐汤 中国菜 成品",
+    "imageFileName": "dish-123.jpg"
+  },
+  {
+    "id": 124,
+    "templateCode": "DISH_124",
+    "categoryCode": "SOUP",
+    "categoryName": "营养汤羹",
+    "name": "罗宋汤",
+    "description": "罗宋汤，汤味温和，食材搭配适合日常家庭餐。",
+    "referencePrice": 14,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "罗宋汤 中国菜 成品",
+    "imageFileName": "dish-124.jpg"
+  },
+  {
+    "id": 125,
+    "templateCode": "DISH_125",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "扬州炒饭",
+    "description": "扬州炒饭，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 8,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "扬州炒饭 中国菜 成品",
+    "imageFileName": "dish-125.jpg"
+  },
+  {
+    "id": 126,
+    "templateCode": "DISH_126",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "蛋炒饭",
+    "description": "蛋炒饭，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 10,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "蛋炒饭 中国菜 成品",
+    "imageFileName": "dish-126.jpg"
+  },
+  {
+    "id": 127,
+    "templateCode": "DISH_127",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "腊肠炒饭",
+    "description": "腊肠炒饭，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 12,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "腊肠炒饭 中国菜 成品",
+    "imageFileName": "dish-127.jpg"
+  },
+  {
+    "id": 128,
+    "templateCode": "DISH_128",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "咖喱炒饭",
+    "description": "咖喱炒饭，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 14,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "咖喱炒饭 中国菜 成品",
+    "imageFileName": "dish-128.jpg"
+  },
+  {
+    "id": 129,
+    "templateCode": "DISH_129",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "番茄鸡蛋面",
+    "description": "番茄鸡蛋面，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "番茄鸡蛋面 中国菜 成品",
+    "imageFileName": "dish-129.jpg"
+  },
+  {
+    "id": 130,
+    "templateCode": "DISH_130",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "葱油拌面",
+    "description": "葱油拌面，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 8,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "葱油拌面 中国菜 成品",
+    "imageFileName": "dish-130.jpg"
+  },
+  {
+    "id": 131,
+    "templateCode": "DISH_131",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "炸酱面",
+    "description": "炸酱面，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 10,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "炸酱面 中国菜 成品",
+    "imageFileName": "dish-131.jpg"
+  },
+  {
+    "id": 132,
+    "templateCode": "DISH_132",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "阳春面",
+    "description": "阳春面，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 12,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "阳春面 中国菜 成品",
+    "imageFileName": "dish-132.jpg"
+  },
+  {
+    "id": 133,
+    "templateCode": "DISH_133",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "牛肉面",
+    "description": "牛肉面，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "牛肉面 中国菜 成品",
+    "imageFileName": "dish-133.jpg"
+  },
+  {
+    "id": 134,
+    "templateCode": "DISH_134",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "排骨面",
+    "description": "排骨面，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "排骨面 中国菜 成品",
+    "imageFileName": "dish-134.jpg"
+  },
+  {
+    "id": 135,
+    "templateCode": "DISH_135",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "雪菜肉丝面",
+    "description": "雪菜肉丝面，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "雪菜肉丝面 中国菜 成品",
+    "imageFileName": "dish-135.jpg"
+  },
+  {
+    "id": 136,
+    "templateCode": "DISH_136",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "酸辣粉",
+    "description": "酸辣粉，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 10,
+    "tasteTags": [
+      "香辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "酸辣粉 中国菜 成品",
+    "imageFileName": "dish-136.jpg"
+  },
+  {
+    "id": 137,
+    "templateCode": "DISH_137",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "肉末米粉",
+    "description": "肉末米粉，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "肉末米粉 中国菜 成品",
+    "imageFileName": "dish-137.jpg"
+  },
+  {
+    "id": 138,
+    "templateCode": "DISH_138",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "鸡蛋炒面",
+    "description": "鸡蛋炒面，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "鸡蛋炒面 中国菜 成品",
+    "imageFileName": "dish-138.jpg"
+  },
+  {
+    "id": 139,
+    "templateCode": "DISH_139",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "肉丝炒面",
+    "description": "肉丝炒面，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "肉丝炒面 中国菜 成品",
+    "imageFileName": "dish-139.jpg"
+  },
+  {
+    "id": 140,
+    "templateCode": "DISH_140",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "韭菜鸡蛋饺子",
+    "description": "韭菜鸡蛋饺子，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "韭菜鸡蛋饺子 中国菜 成品",
+    "imageFileName": "dish-140.jpg"
+  },
+  {
+    "id": 141,
+    "templateCode": "DISH_141",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "猪肉白菜饺子",
+    "description": "猪肉白菜饺子，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "猪肉白菜饺子 中国菜 成品",
+    "imageFileName": "dish-141.jpg"
+  },
+  {
+    "id": 142,
+    "templateCode": "DISH_142",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "牛肉馅饺子",
+    "description": "牛肉馅饺子，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "牛肉馅饺子 中国菜 成品",
+    "imageFileName": "dish-142.jpg"
+  },
+  {
+    "id": 143,
+    "templateCode": "DISH_143",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "鲜肉馄饨",
+    "description": "鲜肉馄饨，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "鲜肉馄饨 中国菜 成品",
+    "imageFileName": "dish-143.jpg"
+  },
+  {
+    "id": 144,
+    "templateCode": "DISH_144",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "猪肉包子",
+    "description": "猪肉包子，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "猪肉包子 中国菜 成品",
+    "imageFileName": "dish-144.jpg"
+  },
+  {
+    "id": 145,
+    "templateCode": "DISH_145",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "花卷",
+    "description": "花卷，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 8,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "花卷 中国菜 成品",
+    "imageFileName": "dish-145.jpg"
+  },
+  {
+    "id": 146,
+    "templateCode": "DISH_146",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "葱油饼",
+    "description": "葱油饼，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 10,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "葱油饼 中国菜 成品",
+    "imageFileName": "dish-146.jpg"
+  },
+  {
+    "id": 147,
+    "templateCode": "DISH_147",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "南瓜馒头",
+    "description": "南瓜馒头，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 12,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "南瓜馒头 中国菜 成品",
+    "imageFileName": "dish-147.jpg"
+  },
+  {
+    "id": 148,
+    "templateCode": "DISH_148",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "皮蛋瘦肉粥",
+    "description": "皮蛋瘦肉粥，饱腹实在，适合家庭日常主食。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "皮蛋瘦肉粥 中国菜 成品",
+    "imageFileName": "dish-148.jpg"
+  },
+  {
+    "id": 149,
+    "templateCode": "DISH_149",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "小米粥",
+    "description": "小米粥，简单营养，适合作为家庭早餐。",
+    "referencePrice": 6,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "小米粥 中国菜 成品",
+    "imageFileName": "dish-149.jpg"
+  },
+  {
+    "id": 150,
+    "templateCode": "DISH_150",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "南瓜粥",
+    "description": "南瓜粥，简单营养，适合作为家庭早餐。",
+    "referencePrice": 8,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "南瓜粥 中国菜 成品",
+    "imageFileName": "dish-150.jpg"
+  },
+  {
+    "id": 151,
+    "templateCode": "DISH_151",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "八宝粥",
+    "description": "八宝粥，简单营养，适合作为家庭早餐。",
+    "referencePrice": 10,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "八宝粥 中国菜 成品",
+    "imageFileName": "dish-151.jpg"
+  },
+  {
+    "id": 152,
+    "templateCode": "DISH_152",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "燕麦牛奶粥",
+    "description": "燕麦牛奶粥，简单营养，适合作为家庭早餐。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "燕麦牛奶粥 中国菜 成品",
+    "imageFileName": "dish-152.jpg"
+  },
+  {
+    "id": 153,
+    "templateCode": "DISH_153",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "豆浆油条",
+    "description": "豆浆油条，简单营养，适合作为家庭早餐。",
+    "referencePrice": 14,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "豆浆油条 中国菜 成品",
+    "imageFileName": "dish-153.jpg"
+  },
+  {
+    "id": 154,
+    "templateCode": "DISH_154",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "茶叶蛋",
+    "description": "茶叶蛋，简单营养，适合作为家庭早餐。",
+    "referencePrice": 6,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "茶叶蛋 中国菜 成品",
+    "imageFileName": "dish-154.jpg"
+  },
+  {
+    "id": 155,
+    "templateCode": "DISH_155",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "煎鸡蛋",
+    "description": "煎鸡蛋，简单营养，适合作为家庭早餐。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "煎鸡蛋 中国菜 成品",
+    "imageFileName": "dish-155.jpg"
+  },
+  {
+    "id": 156,
+    "templateCode": "DISH_156",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "火腿鸡蛋三明治",
+    "description": "火腿鸡蛋三明治，简单营养，适合作为家庭早餐。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "火腿鸡蛋三明治 中国菜 成品",
+    "imageFileName": "dish-156.jpg"
+  },
+  {
+    "id": 157,
+    "templateCode": "DISH_157",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "牛油果鸡蛋吐司",
+    "description": "牛油果鸡蛋吐司，简单营养，适合作为家庭早餐。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "牛油果鸡蛋吐司 中国菜 成品",
+    "imageFileName": "dish-157.jpg"
+  },
+  {
+    "id": 158,
+    "templateCode": "DISH_158",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "鸡蛋灌饼",
+    "description": "鸡蛋灌饼，简单营养，适合作为家庭早餐。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "鸡蛋灌饼 中国菜 成品",
+    "imageFileName": "dish-158.jpg"
+  },
+  {
+    "id": 159,
+    "templateCode": "DISH_159",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "手抓饼",
+    "description": "手抓饼，简单营养，适合作为家庭早餐。",
+    "referencePrice": 6,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "手抓饼 中国菜 成品",
+    "imageFileName": "dish-159.jpg"
+  },
+  {
+    "id": 160,
+    "templateCode": "DISH_160",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "紫菜饭团",
+    "description": "紫菜饭团，简单营养，适合作为家庭早餐。",
+    "referencePrice": 8,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "紫菜饭团 中国菜 成品",
+    "imageFileName": "dish-160.jpg"
+  },
+  {
+    "id": 161,
+    "templateCode": "DISH_161",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "肉松饭团",
+    "description": "肉松饭团，简单营养，适合作为家庭早餐。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "肉松饭团 中国菜 成品",
+    "imageFileName": "dish-161.jpg"
+  },
+  {
+    "id": 162,
+    "templateCode": "DISH_162",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "玉米鸡蛋饼",
+    "description": "玉米鸡蛋饼，简单营养，适合作为家庭早餐。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "玉米鸡蛋饼 中国菜 成品",
+    "imageFileName": "dish-162.jpg"
+  },
+  {
+    "id": 163,
+    "templateCode": "DISH_163",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "香蕉松饼",
+    "description": "香蕉松饼，简单营养，适合作为家庭早餐。",
+    "referencePrice": 14,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "香蕉松饼 中国菜 成品",
+    "imageFileName": "dish-163.jpg"
+  },
+  {
+    "id": 164,
+    "templateCode": "DISH_164",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "蒸红薯",
+    "description": "蒸红薯，简单营养，适合作为家庭早餐。",
+    "referencePrice": 6,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "蒸红薯 中国菜 成品",
+    "imageFileName": "dish-164.jpg"
+  },
+  {
+    "id": 165,
+    "templateCode": "DISH_165",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "蒸玉米",
+    "description": "蒸玉米，简单营养，适合作为家庭早餐。",
+    "referencePrice": 8,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "蒸玉米 中国菜 成品",
+    "imageFileName": "dish-165.jpg"
+  },
+  {
+    "id": 166,
+    "templateCode": "DISH_166",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "酒酿圆子",
+    "description": "酒酿圆子，简单营养，适合作为家庭早餐。",
+    "referencePrice": 10,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "BREAKFAST"
+    ],
+    "imageQuery": "酒酿圆子 中国菜 成品",
+    "imageFileName": "dish-166.jpg"
+  },
+  {
+    "id": 167,
+    "templateCode": "DISH_167",
+    "categoryCode": "CHILDREN",
+    "categoryName": "儿童餐",
+    "name": "虾仁蒸蛋",
+    "description": "虾仁蒸蛋，口感柔和，适合家庭儿童餐搭配。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "虾仁蒸蛋 中国菜 成品",
+    "imageFileName": "dish-167.jpg"
+  },
+  {
+    "id": 168,
+    "templateCode": "DISH_168",
+    "categoryCode": "CHILDREN",
+    "categoryName": "儿童餐",
+    "name": "番茄肉酱意面",
+    "description": "番茄肉酱意面，口感柔和，适合家庭儿童餐搭配。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "番茄肉酱意面 中国菜 成品",
+    "imageFileName": "dish-168.jpg"
+  },
+  {
+    "id": 169,
+    "templateCode": "DISH_169",
+    "categoryCode": "CHILDREN",
+    "categoryName": "儿童餐",
+    "name": "奶香土豆泥",
+    "description": "奶香土豆泥，口感柔和，适合家庭儿童餐搭配。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "奶香土豆泥 中国菜 成品",
+    "imageFileName": "dish-169.jpg"
+  },
+  {
+    "id": 170,
+    "templateCode": "DISH_170",
+    "categoryCode": "CHILDREN",
+    "categoryName": "儿童餐",
+    "name": "南瓜蒸蛋",
+    "description": "南瓜蒸蛋，口感柔和，适合家庭儿童餐搭配。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "南瓜蒸蛋 中国菜 成品",
+    "imageFileName": "dish-170.jpg"
+  },
+  {
+    "id": 171,
+    "templateCode": "DISH_171",
+    "categoryCode": "CHILDREN",
+    "categoryName": "儿童餐",
+    "name": "蔬菜鸡肉丸",
+    "description": "蔬菜鸡肉丸，口感柔和，适合家庭儿童餐搭配。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "蔬菜鸡肉丸 中国菜 成品",
+    "imageFileName": "dish-171.jpg"
+  },
+  {
+    "id": 172,
+    "templateCode": "DISH_172",
+    "categoryCode": "CHILDREN",
+    "categoryName": "儿童餐",
+    "name": "菠萝咕咾肉",
+    "description": "菠萝咕咾肉，口感柔和，适合家庭儿童餐搭配。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "酸甜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "菠萝咕咾肉 中国菜 成品",
+    "imageFileName": "dish-172.jpg"
+  },
+  {
+    "id": 173,
+    "templateCode": "DISH_173",
+    "categoryCode": "CHILDREN",
+    "categoryName": "儿童餐",
+    "name": "彩椒牛肉粒",
+    "description": "彩椒牛肉粒，口感柔和，适合家庭儿童餐搭配。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "彩椒牛肉粒 中国菜 成品",
+    "imageFileName": "dish-173.jpg"
+  },
+  {
+    "id": 174,
+    "templateCode": "DISH_174",
+    "categoryCode": "CHILDREN",
+    "categoryName": "儿童餐",
+    "name": "可乐鸡腿",
+    "description": "可乐鸡腿，口感柔和，适合家庭儿童餐搭配。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "可乐鸡腿 中国菜 成品",
+    "imageFileName": "dish-174.jpg"
+  },
+  {
+    "id": 175,
+    "templateCode": "DISH_175",
+    "categoryCode": "CHILDREN",
+    "categoryName": "儿童餐",
+    "name": "奶香玉米",
+    "description": "奶香玉米，口感柔和，适合家庭儿童餐搭配。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "奶香玉米 中国菜 成品",
+    "imageFileName": "dish-175.jpg"
+  },
+  {
+    "id": 176,
+    "templateCode": "DISH_176",
+    "categoryCode": "CHILDREN",
+    "categoryName": "儿童餐",
+    "name": "香煎鳕鱼",
+    "description": "香煎鳕鱼，口感柔和，适合家庭儿童餐搭配。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "香煎鳕鱼 中国菜 成品",
+    "imageFileName": "dish-176.jpg"
+  },
+  {
+    "id": 177,
+    "templateCode": "DISH_177",
+    "categoryCode": "HEALTHY",
+    "categoryName": "健康轻食",
+    "name": "鸡胸肉沙拉",
+    "description": "鸡胸肉沙拉，搭配均衡，适合清爽少负担的一餐。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "鸡胸肉沙拉 中国菜 成品",
+    "imageFileName": "dish-177.jpg"
+  },
+  {
+    "id": 178,
+    "templateCode": "DISH_178",
+    "categoryCode": "HEALTHY",
+    "categoryName": "健康轻食",
+    "name": "牛肉藜麦饭",
+    "description": "牛肉藜麦饭，搭配均衡，适合清爽少负担的一餐。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "牛肉藜麦饭 中国菜 成品",
+    "imageFileName": "dish-178.jpg"
+  },
+  {
+    "id": 179,
+    "templateCode": "DISH_179",
+    "categoryCode": "HEALTHY",
+    "categoryName": "健康轻食",
+    "name": "虾仁藜麦沙拉",
+    "description": "虾仁藜麦沙拉，搭配均衡，适合清爽少负担的一餐。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "虾仁藜麦沙拉 中国菜 成品",
+    "imageFileName": "dish-179.jpg"
+  },
+  {
+    "id": 180,
+    "templateCode": "DISH_180",
+    "categoryCode": "HEALTHY",
+    "categoryName": "健康轻食",
+    "name": "西兰花鸡胸肉",
+    "description": "西兰花鸡胸肉，搭配均衡，适合清爽少负担的一餐。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "西兰花鸡胸肉 中国菜 成品",
+    "imageFileName": "dish-180.jpg"
+  },
+  {
+    "id": 181,
+    "templateCode": "DISH_181",
+    "categoryCode": "HEALTHY",
+    "categoryName": "健康轻食",
+    "name": "清蒸鳕鱼",
+    "description": "清蒸鳕鱼，搭配均衡，适合清爽少负担的一餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "清蒸鳕鱼 中国菜 成品",
+    "imageFileName": "dish-181.jpg"
+  },
+  {
+    "id": 182,
+    "templateCode": "DISH_182",
+    "categoryCode": "HEALTHY",
+    "categoryName": "健康轻食",
+    "name": "香煎三文鱼",
+    "description": "香煎三文鱼，搭配均衡，适合清爽少负担的一餐。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "香煎三文鱼 中国菜 成品",
+    "imageFileName": "dish-182.jpg"
+  },
+  {
+    "id": 183,
+    "templateCode": "DISH_183",
+    "categoryCode": "HEALTHY",
+    "categoryName": "健康轻食",
+    "name": "蒸南瓜山药",
+    "description": "蒸南瓜山药，搭配均衡，适合清爽少负担的一餐。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "蒸南瓜山药 中国菜 成品",
+    "imageFileName": "dish-183.jpg"
+  },
+  {
+    "id": 184,
+    "templateCode": "DISH_184",
+    "categoryCode": "HEALTHY",
+    "categoryName": "健康轻食",
+    "name": "蔬菜豆腐煲",
+    "description": "蔬菜豆腐煲，搭配均衡，适合清爽少负担的一餐。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "蔬菜豆腐煲 中国菜 成品",
+    "imageFileName": "dish-184.jpg"
+  },
+  {
+    "id": 185,
+    "templateCode": "DISH_185",
+    "categoryCode": "HEALTHY",
+    "categoryName": "健康轻食",
+    "name": "杂粮饭",
+    "description": "杂粮饭，搭配均衡，适合清爽少负担的一餐。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "杂粮饭 中国菜 成品",
+    "imageFileName": "dish-185.jpg"
+  },
+  {
+    "id": 186,
+    "templateCode": "DISH_186",
+    "categoryCode": "HEALTHY",
+    "categoryName": "健康轻食",
+    "name": "凉拌荞麦面",
+    "description": "凉拌荞麦面，搭配均衡，适合清爽少负担的一餐。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "清淡"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "凉拌荞麦面 中国菜 成品",
+    "imageFileName": "dish-186.jpg"
+  },
+  {
+    "id": 187,
+    "templateCode": "DISH_187",
+    "categoryCode": "SNACK",
+    "categoryName": "特色小吃",
+    "name": "鲜肉锅贴",
+    "description": "鲜肉锅贴，家常风味小吃，适合加餐或搭配正餐。",
+    "referencePrice": 14,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "鲜肉锅贴 中国菜 成品",
+    "imageFileName": "dish-187.jpg"
+  },
+  {
+    "id": 188,
+    "templateCode": "DISH_188",
+    "categoryCode": "SNACK",
+    "categoryName": "特色小吃",
+    "name": "上海生煎包",
+    "description": "上海生煎包，家常风味小吃，适合加餐或搭配正餐。",
+    "referencePrice": 8,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "上海生煎包 中国菜 成品",
+    "imageFileName": "dish-188.jpg"
+  },
+  {
+    "id": 189,
+    "templateCode": "DISH_189",
+    "categoryCode": "SNACK",
+    "categoryName": "特色小吃",
+    "name": "红糖糍粑",
+    "description": "红糖糍粑，家常风味小吃，适合加餐或搭配正餐。",
+    "referencePrice": 10,
+    "tasteTags": [
+      "酸甜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "红糖糍粑 中国菜 成品",
+    "imageFileName": "dish-189.jpg"
+  },
+  {
+    "id": 190,
+    "templateCode": "DISH_190",
+    "categoryCode": "SNACK",
+    "categoryName": "特色小吃",
+    "name": "三丝春卷",
+    "description": "三丝春卷，家常风味小吃，适合加餐或搭配正餐。",
+    "referencePrice": 12,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "三丝春卷 中国菜 成品",
+    "imageFileName": "dish-190.jpg"
+  },
+  {
+    "id": 191,
+    "templateCode": "DISH_191",
+    "categoryCode": "SNACK",
+    "categoryName": "特色小吃",
+    "name": "腊汁肉夹馍",
+    "description": "腊汁肉夹馍，家常风味小吃，适合加餐或搭配正餐。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "腊汁肉夹馍 中国菜 成品",
+    "imageFileName": "dish-191.jpg"
+  },
+  {
+    "id": 192,
+    "templateCode": "DISH_192",
+    "categoryCode": "SNACK",
+    "categoryName": "特色小吃",
+    "name": "陕西凉皮",
+    "description": "陕西凉皮，家常风味小吃，适合加餐或搭配正餐。",
+    "referencePrice": 6,
+    "tasteTags": [
+      "香辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "陕西凉皮 中国菜 成品",
+    "imageFileName": "dish-192.jpg"
+  },
+  {
+    "id": 193,
+    "templateCode": "DISH_193",
+    "categoryCode": "SNACK",
+    "categoryName": "特色小吃",
+    "name": "糖油粑粑",
+    "description": "糖油粑粑，家常风味小吃，适合加餐或搭配正餐。",
+    "referencePrice": 8,
+    "tasteTags": [
+      "酸甜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "糖油粑粑 中国菜 成品",
+    "imageFileName": "dish-193.jpg"
+  },
+  {
+    "id": 194,
+    "templateCode": "DISH_194",
+    "categoryCode": "SNACK",
+    "categoryName": "特色小吃",
+    "name": "香酥鸡柳",
+    "description": "香酥鸡柳，家常风味小吃，适合加餐或搭配正餐。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "香酥鸡柳 中国菜 成品",
+    "imageFileName": "dish-194.jpg"
+  },
+  {
+    "id": 195,
+    "templateCode": "DISH_195",
+    "categoryCode": "DESSERT",
+    "categoryName": "甜品饮品",
+    "name": "双皮奶",
+    "description": "双皮奶，甜润适口，适合作为餐后甜品。",
+    "referencePrice": 7,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "双皮奶 中国菜 成品",
+    "imageFileName": "dish-195.jpg"
+  },
+  {
+    "id": 196,
+    "templateCode": "DISH_196",
+    "categoryCode": "DESSERT",
+    "categoryName": "甜品饮品",
+    "name": "杨枝甘露",
+    "description": "杨枝甘露，甜润适口，适合作为餐后甜品。",
+    "referencePrice": 9,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "杨枝甘露 中国菜 成品",
+    "imageFileName": "dish-196.jpg"
+  },
+  {
+    "id": 197,
+    "templateCode": "DISH_197",
+    "categoryCode": "DESSERT",
+    "categoryName": "甜品饮品",
+    "name": "陈皮红豆沙",
+    "description": "陈皮红豆沙，甜润适口，适合作为餐后甜品。",
+    "referencePrice": 11,
+    "tasteTags": [
+      "家常"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "陈皮红豆沙 中国菜 成品",
+    "imageFileName": "dish-197.jpg"
+  },
+  {
+    "id": 198,
+    "templateCode": "DISH_198",
+    "categoryCode": "DESSERT",
+    "categoryName": "甜品饮品",
+    "name": "冰糖雪梨",
+    "description": "冰糖雪梨，甜润适口，适合作为餐后甜品。",
+    "referencePrice": 13,
+    "tasteTags": [
+      "酸甜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "冰糖雪梨 中国菜 成品",
+    "imageFileName": "dish-198.jpg"
+  },
+  {
+    "id": 199,
+    "templateCode": "DISH_199",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "豆角焖面",
+    "description": "豆角焖面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "咸香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "豆角焖面 braised noodles green beans",
+    "imageFileName": "dish-199.jpg"
+  },
+  {
+    "id": 200,
+    "templateCode": "DISH_200",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "武汉热干面",
+    "description": "武汉热干面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "麻香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Wuhan hot dry noodles",
+    "imageFileName": "dish-200.jpg"
+  },
+  {
+    "id": 201,
+    "templateCode": "DISH_201",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "四川担担面",
+    "description": "四川担担面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "麻辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "dan dan noodles Sichuan",
+    "imageFileName": "dish-201.jpg"
+  },
+  {
+    "id": 202,
+    "templateCode": "DISH_202",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "重庆小面",
+    "description": "重庆小面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "麻辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Chongqing spicy noodles",
+    "imageFileName": "dish-202.jpg"
+  },
+  {
+    "id": 203,
+    "templateCode": "DISH_203",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "陕西油泼面",
+    "description": "陕西油泼面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "香辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "youpo mian biang biang noodles",
+    "imageFileName": "dish-203.jpg"
+  },
+  {
+    "id": 204,
+    "templateCode": "DISH_204",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "山西刀削面",
+    "description": "山西刀削面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Shanxi knife cut noodles",
+    "imageFileName": "dish-204.jpg"
+  },
+  {
+    "id": 205,
+    "templateCode": "DISH_205",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "河南烩面",
+    "description": "河南烩面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "浓香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Henan hui mian noodles",
+    "imageFileName": "dish-205.jpg"
+  },
+  {
+    "id": 206,
+    "templateCode": "DISH_206",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "岐山臊子面",
+    "description": "岐山臊子面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "酸香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Shaanxi saozi noodles",
+    "imageFileName": "dish-206.jpg"
+  },
+  {
+    "id": 207,
+    "templateCode": "DISH_207",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "宜宾燃面",
+    "description": "宜宾燃面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "香辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Yibin ran mian noodles",
+    "imageFileName": "dish-207.jpg"
+  },
+  {
+    "id": 208,
+    "templateCode": "DISH_208",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "延吉冷面",
+    "description": "延吉冷面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 22,
+    "tasteTags": [
+      "酸甜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Korean cold noodles naengmyeon",
+    "imageFileName": "dish-208.jpg"
+  },
+  {
+    "id": 209,
+    "templateCode": "DISH_209",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "桂林米粉",
+    "description": "桂林米粉，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 20,
+    "tasteTags": [
+      "卤香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Guilin rice noodles",
+    "imageFileName": "dish-209.jpg"
+  },
+  {
+    "id": 210,
+    "templateCode": "DISH_210",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "柳州螺蛳粉",
+    "description": "柳州螺蛳粉，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "酸辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Luosifen river snail rice noodles",
+    "imageFileName": "dish-210.jpg"
+  },
+  {
+    "id": 211,
+    "templateCode": "DISH_211",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "云南过桥米线",
+    "description": "云南过桥米线，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "鲜香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "crossing the bridge noodles Yunnan",
+    "imageFileName": "dish-211.jpg"
+  },
+  {
+    "id": 212,
+    "templateCode": "DISH_212",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "广东云吞面",
+    "description": "广东云吞面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "鲜香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Cantonese wonton noodles",
+    "imageFileName": "dish-212.jpg"
+  },
+  {
+    "id": 213,
+    "templateCode": "DISH_213",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "新疆大盘鸡",
+    "description": "新疆大盘鸡，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 38,
+    "tasteTags": [
+      "香辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Xinjiang big plate chicken dapanji",
+    "imageFileName": "dish-213.jpg"
+  },
+  {
+    "id": 214,
+    "templateCode": "DISH_214",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "徐州地锅鸡",
+    "description": "徐州地锅鸡，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 36,
+    "tasteTags": [
+      "酱香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "digguo chicken Chinese",
+    "imageFileName": "dish-214.jpg"
+  },
+  {
+    "id": 215,
+    "templateCode": "DISH_215",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "小鸡炖蘑菇",
+    "description": "小鸡炖蘑菇，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 34,
+    "tasteTags": [
+      "浓香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "chicken stewed mushrooms Chinese",
+    "imageFileName": "dish-215.jpg"
+  },
+  {
+    "id": 216,
+    "templateCode": "DISH_216",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "猪肉炖粉条",
+    "description": "猪肉炖粉条，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "pork stewed vermicelli Chinese",
+    "imageFileName": "dish-216.jpg"
+  },
+  {
+    "id": 217,
+    "templateCode": "DISH_217",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "东北锅包肉",
+    "description": "东北锅包肉，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 34,
+    "tasteTags": [
+      "酸甜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "guo bao rou sweet sour pork",
+    "imageFileName": "dish-217.jpg"
+  },
+  {
+    "id": 218,
+    "templateCode": "DISH_218",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "东北溜肉段",
+    "description": "东北溜肉段，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "咸香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Northeastern Chinese fried pork",
+    "imageFileName": "dish-218.jpg"
+  },
+  {
+    "id": 219,
+    "templateCode": "DISH_219",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "客家酿豆腐",
+    "description": "客家酿豆腐，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "鲜香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Hakka stuffed tofu",
+    "imageFileName": "dish-219.jpg"
+  },
+  {
+    "id": 220,
+    "templateCode": "DISH_220",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "杭州东坡肉",
+    "description": "杭州东坡肉，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 38,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Dongpo pork Hangzhou",
+    "imageFileName": "dish-220.jpg"
+  },
+  {
+    "id": 221,
+    "templateCode": "DISH_221",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "重庆毛血旺",
+    "description": "重庆毛血旺，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 40,
+    "tasteTags": [
+      "麻辣"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "maoxuewang Chongqing",
+    "imageFileName": "dish-221.jpg"
+  },
+  {
+    "id": 222,
+    "templateCode": "DISH_222",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "北京鱼头泡饼",
+    "description": "北京鱼头泡饼，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 42,
+    "tasteTags": [
+      "酱香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "fish head pao bing Beijing",
+    "imageFileName": "dish-222.jpg"
+  },
+  {
+    "id": 223,
+    "templateCode": "DISH_223",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "济南把子肉",
+    "description": "济南把子肉，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 32,
+    "tasteTags": [
+      "酱香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Jinan braised pork bazirou",
+    "imageFileName": "dish-223.jpg"
+  },
+  {
+    "id": 224,
+    "templateCode": "DISH_224",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "山东九转大肠",
+    "description": "山东九转大肠，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 38,
+    "tasteTags": [
+      "酸甜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "jiuzhuan dachang Shandong",
+    "imageFileName": "dish-224.jpg"
+  },
+  {
+    "id": 225,
+    "templateCode": "DISH_225",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "苏州松鼠桂鱼",
+    "description": "苏州松鼠桂鱼，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 48,
+    "tasteTags": [
+      "酸甜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "squirrel fish Suzhou",
+    "imageFileName": "dish-225.jpg"
+  },
+  {
+    "id": 226,
+    "templateCode": "DISH_226",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "杭州龙井虾仁",
+    "description": "杭州龙井虾仁，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 42,
+    "tasteTags": [
+      "清鲜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Longjing shrimp Hangzhou",
+    "imageFileName": "dish-226.jpg"
+  },
+  {
+    "id": 227,
+    "templateCode": "DISH_227",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "杭州西湖醋鱼",
+    "description": "杭州西湖醋鱼，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 44,
+    "tasteTags": [
+      "酸甜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "West Lake vinegar fish",
+    "imageFileName": "dish-227.jpg"
+  },
+  {
+    "id": 228,
+    "templateCode": "DISH_228",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "南京盐水鸭",
+    "description": "南京盐水鸭，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 38,
+    "tasteTags": [
+      "咸鲜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Nanjing salted duck",
+    "imageFileName": "dish-228.jpg"
+  },
+  {
+    "id": 229,
+    "templateCode": "DISH_229",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "潮汕卤鹅",
+    "description": "潮汕卤鹅，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 46,
+    "tasteTags": [
+      "卤香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Chaoshan braised goose",
+    "imageFileName": "dish-229.jpg"
+  },
+  {
+    "id": 230,
+    "templateCode": "DISH_230",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "广式煲仔饭",
+    "description": "广式煲仔饭，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "锅香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Cantonese claypot rice",
+    "imageFileName": "dish-230.jpg"
+  },
+  {
+    "id": 231,
+    "templateCode": "DISH_231",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "海南鸡饭",
+    "description": "海南鸡饭，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 30,
+    "tasteTags": [
+      "鲜香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Hainanese chicken rice",
+    "imageFileName": "dish-231.jpg"
+  },
+  {
+    "id": 232,
+    "templateCode": "DISH_232",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "福建沙茶面",
+    "description": "福建沙茶面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "沙茶香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Fujian shacha noodles",
+    "imageFileName": "dish-232.jpg"
+  },
+  {
+    "id": 233,
+    "templateCode": "DISH_233",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "莆田卤面",
+    "description": "莆田卤面，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 28,
+    "tasteTags": [
+      "鲜香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Putian lor mee noodles",
+    "imageFileName": "dish-233.jpg"
+  },
+  {
+    "id": 234,
+    "templateCode": "DISH_234",
+    "categoryCode": "STAPLE",
+    "categoryName": "主食面点",
+    "name": "台湾卤肉饭",
+    "description": "台湾卤肉饭，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "卤香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Taiwanese braised pork rice lu rou fan",
+    "imageFileName": "dish-234.jpg"
+  },
+  {
+    "id": 235,
+    "templateCode": "DISH_235",
+    "categoryCode": "BREAKFAST",
+    "categoryName": "早餐轻食",
+    "name": "广东肠粉",
+    "description": "广东肠粉，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 18,
+    "tasteTags": [
+      "鲜香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Cantonese rice noodle roll cheung fun",
+    "imageFileName": "dish-235.jpg"
+  },
+  {
+    "id": 236,
+    "templateCode": "DISH_236",
+    "categoryCode": "DESSERT",
+    "categoryName": "甜品饮品",
+    "name": "宁波汤圆",
+    "description": "宁波汤圆，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 16,
+    "tasteTags": [
+      "香甜"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Ningbo tangyuan sweet rice balls",
+    "imageFileName": "dish-236.jpg"
+  },
+  {
+    "id": 237,
+    "templateCode": "DISH_237",
+    "categoryCode": "SNACK",
+    "categoryName": "特色小吃",
+    "name": "厦门海蛎煎",
+    "description": "厦门海蛎煎，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 26,
+    "tasteTags": [
+      "鲜香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "oyster omelette Xiamen",
+    "imageFileName": "dish-237.jpg"
+  },
+  {
+    "id": 238,
+    "templateCode": "DISH_238",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "泉州姜母鸭",
+    "description": "泉州姜母鸭，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 42,
+    "tasteTags": [
+      "姜香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "ginger duck Fujian",
+    "imageFileName": "dish-238.jpg"
+  },
+  {
+    "id": 239,
+    "templateCode": "DISH_239",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "山东博山酥锅",
+    "description": "山东博山酥锅，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 36,
+    "tasteTags": [
+      "醇香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Boshan suguo Shandong stew",
+    "imageFileName": "dish-239.jpg"
+  },
+  {
+    "id": 240,
+    "templateCode": "DISH_240",
+    "categoryCode": "HOME_HOT",
+    "categoryName": "家常热菜",
+    "name": "赛螃蟹",
+    "description": "赛螃蟹，地方特色风味，适合家庭午餐或晚餐搭配。",
+    "referencePrice": 24,
+    "tasteTags": [
+      "鲜香"
+    ],
+    "mealTags": [
+      "LUNCH",
+      "DINNER"
+    ],
+    "imageQuery": "Sai crab scrambled eggs Chinese",
+    "imageFileName": "dish-240.jpg"
+  }
+]

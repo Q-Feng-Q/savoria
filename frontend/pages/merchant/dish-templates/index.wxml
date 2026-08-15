@@ -1,0 +1,50 @@
+<view class="warm-page template-page">
+  <view class="template-head">
+    <view class="template-head-copy">
+      <text class="eyebrow">商户菜品库</text>
+      <text class="template-title">模板菜市场</text>
+      <text class="template-copy">挑选家常菜，导入后可自由改价和完善做法。</text>
+    </view>
+    <view class="ui-button import-all-action {{importing || importingAll ? 'import-all-action--disabled' : ''}}" bindtap="importAll" aria-role="button" aria-label="导入全部系统菜品" aria-disabled="{{importing || importingAll}}" aria-busy="{{importingAll}}" hover-class="ui-button--pressed">{{importingAll ? '全部导入中' : '导入全部'}}</view>
+  </view>
+
+  <view class="search-row">
+    <input class="search-input" value="{{keyword}}" placeholder="搜索菜名" bindinput="inputKeyword" confirm-type="search" bindconfirm="search" />
+    <view class="search-action" bindtap="search" aria-role="button" aria-label="搜索菜品模板" hover-class="ui-button--pressed">搜索</view>
+  </view>
+
+  <scroll-view class="category-strip" scroll-x enhanced show-scrollbar="false">
+    <view class="category-inner">
+      <view wx:for="{{categories}}" wx:key="categoryId" class="category-item {{categoryId == item.categoryId ? 'category-item--active' : ''}}" data-id="{{item.categoryId}}" bindtap="chooseCategory" aria-role="button" aria-label="筛选{{item.name}}分类" hover-class="ui-button--pressed">{{item.name}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="filter-row">
+    <view class="filter-item {{imported === '' ? 'filter-item--active' : ''}}" data-value="" bindtap="changeImported" aria-role="button" aria-label="筛选全部模板" hover-class="ui-button--pressed">全部</view>
+    <view class="filter-item {{imported === 'false' ? 'filter-item--active' : ''}}" data-value="false" bindtap="changeImported" aria-role="button" aria-label="筛选未导入模板" hover-class="ui-button--pressed">未导入</view>
+    <view class="filter-item {{imported === 'true' ? 'filter-item--active' : ''}}" data-value="true" bindtap="changeImported" aria-role="button" aria-label="筛选已导入模板" hover-class="ui-button--pressed">已导入</view>
+    <view class="page-select" bindtap="selectCurrentPage" aria-role="button" aria-label="全选本页模板" hover-class="ui-button--pressed">全选本页</view>
+  </view>
+
+  <page-state wx:if="{{loading}}" phase="loading" title="正在准备家常菜" description="请稍候" />
+  <page-state wx:elif="{{!items.length}}" phase="empty" title="没有找到模板菜" description="换个分类或关键词试试。" illustration="cart" />
+  <view wx:else class="template-list">
+    <view wx:for="{{items}}" wx:key="templateId" class="template-row {{item.imported ? 'template-row--imported' : ''}}">
+      <image class="template-image" src="{{item.imageUrl}}" mode="aspectFill" data-id="{{item.templateId}}" bindtap="openDetail" />
+      <view class="template-main" data-id="{{item.templateId}}" bindtap="openDetail" aria-role="button" aria-label="查看{{item.name}}模板详情" hover-class="ui-button--pressed">
+        <text class="template-name">{{item.name}}</text>
+        <text class="template-meta">{{item.categoryName}} · {{item.ingredientCount}} 种食材</text>
+        <text class="template-tags">{{item.tagsText || '家常'}} · {{item.priceText}}</text>
+      </view>
+      <view wx:if="{{item.imported}}" class="imported-label">已导入</view>
+      <view wx:else class="check-control {{item.selected ? 'check-control--active' : ''}}" data-id="{{item.templateId}}" bindtap="toggleSelection" aria-role="checkbox" aria-label="选择{{item.name}}" hover-class="ui-button--pressed">{{item.selected ? '✓' : ''}}</view>
+    </view>
+    <view wx:if="{{loadingMore}}" class="list-progress">正在加载更多菜品…</view>
+    <view wx:elif="{{items.length && !hasMore}}" class="list-progress list-progress--done">已显示全部 {{total}} 道系统菜品</view>
+  </view>
+
+  <view class="selection-bar">
+    <view class="selection-copy"><text class="selection-count">已选 {{selectedIds.length}}</text><text class="selection-clear" bindtap="clearSelection">清空</text></view>
+    <view class="import-action {{!selectedIds.length || importing || importingAll ? 'import-action--disabled' : ''}}" bindtap="importSelected" aria-role="button" aria-label="导入所选菜品模板" aria-disabled="{{!selectedIds.length || importing || importingAll}}" aria-busy="{{importing || importingAll}}" hover-class="ui-button--pressed">{{importing || importingAll ? '请稍候' : '导入菜品'}}</view>
+  </view>
+</view>

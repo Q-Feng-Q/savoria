@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "订单管理",
+  "usingComponents": {
+    "merchant-workbench-nav": "/components/merchant-workbench-nav/index",
+    "page-state": "/components/page-state/index"
+  }
+}

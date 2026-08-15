@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.system.mapper.SystemSettingMapper">
+  <resultMap id="settingMap" type="com.familykitchen.system.model.entity.SystemSettingDO">
+    <id property="id" column="id"/><result property="siteName" column="site_name"/>
+    <result property="siteLogoUrl" column="site_logo_url"/>
+    <result property="dishReviewEnabled" column="dish_review_enabled"/>
+    <result property="maintenanceEnabled" column="maintenance_enabled"/>
+    <result property="maintenanceMessage" column="maintenance_message"/>
+    <result property="mobileBindingEnabled" column="mobile_binding_enabled"/>
+    <result property="emailBindingEnabled" column="email_binding_enabled"/>
+    <result property="wechatBindingEnabled" column="wechat_binding_enabled"/>
+    <result property="smtpHost" column="smtp_host"/><result property="smtpPort" column="smtp_port"/>
+    <result property="smtpUsername" column="smtp_username"/><result property="smtpPasswordCiphertext" column="smtp_password_ciphertext"/>
+    <result property="smtpTlsEnabled" column="smtp_tls_enabled"/><result property="smtpFrom" column="smtp_from"/>
+    <result property="updatedBy" column="updated_by"/><result property="updatedAt" column="updated_at"/>
+  </resultMap>
+  <select id="selectCurrent" resultMap="settingMap">SELECT id,site_name,site_logo_url,dish_review_enabled,
+    maintenance_enabled,maintenance_message,mobile_binding_enabled,email_binding_enabled,wechat_binding_enabled,
+    smtp_host,smtp_port,smtp_username,smtp_password_ciphertext,smtp_tls_enabled,smtp_from,updated_by,updated_at
+    FROM system_settings WHERE id=1</select>
+  <update id="update">UPDATE system_settings SET site_name=#{siteName},site_logo_url=#{siteLogoUrl},
+    dish_review_enabled=#{dishReviewEnabled},maintenance_enabled=#{maintenanceEnabled},
+    maintenance_message=#{maintenanceMessage},mobile_binding_enabled=#{mobileBindingEnabled},
+    email_binding_enabled=#{emailBindingEnabled},wechat_binding_enabled=#{wechatBindingEnabled},
+    smtp_host=#{smtpHost},smtp_port=#{smtpPort},smtp_username=#{smtpUsername},
+    smtp_password_ciphertext=#{smtpPasswordCiphertext},smtp_tls_enabled=#{smtpTlsEnabled},smtp_from=#{smtpFrom},
+    updated_by=#{updatedBy} WHERE id=1</update>
+</mapper>

@@ -1,0 +1,542 @@
+.home-page {
+  min-height: 100vh;
+  padding: 0 22rpx calc(150rpx + env(safe-area-inset-bottom));
+  overflow-x: hidden;
+  background: var(--concept-cream, #fff6e8);
+  box-sizing: border-box
+}
+
+.design-home-hero {
+  position: relative;
+  min-height: 620rpx;
+  margin: 0 -22rpx;
+  overflow: hidden;
+  background: var(--sk-wheat);
+  animation: home-rise .48s cubic-bezier(.2, .8, .2, 1) both
+}
+
+.home-hero__scene,
+.home-hero__veil {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%
+}
+
+.home-hero__scene {
+  object-position: center
+}
+
+.home-hero__veil {
+  background: linear-gradient(90deg, rgba(255, 246, 232, .98) 0, rgba(255, 246, 232, .84) 44%, rgba(255, 246, 232, .08) 78%)
+}
+
+.home-hero__copy {
+  position: relative;
+  z-index: 2;
+  width: 58%;
+  padding: 80rpx 0 44rpx 42rpx
+}
+
+.home-hero__eyebrow,
+.home-hero__title,
+.home-hero__note {
+  display: block
+}
+
+.home-hero__eyebrow {
+  color: #7b4a34;
+  font-size: 18rpx;
+  font-weight: 900;
+  letter-spacing: 2rpx
+}
+
+.home-hero__title {
+  margin-top: 28rpx;
+  color: #3f281f;
+  font-family: "STKaiti", "KaiTi", "Songti SC", serif;
+  font-size: 62rpx;
+  line-height: 1.12;
+  font-weight: 900;
+  white-space: pre-line
+}
+
+.home-hero__note {
+  margin-top: 22rpx;
+  color: #725747;
+  font-size: 22rpx
+}
+
+.home-hero__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14rpx;
+  min-height: 78rpx;
+  margin: 34rpx 0 0;
+  padding: 0 28rpx;
+  border: 0;
+  border-radius: 28rpx;
+  background: #ed7d5e;
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 900;
+  box-shadow: 0 14rpx 28rpx rgba(212, 103, 75, .25)
+}
+
+.home-hero__action::after {
+  border: 0
+}
+
+.home-story__mascot {
+  position: absolute;
+  z-index: 3;
+  top: 24rpx;
+  right: 24rpx;
+  padding: 10rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 250, 240, .9);
+  color: #5a3a2e;
+  font-size: 18rpx;
+  font-weight: 900;
+  animation: animal-breathe 3.6s ease-in-out infinite
+}
+
+.home-story__mascot text+text {
+  margin-left: 8rpx;
+  color: #8f705f
+}
+
+.home-role-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12rpx;
+  margin-top: 18rpx
+}
+
+.home-role {
+  display: grid;
+  grid-template-columns: 58rpx minmax(0, 1fr);
+  align-items: center;
+  gap: 10rpx;
+  min-width: 0;
+  padding: 14rpx 12rpx;
+  border-radius: 18rpx;
+  background: rgba(255, 253, 248, .92)
+}
+
+.home-role__badge {
+  display: grid;
+  place-items: center;
+  width: 54rpx;
+  height: 54rpx;
+  border-radius: 50%;
+  background: #efd29a;
+  color: #654331;
+  font-size: 20rpx;
+  font-weight: 900
+}
+
+.home-role__badge--rabbit {
+  background: #dce9dc;
+  color: #52715a
+}
+
+.home-role__badge--cat {
+  background: #f3c9b8;
+  color: #a1533d
+}
+
+.home-role text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap
+}
+
+.home-role text:first-child {
+  color: #3f2d25;
+  font-size: 20rpx;
+  font-weight: 900
+}
+
+.home-role text:last-child {
+  margin-top: 3rpx;
+  color: #927767;
+  font-size: 16rpx
+}
+
+.home-table-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 20rpx;
+  border-top: 2rpx solid #ddc8ae;
+  border-bottom: 2rpx solid #ddc8ae
+}
+
+.home-summary__item {
+  min-width: 0;
+  padding: 24rpx 16rpx;
+  border-left: 2rpx solid #e7d8c3
+}
+
+.home-summary__item:first-child {
+  border-left: 0
+}
+
+.home-summary__item text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap
+}
+
+.home-summary__item text:first-child {
+  color: #9a7b68;
+  font-size: 18rpx
+}
+
+.home-summary__item text:nth-child(2) {
+  margin-top: 8rpx;
+  color: #412e26;
+  font-size: 28rpx;
+  font-weight: 900
+}
+
+.home-summary__item text:last-child {
+  margin-top: 5rpx;
+  color: #a88873;
+  font-size: 17rpx
+}
+
+.today-board__item--accent text:nth-child(2) {
+  color: #ed7657
+}
+
+.home-recommendation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 210rpx;
+  align-items: center;
+  gap: 24rpx;
+  margin-top: 38rpx;
+  padding: 30rpx;
+  border-radius: 34rpx;
+  background: #dce9dc;
+  box-shadow: none
+}
+
+.home-recommendation__eyebrow,
+.home-recommendation__title,
+.home-recommendation__note,
+.home-recommendation__price {
+  display: block
+}
+
+.home-recommendation__eyebrow {
+  color: #9a563e;
+  font-size: 18rpx;
+  font-weight: 900
+}
+
+.home-recommendation__title {
+  margin-top: 14rpx;
+  color: #3d2b24;
+  font-family: "STKaiti", "KaiTi", "Songti SC", serif;
+  font-size: 41rpx;
+  font-weight: 900
+}
+
+.home-recommendation__note {
+  margin-top: 10rpx;
+  color: #765f52;
+  font-size: 20rpx
+}
+
+.home-recommendation__price {
+  margin-top: 22rpx;
+  color: #ed7657;
+  font-size: 34rpx;
+  font-weight: 900
+}
+
+.home-recommendation__plate {
+  display: grid;
+  place-items: center;
+  width: 190rpx;
+  height: 190rpx;
+  border-radius: 50%;
+  background: #f2d39b
+}
+
+.home-recommendation__image {
+  width: 154rpx;
+  height: 154rpx;
+  border-radius: 50%
+}
+
+.home-service-section {
+  margin-top: 38rpx
+}
+
+.home-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding-bottom: 16rpx
+}
+
+.home-section-head view text {
+  display: block
+}
+
+.home-section-head view text:first-child {
+  color: #3f2c24;
+  font-size: 34rpx;
+  font-weight: 900
+}
+
+.home-section-head view text:last-child {
+  margin-top: 6rpx;
+  color: #927565;
+  font-size: 19rpx
+}
+
+.home-section-head>text {
+  max-width: 230rpx;
+  color: #9a7c6b;
+  font-size: 18rpx;
+  text-align: right
+}
+
+.home-service-list {
+  border-top: 2rpx solid #dfccb5
+}
+
+.home-service-row {
+  display: grid;
+  grid-template-columns: 52rpx minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16rpx;
+  width: 100%;
+  min-height: 104rpx;
+  margin: 0;
+  padding: 15rpx 2rpx;
+  border: 0;
+  border-bottom: 2rpx solid #eadbc8;
+  border-radius: 0;
+  background: transparent;
+  box-sizing: border-box;
+  text-align: left
+}
+
+.home-service-row--pressed {
+  background: rgba(242, 213, 159, .2);
+  opacity: .82
+}
+
+.home-service-row::after {
+  border: 0
+}
+
+.home-service-row__number {
+  display: grid;
+  place-items: center;
+  width: 46rpx;
+  height: 46rpx;
+  border-radius: 50%;
+  background: #f2d59f;
+  color: #714a36;
+  font-size: 19rpx;
+  font-weight: 900
+}
+
+.home-service-row__label,
+.home-service-row__note {
+  display: block
+}
+
+.home-service-row__label {
+  color: #432f27;
+  font-size: 26rpx;
+  font-weight: 900
+}
+
+.home-service-row__note {
+  margin-top: 5rpx;
+  color: #987d6d;
+  font-size: 19rpx
+}
+
+.home-service-row__arrow {
+  color: #765643;
+  font-size: 36rpx
+}
+
+@keyframes home-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18rpx)
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0)
+  }
+}
+
+@keyframes animal-breathe {
+
+  0%,
+  100% {
+    transform: translateY(0)
+  }
+
+  50% {
+    transform: translateY(-6rpx)
+  }
+}
+
+@media(max-width:360px) {
+  .design-home-hero {
+    min-height: 570rpx
+  }
+
+  .home-hero__copy {
+    width: 66%;
+    padding: 64rpx 0 36rpx 28rpx
+  }
+
+  .home-hero__title {
+    font-size: 52rpx
+  }
+
+  .home-role {
+    grid-template-columns: minmax(0, 1fr);
+    text-align: center
+  }
+
+  .home-role__badge {
+    margin: 0 auto
+  }
+
+  .home-table-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+  }
+
+  .home-summary__item {
+    padding: 20rpx 8rpx
+  }
+
+  .home-summary__item text:nth-child(2) {
+    font-size: 23rpx
+  }
+
+  .home-recommendation {
+    grid-template-columns: minmax(0, 1fr) 145rpx;
+    padding: 22rpx
+  }
+
+  .home-recommendation__plate {
+    width: 138rpx;
+    height: 138rpx
+  }
+
+  .home-recommendation__image {
+    width: 112rpx;
+    height: 112rpx
+  }
+
+  .home-recommendation__title {
+    font-size: 34rpx
+  }
+
+  .home-section-head {
+    align-items: flex-start;
+    flex-direction: column
+  }
+
+  .home-section-head>text {
+    max-width: none;
+    text-align: left
+  }
+}
+
+@media(prefers-reduced-motion:reduce) {
+
+  .design-home-hero,
+  .home-story__mascot,
+  .sk-stagger-in {
+    animation: none
+  }
+}
+
+/* The poster owns an explicit height and stacking context. This avoids the
+   native image layer collapsing the min-height/content overlay on some
+   WeChat simulator and older Android WebView combinations. */
+.warm-home-poster {
+  position: relative;
+  height: 620rpx;
+  min-height: 0;
+  isolation: isolate;
+  overflow: hidden;
+  background: #f6dfb5;
+  animation: none
+}
+
+.warm-home-poster__scene {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  bottom: auto;
+  left: auto;
+  width: 72%;
+  height: 100%
+}
+
+.warm-home-poster__veil {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #fff6e8 0, rgba(255, 246, 232, .96) 38%, rgba(255, 246, 232, .5) 60%, rgba(255, 246, 232, .04) 88%)
+}
+
+.warm-home-poster__copy {
+  position: relative;
+  z-index: 3;
+  width: 58%;
+  min-height: 100%;
+  padding: 80rpx 0 44rpx 42rpx
+}
+
+.warm-home-poster__status {
+  z-index: 4
+}
+
+@media(max-width:360px) {
+  .warm-home-poster {
+    height: 570rpx;
+    min-height: 0
+  }
+
+  .warm-home-poster__scene {
+    width: 76%
+  }
+
+  .warm-home-poster__copy {
+    width: 66%;
+    min-height: 100%;
+    padding: 58rpx 0 32rpx 28rpx
+  }
+
+  .warm-home-poster__status {
+    top: 16rpx;
+    right: 16rpx
+  }
+}

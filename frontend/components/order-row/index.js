@@ -1,0 +1,1 @@
+Component({properties:{order:{type:Object,value:{}},mode:{type:String,value:'family'}},methods:{open(){this.triggerEvent('open',{order:this.data.order})},action(event){this.triggerEvent('action',{order:this.data.order,action:event.currentTarget.dataset.action})}}});

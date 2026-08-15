@@ -1,0 +1,3 @@
+<view class="ui-button warm-component warm-purchase-row purchase-row {{checked ? 'purchase-row--checked' : ''}}" bindtap="toggle" aria-role="button" aria-label="{{(checked ? '取消采购：' : '标记采购：') + (item.ingredientName || item.name)}}" hover-class="ui-button--pressed" hover-stay-time="80"><view class="purchase-row__check">{{checked ? '✓' : ''}}</view><view class="purchase-row__body"><text class="purchase-row__name">{{item.ingredientName || item.name}}</text><text class="purchase-row__note">{{item.sourceText || item.sourceStatusText}}</text></view><text class="purchase-row__quantity">{{item.quantity}} {{item.unit}}</text></view>
+
+

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.family.mapper.FamilyMapper">
+  <resultMap id="FamilyRecordMap" type="com.familykitchen.family.model.entity.FamilyRecord">
+    <id property="familyId" column="family_id"/>
+    <result property="familyName" column="family_name"/>
+    <result property="merchantId" column="merchant_id"/>
+    <result property="merchantName" column="merchant_name"/>
+    <result property="note" column="note"/>
+    <result property="contactNamesJson" column="contact_names_json"/>
+    <result property="deliveryEnabled" column="delivery_enabled"/>
+    <result property="deliveryFeeDefault" column="delivery_fee_default"/>
+    <result property="deliveryFree" column="delivery_fee_free"/>
+    <result property="defaultAddressText" column="default_address_text"/>
+    <result property="addressCount" column="address_count"/>
+    <result property="memberCount" column="member_count"/>
+    <result property="activeMenuCount" column="active_menu_count"/>
+    <result property="lowBalanceMemberCount" column="low_balance_member_count"/>
+    <result property="frozenBalanceTotal" column="frozen_balance_total"/>
+  </resultMap>
+
+  <resultMap id="AddressMap" type="com.familykitchen.family.model.entity.AddressEntity">
+    <id property="id" column="id"/>
+    <result property="familyId" column="family_id"/>
+    <result property="contactName" column="contact_name"/>
+    <result property="contactPhone" column="contact_phone"/>
+    <result property="addressText" column="address_text"/>
+    <result property="defaultAddress" column="is_default"/>
+  </resultMap>
+
+  <resultMap id="MemberMap" type="com.familykitchen.family.model.entity.FamilyMemberRecord">
+    <id property="memberId" column="member_id"/>
+    <result property="name" column="name"/>
+    <result property="roleTemplate" column="role_template"/>
+    <result property="availableBalance" column="available_balance"/>
+    <result property="frozenBalance" column="frozen_balance"/>
+  </resultMap>
+
+  <resultMap id="MealSlotMap" type="com.familykitchen.family.model.entity.MealSlotRecord">
+    <id property="mealSlotId" column="meal_slot_id"/>
+    <result property="name" column="name"/>
+    <result property="displayTime" column="display_time"/>
+  </resultMap>
+
+  <select id="selectFamily" resultMap="FamilyRecordMap">
+    select f.id as family_id,
+           f.name as family_name,
+           f.merchant_id,
+           m.name as merchant_name,
+           f.note,
+           f.contact_names_json,
+           f.delivery_enabled,
+           f.delivery_fee_default,
+           f.delivery_fee_free,
+           (select address_text from family_addresses where family_id = f.id and is_default = 1 limit 1) as default_address_text,
+           (select count(*) from family_addresses where family_id = f.id) as address_count,
+           (select count(*) from family_user_relations where family_id = f.id and status='ACTIVE') as member_count,
+           (select count(*) from family_menu_items where family_id = f.id and enabled = 1) as active_menu_count,
+           (select count(*) from family_user_relations fr left join member_wallets mw on mw.user_id = fr.user_id where fr.family_id = f.id and fr.status='ACTIVE' and coalesce(mw.balance_amount, 0) &lt; 20) as low_balance_member_count,
+           (select coalesce(sum(mw.frozen_amount), 0) from family_user_relations fr left join member_wallets mw on mw.user_id = fr.user_id where fr.family_id = f.id and fr.status='ACTIVE') as frozen_balance_total
+    from families f
+    join merchants m on m.id = f.merchant_id
+    where f.id = #{familyId}
+    <if test="merchantId != null">
+      and f.merchant_id = #{merchantId}
+    </if>
+  </select>
+
+  <select id="selectMember" resultMap="MemberMap">
+    select u.id as member_id, u.nickname as name, fr.family_role as role_template,
+           coalesce(w.balance_amount, 0) as available_balance,
+           coalesce(w.frozen_amount, 0) as frozen_balance
+    from users u join family_user_relations fr on fr.user_id=u.id and fr.status='ACTIVE'
+    left join member_wallets w on w.user_id = u.id
+    where u.id = #{memberId}
+  </select>
+
+  <select id="selectRecentOrders" resultType="com.familykitchen.family.model.vo.FamilyHomeResponse$OrderSummary">
+    select o.id as orderId, ms.name as mealSlotName, o.status, o.total_amount as totalAmount
+    from orders o
+    left join meal_slots ms on ms.id = o.meal_slot_id
+    where o.family_id = #{familyId}
+    order by o.id desc
+    limit 5
+  </select>
+
+  <select id="selectFeaturedDish" resultType="com.familykitchen.family.model.vo.FamilyHomeResponse$FeaturedDish">
+    select d.id as dishId, d.name, coalesce(fmi.final_price, d.base_price) as price, d.image_url as imageUrl
+    from family_menu_items fmi
+    join dishes d on d.id = fmi.dish_id
+    where fmi.family_id = #{familyId} and fmi.enabled = 1 and d.status = 'active'
+    order by fmi.sort_order asc, d.id desc
+    limit 1
+  </select>
+
+  <select id="selectAddresses" resultMap="AddressMap">
+    select id, family_id, contact_name, contact_phone, address_text, is_default
+    from family_addresses
+    where family_id = #{familyId}
+    order by is_default desc, id desc
+  </select>
+
+  <update id="clearDefaultAddress">
+    update family_addresses set is_default = 0 where family_id = #{familyId}
+  </update>
+
+  <insert id="insertAddress" parameterType="com.familykitchen.family.model.entity.AddressEntity" useGeneratedKeys="true" keyProperty="id">
+    insert into family_addresses (family_id, contact_name, contact_phone, address_text, is_default)
+    values (#{familyId}, #{contactName}, #{contactPhone}, #{addressText}, #{defaultAddress})
+  </insert>
+
+  <update id="updateAddress" parameterType="com.familykitchen.family.model.entity.AddressEntity">
+    update family_addresses
+    set contact_name = #{contactName}, contact_phone = #{contactPhone}, address_text = #{addressText}, is_default = #{defaultAddress}
+    where family_id = #{familyId} and id = #{id}
+  </update>
+
+  <update id="setDefaultAddress">
+    update family_addresses set is_default = 1 where family_id = #{familyId} and id = #{addressId}
+  </update>
+
+  <delete id="deleteAddress">
+    delete from family_addresses where family_id = #{familyId} and id = #{addressId}
+  </delete>
+
+  <select id="selectFamilyMenuItems" resultType="com.familykitchen.family.model.vo.FamilyMenuItemView">
+    select d.id as dishId,
+           d.category_id as categoryId,
+           d.name as dishName,
+           d.description,
+           d.image_url as imageUrl,
+           d.base_price as basePrice,
+           fmi.final_price as familyFinalPrice,
+           fmi.enabled,
+           fmi.sort_order as sortOrder
+    from family_menu_items fmi
+    join dishes d on d.id = fmi.dish_id
+    join families f on f.id = fmi.family_id
+    where fmi.family_id = #{familyId}
+      and f.merchant_id = #{merchantId}
+    order by fmi.sort_order asc, d.id desc
+  </select>
+
+  <select id="selectMealSlots" resultMap="MealSlotMap">
+    select id as meal_slot_id, name, display_time
+    from meal_slots
+    where family_id = #{familyId} and enabled = 1
+    order by sort_order asc, id asc
+  </select>
+
+  <select id="selectMerchantFamilies" resultMap="FamilyRecordMap">
+    select f.id as family_id,
+           f.name as family_name,
+           f.merchant_id,
+           m.name as merchant_name,
+           f.note,
+           f.contact_names_json,
+           f.delivery_enabled,
+           f.delivery_fee_default,
+           f.delivery_fee_free,
+           (select address_text from family_addresses where family_id = f.id and is_default = 1 limit 1) as default_address_text,
+           (select count(*) from family_addresses where family_id = f.id) as address_count,
+           (select count(*) from family_user_relations where family_id = f.id and status='ACTIVE') as member_count,
+           (select count(*) from family_menu_items where family_id = f.id and enabled = 1) as active_menu_count,
+           (select count(*) from family_user_relations fr left join member_wallets mw on mw.user_id = fr.user_id where fr.family_id = f.id and fr.status='ACTIVE' and coalesce(mw.balance_amount, 0) &lt; 20) as low_balance_member_count,
+           (select coalesce(sum(mw.frozen_amount), 0) from family_user_relations fr left join member_wallets mw on mw.user_id = fr.user_id where fr.family_id = f.id and fr.status='ACTIVE') as frozen_balance_total
+    from families f
+    join merchants m on m.id = f.merchant_id
+    where f.merchant_id = #{merchantId}
+    order by f.id desc
+  </select>
+
+  <select id="selectMembers" resultMap="MemberMap">
+    select u.id as member_id, u.nickname as name, fr.family_role as role_template,
+           coalesce(w.balance_amount, 0) as available_balance,
+           coalesce(w.frozen_amount, 0) as frozen_balance
+    from family_user_relations fr join users u on u.id=fr.user_id
+    left join member_wallets w on w.user_id = u.id
+    where fr.family_id = #{familyId} and fr.status='ACTIVE'
+    order by u.id asc
+  </select>
+
+  <update id="updateFamilyProfile">
+    update families
+    set name = #{familyName}, note = #{note}, contact_names_json = #{contactNamesJson}
+    where merchant_id = #{merchantId} and id = #{familyId}
+  </update>
+
+  <update id="updateFamilyDeliveryPolicy">
+    update families
+    set delivery_enabled = #{deliveryEnabled},
+        delivery_fee_default = #{deliveryFeeDefault},
+        delivery_fee_free = #{deliveryFree}
+    where merchant_id = #{merchantId} and id = #{familyId}
+  </update>
+
+  <delete id="deleteFamilyMenu">
+    delete from family_menu_items where family_id = #{familyId}
+  </delete>
+
+  <insert id="insertFamilyMenuItem">
+    insert into family_menu_items (family_id, dish_id, enabled, sort_order, final_price)
+    values (#{familyId}, #{dishId}, #{enabled}, #{sortOrder}, #{finalPrice})
+  </insert>
+
+  <insert id="copyFamilyMenu">
+    insert into family_menu_items (family_id, dish_id, enabled, sort_order, final_price)
+    select #{targetFamilyId}, dish_id, enabled, sort_order, final_price
+    from family_menu_items
+    where family_id = #{sourceFamilyId}
+  </insert>
+
+  <select id="countFamilyOwnership" resultType="int">
+    select count(*) from families where id = #{familyId} and merchant_id = #{merchantId} and status = 'active'
+  </select>
+
+  <select id="countDishOwnership" resultType="int">
+    select count(*) from dishes where id = #{dishId} and merchant_id = #{merchantId} and status in ('active','inactive')
+  </select>
+</mapper>

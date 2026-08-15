@@ -1,0 +1,45 @@
+<view class="warm-page warm-page--management warm-state-host family-menu-page">
+  <page-state wx:if="{{phase === 'loading' || phase === 'error'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="cart" bind:retry="retryLoad" />
+
+  <view wx:else class="menu-content">
+    <view class="menu-header">
+      <text class="menu-eyebrow">家庭菜单</text>
+      <text class="menu-title">当前家庭：{{currentFamilyName}}</text>
+      <text class="menu-description">逐项启用菜品并调整家庭价，变更保存后会重新读取确认。</text>
+    </view>
+
+    <view class="selector-section">
+      <text class="selector-label">当前家庭</text>
+      <picker range="{{familyOptions}}" range-key="label" value="{{familyIndex}}" bindchange="bindFamily">
+        <view class="selector-control" aria-role="button" aria-label="选择当前家庭">{{currentFamilyName}}</view>
+      </picker>
+      <text class="selector-label source-label">来源家庭</text>
+      <picker wx:if="{{sourceFamilyOptions.length}}" range="{{sourceFamilyOptions}}" range-key="label" value="{{sourceFamilyIndex}}" bindchange="bindSourceFamily">
+        <view class="selector-control" aria-role="button" aria-label="选择来源家庭">{{sourceFamilyOptions[sourceFamilyIndex].label}}</view>
+      </picker>
+      <text wx:else class="empty-source">没有其他家庭可作为复制来源。</text>
+      <view wx:if="{{sourceFamilyOptions.length}}" class="ui-button copy-action {{saving ? 'is-disabled' : ''}}" bindtap="copyFromFamily" aria-role="button" aria-label="复制来源家庭菜单" aria-disabled="{{saving}}" aria-busy="{{saving}}" hover-class="ui-button--pressed" hover-stay-time="80">{{saving ? '处理中…' : '复制来源家庭菜单'}}</view>
+    </view>
+
+    <page-state wx:if="{{phase === 'empty'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="cart" bind:retry="retryLoad" />
+    <view wx:else class="menu-list">
+      <block wx:for="{{menuRows}}" wx:key="id">
+        <view class="menu-row">
+          <view class="menu-row__copy">
+            <text class="menu-name">{{item.name}}</text>
+            <text class="menu-meta">{{item.category}} · 基础价 {{item.basePriceText}}</text>
+            <text class="menu-state">{{item.enabledText}}</text>
+          </view>
+          <view class="row-controls">
+            <view class="ui-button toggle-action {{rowBusyMap[item.id] ? 'is-disabled' : ''}}" data-id="{{item.id}}" bindtap="toggleDish" aria-role="button" aria-label="切换菜品启用状态" aria-disabled="{{rowBusyMap[item.id]}}" aria-busy="{{rowBusyMap[item.id]}}" hover-class="ui-button--pressed" hover-stay-time="80">{{rowBusyMap[item.id] ? '处理中…' : (item.enabled ? '停用' : '启用')}}</view>
+            <view class="price-controls">
+              <view class="ui-button price-action {{rowBusyMap[item.id] ? 'is-disabled' : ''}}" data-id="{{item.id}}" data-delta="-1" bindtap="changePrice" aria-role="button" aria-label="降低家庭价" aria-disabled="{{rowBusyMap[item.id]}}" aria-busy="{{rowBusyMap[item.id]}}" hover-class="ui-button--pressed" hover-stay-time="80">−</view>
+              <view class="price-readout"><text>{{item.finalPriceText}}</text><text class="price-label">家庭价</text></view>
+              <view class="ui-button price-action {{rowBusyMap[item.id] ? 'is-disabled' : ''}}" data-id="{{item.id}}" data-delta="1" bindtap="changePrice" aria-role="button" aria-label="提高家庭价" aria-disabled="{{rowBusyMap[item.id]}}" aria-busy="{{rowBusyMap[item.id]}}" hover-class="ui-button--pressed" hover-stay-time="80">+</view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

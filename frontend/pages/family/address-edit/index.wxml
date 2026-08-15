@@ -1,0 +1,29 @@
+<view class="warm-page warm-page--form warm-state-host warm-submit-state page address-edit-page">
+  <view class="hero">
+    <text class="eyebrow">地址信息</text>
+    <text class="title">{{id ? '编辑地址' : '新增地址'}}</text>
+    <text class="subtitle">下单时默认带出这里保存的配送信息。</text>
+  </view>
+
+  <view class="panel form-panel">
+    <view class="field">
+      <text class="label">联系人</text>
+      <input value="{{form.contactName}}" data-field="contactName" bindinput="bindField" placeholder="例如：陈梅" />
+    </view>
+    <view class="field">
+      <text class="label">联系电话</text>
+      <input value="{{form.phone}}" data-field="phone" bindinput="bindField" placeholder="填写收餐手机号" />
+    </view>
+    <view class="field">
+      <text class="label">详细地址</text>
+      <textarea value="{{form.address}}" data-field="address" bindinput="bindField" placeholder="例如：星河路 18 号 2 栋 502" />
+    </view>
+    <view class="default-row" bindtap="toggleDefault">
+      <view class="default-check {{form.isDefault ? 'checked' : ''}}"></view>
+      <text>设为默认地址</text>
+    </view>
+  </view>
+
+  <view class="ui-button button save-button" bindtap="save" aria-role="button" aria-label="保存地址" hover-class="ui-button--pressed" hover-stay-time="80">保存地址</view>
+</view>
+

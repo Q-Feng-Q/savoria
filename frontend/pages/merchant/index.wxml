@@ -1,0 +1,65 @@
+<view class="warm-page warm-page--management warm-state-host merchant-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="orders" bind:retry="retryLoad" />
+
+  <view wx:else class="merchant-overview">
+    <view class="merchant-identity">
+      <view class="merchant-identity__copy">
+        <text class="merchant-identity__eyebrow">商户工作台 · {{todayLabel}}</text>
+        <text class="merchant-identity__name">{{context.merchant.name}}</text>
+      </view>
+      <view class="ui-button merchant-identity__switch merchant-switch-link" bindtap="openAccountSwitcher" aria-role="button" aria-label="切换账号/身份" hover-class="ui-button--pressed" hover-stay-time="80">切换账号/身份</view>
+    </view>
+
+    <view class="merchant-focus">
+      <text class="merchant-focus__label">今日待处理</text>
+      <view class="merchant-focus__metric">
+        <text class="merchant-focus__value">{{todayCommand.activeOrderCount}}</text>
+        <text class="merchant-focus__unit">笔活跃订单</text>
+      </view>
+      <text class="merchant-focus__note">待确认、备餐中与待完成订单</text>
+      <view wx:if="{{regionStates.orders.phase === 'error'}}" class="merchant-inline-state">
+        <text>{{regionStates.orders.message}}</text>
+        <view class="ui-button merchant-inline-state__retry" bindtap="retryOrders" aria-role="button" aria-label="重试订单概况" hover-class="ui-button--pressed">重试</view>
+      </view>
+    </view>
+
+    <view class="merchant-helper-stats">
+      <view class="merchant-helper-stat">
+        <text class="merchant-helper-stat__label">服务家庭</text>
+        <text class="merchant-helper-stat__value">{{familyCount}}</text>
+        <view wx:if="{{regionStates.families.phase === 'error'}}" class="merchant-inline-state merchant-inline-state--light">
+          <text>{{regionStates.families.message}}</text>
+          <view class="ui-button merchant-inline-state__retry" bindtap="retryFamilies" aria-role="button" aria-label="重试家庭概况" hover-class="ui-button--pressed">重试</view>
+        </view>
+      </view>
+      <view class="merchant-helper-stat">
+        <text class="merchant-helper-stat__label">今日采购</text>
+        <text class="merchant-helper-stat__value">{{todayPurchaseItemCount}}</text>
+        <view wx:if="{{regionStates.purchase.phase === 'error'}}" class="merchant-inline-state merchant-inline-state--light">
+          <text>{{regionStates.purchase.message}}</text>
+          <view class="ui-button merchant-inline-state__retry" bindtap="retryPurchase" aria-role="button" aria-label="重试采购概况" hover-class="ui-button--pressed">重试</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="merchant-actions" aria-label="快捷操作">
+      <action-button class="merchant-quick-action" label="订单与备餐" tone="secondary" block bind:action="openMerchantOrders" />
+      <action-button class="merchant-quick-action" label="今日采购" tone="secondary" block bind:action="openPurchase" />
+      <action-button class="merchant-quick-action" label="通知与提醒" tone="secondary" block bind:action="openNotifications" />
+    </view>
+
+    <view wx:if="{{regionStates.menu.phase === 'error'}}" class="merchant-menu-state">
+      <text>{{regionStates.menu.message}}</text>
+      <view wx:if="{{regionStates.families.phase !== 'ready' || !familyCount}}" class="ui-button merchant-menu-state__retry" bindtap="retryFamilies" aria-role="button" aria-label="重试家庭概况" hover-class="ui-button--pressed">重试家庭</view>
+      <view wx:else class="ui-button merchant-menu-state__retry" bindtap="retryMenu" aria-role="button" aria-label="重试菜单概况" hover-class="ui-button--pressed">重试菜单</view>
+    </view>
+
+    <view class="merchant-vignette-strip merchant-scene-piece--decorative" aria-hidden="true">
+      <image class="merchant-vignette" src="/assets/brand/scenes/merchant-cooking.webp" mode="aspectFill" />
+      <image class="merchant-vignette" src="/assets/brand/scenes/merchant-orders.webp" mode="aspectFill" />
+      <image class="merchant-vignette" src="/assets/brand/scenes/merchant-purchase.webp" mode="aspectFill" />
+    </view>
+  </view>
+
+</view>
+<merchant-workbench-nav active="overview" />

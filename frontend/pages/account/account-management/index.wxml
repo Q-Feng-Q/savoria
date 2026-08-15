@@ -1,0 +1,36 @@
+<view class="warm-page warm-state-host accounts-page">
+  <view class="accounts-head">
+    <text class="accounts-title">账号与身份</text>
+    <text class="accounts-note">选择账号后，再进入家庭端或商户端。</text>
+  </view>
+
+  <text wx:if="{{currentUserId}}" class="accounts-user-id">当前账号 ID：{{currentUserId}}</text>
+  <text wx:if="{{syncError}}" class="accounts-sync-error">{{syncError}}</text>
+
+  <view class="accounts-list">
+    <view wx:for="{{accounts}}" wx:key="userId" class="account-item {{item.isCurrent ? 'is-current' : ''}}">
+      <view class="account-summary">
+        <text class="account-avatar">{{item.avatarInitial}}</text>
+        <view class="account-copy">
+          <view class="account-name-line">
+            <text class="account-name">{{item.displayName}}</text>
+            <text wx:if="{{item.isCurrent}}" class="current-badge">当前账号</text>
+          </view>
+          <text class="account-meta">@{{item.username}}</text>
+          <text class="account-role">{{item.roleLabel}}</text>
+        </view>
+        <view class="ui-button account-remove" data-user-id="{{item.userId}}" bindtap="removeAccount" aria-role="button" aria-label="移除" hover-class="ui-button--pressed" hover-stay-time="80">移除</view>
+      </view>
+
+      <view wx:if="{{item.requiresLogin}}" class="ui-button account-reauth" data-user-id="{{item.userId}}" bindtap="switchAccount" aria-role="button" aria-label="需重新登录" hover-class="ui-button--pressed" hover-stay-time="80">需重新登录</view>
+      <view wx:else class="identity-actions">
+        <view wx:if="{{item.hasFamilyMode}}" class="ui-button identity-action {{item.familyUsing ? 'is-active' : ''}} {{switchingKey ? 'is-disabled' : ''}}" data-user-id="{{item.userId}}" data-mode="family" bindtap="switchIdentity" aria-role="button" aria-label="{{item.familyUsing ? '家庭端 · 使用中' : '进入家庭端'}}" aria-disabled="{{switchingKey ? true : false}}" aria-busy="{{switchingKey == item.familyKey}}" hover-class="ui-button--pressed" hover-stay-time="80">{{switchingKey == item.familyKey ? '切换中…' : (item.familyUsing ? '家庭端 · 使用中' : '进入家庭端')}}</view>
+        <view wx:if="{{item.hasMerchantMode}}" class="ui-button identity-action identity-action--merchant {{item.merchantUsing ? 'is-active' : ''}} {{switchingKey ? 'is-disabled' : ''}}" data-user-id="{{item.userId}}" data-mode="merchant" bindtap="switchIdentity" aria-role="button" aria-label="{{item.merchantUsing ? '商户端 · 使用中' : '进入商户端'}}" aria-disabled="{{switchingKey ? true : false}}" aria-busy="{{switchingKey == item.merchantKey}}" hover-class="ui-button--pressed" hover-stay-time="80">{{switchingKey == item.merchantKey ? '切换中…' : (item.merchantUsing ? '商户端 · 使用中' : '进入商户端')}}</view>
+      </view>
+      <text wx:if="{{switchingKey == item.familyKey || switchingKey == item.merchantKey}}" class="switching-note">正在校验账号权限…</text>
+    </view>
+  </view>
+
+  <action-button label="添加账号" block bind:action="addAccount" />
+  <text class="accounts-safe">仅保存短期登录状态，不会保存密码。</text>
+</view>

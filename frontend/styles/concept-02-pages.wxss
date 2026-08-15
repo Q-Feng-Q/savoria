@@ -1,0 +1,23 @@
+page{--concept-paper:#fffdf8;--concept-cream:#fff6e8;--concept-wheat:#f1d39c;--concept-sage:#dce9dc;--concept-coral:#ed7657;--concept-brown:#51372d;--concept-text:#402d25;--concept-muted:#927665;--concept-line:#e6d5bf;background:var(--concept-cream);color:var(--concept-text)}
+.page,.entry-page,.register-page,.family-start-page,.family-manage-page,.accounts-page,.security-page,.account-form-page,.cart-page,.orders-page{min-height:100vh;padding-bottom:calc(76rpx + env(safe-area-inset-bottom));background:var(--concept-cream)}
+.hero,.manage-hero,.cart-head,.detail-head,.accounts-head{border:0;border-radius:34rpx;background:linear-gradient(145deg,var(--concept-wheat),#f7e4bd);box-shadow:none}
+.panel,.manage-section,.path-section,.security-group,.register-form,.entry-form,.account-item,.detail-section,.checkout-section,.selected-section{border:2rpx solid var(--concept-line);border-radius:30rpx;background:var(--concept-paper);box-shadow:none}
+.section-title,.manage-section__title,.security-title,.profile-section__title{color:var(--concept-text);font-family:"STKaiti","KaiTi","Songti SC",serif;font-weight:900}
+.eyebrow,.manage-kicker,.section-kicker{color:#9a5b41}.title,.manage-title{color:var(--concept-text);font-family:"STKaiti","KaiTi","Songti SC",serif}.subtitle,.manage-note{color:var(--concept-muted)}
+.button{border-radius:24rpx;background:var(--concept-coral);box-shadow:none}.button.secondary{border-color:var(--concept-line);background:var(--concept-paper);color:var(--concept-brown)}
+.picker-text,input,textarea{border-color:var(--concept-line);border-radius:20rpx;background:#fffaf0;color:var(--concept-text)}
+.list{gap:0}.list>.panel{margin:0;border-right:0;border-bottom:2rpx solid var(--concept-line);border-left:0;border-radius:0;background:transparent}.list>.panel:first-child{border-top:2rpx solid var(--concept-line)}
+.summary-strip{border-color:var(--concept-line);background:transparent}.summary-card{border-color:var(--concept-line);background:transparent}.summary-value,.order-status{color:var(--concept-coral)}
+.quick-grid{gap:14rpx}.quick-card{min-height:150rpx;border-color:var(--concept-line);background:var(--concept-paper)}
+.family-name{color:var(--concept-text)}.family-copy,.family-meta{color:var(--concept-muted)}
+.entry-form,.register-form{margin-top:24rpx}.entry-form__title{font-family:"STKaiti","KaiTi","Songti SC",serif}.entry-login-hint{background:var(--concept-sage);color:#54715a}
+.family-start-page,.family-manage-page,.accounts-page,.security-page,.account-form-page{padding-top:24rpx}
+.path-section--create{background:var(--concept-paper)}.path-section--join{background:#eef4ea}.mode-switch .ui-button.is-active{border-color:#73937a;background:var(--concept-sage);color:#496650}
+.status-note{border-radius:18rpx;background:var(--concept-sage);color:#52705a}
+.invitation-code{background:var(--concept-sage);color:#48634f}
+.application-row{border-color:var(--concept-line);background:transparent}
+.wallet-balance,.balance-card{border-color:var(--concept-line);background:var(--concept-paper)}
+.address-card,.ledger-row{border-color:var(--concept-line);background:var(--concept-paper)}
+.detail-row{border-color:var(--concept-line)}
+@media(max-width:360px){.page,.entry-page,.register-page,.family-start-page,.family-manage-page,.accounts-page,.security-page,.account-form-page,.cart-page,.orders-page{padding-left:18rpx;padding-right:18rpx}.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-card{padding:20rpx}.hero,.manage-hero,.cart-head,.detail-head,.accounts-head{border-radius:28rpx}}
+

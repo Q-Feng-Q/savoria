@@ -1,0 +1,61 @@
+<view class="warm-page warm-page--management warm-state-host orders-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="orders" bind:retry="retryLoad" />
+
+  <view wx:else class="orders-workbench">
+    <view class="orders-header">
+      <view>
+        <text class="orders-eyebrow">商户工作台</text>
+        <text class="orders-title">订单与备餐</text>
+      </view>
+      <text class="orders-count">{{visibleOrders.length}} 笔</text>
+    </view>
+
+    <view class="filter-line">
+      <view wx:if="{{familyFilterActive}}" class="family-filter-context">
+        <text>家庭筛选：{{familyFilterLabel}}</text>
+        <view class="ui-button clear-family-filter" bindtap="clearFamilyFilter" aria-role="button" aria-label="清除家庭筛选" hover-class="ui-button--pressed" hover-stay-time="80">清除筛选</view>
+      </view>
+      <picker class="family-filter" range="{{familyOptions}}" range-key="label" value="{{familyIndex}}" bindchange="bindFamily">
+        <view class="filter-picker" aria-role="button" aria-label="筛选家庭">{{familyOptions[familyIndex].label}}</view>
+      </picker>
+      <view class="status-filters" aria-label="订单状态筛选">
+        <block wx:for="{{statusOptions}}" wx:key="value">
+          <view class="status-filter {{statusIndex === index ? 'status-filter--active' : ''}}" data-index="{{index}}" bindtap="bindStatus" aria-role="button" aria-label="筛选{{item.label}}订单" hover-class="ui-button--pressed">{{item.label}}</view>
+        </block>
+      </view>
+    </view>
+
+    <view class="purchase-entry" bindtap="openPurchase" aria-role="button" aria-label="查看采购汇总" hover-class="purchase-entry--pressed">
+      <image class="purchase-entry__art" src="/assets/brand/scenes/merchant-purchase.webp" mode="aspectFill" />
+      <view class="purchase-entry__copy">
+        <text class="purchase-entry__title">今日采购汇总 · {{purchaseItemCount}} 项</text>
+        <text class="purchase-entry__meta">{{purchaseSourceText}}</text>
+      </view>
+      <text class="purchase-entry__arrow">查看 ›</text>
+    </view>
+
+    <page-state wx:if="{{!visibleOrders.length}}" phase="empty" title="暂无订单" description="当前筛选条件下还没有需要处理的订单。" illustration="orders" />
+    <view wx:else class="order-groups">
+      <block wx:for="{{orderGroups}}" wx:key="serviceDate" wx:for-item="group">
+        <view class="order-group">
+          <text class="order-group__date">{{group.serviceDate}}</text>
+          <block wx:for="{{group.orders}}" wx:key="id">
+            <view class="order-row">
+              <view class="order-row__main" data-id="{{item.id}}" bindtap="openDetail" aria-role="button" aria-label="查看{{item.familyName}}订单详情" hover-class="ui-button--pressed">
+                <view class="order-row__top">
+                  <text class="order-row__family">{{item.familyName}}</text>
+                  <text class="order-row__status">{{item.statusLabel}}</text>
+                </view>
+                <text class="order-row__meta">{{item.mealLabel}} · {{item.deliveryMode === 'delivery' ? '配送' : '自取'}} · {{item.itemCountText}}</text>
+                <text class="order-row__amount">{{item.chargeSummaryText}}</text>
+              </view>
+              <view wx:if="{{item.rawStatus === 'PENDING' || item.rawStatus === 'CONFIRMED' || item.rawStatus === 'PREPARING' || item.rawStatus === 'READY'}}" class="ui-button order-row__action {{busyOrderMap[item.id] ? 'order-row__action--busy' : ''}}" data-id="{{item.id}}" bindtap="advanceOrder" aria-role="button" aria-label="{{item.nextActionText}}" aria-disabled="{{busyOrderMap[item.id]}}" aria-busy="{{busyOrderMap[item.id]}}" hover-class="ui-button--pressed">{{busyOrderMap[item.id] ? '处理中' : item.nextActionText}}</view>
+            </view>
+          </block>
+        </view>
+      </block>
+    </view>
+  </view>
+
+</view>
+<merchant-workbench-nav active="orders" />

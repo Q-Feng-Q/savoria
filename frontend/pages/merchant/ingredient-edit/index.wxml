@@ -1,0 +1,18 @@
+<view class="warm-page ingredient-page">
+  <view class="editor-head"><text class="eyebrow">原材料管理</text><text class="editor-title">食材库</text><text class="editor-copy">查看引用关系并维护常用食材</text></view>
+  <page-state wx:if="{{phase === 'loading' || phase === 'error'}}" phase="{{phase}}" title="食材库" description="{{errorMessage}}" bind:retry="retryLoad" />
+  <view wx:else class="ingredient-workspace">
+    <view class="form-section">
+      <text class="section-title">食材列表</text>
+      <view wx:if="{{phase === 'empty'}}" class="empty-copy">食材库为空，可直接在下方新增。</view>
+      <block wx:for="{{ingredients}}" wx:key="id"><view class="ingredient-row"><view class="ingredient-main" data-id="{{item.id}}" bindtap="fillForm" aria-role="button" aria-label="编辑{{item.name}}" hover-class="ui-button--pressed"><text class="strong">{{item.name}}</text><text class="muted">{{item.category}} · {{item.unit}}</text><text class="reference">{{item.usedByDishCount}} 道菜引用 · {{item.usedByDishText}}</text></view><view wx:if="{{item.removable}}" class="text-action" data-id="{{item.id}}" bindtap="removeIngredient" aria-role="button" aria-label="删除{{item.name}}" hover-class="ui-button--pressed">{{busyIngredientId === item.id ? '处理中' : '删除'}}</view><view wx:else class="delete-disabled" aria-role="text">已引用，不能删除</view></view></block>
+    </view>
+    <view class="form-section editor-section">
+      <view class="section-head"><text class="section-title">{{editId ? '编辑食材' : '新增食材'}}</text><view wx:if="{{editId}}" class="text-action" bindtap="resetForm" aria-role="button" aria-label="取消编辑" hover-class="ui-button--pressed">取消</view></view>
+      <view class="field"><text class="label">名称</text><input value="{{form.name}}" data-field="name" bindinput="bindField" disabled="{{saving || busyIngredientId}}" /></view>
+      <view class="field"><text class="label">单位</text><input value="{{form.unit}}" data-field="unit" bindinput="bindField" disabled="{{saving || busyIngredientId}}" /></view>
+      <view class="field"><text class="label">分类</text><input value="{{form.category}}" data-field="category" bindinput="bindField" disabled="{{saving || busyIngredientId}}" /></view>
+    </view>
+  </view>
+</view>
+<view wx:if="{{phase === 'ready' || phase === 'empty'}}" class="safe-action-bar"><view class="ui-button save-action" bindtap="saveIngredient" aria-role="button" aria-label="保存食材" hover-class="ui-button--pressed">{{saving ? '保存中' : '保存食材'}}</view></view>

@@ -1,0 +1,33 @@
+<view class="warm-page warm-page--form warm-state-host warm-submit-state security-page">
+  <page-state wx:if="{{loading}}" phase="loading" title="正在加载账户安全信息" />
+  <block wx:else>
+    <view class="security-group">
+      <text class="security-title">绑定方式</text>
+      <view wx:if="{{mobileBindingEnabled}}" class="security-row">
+        <view><text>手机号</text><text class="security-note">{{profile.mobile || '请在个人资料中绑定'}}</text></view>
+      </view>
+      <view wx:if="{{emailBindingEnabled}}" class="security-block">
+        <text>邮箱</text>
+        <text class="security-note">{{profile.maskedEmail || '未绑定'}}</text>
+        <input value="{{email}}" data-field="email" bindinput="input" placeholder="输入邮箱" />
+        <view class="code-line">
+          <input value="{{emailCode}}" data-field="emailCode" bindinput="input" placeholder="验证码" />
+          <view bindtap="sendEmailCode" class="ui-button {{saving ? 'is-disabled' : ''}}" aria-disabled="{{saving}}" aria-busy="{{saving}}" aria-role="button" aria-label="发送验证码" hover-class="ui-button--pressed" hover-stay-time="80">发送验证码</view>
+        </view>
+        <action-button label="{{saving ? '保存中…' : '绑定邮箱'}}" loading="{{saving}}" disabled="{{saving}}" tone="secondary" block bind:action="bindEmail" />
+      </view>
+      <view wx:if="{{wechatBindingEnabled || profile.wechatBound}}" class="security-row">
+        <view><text>微信</text><text class="security-note">{{profile.wechatBound ? '已绑定' : '未绑定'}}</text></view>
+        <view wx:if="{{profile.wechatBound}}" bindtap="unbindWechat" class="ui-button {{saving ? 'is-disabled' : ''}}" aria-disabled="{{saving}}" aria-busy="{{saving}}" aria-role="button" aria-label="解绑" hover-class="ui-button--pressed" hover-stay-time="80">解绑</view>
+        <view wx:else bindtap="bindWechat" class="ui-button {{saving ? 'is-disabled' : ''}}" aria-disabled="{{saving}}" aria-busy="{{saving}}" aria-role="button" aria-label="绑定" hover-class="ui-button--pressed" hover-stay-time="80">绑定</view>
+      </view>
+    </view>
+    <view class="security-group">
+      <text class="security-title">修改密码</text>
+      <input password value="{{currentPassword}}" data-field="currentPassword" bindinput="input" placeholder="当前密码" />
+      <input password value="{{newPassword}}" data-field="newPassword" bindinput="input" placeholder="新密码，至少 6 位" />
+      <action-button label="{{saving ? '保存中…' : '修改密码'}}" loading="{{saving}}" disabled="{{saving}}" tone="danger" block bind:action="changePassword" />
+    </view>
+  </block>
+</view>
+

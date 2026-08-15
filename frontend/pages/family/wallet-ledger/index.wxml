@@ -1,0 +1,26 @@
+<view class="warm-page warm-state-host page wallet-ledger-page" wx:if="{{context}}">
+  <view class="hero">
+    <text class="eyebrow">余额变化</text>
+    <text class="title">余额流水</text>
+    <text class="subtitle">充值、冻结、释放和正式扣减都会留在这里。</text>
+  </view>
+
+  <view wx:if="{{!transactions.length}}" class="empty">还没有可查看的流水记录。</view>
+  <view wx:else class="list ledger-list">
+    <block wx:for="{{transactions}}" wx:key="id">
+      <view class="panel ledger-card">
+        <view class="row between">
+          <view>
+            <text class="ledger-title">{{item.title}}</text>
+            <text class="ledger-note">{{item.note}}</text>
+          </view>
+          <view class="ledger-side">
+            <text class="ledger-amount {{item.amountClass}}">{{item.amountText}}</text>
+            <text class="ledger-tag">{{item.statusText}}</text>
+          </view>
+        </view>
+        <text class="ledger-time">{{item.createdAt}}</text>
+      </view>
+    </block>
+  </view>
+</view>

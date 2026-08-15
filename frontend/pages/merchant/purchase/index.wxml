@@ -1,0 +1,54 @@
+<view class="warm-page warm-page--management warm-state-host purchase-page">
+  <page-state wx:if="{{phase === 'loading' || phase === 'error'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="cart" bind:retry="retryLoad" />
+
+  <view wx:else class="purchase-content">
+    <view class="purchase-heading">
+      <view><text class="purchase-eyebrow">统一采购</text><text class="purchase-title">{{date}} 采购清单</text></view>
+      <image class="purchase-art" src="/assets/brand/scenes/merchant-purchase.webp" mode="aspectFill" />
+    </view>
+
+    <view class="purchase-controls">
+      <picker mode="date" value="{{date}}" bindchange="bindDate"><view class="control-value" aria-role="button" aria-label="选择采购日期">日期 · {{date}}</view></picker>
+      <picker range="{{mealTypes}}" range-key="label" value="{{mealIndex}}" bindchange="bindMeal"><view class="control-value" aria-role="button" aria-label="选择采购餐次">餐次 · {{mealLabel}}</view></picker>
+      <view class="ui-button copy-action" bindtap="copyList" aria-role="button" aria-label="复制采购清单" hover-class="ui-button--pressed">复制</view>
+    </view>
+
+    <view class="source-summary"><text>{{sourceSummary.text}}</text><text>共 {{items.length}} 项食材</text></view>
+
+    <view class="temp-section">
+      <text class="temp-section__title">临时采购项</text>
+      <block wx:for="{{tempItems}}" wx:key="itemId">
+        <view class="temp-row {{item.checked ? 'temp-row--checked' : ''}}">
+          <view class="ui-button temp-row__toggle" data-id="{{item.itemId}}" data-checked="{{item.checked}}" bindtap="toggleTempItem" aria-role="button" aria-label="{{item.checked ? '取消完成' : '标记完成'}}：{{item.ingredientName}}" aria-disabled="{{busyItemMap[item.itemId]}}" aria-busy="{{busyItemMap[item.itemId]}}" hover-class="ui-button--pressed">
+            <text class="temp-row__name">{{item.checked ? '✓ ' : ''}}{{item.ingredientName}} · {{item.quantity}}{{item.unit}}</text>
+            <text class="temp-row__remark">{{item.remark || '无备注'}}</text>
+          </view>
+          <view class="ui-button temp-row__delete" data-id="{{item.itemId}}" bindtap="deleteTempItem" aria-role="button" aria-label="删除临时采购项{{item.ingredientName}}" aria-disabled="{{busyItemMap[item.itemId]}}" aria-busy="{{busyItemMap[item.itemId]}}" hover-class="ui-button--pressed">删除</view>
+        </view>
+      </block>
+
+      <view class="temp-form">
+        <input class="temp-input temp-input--name" value="{{tempIngredientName}}" bindinput="bindTempIngredientName" placeholder="食材名称" aria-label="临时采购食材名称" />
+        <input class="temp-input" type="digit" value="{{tempQuantity}}" bindinput="bindTempQuantity" placeholder="数量" aria-label="临时采购数量" />
+        <input class="temp-input" value="{{tempUnit}}" bindinput="bindTempUnit" placeholder="单位" aria-label="临时采购单位" />
+        <input class="temp-input temp-input--remark" value="{{tempRemark}}" bindinput="bindTempRemark" placeholder="备注（选填）" aria-label="临时采购备注" />
+        <text class="temp-form__meal">归入：{{mealLabel}}</text>
+        <view class="ui-button temp-form__add" bindtap="createTempItem" aria-role="button" aria-label="新增临时采购项" aria-disabled="{{purchaseBusy}}" hover-class="ui-button--pressed">{{purchaseBusy ? '处理中' : '新增'}}</view>
+      </view>
+    </view>
+
+    <page-state wx:if="{{phase === 'empty'}}" phase="empty" title="{{pageTitle}}" description="{{pageDescription}}" illustration="cart" />
+    <view wx:else class="purchase-list">
+      <block wx:for="{{items}}" wx:key="ingredientId">
+        <view class="ingredient-row">
+          <view class="ingredient-row__top"><text class="ingredient-name">{{item.ingredientName}}</text><text class="ingredient-quantity">{{item.quantityText}}</text></view>
+          <text class="source-status">{{item.statusText}} · {{item.familyText}} · {{item.mealText}}</text>
+          <text class="source-dishes">菜品：{{item.dishText}}</text>
+          <block wx:for="{{item.breakdown}}" wx:key="id" wx:for-item="source">
+            <text class="breakdown-line">{{source.statusLabel}} · {{source.familyName}} · {{source.dishName}}</text>
+          </block>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

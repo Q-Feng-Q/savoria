@@ -1,0 +1,26 @@
+@import "styles/warm-kitchen-tokens.wxss";
+@import "styles/warm-kitchen-foundation.wxss";
+@import "styles/warm-kitchen-responsive.wxss";
+
+page {
+  background-image:
+    radial-gradient(circle at 8% 7%, rgba(255, 255, 255, .72) 0, rgba(255, 255, 255, 0) 30%),
+    radial-gradient(circle at 92% 20%, rgba(235, 203, 152, .2) 0, rgba(235, 203, 152, 0) 24%);
+}
+
+.accounts-user-id,
+.accounts-sync-error {
+  display: block;
+  margin: 14rpx 8rpx 0;
+  font-size: 20rpx;
+}
+
+.accounts-user-id { color: var(--sk-muted); }
+
+.accounts-sync-error {
+  padding: 14rpx 18rpx;
+  border: 2rpx solid var(--sk-danger);
+  border-radius: 16rpx;
+  background: #fff1eb;
+  color: var(--sk-danger);
+}

@@ -1,0 +1,93 @@
+.entry-page {
+  min-height: 100vh;
+  padding: 26rpx 26rpx 64rpx;
+  background: var(--sk-bg);
+  box-sizing: border-box
+}
+
+.entry-form {
+  position: relative;
+  margin-top: 24rpx;
+  padding: 30rpx;
+  border: 2rpx solid var(--sk-line);
+  border-radius: 30rpx 12rpx 30rpx 12rpx;
+  background: var(--sk-paper);
+  box-shadow: var(--sk-shadow-soft)
+}
+
+.entry-form__title,
+.entry-form__note,
+.entry-login-hint {
+  display: block
+}
+
+.entry-form__title {
+  color: var(--sk-text);
+  font-family: "STSong", "Songti SC", serif;
+  font-size: 39rpx;
+  font-weight: 900
+}
+
+.entry-form__note {
+  margin-top: 10rpx;
+  color: var(--sk-muted);
+  font-size: 22rpx;
+  line-height: 1.55
+}
+
+.entry-field {
+  display: block;
+  margin-top: 24rpx
+}
+
+.entry-field text {
+  display: block;
+  margin-bottom: 9rpx;
+  color: var(--sk-ink);
+  font-size: 22rpx;
+  font-weight: 900
+}
+
+.entry-field__head { display: flex; align-items: center; justify-content: space-between; }
+.entry-field__head text { margin-bottom: 9rpx; }
+.entry-field__head .entry-recovery { color: var(--sk-sage); font-size: 21rpx; }
+
+.entry-field input {
+  width: 100%;
+  min-height: 88rpx;
+  padding: 0 19rpx;
+  border: 2rpx solid var(--sk-line);
+  border-radius: 20rpx 8rpx 20rpx 8rpx;
+  background: #fffaf0;
+  color: var(--sk-text);
+  font-size: 27rpx;
+  box-sizing: border-box
+}
+
+.entry-login-hint {
+  margin-top: 16rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 17rpx 7rpx 17rpx 7rpx;
+  background: var(--sk-sprout);
+  color: var(--sk-ink);
+  font-size: 20rpx;
+  line-height: 1.45
+}
+
+.entry-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 13rpx;
+  margin-top: 23rpx
+}
+
+.entry-actions action-button {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 0
+}
+
+@media (max-width: 320px) {
+  .entry-actions { grid-template-columns: minmax(0, 1fr); }
+}

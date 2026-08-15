@@ -1,0 +1,13 @@
+.detail-page { padding-bottom:140rpx; }
+.detail-image { width:100%; height:480rpx; border-radius:24rpx; background:#f3eadc; }
+.detail-head { padding:28rpx 4rpx; border-bottom:2rpx solid #eadfce; }
+.detail-category,.detail-name,.detail-description { display:block; }
+.detail-category { color:#4d9565; font-size:23rpx; font-weight:850; }
+.detail-name { margin-top:8rpx; color:#302219; font-size:42rpx; font-weight:950; }
+.detail-description { margin-top:14rpx; color:#806c59; font-size:25rpx; line-height:1.65; }
+.detail-meta { display:flex; gap:16rpx; flex-wrap:wrap; margin-top:20rpx; color:#a05c27; font-size:23rpx; }
+.ingredient-list { background:#fffdf8; border-top:2rpx solid #eee1d2; }
+.ingredient-row { display:flex; justify-content:space-between; padding:24rpx 4rpx; border-bottom:2rpx solid #eee1d2; color:#49392c; font-size:26rpx; }
+.source-note { margin-top:22rpx; color:#9b8978; font-size:21rpx; line-height:1.5; }
+.detail-import { position:fixed; left:28rpx; right:28rpx; bottom:24rpx; display:flex; align-items:center; justify-content:center; height:88rpx; border-radius:24rpx; background:#56aa73; color:white; font-size:29rpx; font-weight:900; box-shadow:0 16rpx 38rpx rgba(67,132,89,.24); }
+.detail-import--disabled { background:#c3c9c0; box-shadow:none; }

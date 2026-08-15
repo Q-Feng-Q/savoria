@@ -1,0 +1,11 @@
+<view class="merchant-workbench-nav">
+  <view class="merchant-workbench-nav__spacer"></view>
+  <view class="merchant-workbench-nav__bar">
+    <view class="merchant-workbench-nav__inner">
+      <view class="merchant-workbench-nav__item {{active === 'overview' ? 'merchant-workbench-nav__item--active' : ''}}" aria-role="button" aria-label="商家概览" hover-class="merchant-workbench-nav__item--pressed" data-key="overview" bindtap="handleNavigate">概览</view>
+      <view class="merchant-workbench-nav__item {{active === 'orders' ? 'merchant-workbench-nav__item--active' : ''}}" aria-role="button" aria-label="商家订单" hover-class="merchant-workbench-nav__item--pressed" data-key="orders" bindtap="handleNavigate">订单</view>
+      <view class="merchant-workbench-nav__item {{active === 'dishes' ? 'merchant-workbench-nav__item--active' : ''}}" aria-role="button" aria-label="商家菜品" hover-class="merchant-workbench-nav__item--pressed" data-key="dishes" bindtap="handleNavigate">菜品</view>
+      <view class="merchant-workbench-nav__item {{active === 'families' ? 'merchant-workbench-nav__item--active' : ''}}" aria-role="button" aria-label="商家家庭" hover-class="merchant-workbench-nav__item--pressed" data-key="families" bindtap="handleNavigate">家庭</view>
+    </view>
+  </view>
+</view>

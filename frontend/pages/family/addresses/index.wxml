@@ -1,0 +1,27 @@
+<view class="warm-page warm-state-host page addresses-page" wx:if="{{context}}">
+  <view class="hero">
+    <text class="eyebrow">配送地址</text>
+    <text class="title">地址簿</text>
+    <text class="subtitle">普通成员和家庭管理员都可以维护常用收餐地址。</text>
+  </view>
+
+  <view class="ui-button button add-button" bindtap="addAddress" aria-role="button" aria-label="新增地址" hover-class="ui-button--pressed" hover-stay-time="80">新增地址</view>
+
+  <view wx:if="{{!addresses.length}}" class="empty">还没有地址，新增后下单时就能直接带出。</view>
+  <view wx:else class="list">
+    <block wx:for="{{addresses}}" wx:key="id">
+      <view class="panel address-card">
+        <view class="row between">
+          <text class="address-name">{{item.contactName}} · {{item.phone}}</text>
+          <text class="address-tag">{{item.tagText}}</text>
+        </view>
+        <text class="address-text">{{item.address}}</text>
+        <view class="address-actions">
+          <view wx:if="{{!item.isDefault}}" class="ui-button button secondary small-button" data-id="{{item.id}}" bindtap="setDefault" aria-role="button" aria-label="设为默认" hover-class="ui-button--pressed" hover-stay-time="80">设为默认</view>
+          <view class="ui-button button secondary small-button" data-id="{{item.id}}" bindtap="editAddress" aria-role="button" aria-label="编辑" hover-class="ui-button--pressed" hover-stay-time="80">编辑</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>
+

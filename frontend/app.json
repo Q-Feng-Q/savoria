@@ -1,0 +1,91 @@
+{
+  "pages": [
+    "pages/auth/entry/index",
+    "pages/auth/register/index",
+    "pages/auth/password-recovery/index",
+    "pages/family/family-start/index",
+    "pages/family/family-management/index",
+    "pages/account/profile-edit/index",
+    "pages/account/account-security/index",
+    "pages/account/account-management/index",
+    "pages/family/home/index",
+    "pages/ordering/menu/index",
+    "pages/ordering/cart/index",
+    "pages/ordering/orders/index",
+    "pages/account/profile/index",
+    "pages/account/notifications/index",
+    "pages/family/addresses/index",
+    "pages/family/address-edit/index",
+    "pages/family/wallet/index",
+    "pages/family/wallet-ledger/index",
+    "pages/merchant/index",
+    "pages/merchant/merchant-families/index",
+    "pages/merchant/merchant-family-detail/index",
+    "pages/merchant/merchant-orders/index",
+    "pages/merchant/merchant-order-detail/index",
+    "pages/merchant/merchant-dishes/index",
+    "pages/merchant/dish-reviews/index",
+    "pages/merchant/dish-templates/index",
+    "pages/merchant/dish-template-detail/index",
+    "pages/merchant/family-menu/index",
+    "pages/merchant/purchase/index",
+    "pages/ordering/order-detail/index",
+    "pages/ordering/dish-detail/index",
+    "pages/merchant/dish-edit/index",
+    "pages/merchant/ingredient-edit/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "食光知味",
+    "navigationBarBackgroundColor": "#fff4e4",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#fff4e4"
+  },
+  "tabBar": {
+    "color": "#8b7969",
+    "selectedColor": "#77977d",
+    "backgroundColor": "#fffdf7",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/family/home/index",
+        "iconPath": "assets/ui/tab-home.png",
+        "selectedIconPath": "assets/ui/tab-home-active.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/ordering/menu/index",
+        "iconPath": "assets/ui/tab-menu.png",
+        "selectedIconPath": "assets/ui/tab-menu-active.png",
+        "text": "去点菜"
+      },
+      {
+        "pagePath": "pages/ordering/orders/index",
+        "iconPath": "assets/ui/tab-orders.png",
+        "selectedIconPath": "assets/ui/tab-orders-active.png",
+        "text": "订单进度"
+      },
+      {
+        "pagePath": "pages/account/profile/index",
+        "iconPath": "assets/ui/tab-profile.png",
+        "selectedIconPath": "assets/ui/tab-profile-active.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "usingComponents": {
+    "page-state": "/components/page-state/index",
+    "brand-scene": "/components/brand-scene/index",
+    "action-button": "/components/action-button/index",
+    "filter-bar": "/components/filter-bar/index",
+    "group-menu": "/components/group-menu/index",
+    "quantity-stepper": "/components/quantity-stepper/index",
+    "dish-row": "/components/dish-row/index",
+    "order-row": "/components/order-row/index",
+    "purchase-row": "/components/purchase-row/index",
+    "notification-row": "/components/notification-row/index",
+    "status-timeline": "/components/status-timeline/index",
+    "bottom-action-bar": "/components/bottom-action-bar/index",
+    "merchant-workbench-nav": "/components/merchant-workbench-nav/index"
+  }
+}

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.notification.mapper.NotificationPersistenceMapper">
+  <resultMap id="NotificationMap" type="com.familykitchen.notification.model.entity.NotificationDO">
+    <id property="id" column="id"/>
+    <result property="receiverScope" column="receiver_scope"/>
+    <result property="category" column="category"/>
+    <result property="title" column="title"/>
+    <result property="content" column="content"/>
+    <result property="readAt" column="read_at"/>
+    <result property="createdAt" column="created_at"/>
+  </resultMap>
+
+  <insert id="insertNotification">
+    insert into notifications (receiver_type, receiver_id, receiver_scope, category, title, content)
+    values (#{receiverType}, #{receiverId}, #{receiverScope}, #{category}, #{title}, #{content})
+  </insert>
+
+  <select id="selectNotifications" resultMap="NotificationMap">
+    select id, receiver_scope, category, title, content, read_at, created_at
+    from notifications
+    where receiver_scope = #{receiverScope} and receiver_id = #{receiverId}
+    order by id desc
+  </select>
+
+  <select id="countNotificationOwnership" resultType="int">
+    select count(*)
+    from notifications
+    where id = #{notificationId} and receiver_scope = #{receiverScope} and receiver_id = #{receiverId}
+  </select>
+
+  <update id="markNotificationRead">
+    update notifications set read_at = current_timestamp where id = #{notificationId}
+  </update>
+
+  <update id="markAllNotificationsRead">
+    update notifications
+    set read_at = current_timestamp
+    where receiver_scope = #{receiverScope} and receiver_id = #{receiverId} and read_at is null
+  </update>
+</mapper>

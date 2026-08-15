@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.family.mapper.FamilyApplicationMapper">
+
+  <resultMap id="FamilyApplicationDOMap" type="com.familykitchen.family.model.entity.FamilyApplicationDO">
+    <id property="id" column="id"/>
+    <result property="applicantMemberId" column="applicant_user_id"/>
+    <result property="merchantId" column="merchant_id"/>
+    <result property="merchantMode" column="merchant_mode"/><result property="merchantInvitationId" column="merchant_invitation_id"/>
+    <result property="proposedMerchantName" column="proposed_merchant_name"/><result property="proposedContactName" column="proposed_contact_name"/><result property="proposedContactPhone" column="proposed_contact_phone"/>
+    <result property="familyName" column="family_name"/>
+    <result property="status" column="status"/>
+    <result property="reviewRemark" column="review_remark"/>
+    <result property="reviewedBy" column="reviewed_by"/>
+    <result property="reviewedAt" column="reviewed_at"/>
+    <result property="createdAt" column="created_at"/>
+    <result property="updatedAt" column="updated_at"/>
+  </resultMap>
+
+  <select id="findById" resultMap="FamilyApplicationDOMap">
+    SELECT * FROM family_applications WHERE id = #{id} LIMIT 1 FOR UPDATE
+  </select>
+
+  <select id="listByStatus" resultMap="FamilyApplicationDOMap">
+    SELECT id,applicant_user_id,merchant_id,family_name,merchant_mode,merchant_invitation_id,proposed_merchant_name,proposed_contact_name,proposed_contact_phone,status,review_remark,reviewed_by,reviewed_at,created_at,updated_at
+    FROM family_applications
+    <if test="status != null and status != ''">WHERE status=#{status}</if>
+    ORDER BY created_at DESC
+  </select>
+
+  <select id="findByApplicantAndStatus" resultMap="FamilyApplicationDOMap">
+    SELECT * FROM family_applications
+    WHERE applicant_user_id = #{applicantMemberId} AND status = #{status}
+    ORDER BY created_at DESC LIMIT 1
+  </select>
+
+  <select id="findLatestByApplicant" resultMap="FamilyApplicationDOMap">
+    SELECT * FROM family_applications
+    WHERE applicant_user_id = #{applicantMemberId}
+    ORDER BY created_at DESC LIMIT 1
+  </select>
+
+  <insert id="insert" parameterType="com.familykitchen.family.model.entity.FamilyApplicationDO" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO family_applications (applicant_user_id,merchant_id,family_name,merchant_mode,merchant_invitation_id,
+      proposed_merchant_name,proposed_contact_name,proposed_contact_phone,status)
+    VALUES (#{applicantMemberId},#{merchantId},#{familyName},#{merchantMode},#{merchantInvitationId},
+      #{proposedMerchantName},#{proposedContactName},#{proposedContactPhone},#{status})
+  </insert>
+
+  <update id="attachMerchant">
+    UPDATE family_applications SET merchant_id=#{merchantId} WHERE id=#{id}
+  </update>
+
+  <update id="updateStatus">
+    UPDATE family_applications
+    SET status = #{status}, reviewed_by = #{reviewedBy}, review_remark = #{reviewRemark}, reviewed_at = NOW()
+    WHERE id = #{id} AND status = 'pending'
+  </update>
+</mapper>

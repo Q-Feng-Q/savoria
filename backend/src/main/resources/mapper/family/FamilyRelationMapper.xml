@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.family.mapper.FamilyRelationMapper">
+  <select id="findActiveFamilyId" resultType="long">
+    SELECT family_id FROM family_user_relations WHERE user_id=#{userId} AND status='ACTIVE' LIMIT 1
+  </select>
+  <insert id="insertActive">
+    INSERT INTO family_user_relations(user_id,family_id,family_role,status,join_source,invitation_id,created_by)
+    VALUES(#{userId},#{familyId},#{familyRole},'ACTIVE',#{joinSource},#{invitationId},#{createdBy})
+  </insert>
+  <update id="exit">
+    UPDATE family_user_relations SET status='EXITED',ended_at=NOW(),ended_by=#{endedBy},end_reason=#{reason}
+    WHERE user_id=#{userId} AND status='ACTIVE' AND family_role&lt;&gt;'OWNER'
+  </update>
+</mapper>

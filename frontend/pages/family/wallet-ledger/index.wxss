@@ -1,0 +1,48 @@
+.ledger-list {
+  margin-top: 28rpx;
+}
+
+.ledger-title,
+.ledger-note,
+.ledger-time,
+.ledger-amount,
+.ledger-tag {
+  display: block;
+}
+
+.ledger-title {
+  color: #261c14;
+  font-size: 30rpx;
+  font-weight: 950;
+}
+
+.ledger-note {
+  margin-top: 10rpx;
+  color: #8f7865;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.ledger-side {
+  text-align: right;
+}
+
+.ledger-amount {
+  font-size: 30rpx;
+  font-weight: 950;
+}
+
+.ledger-amount.income {
+  color: #218d68;
+}
+
+.ledger-amount.expense {
+  color: #e27942;
+}
+
+.ledger-tag,
+.ledger-time {
+  margin-top: 8rpx;
+  color: #9a8a7b;
+  font-size: 22rpx;
+}

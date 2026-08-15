@@ -1,0 +1,4 @@
+{
+  "navigationBarTitleText": "家庭详情",
+  "usingComponents": { "page-state": "/components/page-state/index" }
+}

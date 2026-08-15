@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.dish.mapper.DishReviewMapper">
+  <resultMap id="reviewMap" type="com.familykitchen.dish.model.entity.DishReviewSubmissionDO">
+    <id property="id" column="id"/><result property="merchantId" column="merchant_id"/>
+    <result property="targetDishId" column="target_dish_id"/><result property="submissionType" column="submission_type"/>
+    <result property="snapshotJson" column="snapshot_json"/><result property="status" column="status"/>
+    <result property="submittedBy" column="submitted_by"/><result property="reviewedBy" column="reviewed_by"/>
+    <result property="reviewReason" column="review_reason"/><result property="submittedAt" column="submitted_at"/>
+    <result property="reviewedAt" column="reviewed_at"/>
+  </resultMap>
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO dish_review_submissions
+    (merchant_id,target_dish_id,submission_type,snapshot_json,status,submitted_by)
+    VALUES(#{merchantId},#{targetDishId},#{submissionType},CAST(#{snapshotJson} AS JSON),'PENDING',#{submittedBy})</insert>
+  <select id="selectById" resultMap="reviewMap">SELECT * FROM dish_review_submissions WHERE id=#{id}</select>
+  <select id="selectPending" resultMap="reviewMap">SELECT * FROM dish_review_submissions WHERE status='PENDING' ORDER BY submitted_at</select>
+  <select id="selectByMerchant" resultMap="reviewMap">SELECT * FROM dish_review_submissions
+    WHERE merchant_id=#{merchantId} ORDER BY submitted_at DESC</select>
+  <update id="withdraw">UPDATE dish_review_submissions SET status='WITHDRAWN',reviewed_at=NOW()
+    WHERE id=#{id} AND merchant_id=#{merchantId} AND status='PENDING'</update>
+  <select id="countPending" resultType="int">SELECT COUNT(*) FROM dish_review_submissions
+    WHERE merchant_id=#{merchantId} AND status='PENDING'
+    <choose><when test="dishId != null">AND target_dish_id=#{dishId}</when><otherwise>AND target_dish_id IS NULL</otherwise></choose></select>
+  <update id="approve">UPDATE dish_review_submissions SET status='APPROVED',reviewed_by=#{reviewedBy},
+    review_reason=#{reason},reviewed_at=NOW() WHERE id=#{id} AND status='PENDING'</update>
+  <update id="reject">UPDATE dish_review_submissions SET status='REJECTED',reviewed_by=#{reviewedBy},
+    review_reason=#{reason},reviewed_at=NOW() WHERE id=#{id} AND status='PENDING'</update>
+</mapper>

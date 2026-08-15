@@ -1,0 +1,50 @@
+page {
+  --warm-bg: #fff4e4;
+  --warm-paper: #fffdf7;
+  --warm-paper-strong: #fffaf0;
+  --warm-ink: #3a2a24;
+  --warm-cocoa: #4f392f;
+  --warm-muted: #8b7465;
+  --warm-sage: #77977d;
+  --warm-sage-soft: #dfeadc;
+  --warm-oat: #ebcb98;
+  --warm-oat-soft: #f7e2be;
+  --warm-peach: #e98262;
+  --warm-peach-soft: #f4cfc1;
+  --warm-line: #ead8c5;
+  --warm-line-strong: #d9c3aa;
+  --warm-danger: #b84f43;
+  --warm-success: #64876c;
+  --warm-radius-sm: 16rpx;
+  --warm-radius-md: 24rpx;
+  --warm-radius-lg: 36rpx;
+  --warm-radius-xl: 48rpx;
+  --warm-page-gap: 32rpx;
+  --warm-section-gap: 42rpx;
+  --warm-tap-min: 88rpx;
+  --warm-content-max: 860rpx;
+  --warm-shadow-soft: 0 16rpx 38rpx rgba(79, 57, 47, .08);
+  --warm-shadow-float: 0 22rpx 52rpx rgba(79, 57, 47, .16);
+  --warm-motion-enter: 220ms cubic-bezier(.2, .8, .2, 1);
+  --warm-safe-top: env(safe-area-inset-top);
+  --warm-safe-bottom: env(safe-area-inset-bottom);
+
+  /* Transitional semantic aliases keep behavior templates readable while every view is rewritten. */
+  --sk-bg: var(--warm-bg);
+  --sk-paper: var(--warm-paper);
+  --sk-text: var(--warm-ink);
+  --sk-ink-deep: var(--warm-cocoa);
+  --sk-muted: var(--warm-muted);
+  --sk-sage: var(--warm-sage);
+  --sk-sprout: var(--warm-sage-soft);
+  --sk-wheat: var(--warm-oat-soft);
+  --sk-accent: var(--warm-peach);
+  --sk-line: var(--warm-line-strong);
+  --sk-line-soft: var(--warm-line);
+  --sk-danger: var(--warm-danger);
+  --sk-radius-md: var(--warm-radius-md);
+  --sk-radius-lg: var(--warm-radius-lg);
+  --sk-shadow-soft: var(--warm-shadow-soft);
+  --sk-tap-min: var(--warm-tap-min);
+  --sk-safe-bottom: var(--warm-safe-bottom);
+}

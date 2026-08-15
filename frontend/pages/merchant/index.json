@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "商户概览",
+  "usingComponents": {
+    "action-button": "/components/action-button/index",
+    "page-state": "/components/page-state/index"
+  }
+}

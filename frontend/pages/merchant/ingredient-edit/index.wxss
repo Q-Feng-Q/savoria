@@ -1,0 +1,24 @@
+.ingredient-page { padding-bottom: calc(180rpx + env(safe-area-inset-bottom)); background: #fffaf4; }
+.editor-head, .form-section { padding: 28rpx 0; border-bottom: 2rpx solid #e9ddd1; }
+.eyebrow, .editor-title, .editor-copy, .section-title, .strong, .muted, .reference { display: block; }
+.eyebrow { color: #a56f5e; font-size: 22rpx; font-weight: 800; }
+.editor-title { margin-top: 6rpx; color: #2f2822; font-size: 40rpx; font-weight: 900; }
+.editor-copy { margin-top: 8rpx; color: #7d7065; font-size: 24rpx; }
+.section-head, .ingredient-row { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.section-title { margin-bottom: 18rpx; color: #352d27; font-size: 30rpx; font-weight: 900; }
+.section-head .section-title { margin-bottom: 0; }
+.ingredient-row { min-height: 116rpx; border-bottom: 2rpx solid #eee4da; }
+.ingredient-main { flex: 1; min-width: 0; padding: 14rpx 0; }
+.strong { color: #352d27; font-weight: 850; }
+.muted, .reference, .empty-copy { margin-top: 5rpx; color: #82766c; font-size: 23rpx; }
+.reference { color: #668269; }
+.text-action, .delete-disabled, .save-action, input { min-height: 88rpx; box-sizing: border-box; }
+.text-action, .delete-disabled, .save-action { display: flex; align-items: center; justify-content: center; flex: none; padding: 0 14rpx; }
+.text-action { color: #d76552; }
+.delete-disabled { max-width: 150rpx; color: #988d84; font-size: 21rpx; text-align: center; }
+.field { margin-top: 18rpx; }
+.label { color: #776b61; font-size: 24rpx; }
+input { margin-top: 10rpx; padding: 0 22rpx; border: 2rpx solid #ddd2c7; border-radius: 14rpx; background: #fff; }
+.safe-action-bar { position: fixed; right: auto; bottom: 0; left: 50%; width: 100%; max-width: 720px; padding: 18rpx 28rpx calc(18rpx + env(safe-area-inset-bottom)); border-top: 2rpx solid #e2d6ca; background: rgba(255,250,244,.97); box-sizing: border-box; transform: translateX(-50%); z-index: 20; }
+.save-action { border-radius: 16rpx; background: #e87561; color: #fff; font-weight: 900; }
+@media (max-width: 320px) { .ingredient-row { align-items: flex-start; } .delete-disabled { max-width: 128rpx; } }

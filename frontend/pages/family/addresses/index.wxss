@@ -1,0 +1,46 @@
+.add-button {
+  width: 100%;
+  margin-top: 24rpx;
+}
+
+.address-name,
+.address-text {
+  display: block;
+}
+
+.address-name {
+  color: #261c14;
+  font-size: 30rpx;
+  font-weight: 950;
+}
+
+.address-tag {
+  min-height: 40rpx;
+  padding: 0 16rpx;
+  border-radius: 999rpx;
+  background: #eafff5;
+  color: #218d68;
+  font-size: 22rpx;
+  line-height: 40rpx;
+  font-weight: 850;
+}
+
+.address-text {
+  margin-top: 14rpx;
+  color: #6d5849;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.address-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-top: 20rpx;
+}
+
+.small-button {
+  min-height: 62rpx;
+  padding: 0 24rpx;
+  font-size: 24rpx;
+}

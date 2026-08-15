@@ -1,0 +1,23 @@
+.family-menu-page { padding-bottom: calc(44rpx + env(safe-area-inset-bottom)); }
+.menu-header { padding: 10rpx 0 26rpx; border-bottom: 2rpx solid #eadfce; }
+.menu-eyebrow, .menu-title, .menu-description, .selector-label, .menu-name, .menu-meta, .menu-state, .price-label { display: block; }
+.menu-eyebrow { color: #218d68; font-size: 22rpx; font-weight: 900; }
+.menu-title { margin-top: 8rpx; color: #2b2119; font-size: 38rpx; font-weight: 950; }
+.menu-description { margin-top: 10rpx; color: #806854; font-size: 24rpx; line-height: 1.5; }
+.selector-section { padding: 26rpx 0; border-bottom: 2rpx solid #eadfce; }
+.selector-label { margin-bottom: 10rpx; color: #745d49; font-size: 23rpx; font-weight: 850; }
+.source-label { margin-top: 22rpx; }
+.selector-control, .copy-action, .toggle-action, .price-action { min-height: 88rpx; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border-radius: 20rpx; font-size: 24rpx; font-weight: 900; }
+.selector-control { justify-content: flex-start; padding: 0 22rpx; border: 2rpx solid #decfbd; background: #fffdf9; color: #3d3026; }
+.copy-action { margin-top: 16rpx; background: #218d68; color: #fff; }
+.empty-source { color: #9a8068; font-size: 23rpx; }
+.menu-row { padding: 28rpx 0; border-bottom: 2rpx solid #eadfce; }
+.menu-name { color: #2b2119; font-size: 29rpx; font-weight: 950; }
+.menu-meta, .menu-state { margin-top: 8rpx; color: #806854; font-size: 23rpx; }
+.menu-state { color: #28775b; font-weight: 850; }
+.row-controls, .price-controls { display: flex; align-items: center; gap: 14rpx; }
+.row-controls { justify-content: space-between; margin-top: 20rpx; }
+.toggle-action { min-width: 126rpx; padding: 0 18rpx; background: #e8f7f0; color: #276f55; }
+.price-action { width: 88rpx; background: #fff8ef; border: 2rpx solid #e2d2bf; color: #8b5a2b; font-size: 32rpx; }
+.price-readout { min-width: 112rpx; text-align: center; color: #2b2119; font-size: 25rpx; font-weight: 900; }
+.price-label { margin-top: 4rpx; color: #8f7865; font-size: 20rpx; }

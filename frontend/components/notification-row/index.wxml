@@ -1,0 +1,2 @@
+<view class="ui-button warm-component warm-notification-row notification-row {{item.read ? '' : 'notification-row--unread'}}" bindtap="open" aria-role="button" aria-label="{{item.title}}{{item.content}}{{item.createdAt}}" hover-class="ui-button--pressed" hover-stay-time="80"><view class="notification-row__dot"></view><view><text class="notification-row__title">{{item.title}}</text><text class="notification-row__content">{{item.content}}</text><text class="notification-row__time">{{item.createdAt}}</text></view></view>
+

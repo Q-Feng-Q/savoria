@@ -1,0 +1,21 @@
+<view class="warm-page warm-state-host menu-page concept-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="菜单暂时没准备好" description="{{errorMessage || '正在看看今天有哪些好吃的'}}" illustration="search" bind:retry="load" />
+  <block wx:else>
+    <view class="design-menu-header menu-intro sk-stagger-in">
+      <view class="design-menu-header__copy"><text class="design-menu-header__eyebrow">兔子帮厨 · {{currentDate}}</text><text class="design-menu-header__title">今天吃什么</text><text class="design-menu-header__context">{{context.family.name}} · {{currentMemberName}}</text></view>
+      <view class="design-menu-header__art animal-menu-art"><image class="design-menu-header__image animal-menu-art__image" src="/assets/brand/animal-mascot-trio.webp" mode="aspectFill" /><text class="animal-menu-art__label">新鲜配菜到啦</text></view>
+    </view>
+
+    <view class="design-menu-search"><text class="design-menu-search__icon">⌕</text><input class="menu-search" value="{{searchKeyword}}" placeholder="搜索菜名或口味" bindinput="handleSearchInput" /><view wx:if="{{searchKeyword}}" class="ui-button clear-search" bindtap="clearSearch" aria-role="button" aria-label="清除" hover-class="ui-button--pressed" hover-stay-time="80">清除</view></view>
+
+    <view class="meal-tabs"><view wx:for="{{mealOptions}}" wx:key="key" class="ui-button meal-tab {{item.activeClass}}" data-meal="{{item.key}}" bindtap="selectMeal" aria-role="button" aria-label="{{item.label}}{{item.time}}" hover-class="ui-button--pressed" hover-stay-time="80"><text>{{item.label}}</text><text>{{item.time}}</text></view></view>
+
+    <view class="menu-category-layout menu-content">
+      <scroll-view class="category-rail" scroll-y enhanced show-scrollbar="{{false}}"><view wx:for="{{categoryOptions}}" wx:key="key" class="ui-button category-item {{item.activeClass}}" aria-role="button" aria-label="{{item.label}}" hover-class="ui-button--pressed" hover-stay-time="80"><text>{{item.label}}</text></view></scroll-view>
+      <view class="dish-list"><view class="dish-list__head"><text>小熊今日推荐</text><text>{{resultSummaryText}}</text></view><page-state wx:if="{{!visibleMenuCards.length}}" phase="empty" title="没找到合适的菜" description="{{emptyStateText}}" illustration="search" /><dish-row wx:for="{{visibleMenuCards}}" wx:key="id" dish="{{item}}" quantity="{{item.selectedByCurrentMemberCount}}" bind:open="openDishFromRow" bind:quantitychange="changeDishQuantity" /></view>
+    </view>
+
+    <view class="design-cart-dock"><bottom-action-bar summary="{{'晚餐餐篮 · ' + cartItemCount + ' 份'}}" primaryText="去餐篮" bind:primary="openCart"><view slot="secondary" class="ui-button orders-link" bindtap="openOrders" aria-role="button" aria-label="订单" hover-class="ui-button--pressed" hover-stay-time="80">订单</view></bottom-action-bar></view>
+  </block>
+</view>
+
