@@ -55,7 +55,15 @@
                 <td>{{ resolveCategoryName(item.categoryId) }}</td>
                 <td>¥{{ item.basePrice ?? item.price }}</td>
                 <td><StatusPill :status="String(item.status || '').toUpperCase()" /></td>
-                <td><button class="text-button" type="button" @click="editDish(item.dishId)">编辑</button></td>
+                <td>
+                  <div class="inline-actions">
+                    <button class="text-button" type="button" @click="editDish(item.dishId)">编辑</button>
+                    <button v-if="isImportedDish(item)" class="text-button" type="button"
+                      :disabled="syncingDishId === item.dishId" @click="syncDishToTemplate(item)">
+                      {{ syncingDishId === item.dishId ? '提交中...' : '同步模板' }}
+                    </button>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -152,6 +160,10 @@
 
           <div class="detail-actions">
             <button class="ghost-button" type="button" @click="resetForm">重置</button>
+            <button v-if="editingDishId && editingSourceTemplateId" class="ghost-button" type="button"
+              :disabled="syncingDishId === editingDishId" @click="syncDishToTemplate({ dishId: editingDishId, name: form.name, sourceTemplateId: editingSourceTemplateId })">
+              {{ syncingDishId === editingDishId ? '提交中...' : '同步模板' }}
+            </button>
             <button class="primary-button" type="submit">保存菜品</button>
           </div>
         </form>
@@ -173,10 +185,12 @@ import {
   getMerchantDishDetail,
   listDishCategories,
   listMerchantDishes,
+  submitImportedDishTemplateChange,
   updateMerchantDish
 } from '../../api/dishes';
 import { uploadDishImage } from '../../api/files';
 import { listMerchantIngredients } from '../../api/ingredients';
+import { notify } from '../../utils/feedback';
 
 const loading = ref(false);
 const router = useRouter();
@@ -186,6 +200,8 @@ const ingredientOptions = ref([]);
 const keyword = ref('');
 const categoryFilter = ref('');
 const editingDishId = ref('');
+const editingSourceTemplateId = ref(null);
+const syncingDishId = ref(null);
 const form = reactive(createDishForm());
 
 function createDishForm() {
@@ -252,6 +268,7 @@ async function loadData() {
 
 function resetForm() {
   editingDishId.value = '';
+  editingSourceTemplateId.value = null;
   assignForm(createDishForm());
 }
 
@@ -266,6 +283,7 @@ function openTemplateMarket() {
 async function editDish(dishId) {
   editingDishId.value = dishId;
   const detail = await getMerchantDishDetail(dishId);
+  editingSourceTemplateId.value = detail.sourceTemplateId || null;
   assignForm({
     name: detail.name,
     categoryId: detail.categoryId,
@@ -276,6 +294,33 @@ async function editDish(dishId) {
     ingredients: detail.ingredients || [],
     cookingSteps: detail.cookingSteps || []
   });
+}
+
+function isImportedDish(dish) {
+  return Boolean(dish?.templateImported || dish?.sourceTemplateId);
+}
+
+async function syncDishToTemplate(dish) {
+  if (!dish?.dishId || !isImportedDish(dish) || syncingDishId.value) return;
+  const submitNote = await promptAction({
+    title: `同步“${dish.name || '当前菜品'}”到模板`,
+    label: '申请说明（选填）',
+    placeholder: '例如：采用商户实测后的食材用量',
+    message: '提交后进入平台审核，不会立即修改系统菜库，制作步骤不会同步。',
+    required: false,
+    confirmText: '提交审核'
+  });
+  if (submitNote === null) return;
+  syncingDishId.value = dish.dishId;
+  try {
+    const result = await submitImportedDishTemplateChange(dish.dishId, {
+      submitNote: String(submitNote || '').trim() || null
+    });
+    notify(`模板修改申请 #${result.requestId} 已提交`, 'success');
+    await router.push({ name: 'dish-template-changes', query: { requestId: result.requestId } });
+  } finally {
+    syncingDishId.value = null;
+  }
 }
 
 async function submitDish() {

@@ -27,7 +27,7 @@ test('platform administrator identity accepts backend role casing', () => {
   assert.equal(isPlatformAdminIdentity({ backendRoles: ['MERCHANT_ADMIN'] }), false);
 });
 
-test('admin ui config keeps all required merchant modules in navigation', () => {
+test('admin ui config keeps all required merchant and platform modules in navigation', () => {
   const keys = ADMIN_NAV_ITEMS.map((item) => item.key);
 
   assert.deepEqual(keys, [
@@ -35,12 +35,14 @@ test('admin ui config keeps all required merchant modules in navigation', () => 
     'orders',
     'dishes',
     'merchant-dish-reviews',
+    'dish-template-changes',
     'ingredients',
     'families',
     'platform-families',
     'platform-merchants',
     'users',
     'dish-reviews',
+    'dish-template-change-reviews',
     'system-settings',
     'family-settings',
     'family-applications',

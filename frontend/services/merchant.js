@@ -17,6 +17,11 @@ function createMerchantService({ request }) {
     async updateDishStatus(dishId, payload) {
       return unwrapData(await request(`/api/merchant/dishes/${dishId}/status`, { method: 'PUT', data: payload }));
     },
+    async setDishFeatured(dishId, featured) {
+      return unwrapData(await request(`/api/merchant/dishes/${dishId}/featured`, {
+        method: 'PUT', data: { featured }
+      }));
+    },
     async updateCookingSteps(dishId, payload) {
       return unwrapData(await request(`/api/merchant/dishes/${dishId}/cooking-steps`, { method: 'PUT', data: payload }));
     },
@@ -43,6 +48,33 @@ function createMerchantService({ request }) {
     },
     async importAllDishTemplates() {
       return unwrapData(await request('/api/merchant/dish-templates/import-all', { method: 'POST' }));
+    },
+    async submitDishTemplateChange(templateId, payload) {
+      return unwrapData(await request(`/api/merchant/dish-templates/${templateId}/change-requests`, {
+        method: 'POST', data: payload
+      }));
+    },
+    async submitImportedDishTemplateChange(dishId, payload) {
+      return unwrapData(await request(`/api/merchant/dishes/${dishId}/template-change-requests`, {
+        method: 'POST', data: payload
+      }));
+    },
+    async getDishTemplateChanges(query = {}) {
+      const search = Object.keys(query)
+        .filter((key) => query[key] !== undefined && query[key] !== null && query[key] !== '')
+        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(query[key])}`)
+        .join('&');
+      return unwrapData(await request(`/api/merchant/dish-template-change-requests${search ? `?${search}` : ''}`, {
+        method: 'GET'
+      }));
+    },
+    async getDishTemplateChangeDetail(requestId) {
+      return unwrapData(await request(`/api/merchant/dish-template-change-requests/${requestId}`, { method: 'GET' }));
+    },
+    async withdrawDishTemplateChange(requestId) {
+      return unwrapData(await request(`/api/merchant/dish-template-change-requests/${requestId}/withdraw`, {
+        method: 'POST'
+      }));
     },
     async getDishReviews() {
       return unwrapData(await request('/api/merchant/dish-reviews', { method: 'GET' }));
@@ -112,6 +144,11 @@ function createMerchantService({ request }) {
     },
     async saveFamilyMenu(familyId, payload) {
       return unwrapData(await request(`/api/merchant/families/${familyId}/menu`, { method: 'PUT', data: payload }));
+    },
+    async setFeaturedDish(familyId, dishId) {
+      return unwrapData(await request(`/api/merchant/families/${familyId}/menu/featured`, {
+        method: 'PUT', data: { dishId }
+      }));
     },
     async copyFamilyMenu(familyId, payload) {
       return unwrapData(await request(`/api/merchant/families/${familyId}/menu/copy`, { method: 'POST', data: payload }));

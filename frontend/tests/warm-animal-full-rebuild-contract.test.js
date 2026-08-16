@@ -13,8 +13,8 @@ const components = [
   'notification-row', 'status-timeline', 'bottom-action-bar'
 ]
 
-test('all 33 registered pages use the new warm kitchen view shell', () => {
-  assert.equal(app.pages.length, 33)
+test('all 36 registered pages use the new warm kitchen view shell', () => {
+  assert.equal(app.pages.length, 36)
   for (const page of app.pages) {
     const wxml = read(`${page}.wxml`)
     assert.match(wxml, /warm-page/, `${page} must use warm-page`)

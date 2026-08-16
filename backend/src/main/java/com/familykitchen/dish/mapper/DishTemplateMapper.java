@@ -49,6 +49,18 @@ public interface DishTemplateMapper {
    */
   DishTemplateEntity selectTemplate(@Param("merchantId") Long merchantId, @Param("templateId") Long templateId);
   /**
+   * 锁定并读取平台模板，供提交与审核事务使用。
+   * @param templateId 模板 ID
+   * @return 被锁定模板，不存在时为空
+   */
+  DishTemplateEntity selectTemplateForUpdate(@Param("templateId") Long templateId);
+  /**
+   * 锁定并读取目标模板分类，防止事务内被并发停用。
+   * @param categoryId 分类 ID
+   * @return 被锁定分类，不存在时为空
+   */
+  DishTemplateCategoryEntity selectCategoryForUpdate(@Param("categoryId") Long categoryId);
+  /**
    * 查询模板食材。
    * @param templateId 模板 ID
    * @return 食材明细
@@ -112,4 +124,24 @@ public interface DishTemplateMapper {
    * @return 新增行数
    */
   int insertMerchantIngredientIgnore(IngredientDictionaryEntity ingredient);
+  /**
+   * 按目标完整快照覆盖模板主信息，并以基础版本作并发保护。
+   * @param template 目标模板实体
+   * @param baseVersion 基础版本
+   * @return 更新行数
+   */
+  int replaceTemplate(@Param("template") DishTemplateEntity template,
+      @Param("baseVersion") Long baseVersion);
+  /**
+   * 删除模板全部旧食材。
+   * @param templateId 模板 ID
+   * @return 删除行数
+   */
+  int deleteTemplateIngredients(@Param("templateId") Long templateId);
+  /**
+   * 插入审核通过后的单项模板食材。
+   * @param ingredient 模板食材实体
+   * @return 新增行数
+   */
+  int insertTemplateIngredient(DishTemplateIngredientEntity ingredient);
 }

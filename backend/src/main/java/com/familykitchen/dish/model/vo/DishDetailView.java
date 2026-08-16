@@ -13,6 +13,8 @@ import java.util.List;
  * @param imageUrl imageUrl
  * @param price price
  * @param status 状态
+ * @param sourceTemplateId 来源平台模板 ID，手工菜品为空
+ * @param templateImported 是否由平台模板导入
  * @param ingredients ingredients
  * @param cookingSteps cookingSteps
  */
@@ -24,6 +26,8 @@ public record DishDetailView(
     String imageUrl,
     BigDecimal price,
     String status,
+    Long sourceTemplateId,
+    boolean templateImported,
     List<IngredientView> ingredients,
     List<CookingStepView> cookingSteps
 ) {

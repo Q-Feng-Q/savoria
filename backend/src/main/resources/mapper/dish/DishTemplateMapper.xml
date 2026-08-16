@@ -13,7 +13,8 @@
     <result property="imageAuthor" column="image_author"/><result property="imageLicense" column="image_license"/>
     <result property="referencePrice" column="reference_price"/><result property="tasteTags" column="taste_tags"/>
     <result property="mealTags" column="meal_tags"/><result property="sortOrder" column="sort_order"/>
-    <result property="enabled" column="enabled"/><result property="imported" column="imported"/>
+    <result property="enabled" column="enabled"/><result property="version" column="version"/>
+    <result property="imported" column="imported"/>
     <result property="ingredientCount" column="ingredient_count"/>
   </resultMap>
   <resultMap id="TemplateIngredientMap" type="com.familykitchen.dish.model.entity.DishTemplateIngredientEntity">
@@ -25,7 +26,7 @@
   <sql id="TemplateColumns">
     t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.image_url,
     t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
-    t.sort_order,t.enabled,(d.id is not null) imported,
+    t.sort_order,t.enabled,t.version,(d.id is not null) imported,
     (select count(*) from dish_template_ingredients ti where ti.template_id=t.id) ingredient_count
   </sql>
   <sql id="TemplateFilters">
@@ -56,6 +57,15 @@
     left join dishes d on d.source_template_id=t.id and d.merchant_id = #{merchantId}
     where t.id=#{templateId} and t.enabled=1
   </select>
+  <select id="selectTemplateForUpdate" resultMap="TemplateMap">
+    select t.id,t.template_code,t.category_id,null category_name,t.name,t.description,t.image_url,
+      t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
+      t.sort_order,t.enabled,t.version,false imported,0 ingredient_count
+    from dish_templates t where t.id=#{templateId} for update
+  </select>
+  <select id="selectCategoryForUpdate" resultMap="TemplateCategoryMap">
+    select id,code,name,sort_order,enabled from dish_template_categories where id=#{categoryId} for update
+  </select>
   <select id="selectTemplateIngredients" resultMap="TemplateIngredientMap">
     select id,template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order
     from dish_template_ingredients where template_id=#{templateId} order by sort_order,id
@@ -63,7 +73,7 @@
   <select id="selectTemplatesByIds" resultMap="TemplateMap">
     select t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.image_url,
       t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
-      t.sort_order,t.enabled,false imported,0 ingredient_count
+      t.sort_order,t.enabled,t.version,false imported,0 ingredient_count
     from dish_templates t join dish_template_categories c on c.id=t.category_id and c.enabled=1
     where t.enabled=1 and t.id in <foreach collection="templateIds" item="id" open="(" separator="," close=")">#{id}</foreach>
     order by t.id
@@ -71,7 +81,7 @@
   <select id="selectAllEnabledTemplates" resultMap="TemplateMap">
     select t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.image_url,
       t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
-      t.sort_order,t.enabled,false imported,0 ingredient_count
+      t.sort_order,t.enabled,t.version,false imported,0 ingredient_count
     from dish_templates t join dish_template_categories c on c.id=t.category_id and c.enabled=1
     where t.enabled=1
     order by c.sort_order,t.sort_order,t.id
@@ -105,5 +115,21 @@
   <insert id="insertMerchantIngredientIgnore" parameterType="com.familykitchen.dish.model.entity.IngredientDictionaryEntity">
     insert ignore into merchant_ingredients (merchant_id,name,category,unit)
     values (#{merchantId},#{name},#{category},#{unit})
+  </insert>
+  <update id="replaceTemplate">
+    update dish_templates set category_id=#{template.categoryId},name=#{template.name},description=#{template.description},
+      image_url=#{template.imageUrl},image_source_url=#{template.imageSourceUrl},image_author=#{template.imageAuthor},
+      image_license=#{template.imageLicense},reference_price=#{template.referencePrice},taste_tags=#{template.tasteTags},
+      meal_tags=#{template.mealTags},sort_order=#{template.sortOrder},enabled=#{template.enabled},version=version+1
+    where id=#{template.id} and version=#{baseVersion}
+  </update>
+  <delete id="deleteTemplateIngredients">
+    delete from dish_template_ingredients where template_id=#{templateId}
+  </delete>
+  <insert id="insertTemplateIngredient" parameterType="com.familykitchen.dish.model.entity.DishTemplateIngredientEntity"
+      useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    insert into dish_template_ingredients
+      (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order)
+    values (#{templateId},#{ingredientName},#{ingredientCategory},#{quantity},#{unit},#{calcType},#{sortOrder})
   </insert>
 </mapper>

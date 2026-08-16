@@ -28,7 +28,9 @@ class FreshDatabaseMigrationTest {
   void migrationsAreFreshOrderedAndContainNoPhysicalForeignKeys() throws Exception {
     List<Path> files;
     try (var stream = Files.list(MIGRATION_DIR)) {
-      files = stream.filter(Files::isRegularFile).sorted().toList();
+      files = stream.filter(Files::isRegularFile)
+          .sorted((left, right) -> Integer.compare(migrationVersion(left), migrationVersion(right)))
+          .toList();
     }
     assertEquals(List.of(
         "V1__init_identity_family_and_merchant.sql",
@@ -36,7 +38,11 @@ class FreshDatabaseMigrationTest {
         "V3__init_system_notification_and_defaults.sql",
         "V4__init_dish_template_market.sql",
         "V5__expand_regional_dish_templates.sql",
-        "V6__finalize_regional_dish_template_images.sql"),
+        "V6__finalize_regional_dish_template_images.sql",
+        "V7__backfill_default_family_meal_slots.sql",
+        "V8__add_dish_template_change_review.sql",
+        "V9__add_family_featured_dish.sql",
+        "V10__add_merchant_featured_dishes.sql"),
         files.stream().map(path -> path.getFileName().toString()).toList());
 
     String sql = readAll(files).toLowerCase();
@@ -52,10 +58,30 @@ class FreshDatabaseMigrationTest {
   }
 
   @Test
+  void everyExistingFamilyReceivesMissingDefaultMealSlotsWithoutOverwritingExistingRows() throws Exception {
+    String sql = Files.readString(
+        MIGRATION_DIR.resolve("V7__backfill_default_family_meal_slots.sql"), StandardCharsets.UTF_8)
+        .replaceAll("\\s+", " ")
+        .toLowerCase();
+
+    assertTrue(sql.contains("insert into meal_slots"));
+    assertTrue(sql.contains("from families f"));
+    assertTrue(sql.contains("not exists"));
+    assertTrue(sql.contains("'早餐'"));
+    assertTrue(sql.contains("'午餐'"));
+    assertTrue(sql.contains("'晚餐'"));
+    assertTrue(sql.contains("'07:00'"));
+    assertTrue(sql.contains("'12:00'"));
+    assertTrue(sql.contains("'18:30'"));
+  }
+
+  @Test
   void migrationsUseUnifiedUserColumnsAndRequiredInitialData() throws Exception {
     List<Path> files;
     try (var stream = Files.list(MIGRATION_DIR)) {
-      files = stream.filter(Files::isRegularFile).sorted().toList();
+      files = stream.filter(Files::isRegularFile)
+          .sorted((left, right) -> Integer.compare(migrationVersion(left), migrationVersion(right)))
+          .toList();
     }
     String sql = readAll(files);
     assertTrue(sql.contains("submitter_user_id"));
@@ -167,5 +193,10 @@ class FreshDatabaseMigrationTest {
     StringBuilder sql = new StringBuilder();
     for (Path file : files) sql.append(Files.readString(file, StandardCharsets.UTF_8)).append('\n');
     return sql.toString();
+  }
+
+  private static int migrationVersion(Path path) {
+    String name = path.getFileName().toString();
+    return Integer.parseInt(name.substring(1, name.indexOf("__")));
   }
 }

@@ -21,5 +21,8 @@ Page({
       await createApiRuntime().merchant.importDishTemplates([this.templateId]);
       wx.showToast({ title: '已导入', icon: 'success' }); await this.load();
     } catch (error) { showApiError(error, '模板导入失败'); }
+  },
+  requestChange() {
+    wx.navigateTo({ url: `/pages/merchant/dish-template-change-edit/index?id=${this.templateId}` });
   }
 });

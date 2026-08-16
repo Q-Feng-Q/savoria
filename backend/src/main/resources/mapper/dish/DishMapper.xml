@@ -12,6 +12,7 @@
     <result property="imageUrl" column="image_url"/>
     <result property="basePrice" column="base_price"/>
     <result property="sourceTemplateId" column="source_template_id"/>
+    <result property="featuredAt" column="featured_at"/>
     <result property="status" column="status"/>
   </resultMap>
 
@@ -51,17 +52,44 @@
   </resultMap>
 
   <select id="selectDishes" resultMap="DishMap">
-    select id, merchant_id, category_id, name, description, image_url, base_price, source_template_id, status
+    select id, merchant_id, category_id, name, description, image_url, base_price, source_template_id, featured_at, status
     from dishes
     where merchant_id = #{merchantId}
-    order by id desc
+    order by (featured_at is not null) desc, featured_at desc, id desc
   </select>
 
   <select id="selectDish" resultMap="DishMap">
-    select id, merchant_id, category_id, name, description, image_url, base_price, source_template_id, status
+    select id, merchant_id, category_id, name, description, image_url, base_price, source_template_id, featured_at, status
     from dishes
     where merchant_id = #{merchantId} and id = #{dishId}
   </select>
+
+  <select id="lockMerchant" resultType="long">
+    select id from merchants where id = #{merchantId} for update
+  </select>
+
+  <select id="selectDishForUpdate" resultMap="DishMap">
+    select id, merchant_id, category_id, name, description, image_url, base_price, source_template_id, featured_at, status
+    from dishes
+    where merchant_id = #{merchantId} and id = #{dishId}
+    for update
+  </select>
+
+  <select id="countActiveFeaturedDishes" resultType="int">
+    select count(*) from dishes
+    where merchant_id = #{merchantId} and status = 'active' and featured_at is not null
+  </select>
+
+  <update id="setDishFeaturedAt">
+    update dishes set featured_at = current_timestamp(6)
+    where merchant_id = #{merchantId} and id = #{dishId}
+      and status = 'active' and featured_at is null
+  </update>
+
+  <update id="clearDishFeatured">
+    update dishes set featured_at = null
+    where merchant_id = #{merchantId} and id = #{dishId}
+  </update>
 
   <select id="countCategoryOwnership" resultType="int">
     select count(*) from dish_categories
@@ -70,8 +98,8 @@
 
   <insert id="insertDish" parameterType="com.familykitchen.dish.model.entity.DishEntity"
           useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-    insert into dishes (merchant_id, category_id, name, description, image_url, base_price, source_template_id, status)
-    values (#{merchantId}, #{categoryId}, #{name}, #{description}, #{imageUrl}, #{basePrice}, #{sourceTemplateId}, #{status})
+    insert into dishes (merchant_id, category_id, name, description, image_url, base_price, source_template_id, featured_at, status)
+    values (#{merchantId}, #{categoryId}, #{name}, #{description}, #{imageUrl}, #{basePrice}, #{sourceTemplateId}, #{featuredAt}, #{status})
   </insert>
 
   <update id="updateDish" parameterType="com.familykitchen.dish.model.entity.DishEntity">
@@ -81,12 +109,18 @@
         description = #{description},
         image_url = #{imageUrl},
         base_price = #{basePrice},
-        status = #{status}
+        status = #{status},
+        featured_at = case when lower(#{status}) = 'inactive' then null else featured_at end
     where merchant_id = #{merchantId} and id = #{id}
   </update>
 
   <update id="updateDishStatus">
     update dishes set status = #{status}
+    where merchant_id = #{merchantId} and id = #{dishId}
+  </update>
+
+  <update id="setDishInactiveAndClearFeatured">
+    update dishes set status = 'inactive', featured_at = null
     where merchant_id = #{merchantId} and id = #{dishId}
   </update>
 

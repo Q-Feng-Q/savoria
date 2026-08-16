@@ -13,7 +13,13 @@ Page({
   data: {
     bannerIndex: 0,
     dashboardCards: [],
+    featuredDishes: [],
     featuredDish: null,
+    featuredAutoplay: false,
+    featuredCircular: false,
+    featuredIndicatorDots: false,
+    featuredInterval: 0,
+    featuredNextMargin: '0rpx',
     flowCards: [],
     quickEntries: [],
     currentDate: '',
@@ -37,7 +43,11 @@ Page({
     this.setData({ phase: 'loading', errorMessage: '' });
     try {
       const homeData = await runtime.family.getHome();
-      const scene = buildApiHomeScene(homeData, { imageBaseUrl: runtime.baseUrl });
+      const windowInfo = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : {};
+      const scene = buildApiHomeScene(homeData, {
+        imageBaseUrl: runtime.baseUrl,
+        windowWidth: windowInfo.windowWidth
+      });
       this.setData({ ...scene, phase: 'ready' });
     } catch (error) {
       this.setData({ phase: 'error', errorMessage: error.message || '首页加载失败' });
@@ -50,7 +60,9 @@ Page({
   },
 
   openDishDetail(event) {
-    wx.navigateTo({ url: `/pages/ordering/dish-detail/index?id=${event.currentTarget.dataset.id}` });
+    const dishId = event.currentTarget.dataset.id;
+    if (!dishId) return;
+    wx.navigateTo({ url: `/pages/ordering/dish-detail/index?id=${dishId}` });
   },
 
   openQuickEntry(event) {

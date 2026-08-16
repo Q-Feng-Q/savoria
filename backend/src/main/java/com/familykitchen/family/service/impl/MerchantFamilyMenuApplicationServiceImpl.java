@@ -8,6 +8,7 @@ import com.familykitchen.family.model.dto.CopyFamilyMenuRequest;
 import com.familykitchen.family.model.dto.SaveFamilyMenuRequest;
 import com.familykitchen.family.model.vo.FamilyMenuItemView;
 import com.familykitchen.family.service.MerchantFamilyMenuApplicationService;
+import com.familykitchen.dish.service.DishApplicationService;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,14 +22,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class MerchantFamilyMenuApplicationServiceImpl implements MerchantFamilyMenuApplicationService {
 
   private final FamilyMapper familyMapper;
+  private final DishApplicationService dishApplicationService;
 
   /**
    * 创建商户家庭菜单实例。
    *
    * @param familyMapper 家庭Mapper
+   * @param dishApplicationService merchant-wide dish service
    */
-  public MerchantFamilyMenuApplicationServiceImpl(FamilyMapper familyMapper) {
+  public MerchantFamilyMenuApplicationServiceImpl(FamilyMapper familyMapper,
+                                                   DishApplicationService dishApplicationService) {
     this.familyMapper = familyMapper;
+    this.dishApplicationService = dishApplicationService;
   }
 
   /**
@@ -81,6 +86,16 @@ public class MerchantFamilyMenuApplicationServiceImpl implements MerchantFamilyM
     requireFamily(user.merchantId(), request.sourceFamilyId());
     familyMapper.deleteFamilyMenu(familyId);
     familyMapper.copyFamilyMenu(familyId, request.sourceFamilyId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Transactional
+  public void setFeaturedDish(CurrentUserContext user, Long familyId, Long dishId) {
+    requireFamily(user.merchantId(), familyId);
+    dishApplicationService.setFeaturedDish(user, dishId, true);
   }
 
   private void requireFamily(Long merchantId, Long familyId) {

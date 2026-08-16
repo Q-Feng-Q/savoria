@@ -25,15 +25,19 @@
       <view class="home-summary__item today-board__item today-board__item--accent"><text>订单状态</text><text>{{orderSummary.statusLabel}}</text><text>及时提醒</text></view>
     </view>
 
-    <view wx:if="{{featuredDish}}" class="home-recommendation featured-story sk-stagger-in" data-id="{{featuredDish.id}}" bindtap="openDishDetail">
-      <view class="home-recommendation__copy featured-story__copy">
-        <text class="home-recommendation__eyebrow section-kicker">小熊主厨今天推荐</text>
-        <text class="home-recommendation__title featured-story__title">{{featuredDish.name}}</text>
-        <text class="home-recommendation__note featured-story__note">慢火炖煮 · 家庭人气菜</text>
-        <text class="home-recommendation__price featured-story__price">{{featuredDish.priceText}}</text>
-      </view>
-      <view class="home-recommendation__plate featured-story__plate"><image class="home-recommendation__image featured-story__image" src="{{featuredDish.imageUrl || '/assets/brand/dish-placeholder.png'}}" mode="aspectFill" /></view>
-    </view>
+    <swiper wx:if="{{featuredDishes.length}}" class="home-featured-swiper sk-stagger-in" autoplay="{{featuredAutoplay}}" circular="{{featuredCircular}}" indicator-dots="{{featuredIndicatorDots}}" interval="{{featuredInterval}}" next-margin="{{featuredNextMargin}}" indicator-color="rgba(90, 58, 46, .24)" indicator-active-color="#ed7657">
+      <swiper-item wx:for="{{featuredDishes}}" wx:key="id" class="home-featured-slide">
+        <view class="home-recommendation featured-story" data-id="{{item.id}}" bindtap="openDishDetail" aria-role="button" aria-label="查看{{item.name}}详情" hover-class="home-recommendation--pressed" hover-stay-time="80">
+          <view class="home-recommendation__copy featured-story__copy">
+            <text class="home-recommendation__eyebrow section-kicker">小熊主厨今天推荐</text>
+            <text class="home-recommendation__title featured-story__title">{{item.name}}</text>
+            <text class="home-recommendation__note featured-story__note">{{item.description}}</text>
+            <text class="home-recommendation__price featured-story__price">{{item.priceText}}</text>
+          </view>
+          <view class="home-recommendation__plate featured-story__plate"><image class="home-recommendation__image featured-story__image" src="{{item.imageUrl || '/assets/brand/dish-placeholder.png'}}" mode="aspectFill" /></view>
+        </view>
+      </swiper-item>
+    </swiper>
 
     <view class="home-service-section service-section sk-stagger-in">
       <view class="home-section-head section-heading"><view><text>家里常用</text><text>把今天的餐桌安排明白</text></view><text>{{dailyQuote}}</text></view>
@@ -47,4 +51,3 @@
     </view>
   </block>
 </view>
-

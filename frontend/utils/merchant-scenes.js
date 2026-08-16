@@ -389,21 +389,17 @@ function buildApiMerchantFamilyDetailScene({
 function buildApiMerchantDishesScene({ session, dishes = [], categories = [], imageBaseUrl = '' }) {
   const merchantName = '商户工作台';
   const categoryMap = new Map(categories.map((item) => [item.categoryId, item.name]));
+  const featuredCount = dishes.filter((item) => Boolean(item.featured)).length;
+  const dishRows = dishes.map((item, originalIndex) => {
+    const status = String(item.status || '').toLowerCase() === 'active' ? 'active' : 'inactive';
+    const featured = Boolean(item.featured);
+    const featuredDisabled = !featured && (status !== 'active' || featuredCount >= 5);
 
-  return {
-    context: buildMerchantContext(session, merchantName),
-    merchantOptions: buildMerchantOptions(session, merchantName),
-    merchantIndex: 0,
-    summaryCards: [
-      { key: 'all', label: '菜品数', value: `${dishes.length}`, note: '当前商户全部菜品' },
-      { key: 'active', label: '已上架', value: `${dishes.filter((item) => String(item.status || '').toUpperCase() === 'ACTIVE').length}`, note: '可投放家庭菜单' },
-      { key: 'inactive', label: '已下架', value: `${dishes.filter((item) => String(item.status || '').toUpperCase() !== 'ACTIVE').length}`, note: '暂不对外展示' }
-    ],
-    dishRows: dishes.map((item) => ({
+    return {
       id: item.dishId,
       name: item.name,
-      status: String(item.status || '').toLowerCase() === 'active' ? 'active' : 'inactive',
-      statusText: String(item.status || '').toUpperCase() === 'ACTIVE' ? '已上架' : '已下架',
+      status,
+      statusText: status === 'active' ? '已上架' : '已下架',
       category: categoryMap.get(item.categoryId) || `分类 ${item.categoryId}`,
       badge: item.description || '商户菜品',
       description: item.description || '暂无菜品说明',
@@ -412,8 +408,43 @@ function buildApiMerchantDishesScene({ session, dishes = [], categories = [], im
       familyUseText: '家庭菜单可配置',
       soldText: `基础价 ${formatCurrency(item.basePrice || item.price)}`,
       priceText: formatCurrency(item.basePrice || item.price),
-      imageUrl: toImageUrl(imageBaseUrl, item.imageUrl)
-    }))
+      imageUrl: toImageUrl(imageBaseUrl, item.imageUrl),
+      sourceTemplateId: item.sourceTemplateId || null,
+      templateImported: Boolean(item.templateImported || item.sourceTemplateId),
+      featured,
+      featuredAt: item.featuredAt ?? null,
+      featuredLabel: featured ? '已推荐' : (featuredCount >= 5 ? '推荐已满' : '推荐'),
+      featuredDisabled,
+      originalIndex
+    };
+  }).sort((left, right) => {
+    if (left.featured !== right.featured) return left.featured ? -1 : 1;
+    if (!left.featured) return left.originalIndex - right.originalIndex;
+    const leftHasFeaturedAt = left.featuredAt !== null && left.featuredAt !== undefined && left.featuredAt !== '';
+    const rightHasFeaturedAt = right.featuredAt !== null && right.featuredAt !== undefined && right.featuredAt !== '';
+    if (leftHasFeaturedAt !== rightHasFeaturedAt) return leftHasFeaturedAt ? -1 : 1;
+    if (leftHasFeaturedAt) {
+      const featuredAtOrder = String(right.featuredAt).localeCompare(String(left.featuredAt));
+      if (featuredAtOrder) return featuredAtOrder;
+    }
+    const leftId = Number(left.id);
+    const rightId = Number(right.id);
+    if (Number.isFinite(leftId) && Number.isFinite(rightId) && leftId !== rightId) return rightId - leftId;
+    const idOrder = String(right.id).localeCompare(String(left.id), undefined, { numeric: true });
+    return idOrder || left.originalIndex - right.originalIndex;
+  }).map(({ originalIndex, ...row }) => row);
+
+  return {
+    context: buildMerchantContext(session, merchantName),
+    merchantOptions: buildMerchantOptions(session, merchantName),
+    merchantIndex: 0,
+    featuredCount,
+    summaryCards: [
+      { key: 'all', label: '菜品数', value: `${dishes.length}`, note: '当前商户全部菜品' },
+      { key: 'active', label: '已上架', value: `${dishes.filter((item) => String(item.status || '').toUpperCase() === 'ACTIVE').length}`, note: '可投放家庭菜单' },
+      { key: 'inactive', label: '已下架', value: `${dishes.filter((item) => String(item.status || '').toUpperCase() !== 'ACTIVE').length}`, note: '暂不对外展示' }
+    ],
+    dishRows
   };
 }
 
@@ -486,6 +517,7 @@ function buildApiFamilyMenuScene({
       basePriceText: formatCurrency(item.basePrice),
       enabledText: item.enabled ? '当前已启用' : '当前已停用',
       enabled: Boolean(item.enabled),
+      featured: Boolean(item.featured),
       finalPrice: Number(item.familyFinalPrice ?? item.basePrice ?? 0),
       finalPriceText: formatCurrency(item.familyFinalPrice ?? item.basePrice ?? 0)
     }))

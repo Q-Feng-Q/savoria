@@ -20,6 +20,14 @@ public class NotificationDO {
   @TableId(value = "id", type = IdType.AUTO)
   private Long id;
 
+  /** 接收方类型：user、merchant 或 platform。 */
+  @TableField("receiver_type")
+  private String receiverType;
+
+  /** 接收方业务 ID。 */
+  @TableField("receiver_id")
+  private Long receiverId;
+
   /** 接收范围，merchant 或 family。 */
   @TableField("receiver_scope")
   private String receiverScope;
@@ -59,6 +67,26 @@ public class NotificationDO {
    * @param id 标识
    */
   public void setId(Long id) { this.id = id; }
+  /**
+   * 获取接收方类型。
+   * @return 接收方类型
+   */
+  public String getReceiverType() { return receiverType; }
+  /**
+   * 设置接收方类型。
+   * @param receiverType 接收方类型
+   */
+  public void setReceiverType(String receiverType) { this.receiverType = receiverType; }
+  /**
+   * 获取接收方业务 ID。
+   * @return 接收方业务 ID
+   */
+  public Long getReceiverId() { return receiverId; }
+  /**
+   * 设置接收方业务 ID。
+   * @param receiverId 接收方业务 ID
+   */
+  public void setReceiverId(Long receiverId) { this.receiverId = receiverId; }
   /**
    * 获取ReceiverScope。
    *

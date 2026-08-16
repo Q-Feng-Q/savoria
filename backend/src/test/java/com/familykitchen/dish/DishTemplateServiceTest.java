@@ -21,6 +21,7 @@ import com.familykitchen.dish.model.entity.DishCategoryEntity;
 import com.familykitchen.dish.model.entity.DishTemplateEntity;
 import com.familykitchen.dish.model.entity.DishTemplateIngredientEntity;
 import com.familykitchen.dish.model.vo.DishTemplateImportResultView;
+import com.familykitchen.dish.model.vo.DishTemplateDetailView;
 import com.familykitchen.dish.service.impl.DishTemplateServiceImpl;
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,6 +34,23 @@ import org.mockito.ArgumentCaptor;
 class DishTemplateServiceTest {
   private static final CurrentUserContext USER = new CurrentUserContext(
       7L, 11L, null, null, null, Set.of("MERCHANT_ADMIN"), Set.of());
+
+  @Test
+  void detailReturnsEveryFieldNeededToBuildACompleteChangeSnapshot() {
+    DishTemplateMapper templateMapper = mock(DishTemplateMapper.class);
+    DishTemplateEntity source = template(2L, "番茄炒蛋", "家常热菜");
+    source.setSortOrder(17);
+    source.setEnabled(true);
+    source.setVersion(6L);
+    when(templateMapper.selectTemplate(11L, 2L)).thenReturn(source);
+    when(templateMapper.selectTemplateIngredients(2L)).thenReturn(List.of(ingredient(2L, "番茄")));
+
+    DishTemplateDetailView detail = service(templateMapper, mock(DishMapper.class)).detail(USER, 2L);
+
+    assertEquals(17, detail.sortOrder());
+    assertTrue(detail.enabled());
+    assertEquals(6L, detail.version());
+  }
 
   @Test
   void importCopiesSelectedTemplateCategoryDishIngredientAndDictionary() {

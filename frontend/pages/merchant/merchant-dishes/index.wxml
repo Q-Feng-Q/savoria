@@ -35,6 +35,8 @@
         </view>
         <view class="row-actions">
           <view class="row-action" data-id="{{item.id}}" bindtap="openEditDish" aria-role="button" aria-label="编辑{{item.name}}" hover-class="ui-button--pressed">编辑</view>
+          <view wx:if="{{item.templateImported}}" class="row-action row-action--sync {{syncBusyDishMap[item.id] ? 'row-action--busy' : ''}}" data-id="{{item.id}}" bindtap="syncToTemplate" aria-role="button" aria-label="申请将{{item.name}}同步到系统模板" aria-disabled="{{syncBusyDishMap[item.id]}}" aria-busy="{{syncBusyDishMap[item.id]}}" hover-class="ui-button--pressed">{{syncBusyDishMap[item.id] ? '提交中' : '同步模板'}}</view>
+          <view class="row-action row-action--featured {{item.featuredDisabled ? 'row-action--disabled' : ''}} {{busyDishMap[item.id] ? 'row-action--busy' : ''}}" data-id="{{item.id}}" bindtap="toggleFeatured" aria-role="button" aria-label="{{item.featuredLabel}}{{item.name}}" aria-disabled="{{item.featuredDisabled || busyDishMap[item.id]}}" aria-busy="{{busyDishMap[item.id]}}" hover-class="ui-button--pressed">{{busyDishMap[item.id] ? '处理中' : item.featuredLabel}}</view>
           <view class="row-action row-action--status {{busyDishMap[item.id] ? 'row-action--busy' : ''}}" data-id="{{item.id}}" bindtap="toggleStatus" aria-role="button" aria-label="{{item.toggleLabel}}{{item.name}}" aria-disabled="{{busyDishMap[item.id]}}" aria-busy="{{busyDishMap[item.id]}}" hover-class="ui-button--pressed">{{busyDishMap[item.id] ? '处理中' : item.toggleLabel}}</view>
         </view>
       </view>

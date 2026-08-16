@@ -109,6 +109,7 @@ Page({
     if (state.limitReached) wx.showToast({ title: '单次最多选择100道', icon: 'none' });
   },
   openDetail(event) { wx.navigateTo({ url: `/pages/merchant/dish-template-detail/index?id=${event.currentTarget.dataset.id}` }); },
+  openChangeRequests() { wx.navigateTo({ url: '/pages/merchant/dish-template-changes/index' }); },
   isImportBusy() { return this.data.importing || this.data.importingAll; },
   async importSelected() {
     if (!this.data.selectedIds.length || this.isImportBusy()) return;

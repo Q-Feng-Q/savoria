@@ -1,6 +1,7 @@
 package com.familykitchen.family.model.vo;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * 封装返回给调用方的家庭菜单项目数据。
@@ -14,6 +15,8 @@ import java.math.BigDecimal;
  * @param familyFinalPrice 家庭FinalPrice
  * @param enabled 是否启用
  * @param sortOrder sort订单
+ * @param featuredAt 商户推荐时间
+ * @param featured 是否为商户推荐菜
  */
 public record FamilyMenuItemView(
     Long dishId,
@@ -24,7 +27,9 @@ public record FamilyMenuItemView(
     BigDecimal basePrice,
     BigDecimal familyFinalPrice,
     boolean enabled,
-    int sortOrder
+    int sortOrder,
+    LocalDateTime featuredAt,
+    boolean featured
 ) {
 }
 

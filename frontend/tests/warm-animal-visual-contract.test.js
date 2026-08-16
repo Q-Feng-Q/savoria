@@ -26,6 +26,26 @@ test('home hero uses the generated warm animal kitchen artwork', () => {
   assert.match(wxss, /animal-breathe/)
 })
 
+test('home recommendations use a detail-enabled swiper with indicators and a bounded next-card peek', () => {
+  const wxml = read('pages/family/home/index.wxml')
+  const wxss = read('pages/family/home/index.wxss')
+
+  assert.match(wxml, /<swiper[^>]+class="home-featured-swiper[^>]+autoplay="\{\{featuredAutoplay\}\}"[^>]+circular="\{\{featuredCircular\}\}"[^>]+indicator-dots="\{\{featuredIndicatorDots\}\}"[^>]+interval="\{\{featuredInterval\}\}"[^>]+next-margin="\{\{featuredNextMargin\}\}"/)
+  assert.match(wxml, /<swiper-item[^>]+wx:for="\{\{featuredDishes\}\}"[^>]+wx:key="id"/)
+  assert.match(wxml, /data-id="\{\{item\.id\}\}"[^>]+bindtap="openDishDetail"[^>]+aria-role="button"[^>]+aria-label="[^"]*\{\{item\.name\}\}[^"]*"[^>]+hover-class="home-recommendation--pressed"[^>]+hover-stay-time="80"/)
+  assert.match(wxss, /\.home-featured-swiper\s*\{[^}]*width:\s*100%[^}]*overflow:\s*visible/s)
+  assert.match(wxss, /\.home-recommendation--pressed\s*\{[^}]*opacity:/s)
+  assert.match(wxss, /@media\s*\(max-width:\s*320px\)[\s\S]*?\.home-featured-swiper/)
+})
+
+test('ordering menu exposes a lightweight chef recommendation label', () => {
+  const wxml = read('pages/ordering/menu/index.wxml')
+  const wxss = read('pages/ordering/menu/index.wxss')
+
+  assert.match(wxml, /wx:if="\{\{item\.featured\}\}"[^>]+class="menu-featured-tag"[^>]*>主厨推荐</)
+  assert.match(wxss, /\.menu-featured-tag\s*\{[^}]*background:[^;}]+;?[^}]*font-size:/s)
+})
+
 test('shared brand and account surfaces use the mascot trio', () => {
   const brandScene = read('components/brand-scene/index.wxml')
   const profile = read('pages/account/profile/index.wxml')

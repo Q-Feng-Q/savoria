@@ -133,3 +133,23 @@ test('system dish import actions remain accessible and responsive across merchan
   assert.match(templates, /\.selection-bar\s*\{[^}]*env\(safe-area-inset-bottom\)/)
   assert.match(templates, /\.template-page\s*\{[^}]*env\(safe-area-inset-bottom\)/)
 })
+
+test('merchant dish featured and status actions keep vertical order and touch targets on compact phones', () => {
+  const markup = read('pages/merchant/merchant-dishes/index.wxml')
+  const styles = read('pages/merchant/merchant-dishes/index.wxss')
+  const actions = markup.slice(markup.indexOf('<view class="row-actions">'), markup.indexOf('</view>\n      </view>', markup.indexOf('<view class="row-actions">')))
+  assert.ok(actions.indexOf('bindtap="toggleFeatured"') < actions.indexOf('bindtap="toggleStatus"'))
+  assert.match(styles, /\.row-action--featured\s*\{[^}]*min-height:\s*88rpx/s)
+  assert.match(styles, /\.row-action--status\s*\{[^}]*min-height:\s*88rpx/s)
+  const compact = styles.match(/@media\s*\(max-width:\s*320px\)\s*\{([\s\S]*)\}\s*$/)
+  assert.ok(compact, 'compact dish action breakpoint')
+  assert.match(compact[1], /\.row-actions\s*\{[^}]*flex-direction:\s*column/)
+  assert.doesNotMatch(compact[1], /\.row-actions\s*\{[^}]*flex-direction:\s*row/)
+  assert.match(styles, /\.dish-row\s*\{[^}]*min-width:\s*0/)
+  assert.match(styles, /\.row-actions\s*\{[^}]*min-width:\s*0/)
+})
+
+test('family menu responsive styles do not retain the removed featured controls', () => {
+  const styles = read('pages/merchant/family-menu/index.wxss')
+  assert.doesNotMatch(styles, /\.featured-(?:control|badge|action|disabled)\b/)
+})

@@ -213,16 +213,34 @@
   color: #ed7657
 }
 
+.home-featured-swiper {
+  width: 100%;
+  height: 274rpx;
+  margin-top: 38rpx;
+  overflow: visible
+}
+
+.home-featured-slide {
+  height: 100%;
+  padding-right: 8rpx;
+  box-sizing: border-box
+}
+
 .home-recommendation {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 210rpx;
   align-items: center;
   gap: 24rpx;
-  margin-top: 38rpx;
+  height: 100%;
+  margin-top: 0;
   padding: 30rpx;
   border-radius: 34rpx;
   background: #dce9dc;
   box-shadow: none
+}
+
+.home-recommendation--pressed {
+  opacity: .82
 }
 
 .home-recommendation__eyebrow,
@@ -459,6 +477,25 @@
   .home-section-head>text {
     max-width: none;
     text-align: left
+  }
+}
+
+@media(max-width:320px) {
+  .home-featured-swiper {
+    height: 230rpx
+  }
+
+  .home-featured-slide {
+    padding-right: 4rpx
+  }
+
+  .home-recommendation {
+    gap: 14rpx;
+    padding: 18rpx
+  }
+
+  .home-recommendation__note {
+    font-size: 18rpx
   }
 }
 

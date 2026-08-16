@@ -9,6 +9,7 @@ import com.familykitchen.dish.model.vo.DishDetailView;
 import com.familykitchen.dish.model.vo.DishView;
 import com.familykitchen.family.mapper.FamilyMapper;
 import com.familykitchen.family.model.dto.AddressRequest;
+import com.familykitchen.family.model.dto.UpdateFamilyInfoRequest;
 import com.familykitchen.family.model.entity.AddressEntity;
 import com.familykitchen.family.model.entity.FamilyMemberRecord;
 import com.familykitchen.family.model.entity.FamilyRecord;
@@ -21,9 +22,11 @@ import com.familykitchen.wallet.mapper.WalletPersistenceMapper;
 import com.familykitchen.wallet.model.entity.WalletLedgerDO;
 import com.familykitchen.wallet.model.enums.LedgerType;
 import com.familykitchen.wallet.model.vo.WalletLedgerView;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,22 +42,26 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
   private final FamilyMapper familyMapper;
   private final DishMapper dishMapper;
   private final WalletPersistenceMapper walletMapper;
+  private final ObjectMapper objectMapper;
 
   /**
    * 创建家庭实例。
    *
    * @param familyMapper 家庭Mapper
-   * @param dishMapper 菜品Mapper
+   * @param dishMapper   菜品Mapper
    * @param walletMapper 钱包Mapper
+   * @param objectMapper JSON序列化
    */
   public FamilyApplicationServiceImpl(
       FamilyMapper familyMapper,
       DishMapper dishMapper,
-      WalletPersistenceMapper walletMapper
+      WalletPersistenceMapper walletMapper,
+      ObjectMapper objectMapper
   ) {
     this.familyMapper = familyMapper;
     this.dishMapper = dishMapper;
     this.walletMapper = walletMapper;
+    this.objectMapper = objectMapper;
   }
 
   /**
@@ -68,17 +75,24 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
     FamilyRecord family = requireFamily(user.merchantId(), user.familyId());
     FamilyMemberRecord member = familyMapper.selectMember(user.memberId());
     List<FamilyHomeResponse.MealSlotView> slots = mealSlots(user);
+    List<FamilyHomeResponse.FeaturedDish> featuredDishes =
+      familyMapper.selectFeaturedDishes(user.familyId(), 5);
+    if (featuredDishes == null || featuredDishes.isEmpty()) {
+      FamilyHomeResponse.FeaturedDish fallback = familyMapper.selectFallbackDish(user.familyId());
+      featuredDishes = fallback == null ? List.of() : List.of(fallback);
+    }
     return new FamilyHomeResponse(
-        new FamilyHomeResponse.FamilySummary(family.getFamilyId(), family.getFamilyName(), family.getMerchantName()),
-        new FamilyHomeResponse.MemberSummary(member.getMemberId(), member.getName(), member.getRoleTemplate()),
-        java.time.LocalDate.now(),
-        familyMapper.selectFeaturedDish(user.familyId()),
-        List.of(
-            new FamilyHomeResponse.DashboardCard("menu", "可点菜品", String.valueOf(family.getActiveMenuCount())),
-            new FamilyHomeResponse.DashboardCard("address", "地址数量", String.valueOf(family.getAddressCount()))
-        ),
-        slots,
-        familyMapper.selectRecentOrders(user.familyId())
+      new FamilyHomeResponse.FamilySummary(family.getFamilyId(), family.getFamilyName(), family.getMerchantName()),
+      new FamilyHomeResponse.MemberSummary(member.getMemberId(), member.getName(), member.getRoleTemplate()),
+      java.time.LocalDate.now(),
+      featuredDishes.isEmpty() ? null : featuredDishes.get(0),
+      featuredDishes,
+      List.of(
+        new FamilyHomeResponse.DashboardCard("menu", "可点菜品", String.valueOf(family.getActiveMenuCount())),
+        new FamilyHomeResponse.DashboardCard("address", "地址数量", String.valueOf(family.getAddressCount()))
+      ),
+      slots,
+      familyMapper.selectRecentOrders(user.familyId())
     );
   }
 
@@ -96,7 +110,7 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
   /**
    * 创建地址。
    *
-   * @param user 用户
+   * @param user    用户
    * @param request 请求参数
    * @return 创建地址的结果
    */
@@ -114,9 +128,9 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
   /**
    * 更新地址。
    *
-   * @param user 用户
+   * @param user      用户
    * @param addressId 地址标识
-   * @param request 请求参数
+   * @param request   请求参数
    * @return 更新地址的结果
    */
   @Override
@@ -135,7 +149,7 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
   /**
    * 设置Default地址。
    *
-   * @param user 用户
+   * @param user      用户
    * @param addressId 地址标识
    */
   @Override
@@ -150,7 +164,7 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
   /**
    * 删除地址。
    *
-   * @param user 用户
+   * @param user      用户
    * @param addressId 地址标识
    */
   @Override
@@ -164,38 +178,42 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
   /**
    * 处理项目列表。
    *
-   * @param user 用户
+   * @param user       用户
    * @param categoryId category标识
-   * @param keyword keyword
+   * @param keyword    keyword
    * @return 处理项目列表的结果
    */
   @Override
   public List<DishView> menuItems(CurrentUserContext user, Long categoryId, String keyword) {
     return familyMapper.selectFamilyMenuItems(user.merchantId(), user.familyId()).stream()
-        // 家庭端只能看到商户为该家庭启用的菜品。
-        .filter(FamilyMenuItemView::enabled)
-        .filter(item -> categoryId == null || categoryId.equals(item.categoryId()))
-        .filter(item -> keyword == null
-            || keyword.isBlank()
-            || item.dishName().toLowerCase().contains(keyword.toLowerCase())
-            || (item.description() != null && item.description().toLowerCase().contains(keyword.toLowerCase())))
-        // 家庭专属价优先于商户基础价，方便商户给不同家庭设置不同餐费。
-        .map(item -> new DishView(
-            item.dishId(),
-            item.categoryId(),
-            item.dishName(),
-            item.description(),
-            item.imageUrl(),
-            item.familyFinalPrice() == null ? item.basePrice() : item.familyFinalPrice(),
-            "active"
-        ))
-        .toList();
+      // 家庭端只能看到商户为该家庭启用的菜品。
+      .filter(FamilyMenuItemView::enabled)
+      .filter(item -> categoryId == null || categoryId.equals(item.categoryId()))
+      .filter(item -> keyword == null
+        || keyword.isBlank()
+        || item.dishName().toLowerCase().contains(keyword.toLowerCase())
+        || (item.description() != null && item.description().toLowerCase().contains(keyword.toLowerCase())))
+      // 家庭专属价优先于商户基础价，方便商户给不同家庭设置不同餐费。
+      .map(item -> new DishView(
+        item.dishId(),
+        item.categoryId(),
+        item.dishName(),
+        item.description(),
+        item.imageUrl(),
+        item.familyFinalPrice() == null ? item.basePrice() : item.familyFinalPrice(),
+        "active",
+        null,
+        false,
+        item.featuredAt(),
+        item.featured()
+      ))
+      .toList();
   }
 
   /**
    * 处理详情。
    *
-   * @param user 用户
+   * @param user   用户
    * @param dishId 菜品标识
    * @return 处理详情的结果
    */
@@ -206,17 +224,19 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
       throw new BusinessException(ErrorCode.NOT_FOUND, "未找到菜品");
     }
     return new DishDetailView(
-        dish.getId(),
-        dish.getCategoryId(),
-        dish.getName(),
-        dish.getDescription(),
-        dish.getImageUrl(),
-        money(dish.getBasePrice()),
-        dish.getStatus(),
-        dishMapper.selectDishIngredients(dish.getId()).stream()
-            .map(item -> new DishDetailView.IngredientView(item.getIngredientName(), money(item.getQuantity()), item.getUnit(), item.getCalcType()))
-            .toList(),
-        List.of()
+      dish.getId(),
+      dish.getCategoryId(),
+      dish.getName(),
+      dish.getDescription(),
+      dish.getImageUrl(),
+      money(dish.getBasePrice()),
+      dish.getStatus(),
+      null,
+      false,
+      dishMapper.selectDishIngredients(dish.getId()).stream()
+        .map(item -> new DishDetailView.IngredientView(item.getIngredientName(), money(item.getQuantity()), item.getUnit(), item.getCalcType()))
+        .toList(),
+      List.of()
     );
   }
 
@@ -229,8 +249,8 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
   @Override
   public List<FamilyHomeResponse.MealSlotView> mealSlots(CurrentUserContext user) {
     return familyMapper.selectMealSlots(user.familyId()).stream()
-        .map(FamilyApplicationServiceImpl::toMealSlotView)
-        .toList();
+      .map(FamilyApplicationServiceImpl::toMealSlotView)
+      .toList();
   }
 
   /**
@@ -244,6 +264,31 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
     return walletMapper.selectWalletLedgers(user.memberId()).stream()
         .map(FamilyApplicationServiceImpl::toWalletLedgerView)
         .toList();
+  }
+
+  @Override
+  @Transactional
+  public void updateFamilyInfo(CurrentUserContext user, UpdateFamilyInfoRequest request) {
+    if (!user.hasFamilyAdminAccess()) {
+      throw new BusinessException(ErrorCode.FORBIDDEN, "仅家庭管理员可修改家庭资料");
+    }
+    if (familyMapper.updateFamilyProfile(
+        user.merchantId(),
+        user.familyId(),
+        request.familyName(),
+        request.note(),
+        toJson(request.contactNames())
+    ) == 0) {
+      throw new BusinessException(ErrorCode.NOT_FOUND, "未找到家庭");
+    }
+  }
+
+  private String toJson(List<String> values) {
+    try {
+      return objectMapper.writeValueAsString(values == null ? List.of() : values);
+    } catch (Exception exception) {
+      throw new BusinessException(ErrorCode.SYSTEM_ERROR, "联系人 JSON 序列化失败");
+    }
   }
 
   private FamilyRecord requireFamily(Long merchantId, Long familyId) {
@@ -267,11 +312,11 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
 
   private static AddressView toAddressView(AddressEntity entity) {
     return new AddressView(
-        entity.getId(),
-        entity.getContactName(),
-        entity.getContactPhone(),
-        entity.getAddressText(),
-        Boolean.TRUE.equals(entity.getDefaultAddress())
+      entity.getId(),
+      entity.getContactName(),
+      entity.getContactPhone(),
+      entity.getAddressText(),
+      Boolean.TRUE.equals(entity.getDefaultAddress())
     );
   }
 
@@ -281,16 +326,16 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
 
   private static WalletLedgerView toWalletLedgerView(WalletLedgerDO ledger) {
     return new WalletLedgerView(
-        ledger.getId(),
-        ledger.getMemberId(),
-        LedgerType.valueOf(ledger.getType()),
-        money(ledger.getAmount()),
-        money(ledger.getBalanceBefore()),
-        money(ledger.getBalanceAfter()),
-        money(ledger.getFrozenBefore()),
-        money(ledger.getFrozenAfter()),
-        ledger.getRemark(),
-        ledger.getCreatedAt()
+      ledger.getId(),
+      ledger.getMemberId(),
+      LedgerType.valueOf(ledger.getType()),
+      money(ledger.getAmount()),
+      money(ledger.getBalanceBefore()),
+      money(ledger.getBalanceAfter()),
+      money(ledger.getFrozenBefore()),
+      money(ledger.getFrozenAfter()),
+      ledger.getRemark(),
+      ledger.getCreatedAt()
     );
   }
 

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * 菜品持久化实体。
@@ -43,6 +44,10 @@ public class DishEntity {
   /** 首次从平台模板导入时记录的来源模板 ID，手工菜品为空。 */
   @TableField("source_template_id")
   private Long sourceTemplateId;
+
+  /** 商户推荐时间；为空表示非推荐菜。 */
+  @TableField("featured_at")
+  private LocalDateTime featuredAt;
 
   /** 菜品状态。 */
   @TableField("status")
@@ -163,6 +168,16 @@ public class DishEntity {
    * @param sourceTemplateId 来源平台模板 ID
    */
   public void setSourceTemplateId(Long sourceTemplateId) { this.sourceTemplateId = sourceTemplateId; }
+  /**
+   * 获取商户推荐时间。
+   * @return 商户推荐时间；非推荐菜为空
+   */
+  public LocalDateTime getFeaturedAt() { return featuredAt; }
+  /**
+   * 设置商户推荐时间。
+   * @param featuredAt 商户推荐时间
+   */
+  public void setFeaturedAt(LocalDateTime featuredAt) { this.featuredAt = featuredAt; }
   /**
    * 获取状态。
    *

@@ -11,6 +11,7 @@ import com.familykitchen.family.model.dto.JoinFamilyRequest;
 import com.familykitchen.family.model.dto.DirectInvitationRequest;
 import com.familykitchen.family.model.dto.MembershipDecisionRequest;
 import com.familykitchen.family.model.dto.OwnerTransferRequest;
+import com.familykitchen.family.model.dto.UpdateFamilyInfoRequest;
 import com.familykitchen.family.model.entity.FamilyMembershipRequestDO;
 import com.familykitchen.family.service.FamilyApplicationService;
 import com.familykitchen.family.model.vo.FamilyOnboardingView;
@@ -391,4 +392,22 @@ public class FamilyController {
   @DeleteMapping("/current")
   public ApiResponse<Void> dissolveFamily(HttpServletRequest request){
     familyMemberApplicationService.dissolveFamily(currentUserProvider.require(request));return ApiResponse.ok();}
+
+  /**
+   * 处理家庭资料修改相关的 HTTP 请求。
+   *
+   * @param request 请求参数
+   * @param body 请求体
+   * @return 修改家庭资料的结果
+   */
+  @PutMapping("/info")
+  @Operation(summary = "修改家庭资料", description = "修改当前家庭的名称、备注和联系人信息，仅家庭管理员可操作。")
+  public ApiResponse<Void> updateFamilyInfo(
+      HttpServletRequest request,
+      @Valid @RequestBody UpdateFamilyInfoRequest body
+  ) {
+    CurrentUserContext user = currentUserProvider.require(request);
+    familyApplicationService.updateFamilyInfo(user, body);
+    return ApiResponse.ok();
+  }
 }

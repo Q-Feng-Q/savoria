@@ -38,6 +38,16 @@ import org.apache.ibatis.annotations.*;
   @Insert("INSERT INTO families(merchant_id,name,status) VALUES(#{merchantId},#{familyName},'active')")
   @Options(useGeneratedKeys=true,keyProperty="familyId",keyColumn="id") int insertFamily(FamilyRecord family);
   /**
+   * 为新家庭创建早餐、午餐和晚餐默认配置。
+   *
+   * @param familyId 家庭标识
+   * @return 新增或恢复的餐次数量
+   */
+  @Insert("INSERT INTO meal_slots(family_id,name,display_time,sort_order,enabled) VALUES "
+      + "(#{familyId},'早餐','07:00',1,1),(#{familyId},'午餐','12:00',2,1),(#{familyId},'晚餐','18:30',3,1) "
+      + "ON DUPLICATE KEY UPDATE enabled=VALUES(enabled)")
+  int insertDefaultMealSlots(Long familyId);
+  /**
    * 新增商户。
    *
    * @param application 申请

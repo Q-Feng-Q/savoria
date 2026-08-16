@@ -41,6 +41,8 @@ public class DishTemplateEntity {
   private Integer sortOrder;
   /** 是否启用。 */
   private Boolean enabled;
+  /** 模板并发版本号，模板信息或食材变化时递增。 */
+  private Long version;
   /** 当前商户是否已导入。 */
   private Boolean imported;
   /** 食材数量。 */
@@ -195,6 +197,16 @@ public class DishTemplateEntity {
    * @param enabled 是否启用
    */
   public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+  /**
+   * 获取模板并发版本号。
+   * @return 模板并发版本号
+   */
+  public Long getVersion() { return version; }
+  /**
+   * 设置模板并发版本号。
+   * @param version 模板并发版本号
+   */
+  public void setVersion(Long version) { this.version = version; }
   /**
    * 获取当前商户是否已导入。
    * @return 当前商户是否已导入

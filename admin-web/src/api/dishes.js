@@ -73,6 +73,14 @@ export async function updateMerchantDish(dishId, payload) {
   });
 }
 
+export async function submitImportedDishTemplateChange(dishId, payload) {
+  return request(`/api/merchant/dishes/${dishId}/template-change-requests`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
 export async function updateMerchantDishCookingSteps(dishId, cookingSteps) {
   return request(`/api/merchant/dishes/${dishId}/cooking-steps`, {
     method: 'PUT',

@@ -84,6 +84,7 @@ public class DishTemplateServiceImpl implements DishTemplateService {
         template.getCategoryName(), template.getName(), template.getDescription(), template.getImageUrl(),
         template.getImageSourceUrl(), template.getImageAuthor(), template.getImageLicense(),
         template.getReferencePrice(), parseTags(template.getTasteTags()), parseTags(template.getMealTags()),
+        template.getSortOrder(), Boolean.TRUE.equals(template.getEnabled()), template.getVersion(),
         Boolean.TRUE.equals(template.getImported()), templateMapper.selectTemplateIngredients(templateId));
   }
 

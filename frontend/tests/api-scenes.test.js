@@ -18,12 +18,12 @@ const {
   buildApiMerchantOrderDetailScene,
   buildApiMerchantFamiliesScene,
   buildApiMerchantFamilyDetailScene,
-  buildApiMerchantDishesScene,
   buildApiMerchantIngredientsScene,
   buildApiFamilyMenuScene,
   buildApiPurchaseScene,
   mapOrderStatusLabel
 } = require('../utils/api-scenes');
+const { buildApiMerchantDishesScene } = require('../utils/merchant-scenes');
 
 const homeData = {
   family: {
@@ -41,6 +41,7 @@ const homeData = {
   featuredDish: {
     dishId: 100,
     name: '番茄炒蛋',
+    description: '酸甜开胃，适合全家分享',
     price: 18,
     imageUrl: '/uploads/images/tomato.png'
   },
@@ -63,6 +64,7 @@ test('buildApiHomeScene maps home response to homepage view model', () => {
   assert.equal(scene.context.family.name, '陈家晚饭');
   assert.equal(scene.currentMemberName, '陈梅');
   assert.equal(scene.featuredDish.id, 100);
+  assert.equal(scene.featuredDish.description, '酸甜开胃，适合全家分享');
   assert.equal(scene.featuredDish.priceText, '¥18.00');
   assert.equal(scene.featuredDish.imageUrl, 'http://127.0.0.1:8080/uploads/images/tomato.png');
   assert.equal(scene.quickEntries.length, 4);
@@ -70,6 +72,59 @@ test('buildApiHomeScene maps home response to homepage view model', () => {
   assert.deepEqual(scene.primaryAction, { key: 'menu', label: '翻开今日菜单' });
   assert.equal(scene.mealSummary.label, '午餐');
   assert.equal(scene.orderSummary.statusLabel, '待确认');
+});
+
+test('buildApiHomeScene prefers the featured dish array and enables multi-item swiper behavior', () => {
+  const scene = buildApiHomeScene({
+    ...homeData,
+    featuredDishes: [
+      { dishId: 201, name: '糖醋里脊', description: '', price: 28, imageUrl: '/uploads/images/pork.png' },
+      { dishId: 202, name: '冬瓜汤', description: '清爽解腻', price: 12, imageUrl: '/uploads/images/soup.png' }
+    ]
+  }, { imageBaseUrl: 'http://127.0.0.1:8080' });
+
+  assert.deepEqual(scene.featuredDishes.map((item) => item.id), [201, 202]);
+  assert.equal(scene.featuredDishes[0].description, '今日家庭推荐');
+  assert.equal(scene.featuredDishes[0].priceText, '¥28.00');
+  assert.equal(scene.featuredDishes[0].imageUrl, 'http://127.0.0.1:8080/uploads/images/pork.png');
+  assert.equal(scene.featuredDish.id, 201);
+  assert.equal(scene.featuredAutoplay, true);
+  assert.equal(scene.featuredCircular, true);
+  assert.equal(scene.featuredIndicatorDots, true);
+  assert.equal(scene.featuredInterval, 4000);
+  assert.match(String(scene.featuredNextMargin), /^[1-9]\d*rpx$/);
+});
+
+test('buildApiHomeScene falls back to the old single featured dish without carousel motion', () => {
+  const scene = buildApiHomeScene(homeData);
+
+  assert.deepEqual(scene.featuredDishes.map((item) => item.id), [100]);
+  assert.equal(scene.featuredAutoplay, false);
+  assert.equal(scene.featuredCircular, false);
+  assert.equal(scene.featuredIndicatorDots, false);
+  assert.equal(scene.featuredInterval, 0);
+  assert.equal(scene.featuredNextMargin, '0rpx');
+});
+
+test('buildApiHomeScene treats an explicit empty featured dish array as empty', () => {
+  const scene = buildApiHomeScene({ ...homeData, featuredDishes: [] });
+
+  assert.deepEqual(scene.featuredDishes, []);
+  assert.equal(scene.featuredDish, null);
+  assert.equal(scene.featuredAutoplay, false);
+  assert.equal(scene.featuredNextMargin, '0rpx');
+});
+
+test('buildApiHomeScene reduces the multi-item peek margin on 320px phones', () => {
+  const payload = {
+    ...homeData,
+    featuredDishes: [homeData.featuredDish, { ...homeData.featuredDish, dishId: 101 }]
+  };
+  const regular = buildApiHomeScene(payload, { windowWidth: 375 });
+  const compact = buildApiHomeScene(payload, { windowWidth: 320 });
+
+  assert.ok(parseInt(compact.featuredNextMargin, 10) < parseInt(regular.featuredNextMargin, 10));
+  assert.ok(parseInt(compact.featuredNextMargin, 10) > 0);
 });
 
 test('buildApiMenuScene merges menu items with cart counts and active meal slot', () => {
@@ -100,6 +155,19 @@ test('buildApiMenuScene merges menu items with cart counts and active meal slot'
   assert.deepEqual(scene.visibleMenuCards[0].displayTags, ['分类 3', '经典家常']);
   assert.equal(scene.visibleMenuCards[0].priceText, '¥18.00');
   assert.equal(scene.visibleMenuCards[0].displayImageUrl, 'http://127.0.0.1:8080/uploads/images/tomato.png');
+});
+
+test('buildApiMenuScene maps featured state without reordering the backend menu', () => {
+  const scene = buildApiMenuScene({
+    homeData,
+    menuItems: [
+      { dishId: 101, name: '普通菜', price: 12, featured: false },
+      { dishId: 100, name: '主厨推荐菜', price: 18, featured: true }
+    ]
+  });
+
+  assert.deepEqual(scene.menuCards.map((item) => item.id), [101, 100]);
+  assert.deepEqual(scene.menuCards.map((item) => item.featured), [false, true]);
 });
 
 test('buildApiDishDetailScene keeps ingredient and selected count info', () => {
@@ -133,6 +201,73 @@ test('buildApiDishDetailScene keeps ingredient and selected count info', () => {
   assert.equal(scene.dish.ingredients.length, 2);
   assert.equal(scene.dish.cookingSteps.length, 1);
   assert.equal(scene.dish.finalPrice, '18.00');
+});
+
+test('buildApiMerchantDishesScene marks only imported template dishes as syncable', () => {
+  const scene = buildApiMerchantDishesScene({
+    session: { merchantId: 1 },
+    categories: [{ categoryId: 3, name: '家常菜' }],
+    dishes: [
+      { dishId: 100, categoryId: 3, name: '豆角焖面', price: 18, status: 'ACTIVE', sourceTemplateId: 7 },
+      { dishId: 101, categoryId: 3, name: '自创汤', price: 12, status: 'ACTIVE', templateImported: false }
+    ]
+  });
+
+  assert.equal(scene.dishRows[0].sourceTemplateId, 7);
+  assert.equal(scene.dishRows[0].templateImported, true);
+  assert.equal(scene.dishRows[1].templateImported, false);
+});
+
+test('buildApiMerchantDishesScene maps and orders featured dishes with timestamp and id fallbacks', () => {
+  const scene = buildApiMerchantDishesScene({
+    session: { merchantId: 1 },
+    dishes: [
+      { dishId: 1, name: '原顺序一', status: 'ACTIVE', featured: false },
+      { dishId: 8, name: '同时间低 ID', status: 'ACTIVE', featured: true, featuredAt: '2026-08-15T10:00:00Z' },
+      { dishId: 3, name: '原顺序二', status: 'INACTIVE', featured: false },
+      { dishId: 9, name: '同时间高 ID', status: 'ACTIVE', featured: true, featuredAt: '2026-08-15T10:00:00Z' },
+      { dishId: 7, name: '较早推荐', status: 'ACTIVE', featured: true, featuredAt: '2026-08-14T10:00:00Z' }
+    ]
+  });
+
+  assert.equal(scene.featuredCount, 3);
+  assert.deepEqual(scene.dishRows.map((row) => row.id), [9, 8, 7, 1, 3]);
+  assert.deepEqual(scene.dishRows.slice(0, 3).map((row) => [row.featured, row.featuredAt]), [
+    [true, '2026-08-15T10:00:00Z'],
+    [true, '2026-08-15T10:00:00Z'],
+    [true, '2026-08-14T10:00:00Z']
+  ]);
+});
+
+test('buildApiMerchantDishesScene derives featured labels and disabled state from the full list', () => {
+  const dishes = Array.from({ length: 6 }, (_, index) => ({
+    dishId: index + 1,
+    name: `菜品${index + 1}`,
+    status: index === 5 ? 'INACTIVE' : 'ACTIVE',
+    featured: index < 5,
+    featuredAt: index < 5 ? `2026-08-${String(index + 10).padStart(2, '0')}T10:00:00Z` : null
+  }));
+  const scene = buildApiMerchantDishesScene({ session: { merchantId: 1 }, dishes });
+
+  assert.equal(scene.featuredCount, 5);
+  assert.equal(scene.dishRows.find((row) => row.id === 1).featuredLabel, '已推荐');
+  assert.equal(scene.dishRows.find((row) => row.id === 1).featuredDisabled, false);
+  assert.equal(scene.dishRows.find((row) => row.id === 6).featuredLabel, '推荐已满');
+  assert.equal(scene.dishRows.find((row) => row.id === 6).featuredDisabled, true);
+
+  const available = buildApiMerchantDishesScene({
+    session: { merchantId: 1 },
+    dishes: [{ dishId: 10, name: '可推荐', status: 'ACTIVE', featured: false }]
+  });
+  assert.equal(available.dishRows[0].featuredLabel, '推荐');
+  assert.equal(available.dishRows[0].featuredDisabled, false);
+
+  const inactive = buildApiMerchantDishesScene({
+    session: { merchantId: 1 },
+    dishes: [{ dishId: 11, name: '已下架', status: 'INACTIVE', featured: false }]
+  });
+  assert.equal(inactive.dishRows[0].featuredLabel, '推荐');
+  assert.equal(inactive.dishRows[0].featuredDisabled, true);
 });
 
 test('buildApiCartScene groups cart items and keeps address selection state', () => {

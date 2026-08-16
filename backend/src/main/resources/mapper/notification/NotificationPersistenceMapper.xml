@@ -5,6 +5,8 @@
 <mapper namespace="com.familykitchen.notification.mapper.NotificationPersistenceMapper">
   <resultMap id="NotificationMap" type="com.familykitchen.notification.model.entity.NotificationDO">
     <id property="id" column="id"/>
+    <result property="receiverType" column="receiver_type"/>
+    <result property="receiverId" column="receiver_id"/>
     <result property="receiverScope" column="receiver_scope"/>
     <result property="category" column="category"/>
     <result property="title" column="title"/>
@@ -18,8 +20,14 @@
     values (#{receiverType}, #{receiverId}, #{receiverScope}, #{category}, #{title}, #{content})
   </insert>
 
+  <insert id="insertNotificationEntity" parameterType="com.familykitchen.notification.model.entity.NotificationDO"
+      useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    insert into notifications (receiver_type, receiver_id, receiver_scope, category, title, content)
+    values (#{receiverType}, #{receiverId}, #{receiverScope}, #{category}, #{title}, #{content})
+  </insert>
+
   <select id="selectNotifications" resultMap="NotificationMap">
-    select id, receiver_scope, category, title, content, read_at, created_at
+    select id, receiver_type, receiver_id, receiver_scope, category, title, content, read_at, created_at
     from notifications
     where receiver_scope = #{receiverScope} and receiver_id = #{receiverId}
     order by id desc

@@ -27,9 +27,11 @@ Page({
     filteredDishRows: [],
     query: '',
     statusFilter: 'all',
+    featuredCount: 0,
     ingredientCount: 0,
-    busyDishMap: {}
-    ,reviewEnabled: false
+    busyDishMap: {},
+    syncBusyDishMap: {},
+    reviewEnabled: false
   },
 
   onShow() { this.load(); },
@@ -65,7 +67,12 @@ Page({
       });
     } catch (error) {
       if (generation !== this._loadGeneration) return;
-      this.setData({ phase: 'error', errorMessage: resolveApiErrorMessage(error, '菜品列表加载失败') });
+      const errorMessage = resolveApiErrorMessage(error, silent ? '菜品列表刷新失败' : '菜品列表加载失败');
+      if (silent) {
+        wx.showToast({ title: errorMessage, icon: 'none' });
+        return;
+      }
+      this.setData({ phase: 'error', errorMessage });
     }
   },
 
@@ -85,6 +92,36 @@ Page({
   openIngredients() { wx.navigateTo({ url: '/pages/merchant/ingredient-edit/index' }); },
   openReviews() { wx.navigateTo({ url: '/pages/merchant/dish-reviews/index' }); },
 
+  async syncToTemplate(event) {
+    const dishId = event.currentTarget.dataset.id;
+    if (!dishId || this.data.syncBusyDishMap[dishId]) return;
+    const row = this.data.dishRows.find((item) => String(item.id) === String(dishId));
+    if (!row || !row.templateImported) return;
+    const confirmation = await wx.showModal({
+      title: `同步“${row.name}”到模板`,
+      content: '提交后进入平台审核，不会立即修改系统菜库。可填写本次调整说明。',
+      editable: true,
+      placeholderText: '申请说明（选填）',
+      confirmText: '提交审核'
+    });
+    if (!confirmation.confirm) return;
+    this.setData({ syncBusyDishMap: { ...this.data.syncBusyDishMap, [dishId]: true } });
+    try {
+      const runtime = createApiRuntime();
+      const result = await runtime.merchant.submitImportedDishTemplateChange(dishId, {
+        submitNote: String(confirmation.content || '').trim() || null
+      });
+      wx.showToast({ title: '已提交模板审核', icon: 'success' });
+      wx.navigateTo({ url: `/pages/merchant/dish-template-change-detail/index?id=${result.requestId}` });
+    } catch (error) {
+      wx.showToast({ title: resolveApiErrorMessage(error, '模板同步申请失败'), icon: 'none' });
+    } finally {
+      const syncBusyDishMap = { ...this.data.syncBusyDishMap };
+      delete syncBusyDishMap[dishId];
+      this.setData({ syncBusyDishMap });
+    }
+  },
+
   async toggleStatus(event) {
     const dishId = event.currentTarget.dataset.id;
     if (!dishId || this.data.busyDishMap[dishId]) return;
@@ -97,6 +134,26 @@ Page({
       await this.load({ silent: true });
     } catch (error) {
       wx.showToast({ title: resolveApiErrorMessage(error, '状态更新失败'), icon: 'none' });
+    } finally {
+      const busyDishMap = { ...this.data.busyDishMap };
+      delete busyDishMap[dishId];
+      this.setData({ busyDishMap });
+    }
+  },
+
+  async toggleFeatured(event) {
+    const dishId = event.currentTarget.dataset.id;
+    if (!dishId || this.data.busyDishMap[dishId]) return;
+    const row = this.data.dishRows.find((item) => String(item.id) === String(dishId));
+    if (!row || (!row.featured && (row.status !== 'active' || this.data.featuredCount >= 5))) return;
+    this.setData({ busyDishMap: { ...this.data.busyDishMap, [dishId]: true } });
+    try {
+      const runtime = createApiRuntime();
+      await runtime.merchant.setDishFeatured(dishId, !row.featured);
+      wx.showToast({ title: row.featured ? '已取消推荐' : '已设为推荐', icon: 'success' });
+      await this.load({ silent: true });
+    } catch (error) {
+      wx.showToast({ title: resolveApiErrorMessage(error, '推荐状态更新失败'), icon: 'none' });
     } finally {
       const busyDishMap = { ...this.data.busyDishMap };
       delete busyDishMap[dishId];

@@ -7,6 +7,7 @@ import com.familykitchen.common.security.CurrentUserContext;
 import com.familykitchen.common.security.CurrentUserProvider;
 import com.familykitchen.family.model.dto.CopyFamilyMenuRequest;
 import com.familykitchen.family.model.dto.SaveFamilyMenuRequest;
+import com.familykitchen.family.model.dto.SetFeaturedDishRequest;
 import com.familykitchen.family.service.MerchantFamilyMenuApplicationService;
 import com.familykitchen.family.model.vo.FamilyMenuItemView;
 import io.swagger.v3.oas.annotations.Operation;
@@ -104,9 +105,26 @@ public class MerchantFamilyMenuController {
     return ApiResponse.ok();
   }
 
+  /**
+   * 设置当前家庭的首页推荐菜。
+   *
+   * @param request HTTP 请求
+   * @param familyId 家庭标识
+   * @param body 推荐菜请求
+   * @return 空成功响应
+   */
+  @PutMapping("/featured")
+  @Operation(summary = "设置首页推荐菜", description = "兼容接口：设置商户全局推荐菜。", deprecated = true)
+  public ApiResponse<Void> setFeaturedDish(HttpServletRequest request,
+      @PathVariable Long familyId, @Valid @RequestBody SetFeaturedDishRequest body) {
+    CurrentUserContext user = requireMerchant(request);
+    merchantFamilyMenuApplicationService.setFeaturedDish(user, familyId, body.dishId());
+    return ApiResponse.ok();
+  }
+
   private CurrentUserContext requireMerchant(HttpServletRequest request) {
     CurrentUserContext user = currentUserProvider.require(request);
-    if (!user.hasMerchantBackendAccess()) {
+    if (!user.hasMerchantBackendAccess() || user.merchantId() == null) {
       throw new BusinessException(ErrorCode.FORBIDDEN, "无商户后台访问权限");
     }
     return user;

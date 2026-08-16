@@ -12,6 +12,46 @@ const deferred = () => {
   return { promise, resolve, reject };
 };
 
+async function withMerchantDishesPage(runtimeFactory, run) {
+  const pagePath = path.join(root, 'pages', 'merchant', 'merchant-dishes', 'index.js');
+  const runtimePath = require.resolve(path.join(root, 'utils', 'api-runtime.js'));
+  const pageApiPath = require.resolve(path.join(root, 'utils', 'page-api.js'));
+  const previousPage = global.Page;
+  const previousWx = global.wx;
+  const previousRuntime = require.cache[runtimePath];
+  const previousPageApi = require.cache[pageApiPath];
+  const toasts = [];
+  let definition;
+
+  require.cache[runtimePath] = { exports: { createApiRuntime: runtimeFactory } };
+  require.cache[pageApiPath] = { exports: {
+    requireSession: () => ({ merchantId: 3 }),
+    resolveApiErrorMessage: (error, fallback) => (error && error.message) || fallback
+  } };
+  global.Page = (value) => { definition = value; };
+  global.wx = {
+    navigateTo() {},
+    showToast(value) { toasts.push(value); },
+    showModal: async () => ({ confirm: false })
+  };
+
+  try {
+    delete require.cache[require.resolve(pagePath)];
+    require(pagePath);
+    const page = Object.assign({}, definition, {
+      data: JSON.parse(JSON.stringify(definition.data)),
+      setData(update) { this.data = { ...this.data, ...update }; }
+    });
+    await run(page, toasts);
+  } finally {
+    delete require.cache[require.resolve(pagePath)];
+    if (previousRuntime) require.cache[runtimePath] = previousRuntime; else delete require.cache[runtimePath];
+    if (previousPageApi) require.cache[pageApiPath] = previousPageApi; else delete require.cache[pageApiPath];
+    global.Page = previousPage;
+    global.wx = previousWx;
+  }
+}
+
 async function withMerchantPage(runtimeFactory, resolveApiErrorMessage, run) {
   const pagePath = path.join(root, 'pages', 'merchant', 'index.js');
   const runtimePath = require.resolve(path.join(root, 'utils', 'api-runtime.js'));
@@ -654,6 +694,187 @@ test('merchant dish toggle uses only the dedicated status endpoint', () => {
   assert.doesNotMatch(source, /updateDish\(dishId/);
 });
 
+test('merchant dish featured action is accessible, precedes status, and uses the shared row lock', () => {
+  const markup = read('pages/merchant/merchant-dishes/index.wxml');
+  const source = read('pages/merchant/merchant-dishes/index.js');
+  const featuredPosition = markup.indexOf('bindtap="toggleFeatured"');
+  const statusPosition = markup.indexOf('bindtap="toggleStatus"');
+
+  assert.ok(featuredPosition >= 0 && featuredPosition < statusPosition, 'featured control must be physically above status');
+  assert.match(markup, /class="[^"]*row-action--featured[^"]*"[^>]+bindtap="toggleFeatured"[^>]+aria-role="button"[^>]+aria-label="\{\{item\.featuredLabel\}\}\{\{item\.name\}\}"[^>]+aria-disabled="\{\{item\.featuredDisabled \|\| busyDishMap\[item\.id\]\}\}"[^>]+aria-busy="\{\{busyDishMap\[item\.id\]\}\}"[^>]+hover-class="ui-button--pressed"/);
+  assert.match(markup, /\{\{busyDishMap\[item\.id\] \? '处理中' : item\.featuredLabel\}\}/);
+  assert.match(source, /toggleFeatured\(event\)/);
+  assert.match(source, /if\s*\(!dishId\s*\|\|\s*this\.data\.busyDishMap\[dishId\]\)\s*return/);
+  assert.match(source, /merchant\.setDishFeatured\(dishId,\s*!row\.featured\)/);
+  assert.match(source, /await this\.load\(\{ silent: true \}\)/);
+});
+
+test('merchant dish row lock prevents duplicate featured taps and status overlap', async () => {
+  const pending = deferred();
+  const featuredCalls = [];
+  let statusCalls = 0;
+  await withMerchantDishesPage(() => ({ merchant: {
+    setDishFeatured: async (...args) => { featuredCalls.push(args); return pending.promise; },
+    updateDishStatus: async () => { statusCalls += 1; }
+  } }), async (page) => {
+    page.setData({
+      phase: 'ready',
+      dishRows: [{ id: 8, name: '菜', status: 'active', featured: false, featuredDisabled: false }],
+      filteredDishRows: [{ id: 8, name: '菜', status: 'active', featured: false, featuredDisabled: false }]
+    });
+    const refreshes = [];
+    page.load = async (options) => { refreshes.push(options); };
+    const event = { currentTarget: { dataset: { id: 8 } } };
+    const first = page.toggleFeatured(event);
+    const duplicate = page.toggleFeatured(event);
+    const overlappingStatus = page.toggleStatus(event);
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.deepEqual(featuredCalls, [[8, true]]);
+    assert.equal(statusCalls, 0);
+    assert.equal(page.data.busyDishMap[8], true);
+    pending.resolve({});
+    await Promise.all([first, duplicate, overlappingStatus]);
+    assert.deepEqual(refreshes, [{ silent: true }]);
+    assert.equal(page.data.busyDishMap[8], undefined);
+  });
+});
+
+test('merchant dish page rejects new featured requests for inactive rows and a full catalog', async () => {
+  const calls = [];
+  await withMerchantDishesPage(() => ({ merchant: {
+    setDishFeatured: async (...args) => { calls.push(args); }
+  } }), async (page) => {
+    page.load = async () => {};
+    page.setData({
+      featuredCount: 4,
+      dishRows: [{ id: 8, name: '已下架', status: 'inactive', featured: false, featuredDisabled: false }]
+    });
+    await page.toggleFeatured({ currentTarget: { dataset: { id: 8 } } });
+    page.setData({
+      featuredCount: 5,
+      dishRows: [{ id: 9, name: '已满时菜品', status: 'active', featured: false, featuredDisabled: false }]
+    });
+    await page.toggleFeatured({ currentTarget: { dataset: { id: 9 } } });
+    assert.deepEqual(calls, []);
+  });
+});
+
+test('merchant featured success silently refreshes full-list count without losing filters', async () => {
+  const calls = [];
+  const dishes = [
+    { dishId: 8, name: '鲜鱼汤', status: 'ACTIVE', featured: true, featuredAt: '2026-08-15T12:00:00Z' },
+    ...Array.from({ length: 4 }, (_, index) => ({ dishId: index + 1, name: `推荐${index}`, status: 'ACTIVE', featured: true, featuredAt: `2026-08-${index + 10}T12:00:00Z` })),
+    { dishId: 9, name: '冬瓜汤', status: 'INACTIVE', featured: false }
+  ];
+  await withMerchantDishesPage(() => ({
+    baseUrl: '',
+    merchant: {
+      setDishFeatured: async (...args) => { calls.push(args); },
+      getDishes: async () => dishes,
+      getDishCategories: async () => [],
+      getIngredients: async () => []
+    },
+    system: { getPublicSettings: async () => ({}) }
+  }), async (page, toasts) => {
+    page.setData({
+      phase: 'ready', query: '汤', statusFilter: 'active',
+      dishRows: [{ id: 8, name: '鲜鱼汤', status: 'active', featured: false, featuredDisabled: false }],
+      filteredDishRows: [{ id: 8, name: '鲜鱼汤', status: 'active', featured: false, featuredDisabled: false }]
+    });
+    await page.toggleFeatured({ currentTarget: { dataset: { id: 8 } } });
+    assert.deepEqual(calls, [[8, true]]);
+    assert.equal(page.data.query, '汤');
+    assert.equal(page.data.statusFilter, 'active');
+    assert.equal(page.data.featuredCount, 5);
+    assert.deepEqual(page.data.filteredDishRows.map((row) => row.id), [8]);
+    assert.deepEqual(toasts[0], { title: '已设为推荐', icon: 'success' });
+  });
+});
+
+test('merchant featured failure retains rows and releases only the affected row', async () => {
+  await withMerchantDishesPage(() => ({ merchant: {
+    setDishFeatured: async () => { throw new Error('推荐失败'); }
+  } }), async (page, toasts) => {
+    const rows = [{ id: 8, name: '菜', status: 'active', featured: false, featuredDisabled: false }];
+    page.setData({ phase: 'ready', dishRows: rows, filteredDishRows: rows, busyDishMap: { 9: true } });
+    await page.toggleFeatured({ currentTarget: { dataset: { id: 8 } } });
+    assert.deepEqual(page.data.dishRows, rows);
+    assert.equal(page.data.phase, 'ready');
+    assert.equal(page.data.busyDishMap[8], undefined);
+    assert.equal(page.data.busyDishMap[9], true);
+    assert.deepEqual(toasts[0], { title: '推荐失败', icon: 'none' });
+  });
+});
+
+test('merchant featured silent refresh failure preserves the ready filtered list and releases its row lock', async () => {
+  await withMerchantDishesPage(() => ({
+    merchant: {
+      setDishFeatured: async () => {},
+      getDishes: async () => { throw new Error('菜品刷新失败'); },
+      getDishCategories: async () => [],
+      getIngredients: async () => []
+    },
+    system: { getPublicSettings: async () => ({}) }
+  }), async (page, toasts) => {
+    const dishRows = [{ id: 8, name: '鲜鱼汤', status: 'active', featured: false, featuredDisabled: false }];
+    const filteredDishRows = dishRows.slice();
+    page.setData({
+      phase: 'ready', dishRows, filteredDishRows,
+      query: '鱼', statusFilter: 'active', featuredCount: 4
+    });
+
+    await page.toggleFeatured({ currentTarget: { dataset: { id: 8 } } });
+
+    assert.equal(page.data.phase, 'ready');
+    assert.deepEqual(page.data.dishRows, dishRows);
+    assert.deepEqual(page.data.filteredDishRows, filteredDishRows);
+    assert.equal(page.data.query, '鱼');
+    assert.equal(page.data.statusFilter, 'active');
+    assert.equal(page.data.busyDishMap[8], undefined);
+    assert.deepEqual(toasts.at(-1), { title: '菜品刷新失败', icon: 'none' });
+  });
+});
+
+test('merchant status silent refresh failure also preserves the ready dish list', async () => {
+  await withMerchantDishesPage(() => ({
+    merchant: {
+      updateDishStatus: async () => ({ outcome: 'APPLIED' }),
+      getDishes: async () => { throw new Error('状态刷新失败'); },
+      getDishCategories: async () => [],
+      getIngredients: async () => []
+    },
+    system: { getPublicSettings: async () => ({}) }
+  }), async (page, toasts) => {
+    const dishRows = [{ id: 9, name: '冬瓜汤', status: 'active', featured: false, featuredDisabled: false }];
+    page.setData({ phase: 'ready', dishRows, filteredDishRows: dishRows.slice(), query: '汤', statusFilter: 'active' });
+
+    await page.toggleStatus({ currentTarget: { dataset: { id: 9 } } });
+
+    assert.equal(page.data.phase, 'ready');
+    assert.deepEqual(page.data.dishRows, dishRows);
+    assert.deepEqual(page.data.filteredDishRows, dishRows);
+    assert.equal(page.data.query, '汤');
+    assert.equal(page.data.statusFilter, 'active');
+    assert.equal(page.data.busyDishMap[9], undefined);
+    assert.deepEqual(toasts.at(-1), { title: '状态刷新失败', icon: 'none' });
+  });
+});
+
+test('merchant dish non-silent initial load failure still enters the page error state', async () => {
+  await withMerchantDishesPage(() => ({
+    merchant: {
+      getDishes: async () => { throw new Error('首次加载失败'); },
+      getDishCategories: async () => [],
+      getIngredients: async () => []
+    },
+    system: { getPublicSettings: async () => ({}) }
+  }), async (page) => {
+    await page.load();
+    assert.equal(page.data.phase, 'error');
+    assert.equal(page.data.errorMessage, '首次加载失败');
+  });
+});
+
 test('catalog settings failures are isolated from core page data', () => {
   for (const file of ['pages/merchant/merchant-dishes/index.js', 'pages/merchant/dish-edit/index.js']) {
     assert.match(read(file), /getPublicSettings\(\)\.catch\(\(\) => \(\{\}\)\)/);
@@ -979,6 +1200,22 @@ test('family menu exposes explicit family source copy and guarded row editing', 
   assert.match(styles, /min-height:\s*88rpx/);
   assert.match(styles, /env\(safe-area-inset-bottom\)/);
   assert.equal(config.usingComponents['page-state'], '/components/page-state/index');
+});
+
+test('family menu no longer exposes the legacy per-family featured-dish control', () => {
+  const markup = read('pages/merchant/family-menu/index.wxml');
+  const source = read('pages/merchant/family-menu/index.js');
+  const styles = read('pages/merchant/family-menu/index.wxss');
+  const service = read('services/merchant.js');
+
+  assert.match(service, /setFeaturedDish\(familyId, dishId\)/);
+  assert.match(service, /`\/api\/merchant\/families\/\$\{familyId\}\/menu\/featured`/);
+  assert.doesNotMatch(markup, /setFeaturedDish|首页推荐|设为首页推荐|启用后可推荐|featured-(?:control|badge|action|disabled)/);
+  assert.doesNotMatch(source, /setFeaturedDish\s*\(|merchant\.setFeaturedDish\s*\(/);
+  assert.doesNotMatch(styles, /\.featured-(?:control|badge|action|disabled)\b/);
+  assert.match(markup, /bindtap="toggleDish"/);
+  assert.match(markup, /bindtap="changePrice"/);
+  assert.match(markup, /bindtap="copyFromFamily"/);
 });
 
 test('family menu scene and editable draft preserve a valid zero family price', async () => {

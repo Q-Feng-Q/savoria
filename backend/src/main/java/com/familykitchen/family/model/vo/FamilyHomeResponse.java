@@ -11,6 +11,7 @@ import java.util.List;
  * @param member 成员
  * @param serviceDate serviceDate
  * @param featuredDish featured菜品
+ * @param featuredDishes featured菜品列表
  * @param dashboardCards dashboardCards
  * @param mealSlots mealSlots
  * @param recentOrders recentOrders
@@ -20,6 +21,7 @@ public record FamilyHomeResponse(
     MemberSummary member,
     LocalDate serviceDate,
     FeaturedDish featuredDish,
+    List<FeaturedDish> featuredDishes,
     List<DashboardCard> dashboardCards,
     List<MealSlotView> mealSlots,
     List<OrderSummary> recentOrders
@@ -50,10 +52,11 @@ public record FamilyHomeResponse(
    *
    * @param dishId 菜品标识
    * @param name 名称
+   * @param description 菜品简介
    * @param price price
    * @param imageUrl imageUrl
    */
-  public record FeaturedDish(Long dishId, String name, BigDecimal price, String imageUrl) {
+  public record FeaturedDish(Long dishId, String name, String description, BigDecimal price, String imageUrl) {
   }
 
   /**

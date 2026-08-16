@@ -86,11 +86,30 @@
     limit 5
   </select>
 
-  <select id="selectFeaturedDish" resultType="com.familykitchen.family.model.vo.FamilyHomeResponse$FeaturedDish">
-    select d.id as dishId, d.name, coalesce(fmi.final_price, d.base_price) as price, d.image_url as imageUrl
-    from family_menu_items fmi
-    join dishes d on d.id = fmi.dish_id
-    where fmi.family_id = #{familyId} and fmi.enabled = 1 and d.status = 'active'
+  <select id="selectFeaturedDishes" resultType="com.familykitchen.family.model.vo.FamilyHomeResponse$FeaturedDish">
+    <bind name="featureLimit" value="@java.lang.Math@min(@java.lang.Math@max(limit, 0), 5)"/>
+    select d.id as dishId, d.name, d.description, coalesce(fmi.final_price, d.base_price) as price, d.image_url as imageUrl
+    from families f
+    join family_menu_items fmi on fmi.family_id = f.id
+    join dishes d on d.id = fmi.dish_id and d.merchant_id = f.merchant_id
+    where f.id = #{familyId}
+      and f.status = 'active'
+      and fmi.enabled = 1
+      and d.status = 'active'
+      and d.featured_at is not null
+    order by d.featured_at desc, d.id desc
+    limit #{featureLimit}
+  </select>
+
+  <select id="selectFallbackDish" resultType="com.familykitchen.family.model.vo.FamilyHomeResponse$FeaturedDish">
+    select d.id as dishId, d.name, d.description, coalesce(fmi.final_price, d.base_price) as price, d.image_url as imageUrl
+    from families f
+    join family_menu_items fmi on fmi.family_id = f.id
+    join dishes d on d.id = fmi.dish_id and d.merchant_id = f.merchant_id
+    where f.id = #{familyId}
+      and f.status = 'active'
+      and fmi.enabled = 1
+      and d.status = 'active'
     order by fmi.sort_order asc, d.id desc
     limit 1
   </select>
@@ -132,15 +151,24 @@
            d.description,
            d.image_url as imageUrl,
            d.base_price as basePrice,
-           fmi.final_price as familyFinalPrice,
-           fmi.enabled,
-           fmi.sort_order as sortOrder
-    from family_menu_items fmi
-    join dishes d on d.id = fmi.dish_id
-    join families f on f.id = fmi.family_id
-    where fmi.family_id = #{familyId}
+           coalesce(fmi.final_price, d.base_price) as familyFinalPrice,
+           coalesce(fmi.enabled, 0) as enabled,
+           coalesce(fmi.sort_order, 999999) as sortOrder,
+           d.featured_at as featuredAt,
+           (d.featured_at is not null) as featured
+    from families f
+    join dishes d on d.merchant_id = f.merchant_id
+    left join family_menu_items fmi on fmi.family_id = f.id and fmi.dish_id = d.id
+    where f.id = #{familyId}
+      and d.merchant_id = #{merchantId}
       and f.merchant_id = #{merchantId}
-    order by fmi.sort_order asc, d.id desc
+      and d.status = 'active'
+    order by (d.featured_at is not null) desc,
+             d.featured_at desc,
+             case when d.featured_at is null
+               then coalesce(fmi.sort_order, 999999)
+             end asc,
+             d.id desc
   </select>
 
   <select id="selectMealSlots" resultMap="MealSlotMap">
@@ -219,4 +247,40 @@
   <select id="countDishOwnership" resultType="int">
     select count(*) from dishes where id = #{dishId} and merchant_id = #{merchantId} and status in ('active','inactive')
   </select>
+
+  <select id="countFeaturedDishEligibility" resultType="int">
+    select count(*)
+    from families f
+    join family_menu_items fmi on fmi.family_id = f.id
+    join dishes d on d.id = fmi.dish_id and d.merchant_id = f.merchant_id
+    where f.id = #{familyId}
+      and f.merchant_id = #{merchantId}
+      and d.id = #{dishId}
+      and fmi.enabled = 1
+      and d.status = 'active'
+  </select>
+
+  <update id="updateFeaturedDish">
+    update families set featured_dish_id = #{dishId}
+    where id = #{familyId} and merchant_id = #{merchantId} and status = 'active'
+  </update>
+
+  <insert id="enableDishForActiveFamilies">
+    insert into family_menu_items (family_id, dish_id, enabled, sort_order, final_price)
+    select f.id,
+           d.id,
+           1,
+           least(coalesce(existing_tail.max_sort_order, 0)
+             + row_number() over (partition by f.id order by d.id), 2147483647),
+           d.base_price
+    from families f
+    join dishes d on d.merchant_id = f.merchant_id and d.id = #{dishId} and d.status = 'active'
+    left join (
+      select family_id, max(sort_order) as max_sort_order
+      from family_menu_items
+      group by family_id
+    ) existing_tail on existing_tail.family_id = f.id
+    where f.merchant_id = #{merchantId} and f.status = 'active'
+    on duplicate key update enabled = 1
+  </insert>
 </mapper>

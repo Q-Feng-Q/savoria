@@ -15,6 +15,7 @@ import com.familykitchen.common.security.CurrentUserContext;
 import com.familykitchen.dish.mapper.DishMapper;
 import com.familykitchen.dish.model.dto.DishRequest;
 import com.familykitchen.dish.service.DishReviewService;
+import com.familykitchen.dish.service.MerchantDishMutationLock;
 import com.familykitchen.dish.service.impl.DishApplicationServiceImpl;
 import com.familykitchen.family.mapper.FamilyMapper;
 import com.familykitchen.family.model.dto.SaveFamilyMenuRequest;
@@ -36,7 +37,8 @@ class LogicalReferenceValidationTest {
   void createDishRejectsCategoryOutsideCurrentMerchant() {
     DishMapper mapper = mock(DishMapper.class);
     DishApplicationServiceImpl service = new DishApplicationServiceImpl(
-        mapper, mock(SystemSettingService.class), mock(DishReviewService.class));
+        mapper, mock(SystemSettingService.class), mock(DishReviewService.class),
+        mock(MerchantDishMutationLock.class), mock(FamilyMapper.class));
     DishRequest request = new DishRequest("测试菜", 99L, null, null,
         BigDecimal.TEN, List.of(), List.of(), "active");
 
@@ -61,7 +63,7 @@ class LogicalReferenceValidationTest {
     FamilyMapper mapper = mock(FamilyMapper.class);
     when(mapper.countFamilyOwnership(11L, 13L)).thenReturn(1);
     MerchantFamilyMenuApplicationServiceImpl service =
-        new MerchantFamilyMenuApplicationServiceImpl(mapper);
+        new MerchantFamilyMenuApplicationServiceImpl(mapper, mock(com.familykitchen.dish.service.DishApplicationService.class));
 
     assertThrows(BusinessException.class, () -> service.saveMenu(USER, 13L,
         new SaveFamilyMenuRequest(List.of(

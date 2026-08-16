@@ -118,7 +118,7 @@ test('merchant mutation refreshes opt into silent loading on every affected page
     'merchant-orders': 1,
     'merchant-order-detail': 1,
     purchase: 1,
-    'merchant-dishes': 1,
+    'merchant-dishes': 2,
     'ingredient-edit': 2,
     'merchant-family-detail': 2,
     'family-menu': 2

@@ -81,6 +81,14 @@ public interface DishApplicationService {
   DishMutationResult updateDishStatus(CurrentUserContext user, Long dishId, DishStatusRequest request);
 
   /**
+   * Enables or disables a merchant-wide featured dish.
+   * @param user current merchant user
+   * @param dishId dish identifier
+   * @param featured target featured state
+   */
+  void setFeaturedDish(CurrentUserContext user, Long dishId, boolean featured);
+
+  /**
    * 覆盖指定菜品的制作流程。
    *
    * @param dishId 菜品 ID

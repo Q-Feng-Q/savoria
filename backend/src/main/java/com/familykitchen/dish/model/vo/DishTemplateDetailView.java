@@ -20,6 +20,9 @@ import java.util.List;
  * @param referencePrice 参考价格
  * @param tasteTags 口味标签
  * @param mealTags 推荐餐次
+ * @param sortOrder 模板排序值
+ * @param enabled 模板是否启用
+ * @param version 模板并发版本号
  * @param imported 当前商户是否已导入
  * @param ingredients 模板食材明细
  */
@@ -27,4 +30,5 @@ import java.util.List;
 public record DishTemplateDetailView(Long templateId, String templateCode, Long categoryId, String categoryName,
     String name, String description, String imageUrl, String imageSourceUrl, String imageAuthor,
     String imageLicense, BigDecimal referencePrice, List<String> tasteTags, List<String> mealTags,
-    boolean imported, List<DishTemplateIngredientEntity> ingredients) { }
+    Integer sortOrder, boolean enabled, Long version, boolean imported,
+    List<DishTemplateIngredientEntity> ingredients) { }

@@ -1,6 +1,10 @@
 /.run/
 /.editorconfig
-/docs/
+/docs/*
+!/docs/frontend-api-guide.md
+!/docs/verification/
+/docs/verification/*
+!/docs/verification/2026-08-10-merchant-workspace-verification.md
 /scripts/
 /design-previews/
 /.superpowers/

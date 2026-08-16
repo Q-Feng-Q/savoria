@@ -4,6 +4,7 @@ import com.familykitchen.common.security.CurrentUserContext;
 import com.familykitchen.dish.model.vo.DishDetailView;
 import com.familykitchen.dish.model.vo.DishView;
 import com.familykitchen.family.model.dto.AddressRequest;
+import com.familykitchen.family.model.dto.UpdateFamilyInfoRequest;
 import com.familykitchen.family.model.vo.AddressView;
 import com.familykitchen.family.model.vo.FamilyHomeResponse;
 import com.familykitchen.wallet.model.vo.WalletLedgerView;
@@ -102,4 +103,12 @@ public interface FamilyApplicationService {
    * @return 钱包余额变动记录
    */
   List<WalletLedgerView> walletLedgers(CurrentUserContext user);
+
+  /**
+   * 修改当前家庭的基本资料（名称、备注、联系人）。
+   *
+   * @param user 当前登录用户上下文
+   * @param request 家庭名称、备注和联系人列表
+   */
+  void updateFamilyInfo(CurrentUserContext user, UpdateFamilyInfoRequest request);
 }

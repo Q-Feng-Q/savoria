@@ -10,6 +10,7 @@ import com.familykitchen.dish.model.entity.DishEntity;
 import com.familykitchen.dish.model.entity.DishIngredientEntity;
 import com.familykitchen.dish.model.entity.DishReviewSubmissionDO;
 import com.familykitchen.dish.service.DishReviewService;
+import com.familykitchen.dish.service.MerchantDishMutationLock;
 import com.familykitchen.system.mapper.SystemAuditMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DishReviewServiceImpl implements DishReviewService {
   private final DishReviewMapper reviewMapper; private final DishMapper dishMapper; private final ObjectMapper json;
   private final SystemAuditMapper auditMapper;
+  private final MerchantDishMutationLock mutationLock;
   /**
    * 创建菜品审核实例。
    *
@@ -28,9 +30,12 @@ public class DishReviewServiceImpl implements DishReviewService {
    * @param dishMapper 菜品Mapper
    * @param json json
    * @param auditMapper auditMapper
+   * @param mutationLock shared merchant and dish lock collaborator
    */
-  public DishReviewServiceImpl(DishReviewMapper reviewMapper,DishMapper dishMapper,ObjectMapper json,SystemAuditMapper auditMapper){
-    this.reviewMapper=reviewMapper;this.dishMapper=dishMapper;this.json=json;this.auditMapper=auditMapper;}
+  public DishReviewServiceImpl(DishReviewMapper reviewMapper,DishMapper dishMapper,ObjectMapper json,
+                               SystemAuditMapper auditMapper, MerchantDishMutationLock mutationLock){
+    this.reviewMapper=reviewMapper;this.dishMapper=dishMapper;this.json=json;this.auditMapper=auditMapper;
+    this.mutationLock=mutationLock;}
 
   /**
    * 提交菜品审核。
@@ -99,7 +104,10 @@ public class DishReviewServiceImpl implements DishReviewService {
       throw new BusinessException(ErrorCode.BUSINESS_INVALID,"审核菜品的分类不存在或不属于当前商户");
     Long dishId=review.getTargetDishId();
     DishEntity dish=entity(review.getMerchantId(),dishId,request);
-    if(dishId==null){dishMapper.insertDish(dish);dishId=dish.getId();}else if(dishMapper.updateDish(dish)==0){throw new BusinessException(ErrorCode.NOT_FOUND,"正式菜品不存在");}
+    if(dishId==null){dishMapper.insertDish(dish);dishId=dish.getId();}else {
+      mutationLock.lock(review.getMerchantId(), dishId);
+      if(dishMapper.updateDish(dish)==0)throw new BusinessException(ErrorCode.NOT_FOUND,"正式菜品不存在");
+    }
     replaceIngredients(dishId,request.ingredients());replaceSteps(dishId,request.cookingSteps());
     if(reviewMapper.approve(id,adminId,reason)==0)throw new BusinessException(ErrorCode.DISH_REVIEW_STATE_CONFLICT,"审核状态已变化");
     auditMapper.insert(adminId,"DISH_REVIEW_APPROVE","审核记录="+id+"，正式菜品="+dishId);

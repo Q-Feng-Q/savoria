@@ -97,11 +97,24 @@ function buildContext(homeData, extra = {}) {
   };
 }
 
-function buildApiHomeScene(homeData, { imageBaseUrl = '' } = {}) {
+function buildApiHomeScene(homeData, { imageBaseUrl = '', windowWidth = 0 } = {}) {
   const selectedMeal = getSelectedMealSlot(resolveMealSlots(homeData));
   const dashboardCards = homeData.dashboardCards || [];
   const cartCard = dashboardCards.find((item) => item.key === 'cart');
   const latestOrder = (homeData.recentOrders || [])[0] || null;
+  const featuredSource = Array.isArray(homeData.featuredDishes)
+    ? homeData.featuredDishes
+    : (homeData.featuredDish ? [homeData.featuredDish] : []);
+  const featuredDishes = featuredSource.map((item) => ({
+    id: item.dishId ?? item.id,
+    name: item.name,
+    description: item.description || '今日家庭推荐',
+    priceText: formatCurrency(item.price),
+    soldText: '今日主推',
+    reasonText: '适合今天这一餐',
+    imageUrl: toImageUrl(imageBaseUrl, item.imageUrl || item.image)
+  }));
+  const hasMultipleFeaturedDishes = featuredDishes.length > 1;
 
   return {
     context: buildContext(homeData),
@@ -109,14 +122,13 @@ function buildApiHomeScene(homeData, { imageBaseUrl = '' } = {}) {
     currentMemberName: homeData.member.name,
     currentDate: formatDateText(homeData.serviceDate),
     dailyQuote: '灶间有烟火，家里有温度',
-    featuredDish: homeData.featuredDish ? {
-      id: homeData.featuredDish.dishId,
-      name: homeData.featuredDish.name,
-      priceText: formatCurrency(homeData.featuredDish.price),
-      soldText: '今日主推',
-      reasonText: '适合今天这一餐',
-      imageUrl: toImageUrl(imageBaseUrl, homeData.featuredDish.imageUrl)
-    } : null,
+    featuredDishes,
+    featuredDish: featuredDishes[0] || null,
+    featuredAutoplay: hasMultipleFeaturedDishes,
+    featuredCircular: hasMultipleFeaturedDishes,
+    featuredIndicatorDots: hasMultipleFeaturedDishes,
+    featuredInterval: hasMultipleFeaturedDishes ? 4000 : 0,
+    featuredNextMargin: hasMultipleFeaturedDishes ? (Number(windowWidth) > 0 && Number(windowWidth) <= 320 ? '24rpx' : '40rpx') : '0rpx',
     dashboardCards: dashboardCards.map((item) => ({
       ...item,
       note: item.note || ''
@@ -179,6 +191,7 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
       displayTags: [item.categoryId ? `分类 ${item.categoryId}` : '家常推荐', item.description || '今日可点'].slice(0, 2),
       priceText: formatCurrency(item.price),
       description: item.description || '今日可点',
+      featured: Boolean(item.featured),
       selectedCount,
       selectedByCurrentMemberCount: currentMemberItem ? Number(currentMemberItem.quantity || 0) : 0,
       cartLineId: currentMemberItem ? currentMemberItem.itemId : null

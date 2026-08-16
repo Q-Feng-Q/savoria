@@ -17,10 +17,13 @@ import com.familykitchen.dish.model.vo.DishDetailView;
 import com.familykitchen.dish.model.vo.DishView;
 import com.familykitchen.dish.service.DishApplicationService;
 import com.familykitchen.dish.service.DishReviewService;
+import com.familykitchen.dish.service.MerchantDishMutationLock;
+import com.familykitchen.family.mapper.FamilyMapper;
 import com.familykitchen.system.service.SystemSettingService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +39,8 @@ public class DishApplicationServiceImpl implements DishApplicationService {
   private final DishMapper dishMapper;
   private final SystemSettingService systemSettingService;
   private final DishReviewService dishReviewService;
+  private final MerchantDishMutationLock mutationLock;
+  private final FamilyMapper familyMapper;
 
   /**
    * 创建菜品实例。
@@ -43,12 +48,40 @@ public class DishApplicationServiceImpl implements DishApplicationService {
    * @param dishMapper 菜品Mapper
    * @param systemSettingService system配置Service
    * @param dishReviewService 菜品审核Service
+   * @param mutationLock shared merchant and dish lock collaborator
+   * @param familyMapper family menu mapper
    */
   public DishApplicationServiceImpl(DishMapper dishMapper,SystemSettingService systemSettingService,
-                                    DishReviewService dishReviewService) {
+                                    DishReviewService dishReviewService,
+                                    MerchantDishMutationLock mutationLock,
+                                    FamilyMapper familyMapper) {
     this.dishMapper = dishMapper;
     this.systemSettingService=systemSettingService;
     this.dishReviewService=dishReviewService;
+    this.mutationLock=mutationLock;
+    this.familyMapper=familyMapper;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional
+  public void setFeaturedDish(CurrentUserContext user, Long dishId, boolean featured) {
+    DishEntity dish = mutationLock.lock(user.merchantId(), dishId);
+    if (!featured) {
+      dishMapper.clearDishFeatured(user.merchantId(), dishId);
+      return;
+    }
+    if (!"active".equalsIgnoreCase(dish.getStatus())) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "只能推荐已上架菜品");
+    }
+    if (dish.getFeaturedAt() != null) {
+      return;
+    }
+    if (dishMapper.countActiveFeaturedDishes(user.merchantId()) >= 5) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "商户最多可推荐5道菜");
+    }
+    dishMapper.setDishFeaturedAt(user.merchantId(), dishId);
+    familyMapper.enableDishForActiveFamilies(user.merchantId(), dishId);
   }
 
   /**
@@ -76,7 +109,7 @@ public class DishApplicationServiceImpl implements DishApplicationService {
     if(systemSettingService.dishReviewEnabled()){
       dishReviewService.submit(user.userId(),user.merchantId(),null,request);
       return new DishView(null,request.categoryId(),request.name(),request.description(),request.imageUrl(),
-          money(request.basePrice()),"PENDING_REVIEW");
+          money(request.basePrice()),"PENDING_REVIEW", null, false, null, false);
     }
     // 菜品主信息、食材配方和制作步骤放在同一事务中创建，避免出现半成品数据。
     DishEntity entity = toEntity(user.merchantId(), null, request);
@@ -102,12 +135,15 @@ public class DishApplicationServiceImpl implements DishApplicationService {
   @Override
   @Transactional
   public DishMutationResult updateDish(CurrentUserContext user, Long dishId, DishRequest request) {
-    requireDish(user.merchantId(), dishId);
-    requireCategory(user.merchantId(), request.categoryId());
+    request = withNormalizedStatus(request);
     if(systemSettingService.dishReviewEnabled()){
+      requireDish(user.merchantId(), dishId);
+      requireCategory(user.merchantId(), request.categoryId());
       dishReviewService.submit(user.userId(),user.merchantId(),dishId,request);
       return new DishMutationResult(DishMutationResult.Outcome.PENDING_REVIEW);
     }
+    mutationLock.lock(user.merchantId(), dishId);
+    requireCategory(user.merchantId(), request.categoryId());
     DishEntity entity = toEntity(user.merchantId(), dishId, request);
     dishMapper.updateDish(entity);
     replaceIngredients(dishId, request.ingredients());
@@ -124,9 +160,9 @@ public class DishApplicationServiceImpl implements DishApplicationService {
   @Override
   @Transactional
   public DishMutationResult updateDishStatus(CurrentUserContext user, Long dishId, DishStatusRequest request) {
-    DishEntity current = requireDish(user.merchantId(), dishId);
-    String status = request.status().toLowerCase();
+    String status = normalizeStatus(request.status());
     if (systemSettingService.dishReviewEnabled()) {
+      DishEntity current = requireDish(user.merchantId(), dishId);
       List<DishRequest.IngredientRequest> ingredients = dishMapper.selectDishIngredients(dishId).stream()
           .map(item -> new DishRequest.IngredientRequest(item.getIngredientName(), item.getQuantity(), item.getUnit(), item.getCalcType()))
           .toList();
@@ -138,7 +174,11 @@ public class DishApplicationServiceImpl implements DishApplicationService {
       dishReviewService.submit(user.userId(), user.merchantId(), dishId, snapshot);
       return new DishMutationResult(DishMutationResult.Outcome.PENDING_REVIEW);
     }
-    if (dishMapper.updateDishStatus(user.merchantId(), dishId, status) == 0) {
+    mutationLock.lock(user.merchantId(), dishId);
+    int updated = "inactive".equals(status)
+        ? dishMapper.setDishInactiveAndClearFeatured(user.merchantId(), dishId)
+        : dishMapper.updateDishStatus(user.merchantId(), dishId, status);
+    if (updated == 0) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "菜品不存在");
     }
     return new DishMutationResult(DishMutationResult.Outcome.APPLIED);
@@ -314,8 +354,24 @@ public class DishApplicationServiceImpl implements DishApplicationService {
     entity.setDescription(request.description());
     entity.setImageUrl(request.imageUrl());
     entity.setBasePrice(money(request.basePrice()));
-    entity.setStatus(request.status() == null || request.status().isBlank() ? "active" : request.status());
+    entity.setStatus(normalizeStatus(request.status()));
     return entity;
+  }
+
+  /** Returns an immutable full request carrying the canonical persisted status. */
+  private static DishRequest withNormalizedStatus(DishRequest request) {
+    return new DishRequest(request.name(), request.categoryId(), request.description(), request.imageUrl(),
+        request.basePrice(), request.ingredients(), request.cookingSteps(), normalizeStatus(request.status()));
+  }
+
+  /** Normalizes the two supported persisted dish states and rejects all other values. */
+  private static String normalizeStatus(String status) {
+    String normalized = status == null || status.isBlank()
+        ? "active" : status.trim().toLowerCase(Locale.ROOT);
+    if (!"active".equals(normalized) && !"inactive".equals(normalized)) {
+      throw new BusinessException(ErrorCode.BAD_REQUEST, "菜品状态仅支持 active 或 inactive");
+    }
+    return normalized;
   }
 
   /**
@@ -330,6 +386,8 @@ public class DishApplicationServiceImpl implements DishApplicationService {
         dish.getImageUrl(),
         money(dish.getBasePrice()),
         dish.getStatus(),
+        dish.getSourceTemplateId(),
+        dish.getSourceTemplateId() != null,
         dishMapper.selectDishIngredients(dish.getId()).stream()
             .map(item -> new DishDetailView.IngredientView(item.getIngredientName(), money(item.getQuantity()), item.getUnit(), item.getCalcType()))
             .toList(),
@@ -350,7 +408,11 @@ public class DishApplicationServiceImpl implements DishApplicationService {
         entity.getDescription(),
         entity.getImageUrl(),
         money(entity.getBasePrice()),
-        entity.getStatus()
+        entity.getStatus(),
+        entity.getSourceTemplateId(),
+        entity.getSourceTemplateId() != null,
+        entity.getFeaturedAt(),
+        entity.getFeaturedAt() != null
     );
   }
 

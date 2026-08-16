@@ -281,3 +281,14 @@ test('merchant status update uses the dedicated endpoint and exact payload', asy
   await merchant.updateDishStatus(8, { status: 'INACTIVE' });
   assert.deepEqual(calls, [{ pathname: '/api/merchant/dishes/8/status', options: { method: 'PUT', data: { status: 'INACTIVE' } } }]);
 });
+
+test('merchant featured update uses the dedicated endpoint and exact payload', async () => {
+  const calls = [];
+  const merchant = createMerchantService({ request: async (pathname, options) => { calls.push({ pathname, options }); return { code: 0, data: null }; } });
+  await merchant.setDishFeatured(8, true);
+  await merchant.setDishFeatured(9, false);
+  assert.deepEqual(calls, [
+    { pathname: '/api/merchant/dishes/8/featured', options: { method: 'PUT', data: { featured: true } } },
+    { pathname: '/api/merchant/dishes/9/featured', options: { method: 'PUT', data: { featured: false } } }
+  ]);
+});

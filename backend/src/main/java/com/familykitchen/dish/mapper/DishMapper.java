@@ -24,7 +24,7 @@ public interface DishMapper {
   int insertDish(DishEntity entity);
 
   /**
-   * 查询Dishes。
+   * 查询商户菜品，商户推荐菜按推荐时间和菜品 ID 确定性优先排列。
    *
    * @param merchantId 商户标识
    * @return 查询Dishes的结果
@@ -39,6 +39,45 @@ public interface DishMapper {
    * @return 查询菜品的结果
    */
   DishEntity selectDish(@Param("merchantId") Long merchantId, @Param("dishId") Long dishId);
+
+  /**
+   * Locks the merchant row to serialize merchant-wide dish mutations.
+   * @param merchantId merchant identifier
+   * @return locked merchant identifier
+   */
+  Long lockMerchant(@Param("merchantId") Long merchantId);
+
+  /**
+   * Selects one owned dish with a row lock.
+   * @param merchantId merchant identifier
+   * @param dishId dish identifier
+   * @return locked dish, or null when absent
+   */
+  DishEntity selectDishForUpdate(@Param("merchantId") Long merchantId,
+                                 @Param("dishId") Long dishId);
+
+  /**
+   * Counts only active, currently featured dishes for the merchant.
+   * @param merchantId merchant identifier
+   * @return active featured dish count
+   */
+  int countActiveFeaturedDishes(@Param("merchantId") Long merchantId);
+
+  /**
+   * Sets a microsecond-precision timestamp when a dish is not already featured.
+   * @param merchantId merchant identifier
+   * @param dishId dish identifier
+   * @return affected row count
+   */
+  int setDishFeaturedAt(@Param("merchantId") Long merchantId, @Param("dishId") Long dishId);
+
+  /**
+   * Idempotently clears a dish recommendation.
+   * @param merchantId merchant identifier
+   * @param dishId dish identifier
+   * @return affected row count
+   */
+  int clearDishFeatured(@Param("merchantId") Long merchantId, @Param("dishId") Long dishId);
 
   /**
    * 校验菜品分类存在且属于当前商户。
@@ -65,6 +104,15 @@ public interface DishMapper {
    */
   int updateDishStatus(@Param("merchantId") Long merchantId, @Param("dishId") Long dishId,
                        @Param("status") String status);
+
+  /**
+   * Atomically changes a dish to inactive and clears its recommendation.
+   * @param merchantId merchant identifier
+   * @param dishId dish identifier
+   * @return affected row count
+   */
+  int setDishInactiveAndClearFeatured(@Param("merchantId") Long merchantId,
+                                      @Param("dishId") Long dishId);
 
   /**
    * 删除菜品Ingredients。

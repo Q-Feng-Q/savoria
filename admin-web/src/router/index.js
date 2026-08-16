@@ -8,6 +8,7 @@ import OrdersView from '../views/merchant/OrdersView.vue';
 import DishesView from '../views/merchant/DishesView.vue';
 import MerchantDishReviewsView from '../views/merchant/DishReviewsView.vue';
 import DishTemplatesView from '../views/merchant/DishTemplatesView.vue';
+import DishTemplateChangesView from '../views/merchant/DishTemplateChangesView.vue';
 import IngredientsView from '../views/merchant/IngredientsView.vue';
 import FamiliesView from '../views/merchant/FamiliesView.vue';
 import MenusView from '../views/merchant/MenusView.vue';
@@ -21,6 +22,7 @@ import DishReviewsView from '../views/platform/DishReviewsView.vue';
 import SystemSettingsView from '../views/platform/SystemSettingsView.vue';
 import UsersView from '../views/platform/UsersView.vue';
 import MerchantsView from '../views/platform/MerchantsView.vue';
+import DishTemplateChangeReviewsView from '../views/platform/DishTemplateChangeReviewsView.vue';
 
 const routes = [
   {
@@ -84,6 +86,10 @@ const routes = [
         }
       },
       {
+        path: 'dish-template-changes', name: 'dish-template-changes', component: DishTemplateChangesView,
+        meta: { title: '模板修改申请', subtitle: '提交模板修订并跟踪平台审核结果' }
+      },
+      {
         path: 'ingredients',
         name: 'ingredients',
         component: IngredientsView,
@@ -130,6 +136,10 @@ const routes = [
       {
         path: 'dish-reviews', name: 'dish-reviews', component: DishReviewsView,
         meta: { title: '菜品审核', subtitle: '审核商户提交的新菜与菜品变更', requiresPlatformAdmin: true }
+      },
+      {
+        path: 'dish-template-change-reviews', name: 'dish-template-change-reviews', component: DishTemplateChangeReviewsView,
+        meta: { title: '模板修改审核', subtitle: '对比并审核商户提交的平台模板覆盖申请', requiresPlatformAdmin: true }
       },
       {
         path: 'system-settings', name: 'system-settings', component: SystemSettingsView,

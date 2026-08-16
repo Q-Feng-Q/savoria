@@ -43,12 +43,36 @@ public interface FamilyMapper {
   List<FamilyHomeResponse.OrderSummary> selectRecentOrders(@Param("familyId") Long familyId);
 
   /**
-   * 查询Featured菜品。
+   * 查询家庭可见的商户推荐菜，查询最多返回五项。
    *
    * @param familyId 家庭标识
-   * @return 查询Featured菜品的结果
+   * @param limit 期望返回数量
+   * @return 商户推荐菜
    */
-  FamilyHomeResponse.FeaturedDish selectFeaturedDish(@Param("familyId") Long familyId);
+  List<FamilyHomeResponse.FeaturedDish> selectFeaturedDishes(
+      @Param("familyId") Long familyId, @Param("limit") int limit);
+
+  /**
+   * 在没有商户推荐菜时查询确定性单项兜底菜。
+   *
+   * @param familyId 家庭标识
+   * @return 兜底菜品
+   */
+  FamilyHomeResponse.FeaturedDish selectFallbackDish(@Param("familyId") Long familyId);
+
+  /**
+   * 兼容尚未组装多推荐结果的现有首页服务。
+   *
+   * @param familyId 家庭标识
+   * @return 确定性单项兜底菜
+   */
+  default FamilyHomeResponse.FeaturedDish selectFeaturedDish(Long familyId) {
+    List<FamilyHomeResponse.FeaturedDish> featuredDishes = selectFeaturedDishes(familyId, 1);
+    if (featuredDishes != null && !featuredDishes.isEmpty()) {
+      return featuredDishes.get(0);
+    }
+    return selectFallbackDish(familyId);
+  }
 
   /**
    * 查询Addresses。
@@ -221,4 +245,35 @@ public interface FamilyMapper {
    * @return 匹配记录数量
    */
   int countDishOwnership(@Param("merchantId") Long merchantId, @Param("dishId") Long dishId);
+
+  /**
+   * 校验菜品是当前商户为目标家庭启用的已上架菜品。
+   *
+   * @param merchantId 商户标识
+   * @param familyId 家庭标识
+   * @param dishId 菜品标识
+   * @return 匹配记录数量
+   */
+  int countFeaturedDishEligibility(@Param("merchantId") Long merchantId,
+      @Param("familyId") Long familyId, @Param("dishId") Long dishId);
+
+  /**
+   * 更新家庭首页显式推荐菜。
+   *
+   * @param merchantId 商户标识
+   * @param familyId 家庭标识
+   * @param dishId 菜品标识
+   * @return 更新记录数量
+   */
+  int updateFeaturedDish(@Param("merchantId") Long merchantId,
+      @Param("familyId") Long familyId, @Param("dishId") Long dishId);
+
+  /**
+   * Enables the dish for every active family while preserving existing overrides.
+   * @param merchantId merchant identifier
+   * @param dishId dish identifier
+   * @return inserted or updated row count
+   */
+  int enableDishForActiveFamilies(@Param("merchantId") Long merchantId,
+                                  @Param("dishId") Long dishId);
 }

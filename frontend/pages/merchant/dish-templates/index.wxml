@@ -7,6 +7,7 @@
     </view>
     <view class="ui-button import-all-action {{importing || importingAll ? 'import-all-action--disabled' : ''}}" bindtap="importAll" aria-role="button" aria-label="导入全部系统菜品" aria-disabled="{{importing || importingAll}}" aria-busy="{{importingAll}}" hover-class="ui-button--pressed">{{importingAll ? '全部导入中' : '导入全部'}}</view>
   </view>
+  <view class="change-entry" bindtap="openChangeRequests" aria-role="button" aria-label="查看模板修改申请" hover-class="ui-button--pressed"><text>模板修改申请</text><text>查看进度与审核结果 ›</text></view>
 
   <view class="search-row">
     <input class="search-input" value="{{keyword}}" placeholder="搜索菜名" bindinput="inputKeyword" confirm-type="search" bindconfirm="search" />

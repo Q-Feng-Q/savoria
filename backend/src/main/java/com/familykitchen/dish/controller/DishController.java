@@ -9,6 +9,7 @@ import com.familykitchen.dish.model.dto.DishCategoryRequest;
 import com.familykitchen.dish.model.dto.DishRequest;
 import com.familykitchen.dish.model.dto.DishStatusRequest;
 import com.familykitchen.dish.model.dto.DishMutationResult;
+import com.familykitchen.dish.model.dto.DishFeaturedRequest;
 import com.familykitchen.dish.model.dto.DishRequest.CookingStepRequest;
 import com.familykitchen.dish.service.DishApplicationService;
 import com.familykitchen.dish.model.vo.DishCategoryView;
@@ -171,6 +172,22 @@ public class DishController {
   }
 
   /**
+   * Enables or disables a merchant-wide featured dish.
+   *
+   * @param request servlet request carrying the current identity
+   * @param dishId dish identifier
+   * @param body requested featured state
+   * @return empty success response
+   */
+  @PutMapping("/dishes/{dishId}/featured")
+  @Operation(summary = "设置商户推荐菜", description = "推荐菜会自动启用到所有当前有效家庭菜单。")
+  public ApiResponse<Void> setFeaturedDish(HttpServletRequest request, @PathVariable Long dishId,
+                                           @Valid @RequestBody DishFeaturedRequest body) {
+    dishApplicationService.setFeaturedDish(requireMerchant(request), dishId, body.featured());
+    return ApiResponse.ok();
+  }
+
+  /**
    * 处理CookingSteps相关的 HTTP 请求。
    *
    * @param request 请求参数
@@ -260,7 +277,7 @@ public class DishController {
 
   private CurrentUserContext requireMerchant(HttpServletRequest request) {
     CurrentUserContext user = currentUserProvider.require(request);
-    if (!user.hasMerchantBackendAccess()) {
+    if (!user.hasMerchantBackendAccess() || user.merchantId() == null) {
       throw new BusinessException(ErrorCode.FORBIDDEN, "无商户后台访问权限");
     }
     return user;

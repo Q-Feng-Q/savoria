@@ -39,4 +39,13 @@ public interface MerchantFamilyMenuApplicationService {
    * @param request 来源家庭 ID
    */
   void copyMenu(CurrentUserContext user, Long familyId, CopyFamilyMenuRequest request);
+
+  /**
+   * 为家庭设置已启用的首页推荐菜。
+   *
+   * @param user 当前商户上下文
+   * @param familyId 家庭标识
+   * @param dishId 菜品标识
+   */
+  void setFeaturedDish(CurrentUserContext user, Long familyId, Long dishId);
 }

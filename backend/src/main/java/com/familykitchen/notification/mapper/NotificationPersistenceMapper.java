@@ -34,6 +34,13 @@ public interface NotificationPersistenceMapper {
   );
 
   /**
+   * 插入需要回写自增主键的完整通知实体。
+   * @param notification 完整通知实体
+   * @return 新增行数
+   */
+  int insertNotificationEntity(NotificationDO notification);
+
+  /**
    * 查询Notifications。
    *
    * @param receiverScope receiverScope

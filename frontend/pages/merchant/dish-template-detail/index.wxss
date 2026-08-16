@@ -9,5 +9,8 @@
 .ingredient-list { background:#fffdf8; border-top:2rpx solid #eee1d2; }
 .ingredient-row { display:flex; justify-content:space-between; padding:24rpx 4rpx; border-bottom:2rpx solid #eee1d2; color:#49392c; font-size:26rpx; }
 .source-note { margin-top:22rpx; color:#9b8978; font-size:21rpx; line-height:1.5; }
-.detail-import { position:fixed; left:28rpx; right:28rpx; bottom:24rpx; display:flex; align-items:center; justify-content:center; height:88rpx; border-radius:24rpx; background:#56aa73; color:white; font-size:29rpx; font-weight:900; box-shadow:0 16rpx 38rpx rgba(67,132,89,.24); }
+.detail-actions { position:fixed; z-index:20; left:28rpx; right:28rpx; bottom:calc(24rpx + env(safe-area-inset-bottom)); display:grid; grid-template-columns:1fr 1.15fr; gap:14rpx; padding:12rpx; border:2rpx solid #eadfce; border-radius:28rpx; background:rgba(255,253,248,.98); box-shadow:0 16rpx 38rpx rgba(97,72,43,.18); }
+.detail-change,.detail-import { display:flex; align-items:center; justify-content:center; height:82rpx; border-radius:20rpx; font-size:25rpx; font-weight:900; }
+.detail-change { border:2rpx solid #70a87e; color:#3f8558; background:#f2f8ef; }
+.detail-import { background:#56aa73; color:white; box-shadow:0 10rpx 24rpx rgba(67,132,89,.2); }
 .detail-import--disabled { background:#c3c9c0; box-shadow:none; }
