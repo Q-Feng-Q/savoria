@@ -62,7 +62,7 @@ test('account cards expose separate family and merchant identity actions',()=>{
 
 test('account page refreshes live identities without validating a stale selected mode',()=>{
  const js=fs.readFileSync(path.join(root,'pages/account/account-management/index.js'),'utf8');
- const body=js.match(/async refreshIdentity\(\)\s*\{([\s\S]*?)\n\s*\},\n\s*refresh\(/)?.[1]||'';
+ const body=js.match(/async refreshIdentity\(\)\s*\{([\s\S]*?)\r?\n\s*\},\r?\n\s*refresh\(/)?.[1]||'';
  assert.match(js,/refreshAccountIdentity/);
  assert.match(body,/refreshAccountIdentity/);
  assert.doesNotMatch(body,/switchAccountIdentity/);

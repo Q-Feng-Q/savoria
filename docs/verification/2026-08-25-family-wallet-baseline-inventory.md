@@ -161,6 +161,13 @@ Review notes: V7 idempotently backfills three active-family meal slots; V8 adds 
 - Admin web: `npm run build` — passed; generated `admin-web/dist` remained ignored and excluded.
 - Final mini-program full rerun: `npm test` — 326 passed, 0 failed. Clean-worktree verification is recorded in the Task 0 handoff after execution.
 
+## Clean-worktree command notes
+
+- Run mini-program tests from `frontend`: `npm test`; focused account-management contract: `node --test tests/account-management-page-contract.test.js`.
+- Run admin tests and build from `admin-web`: `npm test` and `npm run build`; focused Vite contract: `node --test tests/vite-config.test.js`.
+- The tracked mini-program source uses CRLF line endings, so source-contract method-boundary expressions accept both `\n` and `\r\n`.
+- `admin-web/public/backend.config.json` is intentionally ignored and may be absent in a clean clone. The Vite proxy contract therefore verifies the resolved environment/external target and the tracked localhost fallback rather than assuming that runtime-only file exists.
+
 ## Exclusions
 
 - Ignored IDE/runtime directories (`.idea`, `.run`, `.agents`, `.superpowers`) were not candidates and are excluded.

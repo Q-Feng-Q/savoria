@@ -10,8 +10,11 @@ test('vite config proxies /api to real backend to avoid browser cors during dev'
   const externalConfig = runtimeConfig.readExternalConfigFile(
     path.resolve(__dirname, '../public/backend.config.json')
   );
+  const expectedTarget = runtimeConfig.resolveAdminProxyTarget(process.env.VITE_PROXY_TARGET, {
+    externalConfig
+  }) || 'http://127.0.0.1:8080';
 
-  assert.equal(proxy['/api'].target, externalConfig.devProxyTarget);
+  assert.equal(proxy['/api'].target, expectedTarget);
   assert.equal(proxy['/api'].changeOrigin, true);
   assert.equal(typeof proxy['/api'].rewrite, 'function');
   assert.equal(proxy['/api'].rewrite('/api/auth/admin/login'), '/auth/admin/login');
