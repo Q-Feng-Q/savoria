@@ -5,9 +5,11 @@
 !/docs/verification/
 /docs/verification/*
 !/docs/verification/2026-08-10-merchant-workspace-verification.md
+!/docs/verification/2026-08-25-family-wallet-baseline-inventory.md
 /scripts/
 /design-previews/
 /.superpowers/
 /.run/
 /.agents/
 /.idea
+/.worktrees/

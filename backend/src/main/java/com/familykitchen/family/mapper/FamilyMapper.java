@@ -158,6 +158,19 @@ public interface FamilyMapper {
   List<FamilyMemberRecord> selectMembers(@Param("familyId") Long familyId);
 
   /**
+   * 更新家庭端允许维护的名称和备注。
+   * @param familyId 当前家庭标识
+   * @param familyName 家庭名称
+   * @param note 家庭备注
+   * @return 受影响行数
+   */
+  int updateFamilyInfo(
+      @Param("familyId") Long familyId,
+      @Param("familyName") String familyName,
+      @Param("note") String note
+  );
+
+  /**
    * 更新家庭资料。
    *
    * @param merchantId 商户标识

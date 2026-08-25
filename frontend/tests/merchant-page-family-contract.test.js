@@ -190,6 +190,42 @@ test('purchase rejection keeps merchant overview ready with family and order sum
   }
 });
 
+test('profile name is authoritative and keeps a no-family merchant workbench usable', async () => {
+  const runtime = {
+    merchant: {
+      getProfile: async () => ({ name: '负责人私厨', contactName: '林女士', contactPhone: '138' }),
+      getFamilies: async () => [],
+      getOrders: async () => [],
+      getFamilyMenu: async () => assert.fail('menu endpoint should not be called without a family')
+    },
+    purchase: { getSummary: async () => [] }
+  };
+  await withMerchantPage(() => runtime, (error, fallback) => (error && error.message) || fallback, async (page) => {
+    await page.load();
+    assert.equal(page.data.phase, 'ready');
+    assert.equal(page.data.context.merchant.name, '负责人私厨');
+    assert.equal(page.data.familyCount, 0);
+  });
+});
+
+test('ordinary profile failure degrades locally when family overview is usable', async () => {
+  const runtime = {
+    merchant: {
+      getProfile: async () => { throw new Error('profile offline'); },
+      getFamilies: async () => [{ familyId: 7, familyName: '林家', merchantName: '家庭回退私厨' }],
+      getOrders: async () => [],
+      getFamilyMenu: async () => []
+    },
+    purchase: { getSummary: async () => [] }
+  };
+  await withMerchantPage(() => runtime, (error, fallback) => (error && error.message) || fallback, async (page) => {
+    await page.load();
+    assert.equal(page.data.phase, 'ready');
+    assert.equal(page.data.context.merchant.name, '家庭回退私厨');
+    assert.equal(page.data.regionStates.profile.phase, 'error');
+  });
+});
+
 test('all successfully empty overview regions show the page empty state', async () => {
   const pagePath = path.join(root, 'pages', 'merchant', 'index.js');
   const runtimePath = require.resolve(path.join(root, 'utils', 'api-runtime.js'));

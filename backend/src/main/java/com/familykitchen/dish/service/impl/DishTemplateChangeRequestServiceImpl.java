@@ -1,0 +1,460 @@
+package com.familykitchen.dish.service.impl;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.familykitchen.common.error.BusinessException;
+import com.familykitchen.common.error.ErrorCode;
+import com.familykitchen.common.security.CurrentUserContext;
+import com.familykitchen.dish.mapper.DishTemplateChangeRequestMapper;
+import com.familykitchen.dish.mapper.DishTemplateMapper;
+import com.familykitchen.dish.mapper.DishMapper;
+import com.familykitchen.dish.model.dto.AdminDishTemplateChangeQuery;
+import com.familykitchen.dish.model.dto.DishTemplateApproveRequest;
+import com.familykitchen.dish.model.dto.DishTemplateChangeSubmitRequest;
+import com.familykitchen.dish.model.dto.DishTemplateIngredientSnapshotRequest;
+import com.familykitchen.dish.model.dto.DishTemplateRejectRequest;
+import com.familykitchen.dish.model.dto.DishTemplateSnapshotRequest;
+import com.familykitchen.dish.model.dto.MerchantDishTemplateChangeQuery;
+import com.familykitchen.dish.model.dto.ImportedDishTemplateSyncRequest;
+import com.familykitchen.dish.model.entity.DishEntity;
+import com.familykitchen.dish.model.entity.DishIngredientEntity;
+import com.familykitchen.dish.model.entity.DishTemplateCategoryEntity;
+import com.familykitchen.dish.model.entity.DishTemplateChangeRequestDO;
+import com.familykitchen.dish.model.entity.DishTemplateEntity;
+import com.familykitchen.dish.model.entity.DishTemplateIngredientEntity;
+import com.familykitchen.dish.model.entity.IngredientDictionaryEntity;
+import com.familykitchen.dish.model.vo.DishTemplateChangeDetailView;
+import com.familykitchen.dish.model.vo.DishTemplateChangeItemView;
+import com.familykitchen.dish.model.vo.DishTemplateChangePageView;
+import com.familykitchen.dish.model.vo.DishTemplateChangeSubmitView;
+import com.familykitchen.dish.service.DishTemplateChangeRequestService;
+import com.familykitchen.dish.service.DishTemplateSnapshotValidator;
+import com.familykitchen.notification.mapper.NotificationPersistenceMapper;
+import com.familykitchen.notification.model.entity.NotificationDO;
+import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * 模板菜品修改申请服务实现。
+ *
+ * <p>商户提交时持久化不可变的原快照与目标快照；平台通过时以行锁和模板版本号保证
+ * 主信息、食材、审核状态和结果通知原子提交。已导入商户菜品不参与任何更新。</p>
+ */
+@Service
+public class DishTemplateChangeRequestServiceImpl implements DishTemplateChangeRequestService {
+  private static final Set<String> STATUSES = Set.of("PENDING", "APPROVED", "REJECTED", "WITHDRAWN");
+  private static final TypeReference<List<String>> STRING_LIST = new TypeReference<>() { };
+
+  private final DishTemplateChangeRequestMapper requestMapper;
+  private final DishTemplateMapper templateMapper;
+  private final DishMapper dishMapper;
+  private final NotificationPersistenceMapper notificationMapper;
+  private final ObjectMapper objectMapper;
+  private final DishTemplateSnapshotValidator snapshotValidator;
+
+  /**
+   * 创建模板菜品修改申请服务。
+   * @param requestMapper 审核申请持久化 Mapper
+   * @param templateMapper 模板菜品与食材 Mapper
+   * @param dishMapper 商户菜品、配方与食材字典 Mapper
+   * @param notificationMapper 站内通知 Mapper
+   * @param objectMapper JSON 序列化组件
+   * @param snapshotValidator 完整快照校验器
+   */
+  public DishTemplateChangeRequestServiceImpl(DishTemplateChangeRequestMapper requestMapper,
+      DishTemplateMapper templateMapper, DishMapper dishMapper, NotificationPersistenceMapper notificationMapper,
+      ObjectMapper objectMapper, DishTemplateSnapshotValidator snapshotValidator) {
+    this.requestMapper = requestMapper;
+    this.templateMapper = templateMapper;
+    this.dishMapper = dishMapper;
+    this.notificationMapper = notificationMapper;
+    this.objectMapper = objectMapper;
+    this.snapshotValidator = snapshotValidator;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional
+  public DishTemplateChangeSubmitView submit(CurrentUserContext user, Long templateId,
+      DishTemplateChangeSubmitRequest request) {
+    requireMerchantAdmin(user);
+    if (templateId == null || templateId <= 0) throw badRequest("模板菜品ID必须为正整数");
+    if (request == null) throw badRequest("模板菜品修改申请不能为空");
+    DishTemplateSnapshotRequest target = snapshotValidator.parseAndValidate(request.targetSnapshot());
+    String submitNote = request.normalizedSubmitNote();
+    if (submitNote != null && submitNote.length() > 500) throw badRequest("提交说明最多500个字符");
+
+    DishTemplateEntity template = templateMapper.selectTemplateForUpdate(templateId);
+    if (template == null || !Boolean.TRUE.equals(template.getEnabled())) {
+      throw new BusinessException(ErrorCode.NOT_FOUND, "模板菜品不存在或已停用");
+    }
+    List<DishTemplateIngredientEntity> ingredients = templateMapper.selectTemplateIngredients(templateId);
+    return persistSubmission(user, template, target, submitNote, ingredients);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional
+  public DishTemplateChangeSubmitView submitFromImportedDish(CurrentUserContext user, Long dishId,
+      ImportedDishTemplateSyncRequest request) {
+    requireMerchantAdmin(user);
+    if (dishId == null || dishId <= 0) throw badRequest("菜品ID必须为正整数");
+    if (request == null) throw badRequest("同步模板申请不能为空");
+    String submitNote = request.normalizedSubmitNote();
+    if (submitNote != null && submitNote.length() > 500) throw badRequest("提交说明最多500个字符");
+
+    DishEntity dish = dishMapper.selectDish(user.merchantId(), dishId);
+    if (dish == null) throw new BusinessException(ErrorCode.NOT_FOUND, "菜品不存在或无权操作");
+    if (dish.getSourceTemplateId() == null) {
+      throw badRequest("该菜品不是从平台模板导入，不能申请同步");
+    }
+    List<DishIngredientEntity> dishIngredients = dishMapper.selectDishIngredients(dishId);
+    if (dishIngredients == null || dishIngredients.isEmpty()) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "当前菜品至少需要1项食材后才能申请同步");
+    }
+    List<IngredientDictionaryEntity> dictionary = dishMapper.selectIngredientDictionary(user.merchantId());
+
+    DishTemplateEntity template = templateMapper.selectTemplateForUpdate(dish.getSourceTemplateId());
+    if (template == null || !Boolean.TRUE.equals(template.getEnabled())) {
+      throw new BusinessException(ErrorCode.NOT_FOUND, "来源模板菜品不存在或已停用");
+    }
+    List<DishTemplateIngredientEntity> templateIngredients =
+        templateMapper.selectTemplateIngredients(dish.getSourceTemplateId());
+    DishTemplateSnapshotRequest target = snapshotValidator.parseAndValidate(objectMapper.valueToTree(
+        toImportedDishSnapshot(dish, template, dishIngredients, dictionary, templateIngredients)));
+    return persistSubmission(user, template, target, submitNote, templateIngredients);
+  }
+
+  private DishTemplateChangeSubmitView persistSubmission(CurrentUserContext user, DishTemplateEntity template,
+      DishTemplateSnapshotRequest target, String submitNote,
+      List<DishTemplateIngredientEntity> templateIngredients) {
+    Long templateId = template.getId();
+    requireEnabledCategory(target.categoryId());
+    DishTemplateSnapshotRequest base = toBaseSnapshot(template, templateIngredients);
+    if (requestMapper.countPending(user.merchantId(), templateId) > 0) {
+      throw conflict("本商户对该模板已有待审核修改申请");
+    }
+
+    DishTemplateChangeRequestDO entity = new DishTemplateChangeRequestDO();
+    entity.setMerchantId(user.merchantId());
+    entity.setTemplateId(templateId);
+    entity.setBaseTemplateVersion(template.getVersion() == null ? 0L : template.getVersion());
+    entity.setBaseSnapshotJson(writeSnapshot(base));
+    entity.setSnapshotJson(writeSnapshot(target));
+    entity.setSubmitNote(submitNote);
+    entity.setStatus("PENDING");
+    entity.setSubmittedBy(user.userId());
+    try {
+      requestMapper.insert(entity);
+    } catch (DuplicateKeyException exception) {
+      throw conflict("本商户对该模板已有待审核修改申请");
+    }
+    return new DishTemplateChangeSubmitView(entity.getId(), "PENDING", entity.getSubmittedAt());
+  }
+
+  private DishTemplateSnapshotRequest toImportedDishSnapshot(DishEntity dish, DishTemplateEntity template,
+      List<DishIngredientEntity> dishIngredients, List<IngredientDictionaryEntity> dictionary,
+      List<DishTemplateIngredientEntity> templateIngredients) {
+    Map<String, String> dictionaryCategories = new LinkedHashMap<>();
+    if (dictionary != null) {
+      for (IngredientDictionaryEntity item : dictionary) {
+        putCategory(dictionaryCategories, item.getName(), item.getCategory());
+      }
+    }
+    Map<String, String> templateCategories = new LinkedHashMap<>();
+    if (templateIngredients != null) {
+      for (DishTemplateIngredientEntity item : templateIngredients) {
+        putCategory(templateCategories, item.getIngredientName(), item.getIngredientCategory());
+      }
+    }
+    List<DishTemplateIngredientSnapshotRequest> ingredients = new java.util.ArrayList<>();
+    for (int index = 0; index < dishIngredients.size(); index++) {
+      DishIngredientEntity item = dishIngredients.get(index);
+      String key = ingredientKey(item.getIngredientName());
+      String category = dictionaryCategories.get(key);
+      if (category == null) category = templateCategories.get(key);
+      if (category == null) category = "其他";
+      ingredients.add(new DishTemplateIngredientSnapshotRequest(item.getIngredientName(), category,
+          item.getQuantity(), item.getUnit(), item.getCalcType(), index + 1));
+    }
+    return new DishTemplateSnapshotRequest(1, template.getCategoryId(), dish.getName(), dish.getDescription(),
+        dish.getImageUrl(), template.getImageSourceUrl(), template.getImageAuthor(), template.getImageLicense(),
+        dish.getBasePrice(), readTags(template.getTasteTags()), readTags(template.getMealTags()),
+        template.getSortOrder(), template.getEnabled(), List.copyOf(ingredients));
+  }
+
+  private static void putCategory(Map<String, String> target, String name, String category) {
+    if (name == null || name.isBlank() || category == null || category.isBlank()) return;
+    target.putIfAbsent(ingredientKey(name), category.trim());
+  }
+
+  private static String ingredientKey(String name) {
+    return name == null ? "" : name.trim().toLowerCase(Locale.ROOT);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional(readOnly = true)
+  public DishTemplateChangePageView merchantPage(CurrentUserContext user, MerchantDishTemplateChangeQuery query) {
+    requireMerchantAdmin(user);
+    MerchantDishTemplateChangeQuery normalized = query == null
+        ? new MerchantDishTemplateChangeQuery(null, null, 1, 20) : query;
+    String status = requireStatus(normalized.normalizedStatus());
+    long total = requestMapper.countMerchant(user.merchantId(), status, normalized.normalizedKeyword());
+    List<DishTemplateChangeItemView> items = requestMapper.selectMerchantPage(user.merchantId(), status,
+        normalized.normalizedKeyword(), normalized.offset(), normalized.normalizedPageSize()).stream()
+        .map(DishTemplateChangeRequestServiceImpl::toItem).toList();
+    return new DishTemplateChangePageView(items, total, normalized.normalizedPage(), normalized.normalizedPageSize());
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional(readOnly = true)
+  public DishTemplateChangeDetailView merchantDetail(CurrentUserContext user, Long requestId) {
+    requireMerchantAdmin(user);
+    DishTemplateChangeRequestDO entity = requestMapper.selectMerchantDetail(requestId, user.merchantId());
+    return toDetail(requireRequest(entity));
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional
+  public void withdraw(CurrentUserContext user, Long requestId) {
+    requireMerchantAdmin(user);
+    DishTemplateChangeRequestDO entity = requestMapper.selectMerchantForUpdate(requestId, user.merchantId());
+    requirePending(requireRequest(entity));
+    if (requestMapper.markWithdrawn(requestId, user.userId()) != 1) {
+      throw conflict("模板菜品修改申请已处理");
+    }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional(readOnly = true)
+  public DishTemplateChangePageView adminPage(CurrentUserContext user, AdminDishTemplateChangeQuery query) {
+    requirePlatformAdmin(user);
+    AdminDishTemplateChangeQuery normalized = query == null
+        ? new AdminDishTemplateChangeQuery(null, null, null, null, 1, 20) : query;
+    String status = requireStatus(normalized.normalizedStatus());
+    long total = requestMapper.countAdmin(status, normalized.merchantId(), normalized.templateId(),
+        normalized.normalizedKeyword());
+    List<DishTemplateChangeItemView> items = requestMapper.selectAdminPage(status, normalized.merchantId(),
+        normalized.templateId(), normalized.normalizedKeyword(), normalized.offset(), normalized.normalizedPageSize())
+        .stream().map(DishTemplateChangeRequestServiceImpl::toItem).toList();
+    return new DishTemplateChangePageView(items, total, normalized.normalizedPage(), normalized.normalizedPageSize());
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional(readOnly = true)
+  public DishTemplateChangeDetailView adminDetail(CurrentUserContext user, Long requestId) {
+    requirePlatformAdmin(user);
+    return toDetail(requireRequest(requestMapper.selectDetail(requestId)));
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional
+  public void approve(CurrentUserContext user, Long requestId, DishTemplateApproveRequest request) {
+    requirePlatformAdmin(user);
+    DishTemplateChangeRequestDO application = requireRequest(requestMapper.selectForUpdate(requestId));
+    requirePending(application);
+    DishTemplateEntity current = templateMapper.selectTemplateForUpdate(application.getTemplateId());
+    if (current == null || !Boolean.TRUE.equals(current.getEnabled())) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "模板菜品不存在或已停用，无法通过申请");
+    }
+    long currentVersion = current.getVersion() == null ? 0L : current.getVersion();
+    if (currentVersion != application.getBaseTemplateVersion()) {
+      throw conflict("模板菜品已发生变化，请重新提交");
+    }
+    DishTemplateSnapshotRequest target = readSnapshot(application.getSnapshotJson());
+    requireEnabledCategory(target.categoryId());
+    DishTemplateEntity replacement = toTemplate(application.getTemplateId(), target);
+    if (templateMapper.replaceTemplate(replacement, application.getBaseTemplateVersion()) != 1) {
+      throw conflict("模板菜品已发生变化，请重新提交");
+    }
+    templateMapper.deleteTemplateIngredients(application.getTemplateId());
+    for (DishTemplateIngredientSnapshotRequest item : target.ingredients()) {
+      templateMapper.insertTemplateIngredient(toIngredient(application.getTemplateId(), item));
+    }
+    String reason = request == null ? null : request.normalizedReason();
+    if (reason != null && reason.length() > 500) throw badRequest("审核意见最多500个字符");
+    if (requestMapper.markApproved(requestId, user.userId(), reason) != 1) {
+      throw conflict("模板菜品修改申请已处理");
+    }
+    createResultNotification(application, target.name(), "已通过", reason);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional
+  public void reject(CurrentUserContext user, Long requestId, DishTemplateRejectRequest request) {
+    requirePlatformAdmin(user);
+    DishTemplateChangeRequestDO application = requireRequest(requestMapper.selectForUpdate(requestId));
+    requirePending(application);
+    String reason = request == null ? null : request.normalizedReason();
+    if (reason == null || reason.isBlank()) throw badRequest("驳回原因不能为空");
+    if (reason.length() > 500) throw badRequest("驳回原因最多500个字符");
+    if (requestMapper.markRejected(requestId, user.userId(), reason) != 1) {
+      throw conflict("模板菜品修改申请已处理");
+    }
+    String templateName = application.getTemplateName();
+    if (templateName == null || templateName.isBlank()) {
+      templateName = readSnapshot(application.getSnapshotJson()).name();
+    }
+    createResultNotification(application, templateName, "已驳回", reason);
+  }
+
+  private void createResultNotification(DishTemplateChangeRequestDO application, String templateName,
+      String result, String reason) {
+    NotificationDO notification = new NotificationDO();
+    notification.setReceiverType("merchant");
+    notification.setReceiverId(application.getMerchantId());
+    notification.setReceiverScope("merchant");
+    notification.setCategory("dish_template_review");
+    notification.setTitle("模板菜品修改申请" + result);
+    notification.setContent("申请ID：" + application.getId() + "；模板菜品：" + templateName + "；结果：" + result
+        + "；审核原因：" + (reason == null ? "无" : reason)
+        + "；详情入口：/merchant/dish-template-change-requests/" + application.getId());
+    if (notificationMapper.insertNotificationEntity(notification) != 1 || notification.getId() == null) {
+      throw new BusinessException(ErrorCode.SYSTEM_ERROR, "审核结果通知创建失败");
+    }
+    requestMapper.setResultNotificationId(application.getId(), notification.getId());
+  }
+
+  private DishTemplateSnapshotRequest toBaseSnapshot(DishTemplateEntity template,
+      List<DishTemplateIngredientEntity> ingredients) {
+    List<DishTemplateIngredientSnapshotRequest> items = ingredients.stream()
+        .map(item -> new DishTemplateIngredientSnapshotRequest(item.getIngredientName(),
+            item.getIngredientCategory(), item.getQuantity(), item.getUnit(), item.getCalcType(), item.getSortOrder()))
+        .toList();
+    return new DishTemplateSnapshotRequest(1, template.getCategoryId(), template.getName(),
+        template.getDescription(), template.getImageUrl(), template.getImageSourceUrl(), template.getImageAuthor(),
+        template.getImageLicense(), template.getReferencePrice(), readTags(template.getTasteTags()),
+        readTags(template.getMealTags()), template.getSortOrder(), template.getEnabled(), items);
+  }
+
+  private DishTemplateChangeDetailView toDetail(DishTemplateChangeRequestDO entity) {
+    DishTemplateSnapshotRequest base = readSnapshot(entity.getBaseSnapshotJson());
+    DishTemplateSnapshotRequest target = readSnapshot(entity.getSnapshotJson());
+    Long currentVersion = entity.getCurrentTemplateVersion();
+    boolean stale = currentVersion == null || !currentVersion.equals(entity.getBaseTemplateVersion());
+    return new DishTemplateChangeDetailView(entity.getId(), entity.getMerchantId(), entity.getMerchantName(),
+        entity.getTemplateId(), entity.getTemplateName(), entity.getBaseTemplateVersion(), currentVersion, stale,
+        entity.getStatus(), entity.getSubmitNote(), base, target, entity.getSubmittedBy(), entity.getSubmittedAt(),
+        entity.getReviewedBy(), entity.getReviewReason(), entity.getReviewedAt(), entity.getWithdrawnBy(),
+        entity.getWithdrawnAt(), entity.getResultNotificationId());
+  }
+
+  private DishTemplateSnapshotRequest readSnapshot(String json) {
+    try {
+      JsonNode node = objectMapper.readTree(json);
+      return snapshotValidator.parseAndValidate(node);
+    } catch (BusinessException exception) {
+      throw exception;
+    } catch (Exception exception) {
+      throw new BusinessException(ErrorCode.SYSTEM_ERROR, "模板菜品审核快照无法读取");
+    }
+  }
+
+  private List<String> readTags(String json) {
+    if (json == null || json.isBlank()) return List.of();
+    try {
+      return objectMapper.readValue(json, STRING_LIST);
+    } catch (Exception exception) {
+      throw new BusinessException(ErrorCode.SYSTEM_ERROR, "模板菜品标签数据格式错误");
+    }
+  }
+
+  private String writeSnapshot(DishTemplateSnapshotRequest snapshot) {
+    try {
+      return objectMapper.writeValueAsString(snapshot);
+    } catch (Exception exception) {
+      throw new BusinessException(ErrorCode.SYSTEM_ERROR, "模板菜品审核快照生成失败");
+    }
+  }
+
+  private DishTemplateCategoryEntity requireEnabledCategory(Long categoryId) {
+    DishTemplateCategoryEntity category = templateMapper.selectCategoryForUpdate(categoryId);
+    if (category == null || !Boolean.TRUE.equals(category.getEnabled())) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "模板菜品分类不存在或已停用");
+    }
+    return category;
+  }
+
+  private DishTemplateEntity toTemplate(Long templateId, DishTemplateSnapshotRequest source) {
+    DishTemplateEntity entity = new DishTemplateEntity();
+    entity.setId(templateId); entity.setCategoryId(source.categoryId()); entity.setName(source.name());
+    entity.setDescription(source.description()); entity.setImageUrl(source.imageUrl());
+    entity.setImageSourceUrl(source.imageSourceUrl()); entity.setImageAuthor(source.imageAuthor());
+    entity.setImageLicense(source.imageLicense()); entity.setReferencePrice(source.referencePrice());
+    entity.setTasteTags(writeTags(source.tasteTags())); entity.setMealTags(writeTags(source.mealTags()));
+    entity.setSortOrder(source.sortOrder()); entity.setEnabled(source.enabled());
+    return entity;
+  }
+
+  private static DishTemplateIngredientEntity toIngredient(Long templateId,
+      DishTemplateIngredientSnapshotRequest source) {
+    DishTemplateIngredientEntity entity = new DishTemplateIngredientEntity();
+    entity.setTemplateId(templateId); entity.setIngredientName(source.ingredientName());
+    entity.setIngredientCategory(source.ingredientCategory()); entity.setQuantity(source.quantity());
+    entity.setUnit(source.unit()); entity.setCalcType(source.calcType()); entity.setSortOrder(source.sortOrder());
+    return entity;
+  }
+
+  private String writeTags(List<String> values) {
+    try {
+      return objectMapper.writeValueAsString(values);
+    } catch (Exception exception) {
+      throw new BusinessException(ErrorCode.SYSTEM_ERROR, "模板菜品标签数据生成失败");
+    }
+  }
+
+  private static DishTemplateChangeItemView toItem(DishTemplateChangeRequestDO item) {
+    return new DishTemplateChangeItemView(item.getId(), item.getMerchantId(), item.getMerchantName(),
+        item.getTemplateId(), item.getTemplateName(), item.getBaseTemplateVersion(), item.getStatus(),
+        item.getSubmitNote(), item.getSubmittedBy(), item.getSubmittedAt(), item.getReviewedBy(),
+        item.getReviewReason(), item.getReviewedAt());
+  }
+
+  private static DishTemplateChangeRequestDO requireRequest(DishTemplateChangeRequestDO entity) {
+    if (entity == null) throw new BusinessException(ErrorCode.NOT_FOUND, "模板菜品修改申请不存在");
+    return entity;
+  }
+
+  private static void requirePending(DishTemplateChangeRequestDO entity) {
+    if (!"PENDING".equals(entity.getStatus())) throw conflict("模板菜品修改申请已处理");
+  }
+
+  private static String requireStatus(String status) {
+    if (status != null && !STATUSES.contains(status)) throw badRequest("模板菜品修改申请状态不支持");
+    return status;
+  }
+
+  private static void requireMerchantAdmin(CurrentUserContext user) {
+    if (user == null || user.merchantId() == null || !user.hasMerchantBackendAccess()) {
+      throw new BusinessException(ErrorCode.FORBIDDEN, "需要商户后台管理权限");
+    }
+  }
+
+  private static void requirePlatformAdmin(CurrentUserContext user) {
+    if (user == null || !user.hasPlatformBackendAccess()) {
+      throw new BusinessException(ErrorCode.FORBIDDEN, "需要平台后台管理权限");
+    }
+  }
+
+  private static BusinessException badRequest(String message) {
+    return new BusinessException(ErrorCode.BAD_REQUEST, message);
+  }
+
+  private static BusinessException conflict(String message) {
+    return new BusinessException(ErrorCode.STATE_CONFLICT, message);
+  }
+}

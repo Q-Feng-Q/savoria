@@ -2,6 +2,12 @@ const { unwrapData } = require('./_shared');
 
 function createMerchantService({ request }) {
   return {
+    async getProfile() {
+      return unwrapData(await request('/api/merchant/profile', { method: 'GET' }));
+    },
+    async updateProfile(payload) {
+      return unwrapData(await request('/api/merchant/profile', { method: 'PUT', data: payload }));
+    },
     async getDishes() {
       return unwrapData(await request('/api/merchant/dishes', { method: 'GET' }));
     },

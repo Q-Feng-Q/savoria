@@ -1,0 +1,17 @@
+<view class="warm-page warm-page--form warm-state-host merchant-profile-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" bind:retry="retryLoad" />
+  <view wx:else class="merchant-profile-sheet">
+    <view class="merchant-profile-heading">
+      <text class="merchant-profile-eyebrow">商户工作台 · 业务资料</text>
+      <text class="merchant-profile-title">把联系信息照看好</text>
+      <text class="merchant-profile-note">这里只修改商户名称、联系人和联系电话，不影响商户 ID、状态及负责人关系。</text>
+    </view>
+    <label class="merchant-profile-field"><text>商户名称</text><input value="{{form.name}}" data-field="name" bindinput="input" maxlength="100" disabled="{{!editable || saving}}" placeholder="请输入商户名称" /></label>
+    <label class="merchant-profile-field"><text>联系人</text><input value="{{form.contactName}}" data-field="contactName" bindinput="input" maxlength="50" disabled="{{!editable || saving}}" placeholder="选填" /></label>
+    <label class="merchant-profile-field"><text>联系电话</text><input value="{{form.contactPhone}}" data-field="contactPhone" bindinput="input" maxlength="30" disabled="{{!editable || saving}}" placeholder="选填" /></label>
+    <view class="merchant-profile-actions">
+      <view class="merchant-profile-save {{saving || completed || !editable ? 'is-disabled' : ''}}" bindtap="save" aria-role="button" aria-label="保存商户资料" aria-disabled="{{saving || completed || !editable}}" aria-busy="{{saving}}" hover-class="ui-button--pressed" hover-stay-time="80">{{saving ? '保存中…' : '保存资料'}}</view>
+      <view class="merchant-profile-cancel {{saving || completed ? 'is-disabled' : ''}}" bindtap="cancel" aria-role="button" aria-label="取消编辑" aria-disabled="{{saving || completed}}" hover-class="ui-button--pressed" hover-stay-time="80">取消</view>
+    </view>
+  </view>
+</view>

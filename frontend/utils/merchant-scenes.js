@@ -97,6 +97,7 @@ function mapMerchantOrder(order, familyNameMap = new Map(), mealSlotMap = new Ma
 
 function buildApiMerchantScene({
   session,
+  merchantProfile = null,
   families = [],
   orders = [],
   selectedFamilyId = null,
@@ -104,7 +105,7 @@ function buildApiMerchantScene({
   purchaseSummary = [],
   mealSlots = []
 }) {
-  const merchantName = getMerchantName(session, families);
+  const merchantName = (merchantProfile && merchantProfile.name) || getMerchantName(session, families);
   const context = buildMerchantContext(session, merchantName);
   const merchantOptions = buildMerchantOptions(session, merchantName);
   const familyOptions = families.map((item) => ({

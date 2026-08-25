@@ -70,6 +70,22 @@ test('public system settings endpoint is available before login', async () => {
   assert.equal(calls[0].options.method, 'GET');
 });
 
+test('merchant profile service uses the self-service profile endpoints', async () => {
+  const calls = [];
+  const merchant = createMerchantService({ request: async (pathname, options) => {
+    calls.push({ pathname, options });
+    return { code: 0, data: { name: '暖炉小馆' } };
+  }});
+  await merchant.getProfile();
+  await merchant.updateProfile({ name: '暖炉新馆', contactName: '林女士', contactPhone: '13800000000' });
+  assert.deepEqual(calls, [
+    { pathname: '/api/merchant/profile', options: { method: 'GET' } },
+    { pathname: '/api/merchant/profile', options: {
+      method: 'PUT', data: { name: '暖炉新馆', contactName: '林女士', contactPhone: '13800000000' }
+    } }
+  ]);
+});
+
 test('family and cart services target stable family endpoints', async () => {
   const calls = [];
   const request = async (pathname, options) => {
@@ -96,7 +112,10 @@ test('family and cart services target stable family endpoints', async () => {
   await family.getJoinApplications();
   await family.approveJoinApplication(14);
   await family.rejectJoinApplication(15, { reason: '信息不符' });
-  await family.transferOwner({ targetUserId: 9 });
+  await family.getInfo();
+  await family.updateInfo({ familyName: '陈家', note: null });
+  await family.getOwnerCandidates();
+  await family.transferOwner({ targetMemberId: 9 });
   await family.dissolveFamily();
   await cart.getCart({ mealSlotId: 20, date: '2026-07-02' });
   await cart.addItem({ dishId: 100, quantity: 1 });
@@ -113,12 +132,16 @@ test('family and cart services target stable family endpoints', async () => {
   assert.equal(calls[11].pathname, '/api/family/invitations/12/accept');
   assert.equal(calls[12].pathname, '/api/family/invitations/13/reject');
   assert.equal(calls[13].pathname, '/api/family/join-applications');
-  assert.equal(calls[16].pathname, '/api/family/owner');
-  assert.equal(calls[17].pathname, '/api/family/current');
-  assert.equal(calls[18].pathname, '/api/family/cart?mealSlotId=20&date=2026-07-02');
-  assert.equal(calls[22].pathname, '/api/family/cart/remark');
+  assert.equal(calls[16].pathname, '/api/family/info');
+  assert.equal(calls[17].pathname, '/api/family/info');
+  assert.equal(calls[18].pathname, '/api/family/owner-candidates');
+  assert.equal(calls[19].pathname, '/api/family/owner');
+  assert.deepEqual(calls[19].options.data, { targetMemberId: 9 });
+  assert.equal(calls[20].pathname, '/api/family/current');
+  assert.equal(calls[21].pathname, '/api/family/cart?mealSlotId=20&date=2026-07-02');
+  assert.equal(calls[25].pathname, '/api/family/cart/remark');
   assert.match(calls[2].pathname, /categoryId=3/);
-  assert.equal(calls[18].options.data.mealSlotId, 20);
+  assert.equal(calls[21].options.data.mealSlotId, 20);
 });
 
 test('user service matches the unified identity endpoints', async () => {

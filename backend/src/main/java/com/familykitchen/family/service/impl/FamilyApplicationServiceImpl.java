@@ -16,6 +16,7 @@ import com.familykitchen.family.model.entity.FamilyRecord;
 import com.familykitchen.family.model.entity.MealSlotRecord;
 import com.familykitchen.family.model.vo.AddressView;
 import com.familykitchen.family.model.vo.FamilyHomeResponse;
+import com.familykitchen.family.model.vo.FamilyInfoView;
 import com.familykitchen.family.model.vo.FamilyMenuItemView;
 import com.familykitchen.family.service.FamilyApplicationService;
 import com.familykitchen.wallet.mapper.WalletPersistenceMapper;
@@ -94,6 +95,24 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
       slots,
       familyMapper.selectRecentOrders(user.familyId())
     );
+  }
+
+  /**
+   * 查询当前家庭业务资料。
+   *
+   * @param user 当前用户
+   * @return 家庭业务资料
+   */
+  @Override
+  public FamilyInfoView familyInfo(CurrentUserContext user) {
+    FamilyRecord family = requireFamily(null, user.familyId());
+    return new FamilyInfoView(
+        family.getFamilyName(),
+        family.getNote(),
+        family.getMerchantName(),
+        Boolean.TRUE.equals(family.getDeliveryEnabled()),
+        money(family.getDeliveryFeeDefault()),
+        Boolean.TRUE.equals(family.getDeliveryFree()));
   }
 
   /**
@@ -266,19 +285,24 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
         .toList();
   }
 
+  /**
+   * 更新当前家庭名称与备注。
+   *
+   * @param user 当前用户
+   * @param request 更新请求
+   */
   @Override
   @Transactional
   public void updateFamilyInfo(CurrentUserContext user, UpdateFamilyInfoRequest request) {
     if (!user.hasFamilyAdminAccess()) {
       throw new BusinessException(ErrorCode.FORBIDDEN, "仅家庭管理员可修改家庭资料");
     }
-    if (familyMapper.updateFamilyProfile(
-        user.merchantId(),
-        user.familyId(),
-        request.familyName(),
-        request.note(),
-        toJson(request.contactNames())
-    ) == 0) {
+    String familyName = request.familyName() == null ? "" : request.familyName().trim();
+    if (familyName.isEmpty()) {
+      throw new BusinessException(ErrorCode.BAD_REQUEST, "家庭名称不能为空");
+    }
+    String note = request.note() == null || request.note().isBlank() ? null : request.note().trim();
+    if (familyMapper.updateFamilyInfo(user.familyId(), familyName, note) == 0) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "未找到家庭");
     }
   }

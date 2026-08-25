@@ -19,6 +19,7 @@
     "pages/family/wallet/index",
     "pages/family/wallet-ledger/index",
     "pages/merchant/index",
+    "pages/merchant/merchant-profile-edit/index",
     "pages/merchant/merchant-families/index",
     "pages/merchant/merchant-family-detail/index",
     "pages/merchant/merchant-orders/index",

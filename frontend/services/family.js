@@ -20,6 +20,12 @@ function createFamilyService({ request }) {
     async getHome() {
       return unwrapData(await request('/api/family/home', { method: 'GET' }));
     },
+    async getInfo() {
+      return unwrapData(await request('/api/family/info', { method: 'GET' }));
+    },
+    async updateInfo(payload) {
+      return unwrapData(await request('/api/family/info', { method: 'PUT', data: payload }));
+    },
     async getMealSlots() {
       return unwrapData(await request('/api/family/meal-slots', { method: 'GET' }));
     },
@@ -70,6 +76,9 @@ function createFamilyService({ request }) {
     },
     async transferOwner(payload) {
       return unwrapData(await request('/api/family/owner', { method: 'PUT', data: payload }));
+    },
+    async getOwnerCandidates() {
+      return unwrapData(await request('/api/family/owner-candidates', { method: 'GET' }));
     },
     async dissolveFamily() {
       return unwrapData(await request('/api/family/current', { method: 'DELETE' }));

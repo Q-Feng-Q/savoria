@@ -7,6 +7,7 @@ import com.familykitchen.family.model.dto.DirectInvitationRequest;
 import com.familykitchen.family.model.entity.FamilyMembershipRequestDO;
 import java.util.List;
 import com.familykitchen.family.model.vo.FamilyOnboardingView;
+import com.familykitchen.family.model.vo.OwnerCandidateView;
 
 /**
  * 家庭成员管理服务。
@@ -102,12 +103,18 @@ public interface FamilyMemberApplicationService {
    */
   void rejectApplication(CurrentUserContext user, Long requestId, String reason);
   /**
+   * 查询当前负责人可移交的有效成员。
+   * @param user 当前登录上下文
+   * @return 隐私安全候选列表
+   */
+  List<OwnerCandidateView> ownerCandidates(CurrentUserContext user);
+  /**
    * 移交负责人。
    *
    * @param user 用户
-   * @param targetUserId 目标用户标识
+   * @param targetMemberId 目标家庭成员标识
    */
-  void transferOwner(CurrentUserContext user, Long targetUserId);
+  void transferOwner(CurrentUserContext user, Long targetMemberId);
   /**
    * 处理家庭。
    *

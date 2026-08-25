@@ -7,6 +7,7 @@ import com.familykitchen.family.model.dto.AddressRequest;
 import com.familykitchen.family.model.dto.UpdateFamilyInfoRequest;
 import com.familykitchen.family.model.vo.AddressView;
 import com.familykitchen.family.model.vo.FamilyHomeResponse;
+import com.familykitchen.family.model.vo.FamilyInfoView;
 import com.familykitchen.wallet.model.vo.WalletLedgerView;
 import java.util.List;
 
@@ -17,6 +18,13 @@ import java.util.List;
  * 所有方法都以当前登录家庭成员上下文作为数据隔离依据。</p>
  */
 public interface FamilyApplicationService {
+
+  /**
+   * 查询当前家庭可展示的业务资料。
+   * @param user 当前登录用户上下文
+   * @return 家庭业务资料
+   */
+  FamilyInfoView familyInfo(CurrentUserContext user);
 
   /**
    * 查询家庭端首页聚合信息。
@@ -105,10 +113,10 @@ public interface FamilyApplicationService {
   List<WalletLedgerView> walletLedgers(CurrentUserContext user);
 
   /**
-   * 修改当前家庭的基本资料（名称、备注、联系人）。
+   * 修改当前家庭的基本资料（名称、备注）。
    *
    * @param user 当前登录用户上下文
-   * @param request 家庭名称、备注和联系人列表
+   * @param request 家庭名称与备注
    */
   void updateFamilyInfo(CurrentUserContext user, UpdateFamilyInfoRequest request);
 }

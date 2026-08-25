@@ -1,0 +1,14 @@
+<view class="warm-page change-detail">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="申请详情" description="{{errorMessage}}" bind:retry="retryLoad" />
+  <block wx:else>
+    <view class="summary"><view><text class="summary-kicker">申请 #{{detail.requestId}}</text><text class="summary-title">{{detail.templateName}}</text><text class="summary-meta">提交于 {{detail.submittedText}} · 模板版本 {{detail.baseTemplateVersion}}</text></view><text class="status status--{{detail.statusTone}}">{{detail.statusLabel}}</text></view>
+    <view wx:if="{{detail.stale}}" class="stale-warning"><text>模板已发生变化</text><text>当前版本为 {{detail.currentTemplateVersion}}，该申请不能直接通过，可撤回后按最新模板重提。</text></view>
+    <view class="note-block"><text class="block-title">提交说明</text><text>{{detail.submitNote || '未填写提交说明'}}</text></view>
+    <view wx:if="{{detail.reviewReason}}" class="review-block"><text class="block-title">审核意见</text><text>{{detail.reviewReason}}</text></view>
+    <text class="section-title">字段对比</text>
+    <view class="compare-table"><view class="compare-head"><text>字段</text><text>修改前</text><text>申请修改为</text></view><view wx:for="{{comparison}}" wx:key="key" class="compare-row {{item.changed ? 'compare-row--changed' : ''}}"><text>{{item.label}}</text><text>{{item.baseText}}</text><text>{{item.targetText}}</text></view></view>
+    <text class="section-title">食材对比</text>
+    <view class="ingredient-columns"><view><text class="column-title">修改前 · {{baseIngredients.length}} 项</text><view wx:for="{{baseIngredients}}" wx:key="key" class="ingredient-row"><text>{{item.ingredientName}}</text><text>{{item.text}}</text></view></view><view><text class="column-title">申请修改为 · {{targetIngredients.length}} 项</text><view wx:for="{{targetIngredients}}" wx:key="key" class="ingredient-row ingredient-row--target"><text>{{item.ingredientName}}</text><text>{{item.text}}</text></view></view></view>
+    <view wx:if="{{detail.canWithdraw}}" class="withdraw-action {{withdrawing ? 'is-disabled' : ''}}" bindtap="withdraw" aria-role="button" aria-label="撤回本次模板修改申请" hover-class="ui-button--pressed">{{withdrawing ? '撤回中' : '撤回本次申请'}}</view>
+  </block>
+</view>

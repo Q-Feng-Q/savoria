@@ -4,6 +4,7 @@ import com.familykitchen.family.model.entity.FamilyRecord;
 import com.familykitchen.family.model.entity.FamilyApplicationDO;
 import java.util.List;
 import com.familykitchen.family.model.vo.MerchantOptionView;
+import com.familykitchen.family.model.vo.OwnerCandidateView;
 import org.apache.ibatis.annotations.*;
 /** 家庭邀请、申请和负责人流程 Mapper。 */
 @Mapper public interface FamilyWorkflowMapper {
@@ -147,6 +148,55 @@ import org.apache.ibatis.annotations.*;
    * @return 查询编码家庭的结果
    */
   @Select("SELECT family_id FROM family_invitation_codes WHERE id=#{id}") Long findCodeFamily(Long id);
+
+  /**
+   * 锁定当前有效家庭以串行化负责人移交。
+   * @param familyId 家庭标识
+   * @return 已锁定家庭标识
+   */
+  @Select("SELECT id FROM families WHERE id=#{familyId} AND status='active' FOR UPDATE")
+  Long lockFamily(Long familyId);
+
+  /**
+   * 查询负责人移交候选成员。
+   * @param familyId 家庭标识
+   * @param currentUserId 当前负责人用户标识
+   * @return 隐私安全候选列表
+   */
+  @Select("SELECT u.id member_id, COALESCE(NULLIF(TRIM(u.nickname),''),'家庭成员') display_name, "
+      + "CASE WHEN u.mobile IS NULL OR CHAR_LENGTH(TRIM(u.mobile)) < 4 THEN NULL ELSE RIGHT(TRIM(u.mobile),4) END phone_suffix "
+      + "FROM family_user_relations fr JOIN users u ON u.id=fr.user_id "
+      + "WHERE fr.family_id=#{familyId} AND fr.status='ACTIVE' AND fr.family_role<>'OWNER' "
+      + "AND u.status='ACTIVE' AND u.id<>#{currentUserId} ORDER BY u.id ASC")
+  @ConstructorArgs({
+      @Arg(column = "member_id", javaType = Long.class, id = true),
+      @Arg(column = "display_name", javaType = String.class),
+      @Arg(column = "phone_suffix", javaType = String.class)
+  })
+  List<OwnerCandidateView> selectOwnerCandidates(
+      @Param("familyId") Long familyId,
+      @Param("currentUserId") Long currentUserId);
+
+  /**
+   * 统计当前家庭有效负责人数量。
+   * @param familyId 家庭标识
+   * @return 有效负责人数量
+   */
+  @Select("SELECT COUNT(*) FROM family_user_relations WHERE family_id=#{familyId} AND status='ACTIVE' AND family_role='OWNER'")
+  int countActiveOwners(Long familyId);
+
+  /**
+   * 校验目标成员仍可接任负责人。
+   * @param familyId 家庭标识
+   * @param memberId 目标成员标识
+   * @return 符合条件的记录数量
+   */
+  @Select("SELECT COUNT(*) FROM family_user_relations fr JOIN users u ON u.id=fr.user_id "
+      + "WHERE fr.family_id=#{familyId} AND fr.user_id=#{memberId} AND fr.status='ACTIVE' "
+      + "AND fr.family_role<>'OWNER' AND u.status='ACTIVE'")
+  int countEligibleOwnerCandidate(
+      @Param("familyId") Long familyId,
+      @Param("memberId") Long memberId);
   /**
    * 处理角色。
    *
@@ -166,6 +216,22 @@ import org.apache.ibatis.annotations.*;
    */
   @Update("UPDATE family_user_relations SET family_role=#{role} WHERE user_id=#{userId} AND family_id=#{familyId} AND status='ACTIVE'")
   int updateRole(@Param("userId")Long userId,@Param("familyId")Long familyId,@Param("role")String role);
+
+  /**
+   * 仅当成员角色仍为预期值时更新角色。
+   * @param userId 用户标识
+   * @param familyId 家庭标识
+   * @param expectedRole 预期角色
+   * @param newRole 新角色
+   * @return 受影响行数
+   */
+  @Update("UPDATE family_user_relations SET family_role=#{newRole} "
+      + "WHERE user_id=#{userId} AND family_id=#{familyId} AND status='ACTIVE' AND family_role=#{expectedRole}")
+  int updateRoleIfCurrent(
+      @Param("userId") Long userId,
+      @Param("familyId") Long familyId,
+      @Param("expectedRole") String expectedRole,
+      @Param("newRole") String newRole);
   /**
    * 处理Relations。
    *

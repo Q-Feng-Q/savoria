@@ -7,7 +7,15 @@
         <text class="merchant-identity__eyebrow">商户工作台 · {{todayLabel}}</text>
         <text class="merchant-identity__name">{{context.merchant.name}}</text>
       </view>
-      <view class="ui-button merchant-identity__switch merchant-switch-link" bindtap="openAccountSwitcher" aria-role="button" aria-label="切换账号/身份" hover-class="ui-button--pressed" hover-stay-time="80">切换账号/身份</view>
+      <view class="merchant-identity__actions">
+        <view class="ui-button merchant-identity__edit" bindtap="openMerchantProfile" aria-role="button" aria-label="编辑商户资料" hover-class="ui-button--pressed" hover-stay-time="80">编辑资料</view>
+        <view class="ui-button merchant-identity__switch merchant-switch-link" bindtap="openAccountSwitcher" aria-role="button" aria-label="切换账号/身份" hover-class="ui-button--pressed" hover-stay-time="80">切换账号/身份</view>
+      </view>
+    </view>
+
+    <view wx:if="{{regionStates.profile.phase === 'error'}}" class="merchant-profile-state">
+      <text>{{regionStates.profile.message}}，当前暂用家庭资料中的商户名称。</text>
+      <view class="ui-button merchant-profile-state__retry" bindtap="retryLoad" aria-role="button" aria-label="重试商户资料" hover-class="ui-button--pressed">重试资料</view>
     </view>
 
     <view class="merchant-focus">

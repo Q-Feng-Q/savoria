@@ -1,14 +1,117 @@
 <view class="warm-page warm-state-host family-manage-page">
-  <view class="manage-hero"><text class="manage-kicker">FAMILY TABLE</text><text class="manage-title">一家人的餐桌</text><text class="manage-note">{{isOwner ? '你是家庭负责人，可以邀请成员、移交负责人或解散家庭。' : (isAdmin ? '你是家庭管理员，可以邀请成员并处理加入申请。' : '你是家庭成员，可以管理自己的家庭关系。')}}</text></view>
-  <page-state wx:if="{{loading}}" phase="loading" title="正在整理家庭信息" description="请稍候" />
-  <block wx:else>
-    <view wx:if="{{invitations.length}}" class="manage-section"><text class="manage-section__title">待处理邀请</text><view wx:for="{{invitations}}" wx:key="id" class="application-row"><view><text class="row-title">家庭邀请</text><text class="row-note">来自家庭 #{{item.familyId}}</text></view><view class="row-actions"><view data-id="{{item.id}}" bindtap="acceptInvitation" class="ui-button mini-action mini-action--primary" aria-role="button" aria-label="接受家庭邀请" hover-class="ui-button--pressed">接受</view><view data-id="{{item.id}}" bindtap="rejectInvitation" class="ui-button mini-action" aria-role="button" aria-label="拒绝家庭邀请" hover-class="ui-button--pressed">拒绝</view></view></view></view>
-    <block wx:if="{{isAdmin}}">
-      <view class="manage-section"><text class="manage-section__title">家庭邀请码</text><view wx:if="{{invitationCode}}" class="invitation-code" bindtap="copyCode"><text>{{invitationCode}}</text><text>点击复制</text></view><action-button label="{{busy ? '处理中…' : '生成新邀请码'}}" disabled="{{busy}}" tone="secondary" block bind:action="generateCode" /></view>
-      <view class="manage-section"><text class="manage-section__title">定向邀请</text><input class="manage-input" value="{{userIdentifier}}" data-field="userIdentifier" bindinput="input" placeholder="输入账号、手机号或邮箱" /><action-button label="发送家庭邀请" disabled="{{busy}}" tone="secondary" block bind:action="directInvite" /></view>
-      <view class="manage-section"><text class="manage-section__title">待处理申请</text><page-state wx:if="{{!applications.length}}" phase="empty" title="暂无加入申请" description="新申请会显示在这里" illustration="orders" /><view wx:for="{{applications}}" wx:key="id" class="application-row"><view><text class="row-title">用户 #{{item.applicantUserId}}</text><text class="row-note">申请加入家庭</text></view><view class="row-actions"><view data-id="{{item.id}}" bindtap="approve" class="ui-button mini-action mini-action--primary" aria-role="button" aria-label="通过加入申请" hover-class="ui-button--pressed">通过</view><view data-id="{{item.id}}" bindtap="reject" class="ui-button mini-action" aria-role="button" aria-label="拒绝加入申请" hover-class="ui-button--pressed">拒绝</view></view></view></view>
+  <view class="manage-shell">
+    <view class="manage-hero">
+      <text class="manage-kicker">FAMILY TABLE</text>
+      <text class="manage-title">一家人的餐桌</text>
+      <text class="manage-note">{{isOwner ? '你是家庭负责人，可以维护资料、邀请成员和移交负责人。' : (isAdmin ? '你是家庭管理员，可以维护资料并处理加入申请。' : '你是家庭成员，可以管理自己的家庭关系。')}}</text>
+    </view>
+
+    <page-state wx:if="{{loading}}" phase="loading" title="正在整理家庭信息" description="请稍候" />
+
+    <block wx:else>
+      <view wx:if="{{info}}" class="manage-section profile-section">
+        <view class="section-head">
+          <view>
+            <text class="manage-section__eyebrow">家庭资料</text>
+            <text class="manage-section__title">{{info.familyName}}</text>
+          </view>
+          <view wx:if="{{isAdmin && !editingProfile}}" class="ui-button section-quiet-action" bindtap="beginProfileEdit" aria-role="button" aria-label="编辑家庭资料" hover-class="ui-button--pressed">编辑资料</view>
+        </view>
+
+        <block wx:if="{{editingProfile}}">
+          <text class="field-label">家庭名称</text>
+          <input class="manage-input" value="{{profileDraft.familyName}}" maxlength="100" data-field="familyName" bindinput="inputProfile" placeholder="请输入家庭名称" />
+          <text class="field-label">家庭备注</text>
+          <textarea class="manage-textarea" value="{{profileDraft.note}}" maxlength="255" data-field="note" bindinput="inputProfile" placeholder="记录口味、用餐习惯等家庭备注" />
+          <view class="profile-actions">
+            <view class="ui-button profile-action profile-action--primary {{saveBusy ? 'is-disabled' : ''}}" bindtap="saveFamilyInfo" aria-role="button" aria-label="保存家庭资料" aria-disabled="{{saveBusy}}" aria-busy="{{saveBusy}}" hover-class="ui-button--pressed">{{saveBusy ? '保存中…' : '保存修改'}}</view>
+            <view class="ui-button profile-action {{saveBusy ? 'is-disabled' : ''}}" bindtap="cancelProfileEdit" aria-role="button" aria-label="取消编辑家庭资料" aria-disabled="{{saveBusy}}" hover-class="ui-button--pressed">取消</view>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="info-row"><text class="info-label">家庭备注</text><text class="info-value">{{info.note || '暂无备注'}}</text></view>
+          <view class="info-row"><text class="info-label">所属私厨</text><text class="info-value">{{info.merchantName || '暂未绑定'}}</text></view>
+        </block>
+      </view>
+
+      <view class="manage-section address-section">
+        <view class="section-head">
+          <view>
+            <text class="manage-section__eyebrow">配送信息</text>
+            <text class="manage-section__title">默认联系人与地址</text>
+          </view>
+        </view>
+        <view wx:if="{{addressError}}" class="inline-warning">配送信息暂时加载失败，不影响资料和成员管理。</view>
+        <view wx:elif="{{defaultAddress}}" class="address-summary">
+          <text class="address-contact">{{defaultAddress.contactName}} · {{defaultAddress.contactPhone}}</text>
+          <text class="address-detail">{{defaultAddress.addressText}}</text>
+        </view>
+        <view wx:else class="address-summary address-summary--empty">暂未设置默认配送地址</view>
+        <view class="ui-button section-link" bindtap="openAddresses" aria-role="button" aria-label="管理配送信息" hover-class="ui-button--pressed">{{defaultAddress ? '管理配送信息' : '去添加配送信息'}}</view>
+      </view>
+
+      <view wx:if="{{info}}" class="manage-section delivery-section">
+        <text class="manage-section__eyebrow">商户服务规则 · 只读</text>
+        <text class="manage-section__title">{{info.deliveryEnabled ? '支持配送' : '暂不支持配送'}}</text>
+        <text class="manage-section__note">{{info.deliveryFree ? '当前免配送费' : ('默认配送费 ¥' + info.deliveryFeeDefault)}}</text>
+      </view>
+
+      <view wx:if="{{isOwner}}" class="manage-section owner-section">
+        <text class="manage-section__eyebrow">负责人设置</text>
+        <text class="manage-section__title">移交家庭负责人</text>
+        <text class="manage-section__note">{{ownerLabel}}</text>
+        <text class="manage-section__note">移交后你会成为普通成员，新的负责人将接管家庭资料与成员管理。</text>
+        <view wx:if="{{ownerCandidatesError}}" class="owner-empty">候选成员暂时加载失败，移交操作已停用，请稍后重新进入页面。</view>
+        <block wx:elif="{{ownerOptions.length}}">
+          <picker mode="selector" range="{{ownerOptions}}" range-key="label" value="{{ownerIndex}}" bindchange="onOwnerChange" aria-label="选择新家庭负责人">
+            <view class="owner-picker">{{selectedOwner ? selectedOwner.label : '请选择家庭成员'}}<text class="owner-picker__arrow">⌄</text></view>
+          </picker>
+          <view class="ui-button transfer-action {{!selectedOwner || transferBusy ? 'is-disabled' : ''}}" bindtap="transferOwner" aria-role="button" aria-label="确认移交家庭负责人" aria-disabled="{{!selectedOwner || transferBusy}}" aria-busy="{{transferBusy}}" hover-class="ui-button--pressed">{{transferBusy ? '移交中…' : '确认移交'}}</view>
+        </block>
+        <view wx:else class="owner-empty">暂无可移交成员。家庭中需要先有其他已启用成员。</view>
+      </view>
+
+      <view wx:if="{{invitations.length}}" class="manage-section">
+        <text class="manage-section__title">待处理邀请</text>
+        <view wx:for="{{invitations}}" wx:key="id" class="application-row">
+          <view><text class="row-title">家庭邀请</text><text class="row-note">来自家庭 #{{item.familyId}}</text></view>
+          <view class="row-actions">
+            <view data-id="{{item.id}}" bindtap="acceptInvitation" class="ui-button mini-action mini-action--primary" aria-role="button" aria-label="接受家庭邀请" hover-class="ui-button--pressed">接受</view>
+            <view data-id="{{item.id}}" bindtap="rejectInvitation" class="ui-button mini-action" aria-role="button" aria-label="拒绝家庭邀请" hover-class="ui-button--pressed">拒绝</view>
+          </view>
+        </view>
+      </view>
+
+      <block wx:if="{{isAdmin}}">
+        <view class="manage-section">
+          <text class="manage-section__title">家庭邀请码</text>
+          <view wx:if="{{invitationCode}}" class="ui-button invitation-code" bindtap="copyCode" aria-role="button" aria-label="复制家庭邀请码" hover-class="ui-button--pressed"><text>{{invitationCode}}</text><text>点击复制</text></view>
+          <view class="ui-button block-action {{busy ? 'is-disabled' : ''}}" bindtap="generateCode" aria-role="button" aria-label="生成新邀请码" aria-disabled="{{busy}}" aria-busy="{{busy}}" hover-class="ui-button--pressed">{{busy ? '处理中…' : '生成新邀请码'}}</view>
+        </view>
+        <view class="manage-section">
+          <text class="manage-section__title">定向邀请</text>
+          <input class="manage-input" value="{{userIdentifier}}" data-field="userIdentifier" bindinput="input" placeholder="输入账号、手机号或邮箱" />
+          <view class="ui-button block-action {{busy ? 'is-disabled' : ''}}" bindtap="directInvite" aria-role="button" aria-label="发送家庭邀请" aria-disabled="{{busy}}" hover-class="ui-button--pressed">发送家庭邀请</view>
+        </view>
+        <view class="manage-section">
+          <text class="manage-section__title">待处理申请</text>
+          <page-state wx:if="{{!applications.length}}" phase="empty" title="暂无加入申请" description="新申请会显示在这里" illustration="orders" />
+          <view wx:for="{{applications}}" wx:key="id" class="application-row">
+            <view><text class="row-title">用户 #{{item.applicantUserId}}</text><text class="row-note">申请加入家庭</text></view>
+            <view class="row-actions">
+              <view data-id="{{item.id}}" bindtap="approve" class="ui-button mini-action mini-action--primary" aria-role="button" aria-label="通过加入申请" hover-class="ui-button--pressed">通过</view>
+              <view data-id="{{item.id}}" bindtap="reject" class="ui-button mini-action" aria-role="button" aria-label="拒绝加入申请" hover-class="ui-button--pressed">拒绝</view>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <view class="manage-section manage-section--danger">
+        <text class="manage-section__title">家庭关系</text>
+        <text class="manage-section__note">{{isOwner ? '负责人如不再维护家庭，可以先移交负责人；确认不再使用时也可解散家庭。' : '退出后，个人账号仍可正常登录，也可以加入其他家庭。'}}</text>
+        <view wx:if="{{isOwner}}" class="ui-button danger-action {{busy ? 'is-disabled' : ''}}" bindtap="dissolveFamily" aria-role="button" aria-label="解散家庭" aria-disabled="{{busy}}" hover-class="ui-button--pressed">解散家庭</view>
+        <view wx:else class="ui-button danger-action {{busy ? 'is-disabled' : ''}}" bindtap="exitFamily" aria-role="button" aria-label="退出当前家庭" aria-disabled="{{busy}}" hover-class="ui-button--pressed">退出当前家庭</view>
+      </view>
     </block>
-    <view wx:if="{{isOwner}}" class="manage-section"><text class="manage-section__title">负责人设置</text><text class="manage-section__note">移交后你将成为普通成员。</text><input class="manage-input" type="number" value="{{targetUserId}}" data-field="targetUserId" bindinput="input" placeholder="新负责人用户 ID" /><action-button label="移交负责人" disabled="{{busy}}" tone="secondary" block bind:action="transferOwner" /></view>
-    <view class="manage-section manage-section--danger"><text class="manage-section__title">家庭关系</text><text class="manage-section__note">{{isOwner ? '负责人如不再维护家庭，可以先移交负责人；确认不再使用时也可解散家庭。' : '退出后，你的个人账号仍可正常登录，也可以加入其他家庭。'}}</text><action-button wx:if="{{isOwner}}" label="解散家庭" disabled="{{busy}}" tone="danger" block bind:action="dissolveFamily" /><action-button wx:else label="退出当前家庭" disabled="{{busy}}" tone="danger" block bind:action="exitFamily" /></view>
-  </block>
+  </view>
 </view>

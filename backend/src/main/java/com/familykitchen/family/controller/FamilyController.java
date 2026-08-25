@@ -18,6 +18,8 @@ import com.familykitchen.family.model.vo.FamilyOnboardingView;
 import com.familykitchen.family.service.FamilyMemberApplicationService;
 import com.familykitchen.family.model.vo.AddressView;
 import com.familykitchen.family.model.vo.FamilyHomeResponse;
+import com.familykitchen.family.model.vo.FamilyInfoView;
+import com.familykitchen.family.model.vo.OwnerCandidateView;
 import com.familykitchen.wallet.model.vo.WalletLedgerView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -66,6 +68,17 @@ public class FamilyController {
     this.currentUserProvider = currentUserProvider;
     this.familyApplicationService = familyApplicationService;
     this.familyMemberApplicationService = familyMemberApplicationService;
+  }
+
+  /**
+   * 查询当前家庭可展示的业务资料。
+   * @param request HTTP 请求
+   * @return 家庭业务资料
+   */
+  @GetMapping("/info")
+  @Operation(summary = "查询家庭资料", description = "返回当前家庭名称、备注及只读商户配送资料。")
+  public ApiResponse<FamilyInfoView> familyInfo(HttpServletRequest request) {
+    return ApiResponse.ok(familyApplicationService.familyInfo(currentUserProvider.require(request)));
   }
 
   /**
@@ -374,15 +387,31 @@ public class FamilyController {
     familyMemberApplicationService.rejectApplication(currentUserProvider.require(request),id,body==null?null:body.reason());return ApiResponse.ok();}
 
   /**
-   * 处理负责人相关的 HTTP 请求。
+   * 查询当前家庭负责人可选择的移交候选成员。
    *
    * @param request 请求参数
-   * @param body 请求体
-   * @return 移交负责人的结果
+   * @return 候选成员列表
+   */
+  @GetMapping("/owner-candidates")
+  @Operation(summary = "查询负责人移交候选", description = "仅当前家庭负责人可查询有效候选成员。")
+  public ApiResponse<List<OwnerCandidateView>> ownerCandidates(HttpServletRequest request) {
+    return ApiResponse.ok(
+        familyMemberApplicationService.ownerCandidates(currentUserProvider.require(request)));
+  }
+
+  /**
+   * 将当前家庭负责人移交给选中的有效成员。
+   *
+   * @param request 请求参数
+   * @param body 移交请求体
+   * @return 空成功响应
    */
   @PutMapping("/owner")
   public ApiResponse<Void> transferOwner(HttpServletRequest request,@Valid @RequestBody OwnerTransferRequest body){
-    familyMemberApplicationService.transferOwner(currentUserProvider.require(request),body.targetUserId());return ApiResponse.ok();}
+    familyMemberApplicationService.transferOwner(
+        currentUserProvider.require(request), body.targetMemberId());
+    return ApiResponse.ok();
+  }
   /**
    * 处理家庭相关的 HTTP 请求。
    *
@@ -401,7 +430,7 @@ public class FamilyController {
    * @return 修改家庭资料的结果
    */
   @PutMapping("/info")
-  @Operation(summary = "修改家庭资料", description = "修改当前家庭的名称、备注和联系人信息，仅家庭管理员可操作。")
+  @Operation(summary = "修改家庭资料", description = "修改当前家庭的名称和备注，仅家庭管理员可操作。")
   public ApiResponse<Void> updateFamilyInfo(
       HttpServletRequest request,
       @Valid @RequestBody UpdateFamilyInfoRequest body

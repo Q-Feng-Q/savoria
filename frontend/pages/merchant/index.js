@@ -1,16 +1,20 @@
 const { createApiRuntime } = require('../../utils/api-runtime');
 const { buildApiMerchantScene } = require('../../utils/merchant-scenes');
 const { requireSession, resolveApiErrorMessage } = require('../../utils/page-api');
+const { sessionStore } = require('../../utils/session');
+const { refreshAccountIdentity, destinationForSession } = require('../../utils/account-switching');
+const { isMerchantAccessError, failClosedMerchantSession } = require('../../utils/merchant-profile');
 const { todayText } = require('../../utils/date');
 
 const loadingRegionStates = () => ({
+  profile: { phase: 'loading', message: '' },
   families: { phase: 'loading', message: '' },
   orders: { phase: 'loading', message: '' },
   purchase: { phase: 'loading', message: '' },
   menu: { phase: 'loading', message: '' }
 });
 
-const resultValue = (result) => (result && result.status === 'fulfilled' ? result.value : []);
+const resultValue = (result, fallback = []) => (result && result.status === 'fulfilled' ? result.value : fallback);
 const resultState = (result, fallbackMessage) => {
   if (result.status === 'fulfilled') return { phase: 'ready', message: '' };
   return { phase: 'error', message: resolveApiErrorMessage(result.reason, fallbackMessage) };
@@ -56,22 +60,31 @@ Page({
       regionStates: loadingRegionStates()
     });
 
-    const [familiesResult, ordersResult, purchaseResult] = await Promise.allSettled([
+    const [profileResult, familiesResult, ordersResult, purchaseResult] = await Promise.allSettled([
+      typeof runtime.merchant.getProfile === 'function'
+        ? runtime.merchant.getProfile()
+        : Promise.resolve(null),
       runtime.merchant.getFamilies(),
       runtime.merchant.getOrders(),
       runtime.purchase.getSummary({ date: todayText(), includePending: true })
     ]);
     if (!this.isCurrentGeneration(generation, runtime)) return;
+    if (profileResult.status === 'rejected' && isMerchantAccessError(profileResult.reason)) {
+      await this.handleMerchantAccessRevoked(session);
+      return;
+    }
+    const profileState = resultState(profileResult, '商户资料加载失败');
     const familiesState = resultState(familiesResult, '家庭概况加载失败');
     const ordersState = resultState(ordersResult, '订单概况加载失败');
     const purchaseState = resultState(purchaseResult, '采购概况加载失败');
 
-    if ([familiesResult, ordersResult, purchaseResult].every((result) => result.status === 'rejected')) {
+    if ([profileResult, familiesResult, ordersResult, purchaseResult].every((result) => result.status === 'rejected')) {
       this.setData({
         phase: 'error',
         pageTitle: '工作台暂时无法加载',
         pageDescription: '请检查网络后重试。',
         regionStates: {
+          profile: profileState,
           families: familiesState,
           orders: ordersState,
           purchase: purchaseState,
@@ -94,6 +107,7 @@ Page({
     }
 
     const payload = {
+      merchantProfile: resultValue(profileResult, null),
       families,
       orders: resultValue(ordersResult),
       purchaseSummary: resultValue(purchaseResult),
@@ -101,6 +115,7 @@ Page({
       selectedFamilyId
     };
     const regionStates = {
+      profile: profileState,
       families: familiesState,
       orders: ordersState,
       purchase: purchaseState,
@@ -114,7 +129,7 @@ Page({
   applyOverview(generation, runtime, session, payload, regionStates = this.data.regionStates) {
     if (!payload || !this.isCurrentGeneration(generation, runtime, payload)) return;
     const scene = buildApiMerchantScene({ session, ...payload });
-    const allRegionsLoaded = ['families', 'orders', 'purchase', 'menu']
+    const allRegionsLoaded = ['profile', 'families', 'orders', 'purchase', 'menu']
       .every((region) => regionStates[region].phase === 'ready');
     const allOverviewCollectionsEmpty = [
       payload.families,
@@ -122,8 +137,9 @@ Page({
       payload.purchaseSummary,
       payload.familyMenuItems
     ].every((items) => items.length === 0);
-    const hasUsableOverview = Boolean(scene && scene.context && scene.context.merchant)
-      && !(allRegionsLoaded && allOverviewCollectionsEmpty);
+    const hasProfile = Boolean(payload.merchantProfile && payload.merchantProfile.name);
+    const hasUsableOverview = hasProfile || (Boolean(scene && scene.context && scene.context.merchant)
+      && !(allRegionsLoaded && allOverviewCollectionsEmpty));
     if (!this.isCurrentGeneration(generation, runtime, payload)) return;
     this.setData({
       ...scene,
@@ -253,6 +269,32 @@ Page({
 
   openAccountSwitcher() {
     wx.navigateTo({ url: '/pages/account/account-management/index' });
+  },
+
+  openMerchantProfile() {
+    wx.navigateTo({ url: '/pages/merchant/merchant-profile-edit/index' });
+  },
+
+  async handleMerchantAccessRevoked(session) {
+    const closed = failClosedMerchantSession(sessionStore.getSession() || session || {});
+    sessionStore.setSession(closed);
+    try {
+      const refreshed = await refreshAccountIdentity({ userId: session.userId }, {
+        sessionStore,
+        loadContext: () => createApiRuntime().user.getContext()
+      });
+      const destination = destinationForSession(refreshed);
+      wx.showToast({ title: '商户负责人权限已变更', icon: 'none' });
+      if (destination === '/pages/family/home/index' || destination === '/pages/account/profile/index') {
+        wx.switchTab({ url: destination });
+      } else {
+        sessionStore.setSession(failClosedMerchantSession(refreshed));
+        wx.redirectTo({ url: '/pages/account/account-management/index' });
+      }
+    } catch (error) {
+      sessionStore.setSession(closed);
+      wx.redirectTo({ url: '/pages/account/account-management/index' });
+    }
   },
 
   openMerchantOrders() {

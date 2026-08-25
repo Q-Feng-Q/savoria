@@ -15,6 +15,7 @@ import com.familykitchen.family.model.entity.FamilyApplicationDO;
 import com.familykitchen.family.model.entity.FamilyMembershipRequestDO;
 import com.familykitchen.family.service.FamilyMemberApplicationService;
 import com.familykitchen.family.model.vo.FamilyOnboardingView;
+import com.familykitchen.family.model.vo.OwnerCandidateView;
 import com.familykitchen.user.mapper.UserMapper;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -166,15 +167,50 @@ public class FamilyMemberApplicationServiceImpl implements FamilyMemberApplicati
   @Override @Transactional public void exitFamily(CurrentUserContext user,String reason){if(relationMapper.exit(user.userId(),user.userId(),reason)==0)
     throw new BusinessException(ErrorCode.BUSINESS_INVALID,"家庭负责人需先转让或解散家庭");}
   /**
+   * 查询当前负责人可选择的有效成员。
+   *
+   * @param user 当前用户
+   * @return 候选成员列表
+   */
+  @Override
+  public List<OwnerCandidateView> ownerCandidates(CurrentUserContext user) {
+    requireOwner(user);
+    return workflowMapper.selectOwnerCandidates(user.familyId(), user.userId());
+  }
+
+  /**
    * 移交负责人。
    *
    * @param user 用户
-   * @param target 目标
+   * @param targetMemberId 目标成员
    */
-  @Override @Transactional public void transferOwner(CurrentUserContext user,Long target){if(!"owner".equalsIgnoreCase(user.roleTemplate()))throw new BusinessException(ErrorCode.FORBIDDEN,"只有负责人可以转让家庭");
-    String targetRole=workflowMapper.lockRole(target,user.familyId());String ownerRole=workflowMapper.lockRole(user.userId(),user.familyId());
-    if(targetRole==null||!"OWNER".equalsIgnoreCase(ownerRole))throw new BusinessException(ErrorCode.BUSINESS_INVALID,"目标不是有效家庭成员");
-    workflowMapper.updateRole(user.userId(),user.familyId(),"ADMIN");workflowMapper.updateRole(target,user.familyId(),"OWNER");}
+  @Override
+  @Transactional
+  public void transferOwner(CurrentUserContext user, Long targetMemberId) {
+    requireOwner(user);
+    if (targetMemberId == null || targetMemberId.equals(user.userId())) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "目标不是有效家庭成员");
+    }
+    if (workflowMapper.lockFamily(user.familyId()) == null) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "家庭不存在或已停用");
+    }
+    String ownerRole = workflowMapper.lockRole(user.userId(), user.familyId());
+    if (!"OWNER".equalsIgnoreCase(ownerRole) || workflowMapper.countActiveOwners(user.familyId()) != 1) {
+      throw new BusinessException(ErrorCode.STATE_CONFLICT, "家庭负责人状态已变化，请刷新后重试");
+    }
+    String targetRole = workflowMapper.lockRole(targetMemberId, user.familyId());
+    if (targetRole == null || "OWNER".equalsIgnoreCase(targetRole)
+        || workflowMapper.countEligibleOwnerCandidate(user.familyId(), targetMemberId) != 1) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "目标不是有效家庭成员");
+    }
+    if (workflowMapper.updateRoleIfCurrent(
+        user.userId(), user.familyId(), "OWNER", "MEMBER") != 1
+        || workflowMapper.updateRoleIfCurrent(
+        targetMemberId, user.familyId(), targetRole.toUpperCase(), "OWNER") != 1
+        || workflowMapper.countActiveOwners(user.familyId()) != 1) {
+      throw new BusinessException(ErrorCode.STATE_CONFLICT, "负责人移交发生冲突，请刷新后重试");
+    }
+  }
   /**
    * 处理家庭。
    *
@@ -183,6 +219,11 @@ public class FamilyMemberApplicationServiceImpl implements FamilyMemberApplicati
   @Override @Transactional public void dissolveFamily(CurrentUserContext user){if(!"owner".equalsIgnoreCase(user.roleTemplate()))throw new BusinessException(ErrorCode.FORBIDDEN,"只有负责人可以解散家庭");
     workflowMapper.invalidateRequests(user.familyId());workflowMapper.disableCodes(user.familyId());workflowMapper.dissolveRelations(user.familyId(),user.userId());workflowMapper.disableFamily(user.familyId());}
   private void requireFamilyAdmin(CurrentUserContext u){if(!u.hasFamilyAdminAccess())throw new BusinessException(ErrorCode.FORBIDDEN,"无家庭管理权限");}
+  private void requireOwner(CurrentUserContext user) {
+    if (user.familyId() == null || !"owner".equalsIgnoreCase(user.roleTemplate())) {
+      throw new BusinessException(ErrorCode.FORBIDDEN, "只有负责人可以转让家庭");
+    }
+  }
   private void requireNoFamily(Long userId){if(relationMapper.findActiveFamilyId(userId)!=null)throw new BusinessException(ErrorCode.USER_ALREADY_IN_FAMILY,"用户已经加入家庭");}
   private void requireActiveFamily(Long familyId){if(workflowMapper.countActiveFamily(familyId)==0)
     throw new BusinessException(ErrorCode.BUSINESS_INVALID,"家庭不存在或已停用");}

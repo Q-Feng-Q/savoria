@@ -1,0 +1,37 @@
+<view class="warm-page change-editor">
+  <view class="editor-heading"><text class="eyebrow">SYSTEM DISH</text><text class="editor-title">申请修改模板</text><text class="editor-copy">提交的是完整模板信息，审核通过后会覆盖平台模板，不会改动商户已经导入的菜品。</text></view>
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="模板修改" description="{{errorMessage}}" bind:retry="retryLoad" />
+  <view wx:else>
+    <view class="form-section">
+      <text class="section-title">基本信息</text>
+      <view class="field"><text>菜品名称</text><input value="{{form.name}}" data-field="name" bindinput="bindField" maxlength="100" /></view>
+      <view class="field"><text>模板分类</text><picker range="{{categoryNames}}" value="{{categoryIndex}}" bindchange="bindCategory"><view class="picker-control">{{categoryNames[categoryIndex]}}</view></picker></view>
+      <view class="field"><text>菜品简介</text><textarea value="{{form.description}}" data-field="description" bindinput="bindField" maxlength="255" /></view>
+      <view class="field-grid"><view class="field"><text>参考价格</text><input type="digit" value="{{form.referencePrice}}" data-field="referencePrice" bindinput="bindField" /></view><view class="field"><text>排序值</text><input type="number" value="{{form.sortOrder}}" data-field="sortOrder" bindinput="bindField" /></view></view>
+      <view class="field"><text>口味标签</text><input value="{{form.tasteTagsText}}" data-field="tasteTagsText" bindinput="bindField" placeholder="用逗号分隔，例如：家常，咸香" /></view>
+      <view class="field"><text>推荐餐次</text><view class="choice-row"><view wx:for="{{meals}}" wx:key="value" class="choice {{item.selected ? 'choice--active' : ''}}" data-value="{{item.value}}" bindtap="toggleMeal" aria-role="checkbox" aria-label="选择{{item.label}}" hover-class="ui-button--pressed">{{item.label}}</view></view></view>
+      <view class="switch-row" bindtap="toggleEnabled" aria-role="checkbox" aria-label="设置模板启用状态" hover-class="ui-button--pressed"><view><text class="switch-title">审核通过后启用</text><text class="switch-copy">关闭后模板仍保留，但不会在市场中展示</text></view><switch checked="{{form.enabled}}" color="#59ad75" disabled /></view>
+    </view>
+
+    <view class="form-section">
+      <text class="section-title">图片与版权</text>
+      <view class="image-row"><image class="preview" src="{{displayImageUrl}}" mode="aspectFill" /><view class="ui-button upload-action" bindtap="chooseImage" aria-role="button" aria-label="更换模板菜品图片" hover-class="ui-button--pressed">{{uploading ? '上传中' : '更换图片'}}</view></view>
+      <view class="field"><text>图片本地路径</text><input value="{{form.imageUrl}}" data-field="imageUrl" bindinput="bindField" /></view>
+      <view class="field"><text>图片来源页面</text><input value="{{form.imageSourceUrl}}" data-field="imageSourceUrl" bindinput="bindField" /></view>
+      <view class="field-grid"><view class="field"><text>作者或来源平台</text><input value="{{form.imageAuthor}}" data-field="imageAuthor" bindinput="bindField" /></view><view class="field"><text>授权说明</text><input value="{{form.imageLicense}}" data-field="imageLicense" bindinput="bindField" /></view></view>
+    </view>
+
+    <view class="form-section">
+      <view class="section-head"><text class="section-title">食材清单</text><view class="text-action" bindtap="addIngredient" aria-role="button" aria-label="添加食材" hover-class="ui-button--pressed">+ 添加食材</view></view>
+      <view wx:for="{{form.ingredients}}" wx:key="index" class="ingredient-editor">
+        <view class="ingredient-head"><text>食材 {{index + 1}}</text><view class="remove-action" data-index="{{index}}" bindtap="removeIngredient" aria-role="button" aria-label="删除第{{index + 1}}项食材" hover-class="ui-button--pressed">删除</view></view>
+        <view class="field-grid"><view class="field"><text>名称</text><input value="{{item.ingredientName}}" data-index="{{index}}" data-field="ingredientName" bindinput="bindIngredientField" /></view><view class="field"><text>分类</text><input value="{{item.ingredientCategory}}" data-index="{{index}}" data-field="ingredientCategory" bindinput="bindIngredientField" /></view></view>
+        <view class="field-grid"><view class="field"><text>用量</text><input type="digit" value="{{item.quantity}}" data-index="{{index}}" data-field="quantity" bindinput="bindIngredientField" /></view><view class="field"><text>单位</text><input value="{{item.unit}}" data-index="{{index}}" data-field="unit" bindinput="bindIngredientField" /></view></view>
+        <view class="field"><text>计算方式</text><picker range="{{calcTypes}}" range-key="label" value="{{item.calcIndex}}" data-index="{{index}}" bindchange="bindIngredientCalc"><view class="picker-control">{{item.calcLabel}}</view></picker></view>
+      </view>
+    </view>
+
+    <view class="form-section"><text class="section-title">提交说明</text><view class="field"><textarea value="{{submitNote}}" bindinput="bindSubmitNote" maxlength="500" placeholder="说明修改原因和主要调整内容，方便管理员审核" /></view></view>
+  </view>
+</view>
+<view wx:if="{{phase === 'ready'}}" class="safe-action-bar"><view class="ui-button submit-action {{saving || uploading ? 'is-disabled' : ''}}" bindtap="submit" aria-role="button" aria-label="提交模板修改申请" aria-busy="{{saving}}" hover-class="ui-button--pressed">{{saving ? '提交中' : '提交审核'}}</view></view>

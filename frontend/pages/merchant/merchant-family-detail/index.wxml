@@ -26,7 +26,8 @@
       <text class="section-heading">成员与余额</text>
       <text wx:if="{{optionalStates.ledger.phase === 'loading'}}" class="empty-line">正在加载余额流水…</text>
       <view wx:elif="{{optionalStates.ledger.phase === 'error'}}" class="local-state">
-        <text>{{optionalStates.ledger.message}}</text><view class="ui-button local-retry" bindtap="retryLedger" aria-role="button" aria-label="重试流水" hover-class="ui-button--pressed" hover-stay-time="80">重试流水</view>
+        <text>{{optionalStates.ledger.message}}</text>
+        <view class="ui-button local-retry" bindtap="retryLedger" aria-role="button" aria-label="重试流水" hover-class="ui-button--pressed" hover-stay-time="80">重试流水</view>
       </view>
       <block wx:for="{{members}}" wx:key="id">
         <view class="member-row">
@@ -52,19 +53,33 @@
     </view>
 
     <view class="detail-section">
-      <view class="section-top"><text class="section-heading">菜单预览</text><view class="ui-button section-link" bindtap="openFamilyMenu" aria-role="button" aria-label="配置菜单" hover-class="ui-button--pressed" hover-stay-time="80">配置菜单</view></view>
+      <view class="section-top"><text class="section-heading">菜单预览</text>
+        <view class="ui-button section-link" bindtap="openFamilyMenu" aria-role="button" aria-label="配置菜单" hover-class="ui-button--pressed" hover-stay-time="80">配置菜单</view>
+      </view>
       <text wx:if="{{optionalStates.menu.phase === 'loading'}}" class="empty-line">正在加载菜单…</text>
-      <view wx:elif="{{optionalStates.menu.phase === 'error'}}" class="local-state"><text>{{optionalStates.menu.message}}</text><view class="ui-button local-retry" bindtap="retryMenu" aria-role="button" aria-label="重试菜单" hover-class="ui-button--pressed" hover-stay-time="80">重试菜单</view></view>
+      <view wx:elif="{{optionalStates.menu.phase === 'error'}}" class="local-state"><text>{{optionalStates.menu.message}}</text>
+        <view class="ui-button local-retry" bindtap="retryMenu" aria-role="button" aria-label="重试菜单" hover-class="ui-button--pressed" hover-stay-time="80">重试菜单</view>
+      </view>
       <text wx:elif="{{optionalStates.menu.phase === 'ready' && !menuPreview.length}}" class="empty-line">暂无生效菜单，配置后家庭才可点餐。</text>
-      <block wx:else><view wx:for="{{menuPreview}}" wx:key="id" class="preview-row"><text>{{item.name}}</text><text>{{item.priceText}}</text></view></block>
+      <block wx:else>
+        <view wx:for="{{menuPreview}}" wx:key="id" class="preview-row"><text>{{item.name}}</text><text>{{item.priceText}}</text></view>
+      </block>
     </view>
 
     <view class="detail-section">
-      <view class="section-top"><text class="section-heading">订单预览</text><view class="ui-button section-link" bindtap="openOrders" aria-role="button" aria-label="查看订单" hover-class="ui-button--pressed" hover-stay-time="80">查看订单</view></view>
+      <view class="section-top"><text class="section-heading">订单预览</text>
+        <view class="ui-button section-link" bindtap="openOrders" aria-role="button" aria-label="查看订单" hover-class="ui-button--pressed" hover-stay-time="80">查看订单</view>
+      </view>
       <text wx:if="{{optionalStates.orders.phase === 'loading'}}" class="empty-line">正在加载订单…</text>
-      <view wx:elif="{{optionalStates.orders.phase === 'error'}}" class="local-state"><text>{{optionalStates.orders.message}}</text><view class="ui-button local-retry" bindtap="retryOrders" aria-role="button" aria-label="重试订单" hover-class="ui-button--pressed" hover-stay-time="80">重试订单</view></view>
+      <view wx:elif="{{optionalStates.orders.phase === 'error'}}" class="local-state"><text>{{optionalStates.orders.message}}</text>
+        <view class="ui-button local-retry" bindtap="retryOrders" aria-role="button" aria-label="重试订单" hover-class="ui-button--pressed" hover-stay-time="80">重试订单</view>
+      </view>
       <text wx:elif="{{optionalStates.orders.phase === 'ready' && !orderPreview.length}}" class="empty-line">暂无订单。</text>
-      <block wx:else><view wx:for="{{orderPreview}}" wx:key="id" class="preview-row"><view><text class="strong">{{item.orderNo}}</text><text class="detail-copy">{{item.serviceDate}} · {{item.mealLabel}}</text></view><text>{{item.statusLabel}}</text></view></block>
+      <block wx:else>
+        <view wx:for="{{orderPreview}}" wx:key="id" class="preview-row">
+          <view><text class="strong">{{item.orderNo}}</text><text class="detail-copy">{{item.serviceDate}} · {{item.mealLabel}}</text></view><text>{{item.statusLabel}}</text>
+        </view>
+      </block>
     </view>
   </view>
 </view>

@@ -1,0 +1,14 @@
+<view class="warm-page changes-page">
+  <view class="changes-head"><view><text class="eyebrow">TEMPLATE REVIEW</text><text class="changes-title">模板修改申请</text><text class="changes-copy">跟踪系统模板修改进度，待审核申请可在详情中撤回。</text></view></view>
+  <view class="search-row"><input value="{{keyword}}" bindinput="inputKeyword" bindconfirm="search" confirm-type="search" placeholder="搜索模板菜名" /><view class="search-action" bindtap="search" aria-role="button" aria-label="搜索模板修改申请" hover-class="ui-button--pressed">搜索</view></view>
+  <scroll-view class="status-strip" scroll-x show-scrollbar="false"><view class="status-inner"><view wx:for="{{filters}}" wx:key="value" class="status-filter {{status === item.value ? 'status-filter--active' : ''}}" data-value="{{item.value}}" bindtap="chooseStatus" aria-role="button" aria-label="筛选{{item.label}}申请" hover-class="ui-button--pressed">{{item.label}}</view></view></scroll-view>
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="{{phase === 'empty' ? '暂无修改申请' : '申请记录'}}" description="{{phase === 'empty' ? '从模板菜详情发起修改申请后，会显示在这里。' : errorMessage}}" bind:retry="retryLoad" />
+  <view wx:else class="request-list">
+    <view wx:for="{{rows}}" wx:key="requestId" class="request-row" data-id="{{item.requestId}}" bindtap="openDetail" aria-role="button" aria-label="查看{{item.templateName}}修改申请详情" hover-class="ui-button--pressed">
+      <view class="request-top"><view><text class="request-name">{{item.templateName}}</text><text class="request-id">申请 #{{item.requestId}} · 模板 #{{item.templateId}}</text></view><text class="request-status request-status--{{item.statusTone}}">{{item.statusLabel}}</text></view>
+      <text class="request-note">{{item.submitNote || '未填写提交说明'}}</text>
+      <view class="request-foot"><text>{{item.submittedText}}</text><text>查看详情 ›</text></view>
+    </view>
+    <view wx:if="{{loadingMore}}" class="list-tip">正在加载更多…</view><view wx:elif="{{!hasMore}}" class="list-tip">已显示全部 {{total}} 条申请</view>
+  </view>
+</view>

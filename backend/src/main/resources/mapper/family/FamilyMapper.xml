@@ -153,7 +153,7 @@
            d.base_price as basePrice,
            coalesce(fmi.final_price, d.base_price) as familyFinalPrice,
            coalesce(fmi.enabled, 0) as enabled,
-           coalesce(fmi.sort_order, 999999) as sortOrder,
+           coalesce(fmi.sort_order, 2147483647) as sortOrder,
            d.featured_at as featuredAt,
            (d.featured_at is not null) as featured
     from families f
@@ -166,7 +166,7 @@
     order by (d.featured_at is not null) desc,
              d.featured_at desc,
              case when d.featured_at is null
-               then coalesce(fmi.sort_order, 999999)
+               then coalesce(fmi.sort_order, 2147483647)
              end asc,
              d.id desc
   </select>
@@ -214,6 +214,12 @@
     update families
     set name = #{familyName}, note = #{note}, contact_names_json = #{contactNamesJson}
     where merchant_id = #{merchantId} and id = #{familyId}
+  </update>
+
+  <update id="updateFamilyInfo">
+    update families
+    set name = #{familyName}, note = #{note}
+    where id = #{familyId} and status = 'active'
   </update>
 
   <update id="updateFamilyDeliveryPolicy">

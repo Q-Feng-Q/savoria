@@ -7,8 +7,8 @@
 .quantity-stepper__button {
   display: grid;
   place-items: center;
-  min-width: 44rpx;
-  min-height: 44rpx;
+  min-width: 88rpx;
+  min-height: 88rpx;
   margin: 0;
   padding: 0;
   border: 0;
