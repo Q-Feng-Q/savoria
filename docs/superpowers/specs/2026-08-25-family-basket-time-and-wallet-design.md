@@ -53,15 +53,15 @@
 
 - `orders`：新增 `expected_meal_time datetime NULL`；新订单的 `meal_slot_id`、`service_date`、`delivery_fee_payer_user_id` 改为可空并停止写入，旧字段保留供历史兼容。
 - `order_items`：新订单按菜品聚合保存数量和金额；旧 `owner_user_id` 改为可空并停止用于计费。
-- 新增 `order_item_selections`：保存订单项下每个成员的选择份数、成员昵称快照和成员口味备注，以便成员退出家庭或改名后仍能还原下单时明细。
+- 新增 `order_item_selections`：保存订单项下每个成员的选择份数、成员昵称快照和成员口味备注，以便成员退出家庭或改名后仍能还原下单时明细；对 `(order_item_id, user_id)` 建唯一索引，数量必须大于零。提交事务在落库前后都校验每个订单项聚合数量等于其成员选择数量之和。
 - `order_member_charges` 作为旧订单历史分摊表保留；新订单不再写入该表。
 
 ### 家庭钱包及流水
 
 - 新增 `family_wallets`：`family_id` 主键、`balance_amount decimal(18,2)`、`frozen_amount decimal(18,2)`、`updated_at`，并约束两类金额均不小于零。
 - 新增 `family_wallet_ledgers`：包含 `family_id`、可选 `order_id`、流水类型、变动金额、变动前后可用/冻结余额、操作人、备注、`business_type`、`business_key` 和时间戳；对 `(business_type, business_key)` 建唯一索引。
-- 新增 `family_wallet_order_holds`：以 `order_id` 唯一，记录 `family_id`、原始冻结额、剩余冻结额、已结算额、已释放额和状态。订单冻结、结算、取消、拒绝和退款必须先锁定该占用记录，任何时刻满足原始冻结额等于剩余冻结额、已结算额与已释放额之和。
-- 家庭钱包流水覆盖迁入、商户充值/扣减、订单冻结、释放、结算和退款。所有钱包变化先锁定 `family_wallets` 行，再写账户和流水；同一业务键只能成功一次。
+- 新增 `family_wallet_order_holds`：以 `order_id` 唯一，记录 `family_id`、`initial_amount`、`additional_frozen_amount`、`remaining_frozen_amount`、`captured_amount`、`released_amount`、`refunded_amount` 和状态。始终满足 `initial_amount + additional_frozen_amount = remaining_frozen_amount + captured_amount + released_amount`，并满足 `0 <= refunded_amount <= captured_amount`；净结算额为 `captured_amount - refunded_amount`。配送费增加累加追加冻结，配送费减少或结算前取消累加释放，完成订单把剩余冻结转为已结算，结算后退款只累加已退款并退回家庭可用余额。
+- 家庭钱包流水覆盖迁入、商户充值/扣减、订单冻结、追加冻结、释放、结算和退款。所有资金路径使用下文统一锁顺序并在账户变化后写流水；同一业务键只能成功一次。
 - 旧 `member_wallets` 和 `wallet_ledgers` 不删除，以便审计；迁移后个人账户金额归零，应用不再产生新的个人钱包扣款流水。
 
 ## 迁移策略
@@ -139,7 +139,7 @@
 
 - 餐篮创建按家庭唯一；并发首次访问时只有一张活动餐篮创建成功，冲突请求重新读取该餐篮。
 - 修改成员份数时锁定指定餐篮、菜品行和成员选择行，校验 `cartVersion` 后重新汇总总数，禁止客户端直接提交聚合总数。
-- 提交锁顺序固定为餐篮、餐篮项、家庭钱包、订单，避免多人提交和商户调整余额间死锁。
+- 全局锁顺序固定为：活动餐篮（仅提交/餐篮操作）→ 餐篮项与成员选择（仅提交/餐篮操作）→ 已存在订单（仅订单后续操作）→ 订单资金占用（仅订单后续操作）→ 家庭钱包 → 流水。取消、拒绝、完成、配送费调整和退款都按“订单 → 占用 → 家庭钱包 → 流水”；商户余额调整只锁家庭钱包后写流水，不能再反向读取或锁订单。新提交在锁定餐篮和餐篮项后锁家庭钱包，再插入此前不存在且对其他事务不可见的新订单和占用记录。任何路径都不得在锁定家庭钱包后再锁既有订单或既有占用记录。
 - 所有家庭接口实时校验当前用户的有效家庭成员关系；成员退出后不能继续查看或修改餐篮，但已经写入订单的昵称快照保留。
 - 商户只能查看和操作自己服务家庭的订单、选择明细和家庭钱包。
 - 日志和接口错误不得输出完整联系电话、地址或认证凭据。
