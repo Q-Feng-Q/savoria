@@ -178,6 +178,7 @@ class FamilyCartWalletMigrationMySqlTest {
       assertNullable(statement, "command_idempotency", "family_id", false);
       assertNullable(statement, "command_idempotency", "operation", false);
       assertNullable(statement, "command_idempotency", "request_id", false);
+      assertNullable(statement, "command_idempotency", "payload_hash", false);
       statement.executeUpdate("INSERT INTO command_idempotency "
           + "(actor_user_id,family_id,operation,request_id,payload_hash,state) "
           + "VALUES (701,501,'SUBMIT_ORDER','request-1','hash-1','SUCCEEDED')");
@@ -188,6 +189,9 @@ class FamilyCartWalletMigrationMySqlTest {
       assertCommandScopeRejected(statement, "701", "NULL", "'SUBMIT_ORDER'", "'request-null-family'");
       assertCommandScopeRejected(statement, "701", "501", "NULL", "'request-null-operation'");
       assertCommandScopeRejected(statement, "701", "501", "'SUBMIT_ORDER'", "NULL");
+      assertThrows(SQLException.class, () -> statement.executeUpdate("INSERT INTO command_idempotency "
+          + "(actor_user_id,family_id,operation,request_id,payload_hash,state) "
+          + "VALUES (701,501,'SUBMIT_ORDER','request-null-payload',NULL,'STARTED')"));
     }
   }
 
