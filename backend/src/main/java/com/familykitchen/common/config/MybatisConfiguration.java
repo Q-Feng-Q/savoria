@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Configuration;
     "com.familykitchen.family.mapper",
     "com.familykitchen.file.mapper",
     "com.familykitchen.merchant.mapper",
+    "com.familykitchen.migration",
     "com.familykitchen.notification.mapper",
     "com.familykitchen.order.mapper",
     "com.familykitchen.purchase.mapper",

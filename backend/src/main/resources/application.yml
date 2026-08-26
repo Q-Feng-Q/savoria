@@ -36,6 +36,18 @@ mybatis:
     map-underscore-to-camel-case: true
 
 family-kitchen:
+  migration:
+    mode: ${FAMILY_KITCHEN_MIGRATION_MODE:OFF}
+    batch-id: ${FAMILY_KITCHEN_MIGRATION_BATCH_ID:#{null}}
+    drain-epoch: ${FAMILY_KITCHEN_MIGRATION_DRAIN_EPOCH:#{null}}
+    expected-database: ${FAMILY_KITCHEN_MIGRATION_EXPECTED_DATABASE:}
+    safety-token: ${FAMILY_KITCHEN_MIGRATION_SAFETY_TOKEN:}
+    configured-token: ${FAMILY_KITCHEN_MIGRATION_CONFIGURED_TOKEN:}
+  instance:
+    lease-enabled: ${FAMILY_KITCHEN_INSTANCE_LEASE_ENABLED:true}
+    id: ${FAMILY_KITCHEN_INSTANCE_ID:${random.uuid}}
+    build: ${FAMILY_KITCHEN_INSTANCE_BUILD:unknown}
+    heartbeat-ms: ${FAMILY_KITCHEN_INSTANCE_HEARTBEAT_MS:10000}
   file-storage:
     local-root: ./uploads
   jwt:

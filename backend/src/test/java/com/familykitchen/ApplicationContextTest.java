@@ -26,6 +26,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
     ,"family-kitchen.jwt.secret=test-jwt-secret-with-more-than-32-bytes"
     ,"family-kitchen.auth.bootstrap-admin.password=test-admin-password"
     ,"family-kitchen.account-cancellation.cron=-"
+    ,"family-kitchen.instance.lease-enabled=false"
 })
 class ApplicationContextTest {
 
