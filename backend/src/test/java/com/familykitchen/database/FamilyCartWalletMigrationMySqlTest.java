@@ -118,42 +118,76 @@ class FamilyCartWalletMigrationMySqlTest {
   }
 
   @Test
-  void enforcesWalletHoldLedgerAndIdempotencyInvariants() throws Exception {
+  void enforcesEveryFamilyWalletAndLedgerAmountGuard() throws Exception {
     try (Connection connection = open(); Statement statement = connection.createStatement()) {
       assertThrows(SQLException.class, () -> statement.executeUpdate(
           "INSERT INTO family_wallets (family_id,available_amount,frozen_amount) VALUES (502,-0.01,0)"));
+      assertThrows(SQLException.class, () -> statement.executeUpdate(
+          "INSERT INTO family_wallets (family_id,available_amount,frozen_amount) VALUES (503,0,-0.01)"));
       statement.executeUpdate(
           "INSERT INTO family_wallets (family_id,available_amount,frozen_amount) VALUES (501,100.00,20.00)");
 
       statement.executeUpdate("INSERT INTO family_wallet_ledgers "
           + "(family_id,scope_key,business_type,business_key,amount,available_before,available_after,"
           + "frozen_before,frozen_after) VALUES (501,'family:501','ORDER_HOLD','order:1101',20,100,80,0,20)");
+      assertLedgerRejected(statement, "negative-amount", "-0.01", "100", "100", "0", "0");
+      assertLedgerRejected(statement, "negative-available-before", "0", "-0.01", "0", "0", "0");
+      assertLedgerRejected(statement, "negative-available-after", "0", "0", "-0.01", "0", "0");
+      assertLedgerRejected(statement, "negative-frozen-before", "0", "0", "0", "-0.01", "0");
+      assertLedgerRejected(statement, "negative-frozen-after", "0", "0", "0", "0", "-0.01");
+      assertThrows(SQLException.class, () -> statement.executeUpdate("INSERT INTO family_wallet_ledgers "
+          + "(family_id,scope_key,business_type,business_key,amount,available_before,available_after,"
+          + "frozen_before,frozen_after) VALUES (501,NULL,'ORDER_HOLD','null-scope',0,0,0,0,0)"));
       assertThrows(SQLException.class, () -> statement.executeUpdate("INSERT INTO family_wallet_ledgers "
           + "(family_id,scope_key,business_type,business_key,amount,available_before,available_after,"
           + "frozen_before,frozen_after) VALUES (501,'family:501','ORDER_HOLD','order:1101',1,80,79,20,21)"));
+    }
+  }
 
+  @Test
+  void enforcesEveryOrderHoldAmountEquationRefundAndUniquenessGuard() throws Exception {
+    try (Connection connection = open(); Statement statement = connection.createStatement()) {
+      for (String constraint : new String[] {"ck_family_wallet_order_holds_initial",
+          "ck_family_wallet_order_holds_additional", "ck_family_wallet_order_holds_remaining",
+          "ck_family_wallet_order_holds_captured", "ck_family_wallet_order_holds_released",
+          "ck_family_wallet_order_holds_refunded", "ck_family_wallet_order_holds_equation",
+          "ck_family_wallet_order_holds_refund"}) {
+        assertTrue(checkConstraintExists(statement, "family_wallet_order_holds", constraint),
+            () -> "Missing enforced check " + constraint);
+      }
       statement.executeUpdate("INSERT INTO family_wallet_order_holds "
           + "(order_id,family_id,initial_amount,additional_frozen_amount,remaining_frozen_amount,"
           + "captured_amount,released_amount,refunded_amount,status) "
           + "VALUES (1101,501,20,5,10,10,5,2,'PARTIALLY_CAPTURED')");
-      assertThrows(SQLException.class, () -> statement.executeUpdate("INSERT INTO family_wallet_order_holds "
-          + "(order_id,family_id,initial_amount,additional_frozen_amount,remaining_frozen_amount,"
-          + "captured_amount,released_amount,refunded_amount,status) "
-          + "VALUES (1102,501,20,0,5,10,4,0,'INVALID_EQUATION')"));
-      assertThrows(SQLException.class, () -> statement.executeUpdate("INSERT INTO family_wallet_order_holds "
-          + "(order_id,family_id,initial_amount,additional_frozen_amount,remaining_frozen_amount,"
-          + "captured_amount,released_amount,refunded_amount,status) "
-          + "VALUES (1103,501,20,0,0,20,0,21,'INVALID_REFUND')"));
+      assertHoldRejected(statement, 1101, "20", "5", "10", "10", "5", "2");
+      assertHoldRejected(statement, 1102, "-1", "2", "1", "0", "0", "0");
+      assertHoldRejected(statement, 1103, "2", "-1", "1", "0", "0", "0");
+      assertHoldRejected(statement, 1104, "1", "0", "-1", "2", "0", "0");
+      assertHoldRejected(statement, 1105, "1", "0", "2", "-1", "0", "-2");
+      assertHoldRejected(statement, 1106, "1", "0", "2", "0", "-1", "0");
+      assertHoldRejected(statement, 1107, "1", "0", "1", "0", "0", "-1");
+      assertHoldRejected(statement, 1108, "20", "0", "5", "10", "4", "0");
+      assertHoldRejected(statement, 1109, "20", "0", "0", "20", "0", "21");
+    }
+  }
 
+  @Test
+  void enforcesEveryCommandIdempotencyScopeFieldAndCompositeUniqueness() throws Exception {
+    try (Connection connection = open(); Statement statement = connection.createStatement()) {
+      assertNullable(statement, "command_idempotency", "actor_user_id", false);
+      assertNullable(statement, "command_idempotency", "family_id", false);
+      assertNullable(statement, "command_idempotency", "operation", false);
+      assertNullable(statement, "command_idempotency", "request_id", false);
       statement.executeUpdate("INSERT INTO command_idempotency "
           + "(actor_user_id,family_id,operation,request_id,payload_hash,state) "
           + "VALUES (701,501,'SUBMIT_ORDER','request-1','hash-1','SUCCEEDED')");
       assertThrows(SQLException.class, () -> statement.executeUpdate("INSERT INTO command_idempotency "
           + "(actor_user_id,family_id,operation,request_id,payload_hash,state) "
           + "VALUES (701,501,'SUBMIT_ORDER','request-1','hash-2','STARTED')"));
-      assertThrows(SQLException.class, () -> statement.executeUpdate("INSERT INTO command_idempotency "
-          + "(actor_user_id,family_id,operation,request_id,payload_hash,state) "
-          + "VALUES (701,NULL,'SUBMIT_ORDER','request-2','hash-2','STARTED')"));
+      assertCommandScopeRejected(statement, "NULL", "501", "'SUBMIT_ORDER'", "'request-null-actor'");
+      assertCommandScopeRejected(statement, "701", "NULL", "'SUBMIT_ORDER'", "'request-null-family'");
+      assertCommandScopeRejected(statement, "701", "501", "NULL", "'request-null-operation'");
+      assertCommandScopeRejected(statement, "701", "501", "'SUBMIT_ORDER'", "NULL");
     }
   }
 
@@ -167,6 +201,38 @@ class FamilyCartWalletMigrationMySqlTest {
         assertTrue(tableExists(statement, table), () -> "Missing table " + table);
       }
     }
+  }
+
+  private static void assertLedgerRejected(Statement statement, String businessKey, String amount,
+      String availableBefore, String availableAfter, String frozenBefore, String frozenAfter) {
+    assertThrows(SQLException.class, () -> statement.executeUpdate("INSERT INTO family_wallet_ledgers "
+        + "(family_id,scope_key,business_type,business_key,amount,available_before,available_after,"
+        + "frozen_before,frozen_after) VALUES (501,'family:501','GUARD_TEST','" + businessKey + "',"
+        + amount + "," + availableBefore + "," + availableAfter + "," + frozenBefore + "," + frozenAfter + ")"));
+  }
+
+  private static void assertHoldRejected(Statement statement, long orderId, String initial,
+      String additional, String remaining, String captured, String released, String refunded) {
+    assertThrows(SQLException.class, () -> statement.executeUpdate("INSERT INTO family_wallet_order_holds "
+        + "(order_id,family_id,initial_amount,additional_frozen_amount,remaining_frozen_amount,"
+        + "captured_amount,released_amount,refunded_amount,status) VALUES (" + orderId + ",501,"
+        + initial + "," + additional + "," + remaining + "," + captured + "," + released + ","
+        + refunded + ",'GUARD_TEST')"));
+  }
+
+  private static void assertCommandScopeRejected(Statement statement, String actorUserId,
+      String familyId, String operation, String requestId) {
+    assertThrows(SQLException.class, () -> statement.executeUpdate("INSERT INTO command_idempotency "
+        + "(actor_user_id,family_id,operation,request_id,payload_hash,state) VALUES ("
+        + actorUserId + "," + familyId + "," + operation + "," + requestId + ",'hash','STARTED')"));
+  }
+
+  private static boolean checkConstraintExists(Statement statement, String table, String constraint)
+      throws SQLException {
+    return count(statement, "SELECT COUNT(*) FROM information_schema.table_constraints "
+        + "WHERE constraint_schema=DATABASE() AND table_name='" + table + "' "
+        + "AND constraint_name='" + constraint + "' AND constraint_type='CHECK' "
+        + "AND enforced='YES'") == 1;
   }
 
   private static void seedAndSnapshotLegacyRows() throws Exception {

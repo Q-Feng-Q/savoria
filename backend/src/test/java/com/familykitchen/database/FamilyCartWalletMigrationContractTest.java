@@ -1,6 +1,7 @@
 package com.familykitchen.database;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
@@ -55,14 +56,23 @@ class FamilyCartWalletMigrationContractTest {
         "scope_key varchar(100) not null", "business_type varchar(40) not null",
         "business_key varchar(128) not null",
         "unique key uk_family_wallet_ledgers_business (business_type,business_key)",
-        "available_before decimal(18,2) not null", "available_after decimal(18,2) not null",
-        "frozen_before decimal(18,2) not null", "frozen_after decimal(18,2) not null");
+        "amount decimal(18,2) not null", "check (amount >= 0)",
+        "available_before decimal(18,2) not null", "check (available_before >= 0)",
+        "available_after decimal(18,2) not null", "check (available_after >= 0)",
+        "frozen_before decimal(18,2) not null", "check (frozen_before >= 0)",
+        "frozen_after decimal(18,2) not null", "check (frozen_after >= 0)");
     assertTableHas(sql, "family_wallet_order_holds", "order_id bigint not null",
         "unique key uk_family_wallet_order_holds_order (order_id)",
         "initial_amount decimal(18,2) not null", "additional_frozen_amount decimal(18,2) not null",
         "remaining_frozen_amount decimal(18,2) not null", "captured_amount decimal(18,2) not null",
         "released_amount decimal(18,2) not null", "refunded_amount decimal(18,2) not null",
         "status varchar(30) not null", "check (refunded_amount <= captured_amount)",
+        "check (initial_amount >= 0)",
+        "check (additional_frozen_amount >= 0)",
+        "check (remaining_frozen_amount >= 0)",
+        "check (captured_amount >= 0)",
+        "check (released_amount >= 0)",
+        "check (refunded_amount >= 0)",
         "check (initial_amount + additional_frozen_amount = remaining_frozen_amount + captured_amount + released_amount)");
   }
 
@@ -103,13 +113,65 @@ class FamilyCartWalletMigrationContractTest {
     String sql = normalizedSql();
 
     assertFalse(sql.contains("uk_carts_active_family"));
-    assertFalse(sql.matches("(?s).*(^|;)\\s*(drop|truncate|delete|update)\\s+.*"));
+    assertNoDataChangingSql(sql);
     assertFalse(sql.contains("alter table meal_slots"));
     assertFalse(sql.contains("alter table member_wallets"));
     assertFalse(sql.contains("alter table wallet_ledgers"));
     assertFalse(sql.contains("alter table order_member_charges"));
     assertFalse(sql.contains("drop index uk_carts_active_cart"));
     assertFalse(sql.contains("drop column active_cart_key"));
+  }
+
+  @Test
+  void additiveGuardRejectsDataChangesAndSelectBasedCopiesButAllowsTimestampClauses() {
+    String[] forbidden = {
+        "INSERT INTO member_wallets SELECT * FROM old_wallets;",
+        "REPLACE INTO carts VALUES (1);",
+        "UPDATE member_wallets SET balance_amount=0;",
+        "DELETE FROM carts;",
+        "TRUNCATE TABLE order_member_charges;",
+        "DROP TABLE member_wallets;",
+        "SELECT * INTO copied_wallets FROM member_wallets;",
+        "MERGE INTO carts USING legacy_carts ON carts.id=legacy_carts.id WHEN MATCHED THEN DELETE;",
+        "CALL migrate_money();",
+        "EXECUTE migrate_statement;",
+        "PREPARE migrate_statement FROM 'UPDATE carts SET status=1';",
+        "LOAD DATA INFILE 'wallets.csv' INTO TABLE member_wallets;",
+        "CREATE PROCEDURE migrate_money() UPDATE member_wallets SET balance_amount=0;",
+        "CREATE TABLE copied_wallets AS SELECT * FROM member_wallets;"
+    };
+    for (String sql : forbidden) {
+      assertThrows(AssertionError.class, () -> assertNoDataChangingSql(sql), sql);
+    }
+    assertNoDataChangingSql("CREATE TABLE safe_table (updated_at datetime NOT NULL "
+        + "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);");
+  }
+
+  private static void assertNoDataChangingSql(String sql) {
+    String normalized = sql
+        .replaceAll("--[^\\r\\n]*", " ")
+        .replaceAll("\\s+", " ")
+        .trim()
+        .toLowerCase();
+    assertFalse(normalized.matches(
+        "(?s).*(^|;)\\s*(insert(?:\\s+ignore)?\\s+into|replace(?:\\s+into)?|update|"
+            + "delete(?:\\s+from)?|truncate(?:\\s+table)?|drop|merge(?:\\s+into)?|call|execute|"
+            + "prepare|load\\s+data)\\b.*"),
+        "Migration must not execute data-changing statements");
+    assertFalse(normalized.matches("(?s).*\\bselect\\b.*"),
+        "Schema-only migration must not read or copy legacy rows");
+    assertFalse(normalized.matches(
+        "(?s).*(^|;)\\s*create\\s+(procedure|function|trigger|event)\\b.*"),
+        "Migration must not hide data changes in stored database code");
+    assertFalse(normalized.matches(
+        "(?s).*\\bcreate\\s+table\\b.*\\b(?:as\\s+)?select\\b.*"),
+        "Migration must not copy data with CREATE TABLE AS SELECT");
+    for (String table : new String[] {"member_wallets", "carts", "order_member_charges"}) {
+      assertFalse(normalized.matches(
+          "(?s).*\\b(?:insert(?:\\s+ignore)?\\s+into|replace(?:\\s+into)?|update|delete\\s+from|"
+              + "truncate\\s+table|merge\\s+into)\\s+`?" + table + "`?\\b.*"),
+          () -> "Migration must not write legacy table " + table);
+    }
   }
 
   private static void assertTableHas(String sql, String table, String... fragments) {
