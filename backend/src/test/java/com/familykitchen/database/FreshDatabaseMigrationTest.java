@@ -42,7 +42,8 @@ class FreshDatabaseMigrationTest {
         "V7__backfill_default_family_meal_slots.sql",
         "V8__add_dish_template_change_review.sql",
         "V9__add_family_featured_dish.sql",
-        "V10__add_merchant_featured_dishes.sql"),
+        "V10__add_merchant_featured_dishes.sql",
+        "V11__add_family_cart_time_and_wallet.sql"),
         files.stream().map(path -> path.getFileName().toString()).toList());
 
     String sql = readAll(files).toLowerCase();

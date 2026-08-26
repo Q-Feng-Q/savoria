@@ -126,10 +126,26 @@ class FamilyCartWalletMigrationMySqlTest {
           "INSERT INTO family_wallets (family_id,available_amount,frozen_amount) VALUES (503,0,-0.01)"));
       statement.executeUpdate(
           "INSERT INTO family_wallets (family_id,available_amount,frozen_amount) VALUES (501,100.00,20.00)");
+      assertNullable(statement, "family_wallet_ledgers", "order_id", true);
+      assertNullable(statement, "family_wallet_ledgers", "operator_user_id", true);
+      assertTrue(indexExists(statement, "family_wallet_ledgers",
+          "idx_family_wallet_ledgers_family_order"));
+      assertTrue(indexExists(statement, "family_wallet_ledgers",
+          "idx_family_wallet_ledgers_operator_created"));
 
       statement.executeUpdate("INSERT INTO family_wallet_ledgers "
           + "(family_id,scope_key,business_type,business_key,amount,available_before,available_after,"
           + "frozen_before,frozen_after) VALUES (501,'family:501','ORDER_HOLD','order:1101',20,100,80,0,20)");
+      assertEquals(1L, count(statement, "SELECT COUNT(*) FROM family_wallet_ledgers "
+          + "WHERE business_key='order:1101' AND order_id IS NULL AND operator_user_id IS NULL"));
+      statement.executeUpdate("INSERT INTO family_wallet_ledgers "
+          + "(family_id,order_id,operator_user_id,scope_key,business_type,business_key,amount,"
+          + "available_before,available_after,frozen_before,frozen_after) "
+          + "VALUES (501,1101,701,'family:501','AUDIT','audit:1101',0,80,80,20,20)");
+      assertEquals(1101L, count(statement,
+          "SELECT order_id FROM family_wallet_ledgers WHERE business_key='audit:1101'"));
+      assertEquals(701L, count(statement,
+          "SELECT operator_user_id FROM family_wallet_ledgers WHERE business_key='audit:1101'"));
       assertLedgerRejected(statement, "negative-amount", "-0.01", "100", "100", "0", "0");
       assertLedgerRejected(statement, "negative-available-before", "0", "-0.01", "0", "0", "0");
       assertLedgerRejected(statement, "negative-available-after", "0", "0", "-0.01", "0", "0");

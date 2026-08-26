@@ -61,6 +61,8 @@ CREATE TABLE family_wallets (
 CREATE TABLE family_wallet_ledgers (
   id bigint PRIMARY KEY AUTO_INCREMENT COMMENT '家庭钱包流水ID',
   family_id bigint NOT NULL COMMENT '家庭ID',
+  order_id bigint NULL COMMENT '关联订单ID',
+  operator_user_id bigint NULL COMMENT '操作用户ID，系统操作时为空',
   scope_key varchar(100) NOT NULL COMMENT '规范化非空业务范围',
   business_type varchar(40) NOT NULL COMMENT '业务类型',
   business_key varchar(128) NOT NULL COMMENT '业务幂等键',
@@ -73,6 +75,8 @@ CREATE TABLE family_wallet_ledgers (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   UNIQUE KEY uk_family_wallet_ledgers_business (business_type,business_key),
   KEY idx_family_wallet_ledgers_family_created (family_id,created_at),
+  KEY idx_family_wallet_ledgers_family_order (family_id,order_id),
+  KEY idx_family_wallet_ledgers_operator_created (operator_user_id,created_at),
   KEY idx_family_wallet_ledgers_scope (scope_key),
   CONSTRAINT ck_family_wallet_ledgers_amount CHECK (amount >= 0),
   CONSTRAINT ck_family_wallet_ledgers_available_before CHECK (available_before >= 0),

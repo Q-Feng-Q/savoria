@@ -60,6 +60,9 @@ class FamilyCartWalletMigrationContractTest {
         "available_before decimal(18,2) not null", "check (available_before >= 0)",
         "available_after decimal(18,2) not null", "check (available_after >= 0)",
         "frozen_before decimal(18,2) not null", "check (frozen_before >= 0)",
+        "order_id bigint null", "operator_user_id bigint null",
+        "key idx_family_wallet_ledgers_family_order (family_id,order_id)",
+        "key idx_family_wallet_ledgers_operator_created (operator_user_id,created_at)",
         "frozen_after decimal(18,2) not null", "check (frozen_after >= 0)");
     assertTableHas(sql, "family_wallet_order_holds", "order_id bigint not null",
         "unique key uk_family_wallet_order_holds_order (order_id)",
@@ -133,6 +136,9 @@ class FamilyCartWalletMigrationContractTest {
         "DROP TABLE member_wallets;",
         "SELECT * INTO copied_wallets FROM member_wallets;",
         "MERGE INTO carts USING legacy_carts ON carts.id=legacy_carts.id WHEN MATCHED THEN DELETE;",
+        "ALTER TABLE carts DROP COLUMN user_id;",
+        "ALTER TABLE carts RENAME COLUMN user_id TO legacy_user_id;",
+        "ALTER TABLE carts MODIFY COLUMN status varchar(40) NULL;",
         "CALL migrate_money();",
         "EXECUTE migrate_statement;",
         "PREPARE migrate_statement FROM 'UPDATE carts SET status=1';",
@@ -161,6 +167,9 @@ class FamilyCartWalletMigrationContractTest {
     assertFalse(normalized.matches("(?s).*\\bselect\\b.*"),
         "Schema-only migration must not read or copy legacy rows");
     assertFalse(normalized.matches(
+        "(?s).*\\balter\\s+table\\b[^;]*\\b(drop|rename|change)\\b.*"),
+        "Compatibility migration must not drop, rename, or change legacy columns");
+    assertFalse(normalized.matches(
         "(?s).*(^|;)\\s*create\\s+(procedure|function|trigger|event)\\b.*"),
         "Migration must not hide data changes in stored database code");
     assertFalse(normalized.matches(
@@ -171,6 +180,26 @@ class FamilyCartWalletMigrationContractTest {
           "(?s).*\\b(?:insert(?:\\s+ignore)?\\s+into|replace(?:\\s+into)?|update|delete\\s+from|"
               + "truncate\\s+table|merge\\s+into)\\s+`?" + table + "`?\\b.*"),
           () -> "Migration must not write legacy table " + table);
+    }
+    java.util.Set<String> allowedModifications = java.util.Set.of(
+        "carts.user_id",
+        "carts.meal_slot_id",
+        "carts.service_date",
+        "orders.meal_slot_id",
+        "orders.service_date",
+        "orders.delivery_fee_payer_user_id",
+        "order_items.owner_user_id");
+    java.util.regex.Matcher alter = java.util.regex.Pattern.compile(
+        "(?s)\\balter\\s+table\\s+`?([a-z0-9_]+)`?\\s+([^;]*);").matcher(normalized);
+    while (alter.find()) {
+      String table = alter.group(1);
+      java.util.regex.Matcher modify = java.util.regex.Pattern.compile(
+          "\\bmodify\\s+column\\s+`?([a-z0-9_]+)`?").matcher(alter.group(2));
+      while (modify.find()) {
+        String target = table + "." + modify.group(1);
+        assertTrue(allowedModifications.contains(target),
+            () -> "Migration may only relax an approved retired field: " + target);
+      }
     }
   }
 
