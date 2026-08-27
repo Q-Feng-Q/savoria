@@ -112,9 +112,9 @@ public class FamilyWalletServiceImpl implements FamilyWalletService {
   }
 
   /** {@inheritDoc} */
-  @Override @Transactional public void manualCredit(long familyId,long actorId,BigDecimal amount,String key,String remark){BigDecimal value=FamilyWalletAccount.command(amount);idempotent(actorId,familyId,"MANUAL_CREDIT",key,"amount="+value.toPlainString()+"&remark="+String.valueOf(remark),"family_wallet",familyId,()->adjust(familyId,actorId,value,key,remark,true));}
+  @Override @Transactional public void manualCredit(long familyId,long actorId,BigDecimal amount,String key,String remark){BigDecimal value=FamilyWalletAccount.command(amount);String normalizedRemark=normalizeRemark(remark);idempotent(actorId,familyId,"MANUAL_CREDIT",key,adjustmentPayload(value,normalizedRemark),"family_wallet",familyId,()->adjust(familyId,actorId,value,key,normalizedRemark,true));}
   /** {@inheritDoc} */
-  @Override @Transactional public void manualDebit(long familyId,long actorId,BigDecimal amount,String key,String remark){BigDecimal value=FamilyWalletAccount.command(amount);idempotent(actorId,familyId,"MANUAL_DEBIT",key,"amount="+value.toPlainString()+"&remark="+String.valueOf(remark),"family_wallet",familyId,()->adjust(familyId,actorId,value,key,remark,false));}
+  @Override @Transactional public void manualDebit(long familyId,long actorId,BigDecimal amount,String key,String remark){BigDecimal value=FamilyWalletAccount.command(amount);String normalizedRemark=normalizeRemark(remark);idempotent(actorId,familyId,"MANUAL_DEBIT",key,adjustmentPayload(value,normalizedRemark),"family_wallet",familyId,()->adjust(familyId,actorId,value,key,normalizedRemark,false));}
 
   private void adjust(long familyId,long actorId,BigDecimal amount,String key,String remark,boolean credit){
     FamilyWalletAccount account=domain(lockAccount(familyId));BigDecimal beforeA=account.availableAmount(),beforeF=account.frozenAmount();
@@ -131,6 +131,8 @@ public class FamilyWalletServiceImpl implements FamilyWalletService {
   }
   private static void requireAtLeast(BigDecimal actual,BigDecimal wanted,String message){if(actual.compareTo(wanted)<0)throw new BusinessException(ErrorCode.BUSINESS_INVALID,message);}
   private static void conflict(String message){throw new BusinessException(ErrorCode.STATE_CONFLICT,message);}
+  private static String normalizeRemark(String remark){if(remark==null||remark.isBlank())return null;String normalized=remark.trim();if(normalized.length()>500)throw new BusinessException(ErrorCode.BAD_REQUEST,"备注不能超过 500 个字符");return normalized;}
+  private static String adjustmentPayload(BigDecimal amount,String remark){return "amount="+amount.toPlainString()+"&remark="+(remark==null?"-1:":remark.length()+":"+remark);}
   private void idempotent(long actor,long family,String operation,String requestId,String payload,String resourceType,Long resourceId,Runnable action){
     commands.execute(new CommandIdempotencyService.Command(actor,family,operation,requestId,payload),()->{action.run();return new CommandIdempotencyService.Result(resourceType,resourceId,null);});
   }

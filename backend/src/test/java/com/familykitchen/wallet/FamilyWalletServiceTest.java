@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import com.familykitchen.common.error.BusinessException;
@@ -74,6 +75,23 @@ class FamilyWalletServiceTest {
     FamilyWalletServiceImpl service=new FamilyWalletServiceImpl(mapper,commands);
     assertThatThrownBy(() -> service.release(7,91,3,money("4.00"),"release:req"))
         .isInstanceOf(BusinessException.class);
+  }
+
+  @Test
+  void manualAdjustmentPayloadDistinguishesNullFromLiteralNullAndNormalizesWhitespace() {
+    FamilyWalletMapper mapper=mock(FamilyWalletMapper.class);
+    CommandIdempotencyService commands=commands();
+    when(mapper.lockAccount(7L)).thenReturn(account("100.00","0.00"));
+    when(mapper.updateAccount(any(Long.class),any(),any())).thenReturn(1);
+    FamilyWalletServiceImpl service=new FamilyWalletServiceImpl(mapper,commands);
+
+    service.manualCredit(7,3,money("1.00"),"null-remark",null);
+    service.manualCredit(7,3,money("1.00"),"text-remark","  null  ");
+
+    ArgumentCaptor<CommandIdempotencyService.Command> command=ArgumentCaptor.forClass(CommandIdempotencyService.Command.class);
+    verify(commands,times(2)).execute(command.capture(),any());
+    assertThat(command.getAllValues().get(0).payload()).endsWith("remark=-1:");
+    assertThat(command.getAllValues().get(1).payload()).endsWith("remark=4:null");
   }
 
   private static FamilyWalletAccountDO account(String available,String frozen){FamilyWalletAccountDO a=new FamilyWalletAccountDO();a.familyId=7L;a.availableAmount=money(available);a.frozenAmount=money(frozen);return a;}
