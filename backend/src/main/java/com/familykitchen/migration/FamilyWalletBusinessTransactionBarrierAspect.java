@@ -51,7 +51,8 @@ public class FamilyWalletBusinessTransactionBarrierAspect {
   private Object guarded(ProceedingJoinPoint joinPoint) throws Throwable {
     mapper.ensureCutover();
     Map<String, Object> cutover = mapper.lockCutover();
-    if (cutover != null && truth(cutover.get("maintenanceEnabled"))) {
+    if (cutover != null && (truth(cutover.get("maintenanceEnabled"))
+        || "FAMILY_READY".equals(String.valueOf(cutover.get("state"))))) {
       throw new IllegalStateException("family wallet migration write barrier is active");
     }
     return joinPoint.proceed();

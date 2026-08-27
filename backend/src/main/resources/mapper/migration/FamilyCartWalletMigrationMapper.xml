@@ -315,7 +315,8 @@
     delete from family_wallet_migration_runner_lease where scope_key='GLOBAL' and owner_token=#{ownerToken}
   </delete>
   <select id="isWriteBarrierEnabled" resultType="int">
-    select count(*) from family_wallet_cutover_state where scope_key='GLOBAL' and maintenance_enabled=1
+    select count(*) from family_wallet_cutover_state
+    where scope_key='GLOBAL' and (maintenance_enabled=1 or state='FAMILY_READY')
   </select>
   <insert id="populateEligibleFamilies">
     insert ignore into family_wallet_migration_families(batch_id,family_id,status)

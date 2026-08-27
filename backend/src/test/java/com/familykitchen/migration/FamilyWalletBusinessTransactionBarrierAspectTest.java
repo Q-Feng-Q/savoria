@@ -43,4 +43,20 @@ class FamilyWalletBusinessTransactionBarrierAspectTest {
 
     verify(mapper, never()).lockCutover();
   }
+
+  @Test
+  void retiredCompatibilityBuildCannotResumeWritesAfterFinalize() throws Throwable {
+    FamilyCartWalletMigrationMapper mapper = mock(FamilyCartWalletMigrationMapper.class);
+    ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
+    Transactional transactional = mock(Transactional.class);
+    when(mapper.lockCutover()).thenReturn(
+        Map.of("maintenanceEnabled", 0, "state", "FAMILY_READY"));
+    FamilyWalletBusinessTransactionBarrierAspect aspect =
+        new FamilyWalletBusinessTransactionBarrierAspect(mapper);
+
+    assertThrows(IllegalStateException.class,
+        () -> aspect.guardMethodTransaction(joinPoint, transactional));
+
+    verify(joinPoint, never()).proceed();
+  }
 }
