@@ -106,9 +106,15 @@ class FamilyCartWalletMigrationContractTest {
     assertTableHas(sql, "family_wallet_migration_anomalies", "batch_id bigint not null",
         "anomaly_type varchar(80) not null", "detail_json json not null");
     assertTableHas(sql, "family_wallet_cutover_state", "maintenance_enabled tinyint(1) not null",
-        "cutover_epoch bigint not null", "drain_epoch bigint not null");
+        "cutover_epoch bigint not null", "drain_epoch bigint not null", "active_batch_id bigint null");
     assertTableHas(sql, "application_instance_leases", "instance_id varchar(128) not null",
         "build_version varchar(128) not null", "heartbeat_at datetime not null", "lease_expires_at datetime not null");
+    assertTableHas(sql, "family_wallet_migration_runner_lease", "scope_key varchar(100) not null",
+        "owner_token varchar(128) not null", "batch_id bigint not null", "drain_epoch bigint not null",
+        "mode varchar(30) not null", "lease_expires_at datetime not null");
+    assertTableHas(sql, "family_wallet_migration_families", "batch_id bigint not null",
+        "family_id bigint not null", "status varchar(30) not null",
+        "unique key uk_family_wallet_migration_family (batch_id,family_id)");
   }
 
   @Test

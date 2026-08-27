@@ -5,114 +5,98 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import com.familykitchen.migration.FamilyCartWalletMigrationRunner;
 import com.familykitchen.migration.FamilyCartWalletMigrationRunner.Mode;
 import com.familykitchen.migration.FamilyCartWalletMigrationService;
+import com.familykitchen.migration.FamilyWalletMigrationLeaseService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.DefaultApplicationArguments;
 
-/** Verifies migration-runner dispatch and safety gates without a database. */
+/** Verifies persistent lease ownership and dispatch without a database. */
 class FamilyCartWalletMigrationRunnerTest {
-
   private final FamilyCartWalletMigrationService service = mock(FamilyCartWalletMigrationService.class);
+  private final FamilyWalletMigrationLeaseService leases = mock(FamilyWalletMigrationLeaseService.class);
 
   @Test
-  void defaultOffDoesNotReadOrWriteMigrationState() {
-    runner("OFF", null, null, "", "", "").run(new DefaultApplicationArguments());
-    verify(service, never()).preflight(null, null);
-    verify(service, never()).quiesce(null, null);
+  void defaultOffDoesNotTouchServiceOrLease() {
+    runner("OFF", null, null, "", "", "").run(args());
+    verify(leases, never()).acquire(0, 0, "OFF");
+    verify(service, never()).currentDatabase();
   }
 
   @Test
-  void initialPreflightCreatesAReportOnlyWithDisposableTargetAndSafetyToken() {
-    when(service.preflight(null, null)).thenReturn(
-        new FamilyCartWalletMigrationService.Result(41L, 0L, "PREFLIGHT", 0));
+  void preflightIsPersistentlyOwnedAndAlwaysReleased() {
+    when(leases.acquire(0, 0, "PREFLIGHT")).thenReturn("owner");
+    when(service.preflight("owner", null, null)).thenReturn(
+        new FamilyCartWalletMigrationService.Result(41, 0, "PREFLIGHT", 0));
     assertDoesNotThrow(() -> runner("PREFLIGHT", null, null,
-        "wallet_family_wallet_disposable", "once", "once")
-        .run(new DefaultApplicationArguments()));
-    verify(service).preflight(null, null);
+        "wallet_family_wallet_disposable", "once", "once").run(args()));
+    verify(service).preflight("owner", null, null);
+    verify(leases).release("owner");
   }
 
   @Test
-  void everyContinuationRequiresBatchAndQuiescedModesRequireEpoch() {
-    assertThrows(IllegalArgumentException.class,
-        () -> runner("QUIESCE", null, null, "db_family_wallet_disposable", "once", "once").run(args()));
-    assertThrows(IllegalArgumentException.class,
-        () -> runner("EXECUTE", 9L, null, "db_family_wallet_disposable", "once", "once").run(args()));
-    assertThrows(IllegalArgumentException.class,
-        () -> runner("VERIFY", 9L, null, "db_family_wallet_disposable", "once", "once").run(args()));
-    assertThrows(IllegalArgumentException.class,
-        () -> runner("FINALIZE", 9L, null, "db_family_wallet_disposable", "once", "once").run(args()));
+  void everyContinuationRequiresBatchAndQuiescedModesRequireEpochBeforeLease() {
+    assertThrows(IllegalArgumentException.class, () -> runner("QUIESCE", null, null,
+        "db_family_wallet_disposable", "once", "once").run(args()));
+    assertThrows(IllegalArgumentException.class, () -> runner("EXECUTE", 9L, null,
+        "db_family_wallet_disposable", "once", "once").run(args()));
+    verify(leases, never()).acquire(0, 0, "QUIESCE");
   }
 
   @Test
-  void mutatingModesRejectMissingMismatchedOrProductionLikeSafetyConfiguration() {
-    assertThrows(IllegalStateException.class,
-        () -> runner("QUIESCE", 9L, null, "", "once", "once").run(args()));
-    assertThrows(IllegalStateException.class,
-        () -> runner("QUIESCE", 9L, null, "family_kitchen_prod", "once", "once").run(args()));
-    assertThrows(IllegalStateException.class,
-        () -> runner("QUIESCE", 9L, null, "migration_test", "bad", "once").run(args()));
-    assertThrows(IllegalStateException.class,
-        () -> runner("PREFLIGHT", null, null, "migration_test", "once", "once").run(args()));
+  void barrierPreflightEpochCannotBeSuppliedWithoutItsBatch() {
+    assertThrows(IllegalArgumentException.class, () -> runner("PREFLIGHT", null, 7L,
+        "db_family_wallet_disposable", "once", "once").run(args()));
+    verify(leases, never()).acquire(0, 7, "PREFLIGHT");
   }
 
   @Test
-  void executeProcessesFamiliesThroughSeparateServiceCallsAndResumes() {
-    when(service.validateContinuation(12L, 7L, Mode.EXECUTE)).thenReturn(List.of(101L, 102L));
-    when(service.executeFamily(12L, 7L, 101L)).thenReturn(true);
-    when(service.executeFamily(12L, 7L, 102L)).thenReturn(false);
-
-    assertThrows(IllegalStateException.class,
-        () -> runner("EXECUTE", 12L, 7L,
-            "runner_family_wallet_disposable", "once", "once").run(args()));
-
-    verify(service).executeFamily(12L, 7L, 101L);
-    verify(service).executeFamily(12L, 7L, 102L);
-    verify(service, never()).markExecutionComplete(12L, 7L);
+  void quiesceAllocatesItsEpochAndRejectsAConfiguredOne() {
+    assertThrows(IllegalArgumentException.class, () -> runner("QUIESCE", 9L, 7L,
+        "db_family_wallet_disposable", "once", "once").run(args()));
+    verify(leases, never()).acquire(9, 7, "QUIESCE");
   }
 
   @Test
-  void dispatchesEveryNonExecuteContinuationMode() {
-    when(service.quiesce(9L, "migration-runner")).thenReturn(
-        new FamilyCartWalletMigrationService.Result(9L, 4L, "DRAINED", 0));
-    when(service.abortBeforeExecute(9L, 4L)).thenReturn(
-        new FamilyCartWalletMigrationService.Result(9L, 4L, "ABORTED", 0));
-    when(service.verify(9L, 4L)).thenReturn(
-        new FamilyCartWalletMigrationService.Result(9L, 4L, "VERIFIED", 0));
-    when(service.finalizeBatch(9L, 4L)).thenReturn(
-        new FamilyCartWalletMigrationService.Result(9L, 4L, "FINALIZED", 0));
-
-    runner("QUIESCE", 9L, null, "wallet_family_wallet_disposable", "once", "once").run(args());
-    runner("ABORT_BEFORE_EXECUTE", 9L, 4L, "wallet_family_wallet_disposable", "once", "once").run(args());
-    runner("VERIFY", 9L, 4L, "wallet_family_wallet_disposable", "once", "once").run(args());
-    runner("FINALIZE", 9L, 4L, "wallet_family_wallet_disposable", "once", "once").run(args());
-
-    verify(service).quiesce(9L, "migration-runner");
-    verify(service).abortBeforeExecute(9L, 4L);
-    verify(service).verify(9L, 4L);
-    verify(service).finalizeBatch(9L, 4L);
+  void safetyValidationPrecedesAnyPersistentWrite() {
+    assertThrows(IllegalStateException.class, () -> runner("QUIESCE", 9L, null,
+        "family_kitchen_prod", "once", "once").run(args()));
+    assertThrows(IllegalStateException.class, () -> runner("PREFLIGHT", null, null,
+        "migration_test", "bad", "once").run(args()));
+    verify(leases, never()).acquire(9, 0, "QUIESCE");
   }
 
   @Test
-  void mutatingModeRejectsActualDatabaseMismatchBeforeWriting() {
-    when(service.currentDatabase()).thenReturn("other_family_wallet_disposable");
-    assertThrows(IllegalStateException.class,
-        () -> runner("QUIESCE", 9L, null,
-            "wallet_family_wallet_disposable", "once", "once").run(args()));
-    verify(service, never()).quiesce(9L, "migration-runner");
+  void executeRenewsBetweenIndependentFamiliesAndDoesNotMarkPartialRunComplete() {
+    when(leases.acquire(12, 7, "EXECUTE")).thenReturn("owner");
+    when(service.validateContinuation("owner", 12L, 7L, Mode.EXECUTE)).thenReturn(List.of(101L, 102L));
+    when(service.executeFamily("owner", 12L, 7L, 101L)).thenReturn(true);
+    when(service.executeFamily("owner", 12L, 7L, 102L)).thenReturn(false);
+    assertThrows(IllegalStateException.class, () -> runner("EXECUTE", 12L, 7L,
+        "runner_family_wallet_disposable", "once", "once").run(args()));
+    verify(leases, times(2)).renew("owner", 12, 7);
+    verify(service, never()).markExecutionComplete("owner", 12L, 7L);
+    verify(leases).release("owner");
   }
 
-  private FamilyCartWalletMigrationRunner runner(
-      String mode, Long batchId, Long epoch, String database, String token, String configuredToken) {
-    return new FamilyCartWalletMigrationRunner(
-        service, mode, batchId, epoch, database, token, configuredToken);
+  @Test
+  void staleOwnerFailureStillReleasesOnlyItsToken() {
+    when(leases.acquire(9, 4, "VERIFY")).thenReturn("owner");
+    when(service.verify("owner", 9L, 4L)).thenThrow(new IllegalStateException("stale"));
+    assertThrows(IllegalStateException.class, () -> runner("VERIFY", 9L, 4L,
+        "wallet_family_wallet_disposable", "once", "once").run(args()));
+    verify(leases).release("owner");
   }
 
-  private static DefaultApplicationArguments args() {
-    return new DefaultApplicationArguments();
+  private FamilyCartWalletMigrationRunner runner(String mode, Long batch, Long epoch,
+      String database, String token, String configured) {
+    return new FamilyCartWalletMigrationRunner(service, leases, mode, batch, epoch,
+        database, token, configured);
   }
+  private static DefaultApplicationArguments args() { return new DefaultApplicationArguments(); }
 }

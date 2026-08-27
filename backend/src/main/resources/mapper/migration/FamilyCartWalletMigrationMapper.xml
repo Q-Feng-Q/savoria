@@ -3,7 +3,7 @@
 <mapper namespace="com.familykitchen.migration.FamilyCartWalletMigrationMapper">
   <select id="currentDatabase" resultType="string">select database()</select>
   <insert id="createBatch">
-    insert into family_wallet_migration_batches(phase,status,started_at) values('PRECHECK','PREFLIGHT',now())
+    insert into family_wallet_migration_batches(phase,status,started_at) values('PREFLIGHT','DRAFT',now())
   </insert>
   <select id="lastInsertId" resultType="long">select last_insert_id()</select>
   <select id="lockBatch" resultType="map">
@@ -16,7 +16,7 @@
   </insert>
   <select id="lockCutover" resultType="map">
     select scope_key as scopeKey,maintenance_enabled as maintenanceEnabled,cutover_epoch as cutoverEpoch,
-           drain_epoch as drainEpoch,state,updated_by as updatedBy
+           drain_epoch as drainEpoch,active_batch_id as activeBatchId,state,updated_by as updatedBy
     from family_wallet_cutover_state where scope_key='GLOBAL' for update
   </select>
   <select id="countActiveLeases" resultType="int">
@@ -26,7 +26,7 @@
     select coalesce(max(drain_epoch),0)+1 from family_wallet_cutover_state
   </select>
   <update id="enableBarrier">
-    update family_wallet_cutover_state set maintenance_enabled=1,drain_epoch=#{epoch},state='QUIESCING',updated_by=#{owner}
+    update family_wallet_cutover_state set maintenance_enabled=1,drain_epoch=#{epoch},active_batch_id=#{batchId},state='QUIESCING',updated_by=#{owner}
     where scope_key='GLOBAL'
   </update>
   <update id="markBatchQuiescing">
@@ -34,13 +34,13 @@
     where id=#{batchId}
   </update>
   <update id="markDrained">
-    update family_wallet_cutover_state set state='DRAINED' where scope_key='GLOBAL' and drain_epoch=#{epoch}
+    update family_wallet_cutover_state set state='DRAINED' where scope_key='GLOBAL' and active_batch_id=#{batchId} and drain_epoch=#{epoch}
   </update>
   <update id="markBatchDrained">
     update family_wallet_migration_batches set phase='QUIESCE',status='DRAINED',drain_epoch=#{epoch} where id=#{batchId}
   </update>
   <update id="clearBarrier">
-    update family_wallet_cutover_state set maintenance_enabled=0,state='COMPATIBLE',updated_by=null where scope_key='GLOBAL'
+    update family_wallet_cutover_state set maintenance_enabled=0,active_batch_id=null,state='COMPATIBLE',updated_by=null where scope_key='GLOBAL'
   </update>
   <select id="countSources" resultType="int">select count(*) from family_wallet_migration_sources where batch_id=#{batchId}</select>
   <select id="countCartSources" resultType="int">select count(*) from family_cart_migration_sources where batch_id=#{batchId}</select>
@@ -83,6 +83,32 @@
         where lower(o.status) not in ('completed','cancelled') group by omc.user_id
       ) ch on ch.user_id=mw.user_id
       where mw.frozen_amount&lt;&gt;coalesce(ch.frozen,0)
+      union all
+      select 'WALLET_PRECISION_INVALID','USER',mw.user_id,
+             json_object('userId',mw.user_id,'available',mw.balance_amount,'frozen',mw.frozen_amount)
+      from member_wallets mw where mw.balance_amount&lt;&gt;round(mw.balance_amount,2) or mw.frozen_amount&lt;&gt;round(mw.frozen_amount,2)
+      union all
+      select 'WALLET_AMOUNT_OVERFLOW','FAMILY',fur.family_id,
+             json_object('familyId',fur.family_id,'available',sum(mw.balance_amount),'frozen',sum(mw.frozen_amount))
+      from family_user_relations fur join member_wallets mw on mw.user_id=fur.user_id
+      where fur.status='ACTIVE' group by fur.family_id
+      having sum(mw.balance_amount)&gt;9999999999999999.99 or sum(mw.frozen_amount)&gt;9999999999999999.99
+      union all
+      select 'CART_USER_MISSING','CART',c.id,json_object('cartId',c.id,'userId',c.user_id)
+      from carts c left join users u on u.id=c.user_id where c.status='active' and (c.user_id is null or u.id is null)
+      union all
+      select 'CART_USER_NOT_FAMILY_MEMBER','CART',c.id,json_object('cartId',c.id,'userId',c.user_id)
+      from carts c left join family_user_relations fur on fur.family_id=c.family_id and fur.user_id=c.user_id and fur.status='ACTIVE'
+      where c.status='active' and fur.user_id is null
+      union all
+      select 'CART_QUANTITY_INVALID','CART_ITEM',ci.id,json_object('cartId',c.id,'quantity',ci.quantity)
+      from carts c join cart_items ci on ci.cart_id=c.id where c.status='active' and ci.quantity&lt;=0
+      union all
+      select 'ORDER_FROZEN_UNMAPPED','ORDER',o.id,json_object('orderId',o.id,'frozen',sum(omc.frozen_amount))
+      from orders o join order_member_charges omc on omc.order_id=o.id
+      left join family_user_relations fur on fur.family_id=o.family_id and fur.user_id=omc.user_id and fur.status='ACTIVE'
+      where lower(o.status) not in ('completed','cancelled','closed','refunded') and omc.frozen_amount&gt;0
+      group by o.id having count(fur.user_id)&lt;&gt;count(*)
       union all
       select 'FAMILY_WALLET_PREEXISTING','FAMILY',fw.family_id,
              json_object('familyId',fw.family_id,'available',fw.available_amount,'frozen',fw.frozen_amount)
@@ -144,18 +170,22 @@
     group by o.id,o.family_id having coalesce(sum(omc.frozen_amount),0)&gt;0
   </insert>
   <select id="selectActiveCarts" resultType="map">
-    select id,user_id as userId,remark,updated_at as updatedAt from carts
-    where family_id=#{familyId} and status='active'
-      and not exists(select 1 from family_cart_migration_sources s
-        where s.batch_id=#{batchId} and s.source_cart_id=carts.id)
-    order by updated_at,id for update
+    select c.id,c.user_id as userId,c.remark,c.updated_at as updatedAt,
+      case when u.id is null then 0 else 1 end as userExists,
+      case when fur.user_id is null then 0 else 1 end as activeMember
+    from carts c left join users u on u.id=c.user_id
+    left join family_user_relations fur on fur.family_id=c.family_id and fur.user_id=c.user_id and fur.status='ACTIVE'
+    where c.family_id=#{familyId} and c.status='active'
+    order by c.updated_at,c.id for update
   </select>
   <select id="selectCartItems" resultType="map">
-    select ci.dish_id as dishId,ci.quantity,ci.item_remark as itemRemark,d.name as dishName,
-           coalesce(fmi.final_price,d.base_price) as currentPrice
+    select ci.id,ci.dish_id as dishId,ci.quantity,ci.item_remark as itemRemark,ci.updated_at as updatedAt,
+           d.name as dishName,coalesce(fmi.final_price,d.base_price) as currentPrice,
+           case when d.id is not null and d.status='active' then 1 else 0 end as dishActive,
+           case when fmi.dish_id is not null and fmi.enabled=1 then 1 else 0 end as menuEnabled
     from cart_items ci join carts c on c.id=ci.cart_id
-    join dishes d on d.id=ci.dish_id and d.status='active'
-    join family_menu_items fmi on fmi.family_id=c.family_id and fmi.dish_id=ci.dish_id and fmi.enabled=1
+    left join dishes d on d.id=ci.dish_id
+    left join family_menu_items fmi on fmi.family_id=c.family_id and fmi.dish_id=ci.dish_id
     where ci.cart_id=#{cartId} order by ci.updated_at,ci.id
   </select>
   <select id="findTargetItem" resultType="long">select id from cart_items where cart_id=#{cartId} and dish_id=#{dishId}</select>
@@ -189,7 +219,7 @@
     where id=#{cartId}
   </update>
   <update id="markExecuted">
-    update family_wallet_migration_batches set phase='EXECUTE',status='EXECUTED' where id=#{batchId} and drain_epoch=#{epoch}
+    update family_wallet_migration_batches set phase='EXECUTE',status='EXECUTED' where id=#{batchId} and drain_epoch=#{epoch} and status in ('BARRIER_PREFLIGHT','EXECUTING')
   </update>
   <select id="verificationTotals" resultType="map">
     select
@@ -202,7 +232,9 @@
       (select count(*) from family_wallet_migration_sources s join member_wallets mw on mw.user_id=s.source_user_id
         where s.batch_id=#{batchId} and (mw.balance_amount&lt;&gt;0 or mw.frozen_amount&lt;&gt;0)) nonzeroSources,
       (select count(*) from cart_items ci join carts c on c.id=ci.cart_id and c.status='active'
-        where ci.quantity &lt;&gt; coalesce((select sum(cis.quantity) from cart_item_selections cis where cis.cart_item_id=ci.id),0)) badSelections
+        join family_wallet_migration_families mf on mf.batch_id=#{batchId} and mf.family_id=c.family_id
+        where ci.quantity&lt;=0 or ci.quantity &lt;&gt; coalesce((select sum(cis.quantity) from cart_item_selections cis
+          where cis.cart_item_id=ci.id and cis.quantity&gt;0),0)) badSelections
   </select>
   <select id="countInvalidHolds" resultType="int">
     select count(*) from family_wallet_order_holds h
@@ -211,32 +243,27 @@
       and (h.initial_amount+h.additional_frozen_amount&lt;&gt;
         h.remaining_frozen_amount+h.captured_amount+h.released_amount
         or h.initial_amount&lt;0 or h.additional_frozen_amount&lt;0 or h.remaining_frozen_amount&lt;0
-        or h.captured_amount&lt;0 or h.released_amount&lt;0 or h.refunded_amount&lt;0)
+        or h.captured_amount&lt;0 or h.released_amount&lt;0 or h.refunded_amount&lt;0
+        or h.refunded_amount&gt;h.captured_amount)
   </select>
   <update id="markVerified">
     update family_wallet_migration_batches set phase='VERIFY',status='VERIFIED',source_available_total=#{sourceAvailable},
       source_frozen_total=#{sourceFrozen},target_available_total=#{targetAvailable},target_frozen_total=#{targetFrozen}
-    where id=#{batchId} and drain_epoch=#{epoch}
+    where id=#{batchId} and drain_epoch=#{epoch} and status='EXECUTED'
   </update>
   <select id="indexExists" resultType="int">
     select count(*) from information_schema.statistics where table_schema=database() and table_name='carts' and index_name=#{indexName}
   </select>
-  <update id="applyFinalCartIndex">
-    alter table carts drop index uk_carts_active_cart, drop column active_cart_key,
-      add column active_family_cart_key varchar(160) generated always as
-        (case when status='active' then cast(family_id as char) else null end) stored,
-      add unique key uk_carts_active_family(active_family_cart_key)
-  </update>
   <insert id="recordDdl">
     insert into family_wallet_migration_anomalies(batch_id,anomaly_type,source_type,source_id,detail_json,resolved)
     values(#{batchId},#{type},'DDL',null,json_object('detail',#{detail}),1)
   </insert>
   <update id="setFamilyReady">
     update family_wallet_cutover_state set state='FAMILY_READY',maintenance_enabled=0,cutover_epoch=cutover_epoch+1
-    where scope_key='GLOBAL' and drain_epoch=#{epoch} and state='DRAINED' and maintenance_enabled=1
+    where scope_key='GLOBAL' and active_batch_id=#{batchId} and drain_epoch=#{epoch} and state='DRAINED' and maintenance_enabled=1
   </update>
   <update id="markBatchFinalized">
-    update family_wallet_migration_batches set phase='FINALIZE',status='FINALIZED',completed_at=now() where id=#{batchId}
+    update family_wallet_migration_batches set phase='FINALIZE',status='FINALIZED',completed_at=now() where id=#{batchId} and status='VERIFIED'
   </update>
   <insert id="heartbeat">
     insert into application_instance_leases(instance_id,build_version,lease_owner,heartbeat_at,lease_expires_at)
@@ -244,4 +271,97 @@
     on duplicate key update build_version=values(build_version),lease_owner=values(lease_owner),heartbeat_at=values(heartbeat_at),lease_expires_at=values(lease_expires_at)
   </insert>
   <delete id="removeLease">delete from application_instance_leases where instance_id=#{instanceId}</delete>
-</mapper>
+  <insert id="acquireRunnerLease">
+    insert into family_wallet_migration_runner_lease(scope_key,owner_token,batch_id,drain_epoch,mode,lease_expires_at)
+    values('GLOBAL',#{ownerToken},#{batchId},#{epoch},#{mode},date_add(now(),interval #{seconds} second))
+    on duplicate key update
+      owner_token=if(lease_expires_at&lt;=now(),values(owner_token),owner_token),
+      batch_id=if(lease_expires_at&lt;=now(),values(batch_id),batch_id),
+      drain_epoch=if(lease_expires_at&lt;=now(),values(drain_epoch),drain_epoch),
+      mode=if(lease_expires_at&lt;=now(),values(mode),mode),
+      lease_expires_at=if(lease_expires_at&lt;=now(),values(lease_expires_at),lease_expires_at)
+  </insert>
+  <select id="lockAndVerifyRunnerLease" resultType="map">
+    select owner_token as ownerToken,batch_id as batchId,drain_epoch as drainEpoch,mode,lease_expires_at as leaseExpiresAt
+    from family_wallet_migration_runner_lease
+    where scope_key='GLOBAL' and owner_token=#{ownerToken} and batch_id=#{batchId} and drain_epoch=#{epoch}
+      and lease_expires_at &gt; now() for update
+  </select>
+  <update id="renewRunnerLease">
+    update family_wallet_migration_runner_lease set lease_expires_at=date_add(now(),interval #{seconds} second)
+    where scope_key='GLOBAL' and owner_token=#{ownerToken} and batch_id=#{batchId} and drain_epoch=#{epoch}
+      and lease_expires_at &gt; now()
+  </update>
+  <delete id="releaseRunnerLease">
+    delete from family_wallet_migration_runner_lease where scope_key='GLOBAL' and owner_token=#{ownerToken}
+  </delete>
+  <select id="isWriteBarrierEnabled" resultType="int">
+    select count(*) from family_wallet_cutover_state where scope_key='GLOBAL' and maintenance_enabled=1
+  </select>
+  <insert id="populateEligibleFamilies">
+    insert ignore into family_wallet_migration_families(batch_id,family_id,status)
+    select #{batchId},id,'PENDING' from families where status='active'
+  </insert>
+  <select id="selectPendingFamilies" resultType="long">
+    select family_id from family_wallet_migration_families where batch_id=#{batchId} and status='PENDING' order by family_id
+  </select>
+  <select id="selectBatchFamilies" resultType="long">
+    select family_id from family_wallet_migration_families where batch_id=#{batchId} order by family_id
+  </select>
+  <select id="lockFamilyProgress" resultType="map">
+    select family_id as familyId,status from family_wallet_migration_families
+    where batch_id=#{batchId} and family_id=#{familyId} for update
+  </select>
+  <update id="markFamilyMigrated">
+    update family_wallet_migration_families set status='MIGRATED'
+    where batch_id=#{batchId} and family_id=#{familyId} and status='PENDING'
+  </update>
+  <select id="countPendingFamilies" resultType="int">
+    select count(*) from family_wallet_migration_families where batch_id=#{batchId} and status&lt;&gt;'MIGRATED'
+  </select>
+  <select id="countUnmigratedWallets" resultType="int">
+    select count(*) from member_wallets mw join family_user_relations fur on fur.user_id=mw.user_id and fur.status='ACTIVE'
+    join family_wallet_migration_families mf on mf.batch_id=#{batchId} and mf.family_id=fur.family_id
+    where mw.balance_amount&lt;&gt;0 or mw.frozen_amount&lt;&gt;0
+  </select>
+  <select id="countMissingExpectedHolds" resultType="int">
+    select count(*) from (
+      select o.id from orders o join family_wallet_migration_families mf on mf.batch_id=#{batchId} and mf.family_id=o.family_id
+      join order_member_charges omc on omc.order_id=o.id
+      left join family_wallet_order_holds h on h.order_id=o.id
+      where lower(o.status) not in ('completed','cancelled','closed','refunded')
+      group by o.id having sum(omc.frozen_amount)&gt;0 and
+        (count(distinct h.id)&lt;&gt;1 or max(h.initial_amount)&lt;&gt;sum(omc.frozen_amount)
+         or max(h.remaining_frozen_amount)&lt;&gt;sum(omc.frozen_amount))
+    ) missing_holds
+  </select>
+  <select id="countFamilyVerificationFailures" resultType="int">
+    select
+      (select count(*) from family_wallet_migration_sources s join member_wallets mw on mw.user_id=s.source_user_id
+       where s.batch_id=#{batchId} and s.family_id=#{familyId} and (mw.balance_amount&lt;&gt;0 or mw.frozen_amount&lt;&gt;0))
+      + (select count(*) from family_wallet_order_holds h where h.family_id=#{familyId} and
+         (h.initial_amount+h.additional_frozen_amount&lt;&gt;h.remaining_frozen_amount+h.captured_amount+h.released_amount
+          or h.refunded_amount&gt;h.captured_amount))
+      + (select count(*) from cart_items ci join carts c on c.id=ci.cart_id
+         where c.family_id=#{familyId} and c.status='active' and
+         (ci.quantity&lt;=0 or ci.quantity&lt;&gt;coalesce((select sum(cis.quantity) from cart_item_selections cis where cis.cart_item_id=ci.id and cis.quantity&gt;0),0)))
+  </select>
+  <select id="columnExists" resultType="int">
+    select count(*) from information_schema.columns where table_schema=database() and table_name='carts' and column_name=#{columnName}
+  </select>
+  <select id="generatedColumnExpression" resultType="string">
+    select generation_expression from information_schema.columns
+    where table_schema=database() and table_name='carts' and column_name=#{columnName}
+  </select>
+  <select id="indexColumn" resultType="string">
+    select column_name from information_schema.statistics where table_schema=database() and table_name='carts'
+      and index_name=#{indexName} and seq_in_index=1
+  </select>  <update id="dropActiveCartIndex">alter table carts drop index uk_carts_active_cart</update>
+  <update id="dropActiveCartColumn">alter table carts drop column active_cart_key</update>
+  <update id="addActiveFamilyColumn">
+    alter table carts add column active_family_id bigint generated always as
+      (case when status='active' then family_id else null end) stored
+  </update>
+  <update id="addActiveFamilyIndex">
+    alter table carts add unique key uk_carts_active_family(active_family_id)
+  </update></mapper>

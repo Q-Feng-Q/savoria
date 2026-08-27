@@ -44,7 +44,7 @@ family-kitchen:
     safety-token: ${FAMILY_KITCHEN_MIGRATION_SAFETY_TOKEN:}
     configured-token: ${FAMILY_KITCHEN_MIGRATION_CONFIGURED_TOKEN:}
   instance:
-    lease-enabled: ${FAMILY_KITCHEN_INSTANCE_LEASE_ENABLED:true}
+    lease-enabled: ${FAMILY_KITCHEN_INSTANCE_LEASE_ENABLED:false}
     id: ${FAMILY_KITCHEN_INSTANCE_ID:${random.uuid}}
     build: ${FAMILY_KITCHEN_INSTANCE_BUILD:unknown}
     heartbeat-ms: ${FAMILY_KITCHEN_INSTANCE_HEARTBEAT_MS:10000}

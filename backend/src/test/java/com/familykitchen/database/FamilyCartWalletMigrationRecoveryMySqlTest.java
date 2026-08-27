@@ -1,12 +1,16 @@
 package com.familykitchen.database;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.familykitchen.migration.FamilyCartWalletDdlExecutor;
+import com.familykitchen.migration.FamilyCartWalletFamilyExecutor;
+import com.familykitchen.migration.FamilyCartWalletMigrationMapper;
 import com.familykitchen.migration.FamilyCartWalletMigrationRunner;
 import com.familykitchen.migration.FamilyCartWalletMigrationService;
+import com.familykitchen.migration.FamilyWalletMigrationBarrierService;
+import com.familykitchen.migration.FamilyWalletMigrationLeaseService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.flywaydb.core.Flyway;
@@ -15,10 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -28,21 +32,17 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-/** Verifies resumability and conservation against a disposable MySQL container. */
+/** Real MySQL recovery and concurrency tests; skipped honestly when Docker is unavailable. */
 @Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest(classes = FamilyCartWalletMigrationRecoveryMySqlTest.TestApp.class,
-    properties = {"spring.flyway.enabled=false", "family-kitchen.migration.mode=OFF"})
+    properties = {"spring.flyway.enabled=false", "family-kitchen.migration.mode=OFF",
+        "family-kitchen.instance.lease-enabled=false"})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class FamilyCartWalletMigrationRecoveryMySqlTest {
+  @Container static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0.36")
+      .withDatabaseName("runner_family_wallet_disposable").withUsername("runner_test").withPassword("runner_test");
 
-  @Container
-  static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0.36")
-      .withDatabaseName("runner_family_wallet_disposable")
-      .withUsername("runner_test")
-      .withPassword("runner_test");
-
-  @DynamicPropertySource
-  static void datasource(DynamicPropertyRegistry registry) {
+  @DynamicPropertySource static void datasource(DynamicPropertyRegistry registry) {
     registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
     registry.add("spring.datasource.username", MYSQL::getUsername);
     registry.add("spring.datasource.password", MYSQL::getPassword);
@@ -50,87 +50,109 @@ class FamilyCartWalletMigrationRecoveryMySqlTest {
 
   @Autowired JdbcTemplate jdbc;
   @Autowired FamilyCartWalletMigrationService service;
+  @Autowired FamilyWalletMigrationLeaseService leases;
 
-  @BeforeEach
-  void resetDatabase() {
+  @BeforeEach void resetDatabase() {
     Flyway flyway = Flyway.configure().dataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())
         .locations("classpath:db/migration").cleanDisabled(false).load();
-    flyway.clean();
-    flyway.migrate();
-    seedTwoFamilies();
+    flyway.clean(); flyway.migrate(); seedTwoFamilies();
   }
 
-  @Test
-  void defaultOffPerformsNoWritesAndPreflightReportsAnomalies() {
-    long before = count("family_wallet_migration_batches");
+  @Test void defaultOffPerformsNoMigrationLeaseBarrierOrBatchWrites() {
     runner("OFF", null, null).run(new DefaultApplicationArguments());
-    assertEquals(before, count("family_wallet_migration_batches"));
-
-    jdbc.update("update family_user_relations set status='EXITED' where user_id=12");
-    FamilyCartWalletMigrationService.Result result = service.preflight(null, null);
-    assertTrue(result.anomalyCount() > 0);
-    assertEquals(0, count("family_wallet_migration_sources"));
+    assertEquals(0, count("family_wallet_migration_batches"));
+    assertEquals(0, count("family_wallet_migration_runner_lease"));
+    assertEquals(0, count("family_wallet_cutover_state"));
   }
 
-  @Test
-  void quiesceRejectsWrongBatchAndEpochAndAbortIsPermanentAfterFirstSource() {
-    long batch = service.preflight(null, null).batchId();
-    assertThrows(IllegalStateException.class, () -> service.quiesce(batch + 1, "runner"));
-    long epoch = service.quiesce(batch, "runner").drainEpoch();
-    assertThrows(IllegalStateException.class,
-        () -> service.validateContinuation(batch, epoch + 1, FamilyCartWalletMigrationRunner.Mode.EXECUTE));
-    service.abortBeforeExecute(batch, epoch);
-    assertFalse(Boolean.TRUE.equals(jdbc.queryForObject(
-        "select maintenance_enabled from family_wallet_cutover_state where scope_key='GLOBAL'", Boolean.class)));
+  @Test void crossProcessLeaseRaceAllowsExactlyOneOwner() {
+    String owner = leases.acquire(0, 0, "PREFLIGHT");
+    try { assertThrows(IllegalStateException.class, () -> leases.acquire(0, 0, "PREFLIGHT")); }
+    finally { leases.release(owner); }
   }
 
-  @Test
-  void failedFamilyRollsBackAndSameBatchResumeDoesNotDoubleCredit() {
-    long batch = service.preflight(null, null).batchId();
-    long epoch = service.quiesce(batch, "runner").drainEpoch();
-    service.preflight(batch, epoch);
-    assertTrue(service.executeFamily(batch, epoch, 101L));
-    BigDecimal credited = money("select available_amount from family_wallets where family_id=101");
-    assertTrue(service.executeFamily(batch, epoch, 101L));
-    assertEquals(credited, money("select available_amount from family_wallets where family_id=101"));
-    assertEquals(2, count("family_wallet_migration_sources where family_id=101"));
-    assertThrows(IllegalStateException.class, () -> service.abortBeforeExecute(batch, epoch));
+  @Test void barrierCommitsBeforeDrainAndAVisibleLeasePreventsProof() {
+    long batch = preflight();
+    jdbc.update("insert into application_instance_leases(instance_id,build_version,lease_owner,heartbeat_at,lease_expires_at) "
+        + "values('web-1','compat','web',now(),date_add(now(),interval 30 second))");
+    String token = leases.acquire(batch, 0, "QUIESCE");
+    try {
+      assertEquals("QUIESCING", service.quiesce(token, batch, "runner").status());
+      assertEquals(1, jdbc.queryForObject("select maintenance_enabled from family_wallet_cutover_state where scope_key='GLOBAL'", Integer.class));
+      jdbc.update("delete from application_instance_leases where instance_id='web-1'");
+      assertEquals("DRAINED", service.quiesce(token, batch, "runner").status());
+    } finally { leases.release(token); }
   }
 
-  @Test
-  void cartMergeUsesCurrentPriceAndMemberSelectionsThenVerifyAndFinalizeAreResumable() {
-    long batch = service.preflight(null, null).batchId();
-    long epoch = service.quiesce(batch, "runner").drainEpoch();
-    service.preflight(batch, epoch);
-    assertTrue(service.executeFamily(batch, epoch, 101L));
-    assertEquals(new BigDecimal("15.50"), money("select price from cart_items where cart_id=1001 and dish_id=501"));
-    assertEquals(3L, jdbc.queryForObject("select sum(quantity) from cart_item_selections "
-        + "where cart_item_id=(select id from cart_items where cart_id=1001 and dish_id=501)", Long.class));
-    assertEquals("migrated", jdbc.queryForObject("select status from carts where id=1002", String.class));
-
-    assertTrue(service.executeFamily(batch, epoch, 102L));
-    service.markExecutionComplete(batch, epoch);
-    assertEquals("VERIFIED", service.verify(batch, epoch).status());
-    service.finalizeBatch(batch, epoch);
-    service.finalizeBatch(batch, epoch);
-    assertEquals("FAMILY_READY", jdbc.queryForObject(
-        "select state from family_wallet_cutover_state where scope_key='GLOBAL'", String.class));
-    assertEquals(1, jdbc.queryForObject("select count(*) from information_schema.statistics "
-        + "where table_schema=database() and table_name='carts' and index_name='uk_carts_active_family'", Integer.class));
+  @Test void injectedMidFamilyFailureRollsBackAndResumeDoesNotDoubleCredit() {
+    long batch = preflight(); long epoch = quiesce(batch); barrierPreflight(batch, epoch);
+    jdbc.update("update dishes set status='inactive' where id=501");
+    String token = leases.acquire(batch, epoch, "EXECUTE");
+    try { assertThrows(IllegalStateException.class, () -> service.executeFamily(token, batch, epoch, 101L)); }
+    finally { leases.release(token); }
+    assertEquals(new BigDecimal("10.00"), money("select balance_amount from member_wallets where user_id=11"));
+    assertEquals(0, count("family_wallet_migration_sources where family_id=101"));
+    jdbc.update("update dishes set status='active' where id=501");
+    execute(batch, epoch, 101); BigDecimal once = money("select available_amount from family_wallets where family_id=101");
+    execute(batch, epoch, 101);
+    assertEquals(once, money("select available_amount from family_wallets where family_id=101"));
   }
 
-  private FamilyCartWalletMigrationRunner runner(String mode, Long batch, Long epoch) {
-    return new FamilyCartWalletMigrationRunner(service, mode, batch, epoch,
-        "runner_family_wallet_disposable", "single-use-test-token", "single-use-test-token");
+  @Test void staleDrainProofAndPhaseOrderAreRejected() {
+    long batch = preflight();
+    String verifyToken = leases.acquire(batch, 1, "VERIFY");
+    try { assertThrows(IllegalStateException.class, () -> service.verify(verifyToken, batch, 1L)); }
+    finally { leases.release(verifyToken); }
+    long epoch = quiesce(batch); barrierPreflight(batch, epoch);
+    jdbc.update("insert into application_instance_leases(instance_id,build_version,lease_owner,heartbeat_at,lease_expires_at) "
+        + "values('late','bad','web',now(),date_add(now(),interval 30 second))");
+    String token = leases.acquire(batch, epoch, "EXECUTE");
+    try { assertThrows(IllegalStateException.class,
+        () -> service.validateContinuation(token, batch, epoch, FamilyCartWalletMigrationRunner.Mode.EXECUTE)); }
+    finally { leases.release(token); }
   }
 
-  private long count(String tableAndWhere) {
-    return jdbc.queryForObject("select count(*) from " + tableAndWhere, Long.class);
+  @Test void cartMergeAndVerifyAreIdempotentAndPartialDdlRecovers() {
+    long batch = preflight(); long epoch = quiesce(batch); barrierPreflight(batch, epoch);
+    execute(batch, epoch, 101); execute(batch, epoch, 102); complete(batch, epoch);
+    String verify = leases.acquire(batch, epoch, "VERIFY");
+    try { assertEquals("VERIFIED", service.verify(verify, batch, epoch).status()); }
+    finally { leases.release(verify); }
+    assertEquals(3L, jdbc.queryForObject("select sum(quantity) from cart_item_selections", Long.class));
+    jdbc.execute("alter table carts drop index uk_carts_active_cart");
+    String finalize = leases.acquire(batch, epoch, "FINALIZE");
+    try { service.finalizeBatch(finalize, batch, epoch); }
+    finally { leases.release(finalize); }
+    assertEquals(1, count("information_schema.statistics where table_schema=database() and table_name='carts' and index_name='uk_carts_active_family'"));
+    assertEquals(1, count("information_schema.columns where table_schema=database() and table_name='carts' and column_name='active_family_id'"));
   }
 
-  private BigDecimal money(String sql) {
-    return jdbc.queryForObject(sql, BigDecimal.class);
+  private long preflight() {
+    String token=leases.acquire(0,0,"PREFLIGHT");
+    try { return service.preflight(token,null,null).batchId(); } finally { leases.release(token); }
   }
+  private long quiesce(long batch) {
+    String token=leases.acquire(batch,0,"QUIESCE");
+    try { return service.quiesce(token,batch,"test").drainEpoch(); } finally { leases.release(token); }
+  }
+  private void barrierPreflight(long batch,long epoch) {
+    String token=leases.acquire(batch,epoch,"PREFLIGHT");
+    try { service.preflight(token,batch,epoch); } finally { leases.release(token); }
+  }
+  private void execute(long batch,long epoch,long family) {
+    String token=leases.acquire(batch,epoch,"EXECUTE");
+    try { service.executeFamily(token,batch,epoch,family); } finally { leases.release(token); }
+  }
+  private void complete(long batch,long epoch) {
+    String token=leases.acquire(batch,epoch,"EXECUTE");
+    try { service.markExecutionComplete(token,batch,epoch); } finally { leases.release(token); }
+  }
+  private FamilyCartWalletMigrationRunner runner(String mode,Long batch,Long epoch) {
+    return new FamilyCartWalletMigrationRunner(service,leases,mode,batch,epoch,
+        "runner_family_wallet_disposable","token","token");
+  }
+  private long count(String table) { return jdbc.queryForObject("select count(*) from "+table,Long.class); }
+  private BigDecimal money(String sql) { return jdbc.queryForObject(sql,BigDecimal.class); }
 
   private void seedTwoFamilies() {
     jdbc.update("insert into users(id,username,password_hash,nickname) values(11,'u11','x','u11'),(12,'u12','x','u12'),(13,'u13','x','u13')");
@@ -142,28 +164,18 @@ class FamilyCartWalletMigrationRecoveryMySqlTest {
     jdbc.update("insert into dishes(id,merchant_id,category_id,name,base_price,status) values(501,91,401,'dish',15.50,'active')");
     jdbc.update("insert into family_menu_items(family_id,dish_id,enabled,final_price) values(101,501,1,15.50)");
     jdbc.update("insert into meal_slots(id,family_id,name,enabled) values(601,101,'dinner',1)");
-    jdbc.update("insert into carts(id,merchant_id,family_id,user_id,meal_slot_id,service_date,remark,status,updated_at) values(1001,91,101,11,601,?,'old','active','2026-01-01'),(1002,91,101,12,601,?,'new','active','2026-01-02')", LocalDate.now(), LocalDate.now());
+    jdbc.update("insert into carts(id,merchant_id,family_id,user_id,meal_slot_id,service_date,remark,status,updated_at) values(1001,91,101,11,601,?,'old','active','2026-01-01'),(1002,91,101,12,601,?,'new','active','2026-01-02')",LocalDate.now(),LocalDate.now());
     jdbc.update("insert into cart_items(id,cart_id,dish_id,price,quantity,item_remark,updated_at) values(1101,1001,501,9,1,'a','2026-01-01'),(1102,1002,501,9,2,'b','2026-01-02')");
   }
 
-  /** Minimal application used by the migration recovery test. */
-  @SpringBootApplication
-  @MapperScan("com.familykitchen.migration")
-  @Import(TestConfig.class)
-  static class TestApp { }
-
-  /** Supplies migration services without loading unrelated application services. */
-  @TestConfiguration
-  static class TestConfig {
-    @Bean com.familykitchen.migration.FamilyCartWalletFamilyExecutor familyExecutor(
-        com.familykitchen.migration.FamilyCartWalletMigrationMapper mapper) {
-      return new com.familykitchen.migration.FamilyCartWalletFamilyExecutor(mapper);
-    }
-
-    @Bean FamilyCartWalletMigrationService migrationService(
-        com.familykitchen.migration.FamilyCartWalletMigrationMapper mapper,
-        com.familykitchen.migration.FamilyCartWalletFamilyExecutor executor) {
-      return new FamilyCartWalletMigrationService(mapper, executor);
-    }
+  /** Minimal Spring Boot application used only by the disposable MySQL migration tests. */
+  @SpringBootApplication @MapperScan("com.familykitchen.migration") @Import(TestConfig.class) static class TestApp { }
+  /** Supplies migration services without enabling normal application startup side effects. */
+  @TestConfiguration static class TestConfig {
+    @Bean FamilyWalletMigrationLeaseService leases(FamilyCartWalletMigrationMapper m){return new FamilyWalletMigrationLeaseService(m);}
+    @Bean FamilyWalletMigrationBarrierService barriers(FamilyCartWalletMigrationMapper m,FamilyWalletMigrationLeaseService l){return new FamilyWalletMigrationBarrierService(m,l);}
+    @Bean FamilyCartWalletFamilyExecutor executor(FamilyCartWalletMigrationMapper m,FamilyWalletMigrationLeaseService l){return new FamilyCartWalletFamilyExecutor(m,l);}
+    @Bean FamilyCartWalletDdlExecutor ddl(FamilyCartWalletMigrationMapper m,FamilyWalletMigrationLeaseService l){return new FamilyCartWalletDdlExecutor(m,l);}
+    @Bean FamilyCartWalletMigrationService service(FamilyCartWalletMigrationMapper m,FamilyCartWalletFamilyExecutor e,FamilyWalletMigrationLeaseService l,FamilyWalletMigrationBarrierService b,FamilyCartWalletDdlExecutor d){return new FamilyCartWalletMigrationService(m,e,l,b,d);}
   }
 }

@@ -188,6 +188,7 @@ CREATE TABLE family_wallet_cutover_state (
   maintenance_enabled tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否开启维护模式',
   cutover_epoch bigint NOT NULL DEFAULT 0 COMMENT '切换纪元',
   drain_epoch bigint NOT NULL DEFAULT 0 COMMENT '排空纪元',
+  active_batch_id bigint NULL COMMENT '当前切换批次ID',
   state varchar(30) NOT NULL COMMENT '持久切换状态',
   updated_by varchar(128) NULL COMMENT '更新执行者',
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -207,3 +208,26 @@ CREATE TABLE application_instance_leases (
   KEY idx_application_instance_leases_expiry (lease_expires_at),
   KEY idx_application_instance_leases_build (build_version,heartbeat_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='应用实例租约与构建心跳';
+CREATE TABLE family_wallet_migration_runner_lease (
+  scope_key varchar(100) NOT NULL COMMENT '全局迁移运行器租约范围',
+  owner_token varchar(128) NOT NULL COMMENT '不可猜测的运行器所有权令牌',
+  batch_id bigint NOT NULL COMMENT '批次ID，初始预检使用0',
+  drain_epoch bigint NOT NULL COMMENT '排空纪元，未排空使用0',
+  mode varchar(30) NOT NULL COMMENT '当前运行模式',
+  lease_expires_at datetime NOT NULL COMMENT '租约到期时间',
+  created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (scope_key),
+  KEY idx_family_wallet_runner_lease_expiry (lease_expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭钱包迁移运行器排他租约';
+
+CREATE TABLE family_wallet_migration_families (
+  id bigint PRIMARY KEY AUTO_INCREMENT COMMENT '迁移家庭进度ID',
+  batch_id bigint NOT NULL COMMENT '迁移批次ID',
+  family_id bigint NOT NULL COMMENT '家庭ID',
+  status varchar(30) NOT NULL COMMENT 'PENDING/MIGRATED',
+  created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  UNIQUE KEY uk_family_wallet_migration_family (batch_id,family_id),
+  KEY idx_family_wallet_migration_family_status (batch_id,status,family_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭钱包迁移逐家庭进度';

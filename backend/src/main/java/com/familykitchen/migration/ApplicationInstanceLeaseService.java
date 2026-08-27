@@ -1,27 +1,29 @@
 package com.familykitchen.migration;
 
-import jakarta.annotation.PreDestroy;
 import jakarta.annotation.PostConstruct;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import jakarta.annotation.PreDestroy;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/** Publishes compatibility-instance build heartbeats used by migration drain proof. */
+/** Publishes compatibility-instance heartbeats only when explicitly enabled. */
 @Service
 @ConditionalOnProperty(name = "family-kitchen.instance.lease-enabled", havingValue = "true",
-    matchIfMissing = true)
+    matchIfMissing = false)
 public class ApplicationInstanceLeaseService {
   private final FamilyCartWalletMigrationMapper mapper;
   private final String instanceId;
   private final String build;
 
   /**
-   * Creates the instance lease publisher.
+   * Creates a compatibility-instance lease publisher.
    *
-   * @param mapper migration mapper
-   * @param instanceId unique process identifier
-   * @param build compatibility build identifier
+   * @param mapper migration persistence mapper
+   * @param instanceId unique application instance identifier
+   * @param build deployed build identifier
    */
   public ApplicationInstanceLeaseService(FamilyCartWalletMigrationMapper mapper,
       @Value("${family-kitchen.instance.id:${random.uuid}}") String instanceId,
@@ -31,21 +33,23 @@ public class ApplicationInstanceLeaseService {
     this.build = build;
   }
 
-  /** Publishes the initial lease before the instance begins serving traffic. */
+  /** Registers this compatibility instance when the opt-in bean starts. */
   @PostConstruct
-  public void register() {
-    heartbeat();
-  }
+  public void register() { heartbeat(); }
 
-  /** Renews the compatibility-instance lease. */
+  /** Serializes renewal with barrier publication; no lease can appear after maintenance is visible. */
   @Scheduled(fixedDelayString = "${family-kitchen.instance.heartbeat-ms:10000}")
+  @Transactional
   public void heartbeat() {
-    mapper.heartbeat(instanceId, build, "web", 30);
+    mapper.ensureCutover();
+    Map<String, Object> cutover = mapper.lockCutover();
+    Object enabled = cutover == null ? null : cutover.get("maintenanceEnabled");
+    boolean maintenance = enabled instanceof Boolean b ? b
+        : enabled instanceof Number n && n.intValue() != 0;
+    if (!maintenance) mapper.heartbeat(instanceId, build, "web", 30);
   }
 
-  /** Removes the lease during orderly shutdown. */
+  /** Releases this compatibility instance''s lease during orderly shutdown. */
   @PreDestroy
-  public void release() {
-    mapper.removeLease(instanceId);
-  }
+  public void release() { mapper.removeLease(instanceId); }
 }

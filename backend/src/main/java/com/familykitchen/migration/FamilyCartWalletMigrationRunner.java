@@ -3,36 +3,34 @@ package com.familykitchen.migration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
-/** Explicitly gated, resumable command runner for the family cart/wallet cutover. */
+/** Explicitly gated runner protected by a persistent cross-process owner lease. */
 @Component
 public class FamilyCartWalletMigrationRunner implements ApplicationRunner {
-  private static final AtomicBoolean RUNNING = new AtomicBoolean();
-
-  /** Supported explicit migration phases. */
+  /** Explicit migration lifecycle modes. */
   public enum Mode {
-    /** Performs no migration work. */
+    /** Keeps the runner completely inert. */
     OFF,
-    /** Builds or refreshes the anomaly report. */
+    /** Creates or refreshes an anomaly report without moving data. */
     PREFLIGHT,
-    /** Enables the write barrier and proves instance drain. */
+    /** Publishes the write barrier and waits for compatibility instances to drain. */
     QUIESCE,
-    /** Clears the barrier before any source migration. */
+    /** Removes the barrier before any family data or finalization DDL is written. */
     ABORT_BEFORE_EXECUTE,
-    /** Migrates each family in an independent transaction. */
+    /** Migrates eligible families in independently committed transactions. */
     EXECUTE,
-    /** Verifies money and cart conservation. */
+    /** Verifies per-family and global conservation after execution. */
     VERIFY,
-    /** Installs final DDL and enables family mode. */
+    /** Applies resumable final DDL and publishes family-ready state. */
     FINALIZE
   }
 
   private final FamilyCartWalletMigrationService service;
+  private final FamilyWalletMigrationLeaseService leases;
   private final Mode mode;
   private final Long batchId;
   private final Long drainEpoch;
@@ -41,18 +39,19 @@ public class FamilyCartWalletMigrationRunner implements ApplicationRunner {
   private final String configuredToken;
 
   /**
-   * Creates the property-gated migration runner.
+   * Creates the explicitly gated application runner.
    *
-   * @param service migration service
-   * @param mode requested phase
-   * @param batchId optional batch identifier
+   * @param service migration orchestration service
+   * @param leases persistent runner lease service
+   * @param mode configured lifecycle mode
+   * @param batchId optional migration batch identifier
    * @param drainEpoch optional drain epoch
-   * @param expectedDatabase explicitly approved disposable database
-   * @param safetyToken operator-supplied token
-   * @param configuredToken independently configured expected token
+   * @param expectedDatabase required disposable database name
+   * @param safetyToken supplied safety token
+   * @param configuredToken configured expected safety token
    */
-  public FamilyCartWalletMigrationRunner(
-      FamilyCartWalletMigrationService service,
+  public FamilyCartWalletMigrationRunner(FamilyCartWalletMigrationService service,
+      FamilyWalletMigrationLeaseService leases,
       @Value("${family-kitchen.migration.mode:OFF}") String mode,
       @Value("${family-kitchen.migration.batch-id:#{null}}") Long batchId,
       @Value("${family-kitchen.migration.drain-epoch:#{null}}") Long drainEpoch,
@@ -60,6 +59,7 @@ public class FamilyCartWalletMigrationRunner implements ApplicationRunner {
       @Value("${family-kitchen.migration.safety-token:}") String safetyToken,
       @Value("${family-kitchen.migration.configured-token:}") String configuredToken) {
     this.service = service;
+    this.leases = leases;
     this.mode = Mode.valueOf(mode.trim().toUpperCase(Locale.ROOT));
     this.batchId = batchId;
     this.drainEpoch = drainEpoch;
@@ -72,54 +72,64 @@ public class FamilyCartWalletMigrationRunner implements ApplicationRunner {
   @Override
   public void run(ApplicationArguments args) {
     if (mode == Mode.OFF) return;
-    if (!RUNNING.compareAndSet(false, true)) {
-      throw new IllegalStateException("another family migration runner is active");
-    }
+    validateArguments();
+    validateSafety();
+    long leaseBatch = batchId == null ? 0 : batchId;
+    long leaseEpoch = drainEpoch == null ? 0 : drainEpoch;
+    String token = leases.acquire(leaseBatch, leaseEpoch, mode.name());
     try {
-      runExclusive();
+      runOwned(token, leaseBatch, leaseEpoch);
     } finally {
-      RUNNING.set(false);
+      leases.release(token);
     }
   }
 
-  private void runExclusive() {
-    if (mode != Mode.PREFLIGHT && batchId == null) {
-      throw new IllegalArgumentException(mode + " requires batch-id");
-    }
-    if (requiresEpoch(mode) && drainEpoch == null) {
-      throw new IllegalArgumentException(mode + " requires drain-epoch");
-    }
-    validateSafety();
-
+  private void runOwned(String token, long leaseBatch, long leaseEpoch) {
     FamilyCartWalletMigrationService.Result result;
     switch (mode) {
-      case PREFLIGHT -> result = service.preflight(batchId, drainEpoch);
-      case QUIESCE -> result = service.quiesce(batchId, "migration-runner");
-      case ABORT_BEFORE_EXECUTE -> result = service.abortBeforeExecute(batchId, drainEpoch);
+      case PREFLIGHT -> result = service.preflight(token, batchId, drainEpoch);
+      case QUIESCE -> result = service.quiesce(token, batchId, "migration-runner");
+      case ABORT_BEFORE_EXECUTE -> result = service.abortBeforeExecute(token, batchId, drainEpoch);
       case EXECUTE -> {
-        List<Long> families = service.validateContinuation(batchId, drainEpoch, mode);
+        List<Long> families = service.validateContinuation(token, batchId, drainEpoch, mode);
         for (Long familyId : families) {
-          if (!service.executeFamily(batchId, drainEpoch, familyId)) {
+          leases.renew(token, leaseBatch, leaseEpoch);
+          if (!service.executeFamily(token, batchId, drainEpoch, familyId)) {
             throw new IllegalStateException("family migration failed: " + familyId);
           }
         }
-        service.markExecutionComplete(batchId, drainEpoch);
+        leases.renew(token, leaseBatch, leaseEpoch);
+        service.markExecutionComplete(token, batchId, drainEpoch);
         result = new FamilyCartWalletMigrationService.Result(batchId, drainEpoch, "EXECUTED", 0);
       }
-      case VERIFY -> result = service.verify(batchId, drainEpoch);
-      case FINALIZE -> result = service.finalizeBatch(batchId, drainEpoch);
+      case VERIFY -> result = service.verify(token, batchId, drainEpoch);
+      case FINALIZE -> result = service.finalizeBatch(token, batchId, drainEpoch);
       default -> throw new IllegalStateException("unsupported mode " + mode);
     }
     System.out.printf("family migration mode=%s batchId=%d drainEpoch=%d status=%s anomalies=%d%n",
         mode, result.batchId(), result.drainEpoch(), result.status(), result.anomalyCount());
   }
 
+  private void validateArguments() {
+    if (mode != Mode.PREFLIGHT && batchId == null) {
+      throw new IllegalArgumentException(mode + " requires batch-id");
+    }
+    if (mode == Mode.PREFLIGHT && drainEpoch != null && batchId == null) {
+      throw new IllegalArgumentException("barrier PREFLIGHT requires batch-id");
+    }
+    if (mode == Mode.QUIESCE && drainEpoch != null) {
+      throw new IllegalArgumentException("QUIESCE allocates drain-epoch and does not accept one");
+    }
+    if (requiresEpoch(mode) && drainEpoch == null) {
+      throw new IllegalArgumentException(mode + " requires drain-epoch");
+    }
+  }
+
   private void validateSafety() {
     String database = expectedDatabase == null ? "" : expectedDatabase.trim().toLowerCase(Locale.ROOT);
     if (database.isEmpty() || database.equals("family_kitchen") || database.contains("prod")
         || !database.endsWith("_family_wallet_disposable")) {
-      throw new IllegalStateException(
-          "migration modes require an explicit database ending _family_wallet_disposable");
+      throw new IllegalStateException("migration modes require an explicit database ending _family_wallet_disposable");
     }
     if (configuredToken == null || configuredToken.isBlank()
         || !Objects.equals(configuredToken, safetyToken)) {

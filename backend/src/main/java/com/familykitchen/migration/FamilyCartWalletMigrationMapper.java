@@ -74,8 +74,9 @@ public interface FamilyCartWalletMigrationMapper {
   int countCartSources(long batchId);
   /** Maps a migration persistence operation.
    *
+   * @param batchId batch identifier
    * @return recorded finalization-DDL count */
-  int countFinalizationDdl();
+  int countFinalizationDdl(long batchId);
   /** Maps a migration persistence operation.
    *
    * @param batchId batch identifier */
@@ -226,8 +227,9 @@ public interface FamilyCartWalletMigrationMapper {
   /** Maps a migration persistence operation.
    *
    * @param batchId batch identifier
-   * @param epoch drain epoch */
-  void markExecuted(@Param("batchId") long batchId, @Param("epoch") long epoch);
+   * @param epoch drain epoch
+   * @return affected row count */
+  int markExecuted(@Param("batchId") long batchId, @Param("epoch") long epoch);
   /** Maps a migration persistence operation.
    *
    * @param batchId batch identifier
@@ -245,8 +247,9 @@ public interface FamilyCartWalletMigrationMapper {
    * @param sourceAvailable source available total
    * @param sourceFrozen source frozen total
    * @param targetAvailable target available total
-   * @param targetFrozen target frozen total */
-  void markVerified(@Param("batchId") long batchId, @Param("epoch") long epoch,
+   * @param targetFrozen target frozen total
+   * @return affected row count */
+  int markVerified(@Param("batchId") long batchId, @Param("epoch") long epoch,
       @Param("sourceAvailable") BigDecimal sourceAvailable,
       @Param("sourceFrozen") BigDecimal sourceFrozen,
       @Param("targetAvailable") BigDecimal targetAvailable,
@@ -256,8 +259,6 @@ public interface FamilyCartWalletMigrationMapper {
    * @param indexName index name
    * @return matching index count */
   int indexExists(String indexName);
-  /** Replaces the legacy active-cart key with the final family key. */
-  void applyFinalCartIndex();
   /** Maps a migration persistence operation.
    *
    * @param batchId batch identifier
@@ -273,8 +274,9 @@ public interface FamilyCartWalletMigrationMapper {
   int setFamilyReady(@Param("batchId") long batchId, @Param("epoch") long epoch);
   /** Maps a migration persistence operation.
    *
-   * @param batchId batch identifier */
-  void markBatchFinalized(@Param("batchId") long batchId);
+   * @param batchId batch identifier
+   * @return affected row count */
+  int markBatchFinalized(@Param("batchId") long batchId);
   /** Maps a migration persistence operation.
    *
    * @param instanceId instance identifier
@@ -287,6 +289,145 @@ public interface FamilyCartWalletMigrationMapper {
    *
    * @param instanceId instance identifier */
   void removeLease(String instanceId);
+  /**
+   * Attempts to acquire the singleton persistent runner lease.
+   *
+   * @param ownerToken proposed owner token
+   * @param batchId migration batch identifier
+   * @param epoch drain epoch
+   * @param mode migration mode
+   * @param seconds lease duration in seconds
+   * @return affected row count
+   */
+  int acquireRunnerLease(@Param("ownerToken") String ownerToken, @Param("batchId") long batchId,
+      @Param("epoch") long epoch, @Param("mode") String mode, @Param("seconds") long seconds);
+  /**
+   * Locks and validates an unexpired runner lease.
+   *
+   * @param ownerToken expected owner token
+   * @param batchId expected batch identifier
+   * @param epoch expected drain epoch
+   * @return locked lease row, or {@code null} when proof is stale
+   */
+  Map<String, Object> lockAndVerifyRunnerLease(@Param("ownerToken") String ownerToken,
+      @Param("batchId") long batchId, @Param("epoch") long epoch);
+  /**
+   * Renews the exact unexpired runner lease.
+   *
+   * @param ownerToken expected owner token
+   * @param batchId expected batch identifier
+   * @param epoch expected drain epoch
+   * @param seconds new lease duration in seconds
+   * @return affected row count
+   */
+  int renewRunnerLease(@Param("ownerToken") String ownerToken, @Param("batchId") long batchId,
+      @Param("epoch") long epoch, @Param("seconds") long seconds);
+  /**
+   * Releases the exact runner owner.
+   *
+   * @param ownerToken owner token
+   * @return affected row count
+   */
+  int releaseRunnerLease(String ownerToken);
+  /**
+   * Checks whether the global business-write barrier is enabled.
+   *
+   * @return matching enabled-barrier count
+   */
+  int isWriteBarrierEnabled();
+  /**
+   * Snapshots all eligible active families for a batch.
+   *
+   * @param batchId batch identifier
+   */
+  void populateEligibleFamilies(long batchId);
+  /**
+   * Selects deterministic not-yet-migrated families.
+   *
+   * @param batchId batch identifier
+   * @return pending family identifiers
+   */
+  List<Long> selectPendingFamilies(long batchId);
+  /**
+   * Selects every family snapshotted by a batch.
+   *
+   * @param batchId batch identifier
+   * @return batch family identifiers
+   */
+  List<Long> selectBatchFamilies(long batchId);
+  /**
+   * Locks one batch-family progress row.
+   *
+   * @param batchId batch identifier
+   * @param familyId family identifier
+   * @return locked progress row
+   */
+  Map<String, Object> lockFamilyProgress(@Param("batchId") long batchId,
+      @Param("familyId") long familyId);
+  /**
+   * Marks one pending family migrated.
+   *
+   * @param batchId batch identifier
+   * @param familyId family identifier
+   */
+  void markFamilyMigrated(@Param("batchId") long batchId, @Param("familyId") long familyId);
+  /**
+   * Counts families that have not reached migrated status.
+   *
+   * @param batchId batch identifier
+   * @return pending family count
+   */
+  int countPendingFamilies(long batchId);
+  /**
+   * Counts eligible member wallets that still contain money.
+   *
+   * @param batchId batch identifier
+   * @return unmigrated wallet count
+   */
+  int countUnmigratedWallets(long batchId);
+  /**
+   * Counts active orders missing their exact migrated family-wallet hold.
+   *
+   * @param batchId batch identifier
+   * @return missing or mismatched hold count
+   */
+  int countMissingExpectedHolds(long batchId);
+  /**
+   * Counts conservation and attribution failures for one family.
+   *
+   * @param batchId batch identifier
+   * @param familyId family identifier
+   * @return verification failure count
+   */
+  int countFamilyVerificationFailures(@Param("batchId") long batchId,
+      @Param("familyId") long familyId);
+  /**
+   * Counts named cart-table columns.
+   *
+   * @param columnName column name
+   * @return matching column count
+   */
+  int columnExists(@Param("columnName") String columnName);
+  /**
+   * Reads a generated cart-column expression.
+   *
+   * @param columnName column name
+   * @return generation expression, or {@code null} when absent
+   */
+  String generatedColumnExpression(@Param("columnName") String columnName);
+  /**
+   * Reads the first column of a named cart index.
+   *
+   * @param indexName index name
+   * @return first indexed column, or {@code null} when absent
+   */
+  String indexColumn(String indexName);
+  /** Drops the legacy active-cart unique index. */
+  void dropActiveCartIndex();
+  /** Drops the legacy active-cart generated column. */
+  void dropActiveCartColumn();
+  /** Adds the final generated active-family column. */
+  void addActiveFamilyColumn();
+  /** Adds the final unique active-family index. */
+  void addActiveFamilyIndex();
 }
-
-

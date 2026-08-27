@@ -7,44 +7,57 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Durable migration operations. Runner orchestration deliberately calls the proxied family method. */
+/** Durable migration operations fenced by a persistent runner lease. */
 @Service
 public class FamilyCartWalletMigrationService {
-  private static final String GLOBAL = "GLOBAL";
   private final FamilyCartWalletMigrationMapper mapper;
   private final FamilyCartWalletFamilyExecutor familyExecutor;
+  private final FamilyWalletMigrationLeaseService leases;
+  private final FamilyWalletMigrationBarrierService barriers;
+  private final FamilyCartWalletDdlExecutor ddl;
 
   /**
-   * Creates the durable migration service.
+   * Creates the durable migration orchestrator.
    *
-   * @param mapper migration mapper
-   * @param familyExecutor independent family transaction executor
+   * @param mapper migration persistence mapper
+   * @param familyExecutor independently transactional family executor
+   * @param leases persistent runner lease service
+   * @param barriers durable write-barrier coordinator
+   * @param ddl resumable finalization DDL executor
    */
   public FamilyCartWalletMigrationService(FamilyCartWalletMigrationMapper mapper,
-      FamilyCartWalletFamilyExecutor familyExecutor) {
+      FamilyCartWalletFamilyExecutor familyExecutor, FamilyWalletMigrationLeaseService leases,
+      FamilyWalletMigrationBarrierService barriers, FamilyCartWalletDdlExecutor ddl) {
     this.mapper = mapper;
     this.familyExecutor = familyExecutor;
+    this.leases = leases;
+    this.barriers = barriers;
+    this.ddl = ddl;
   }
 
   /**
-   * Deterministic phase result printed for operators.
+   * Reports one migration-mode outcome.
    *
-   * @param batchId batch identifier
-   * @param drainEpoch drain epoch, or zero before quiesce
-   * @param status resulting phase status
-   * @param anomalyCount anomaly count
+   * @param batchId migration batch identifier
+   * @param drainEpoch current drain epoch, or zero before drain
+   * @param status resulting lifecycle status
+   * @param anomalyCount blocking anomaly count
    */
   public record Result(long batchId, long drainEpoch, String status, int anomalyCount) { }
 
   /**
-   * Creates or refreshes a preflight report.
+   * Creates or refreshes preflight reports for a batch.
    *
-   * @param requestedBatchId existing batch identifier, or {@code null}
-   * @param drainEpoch optional drain epoch for the barrier recheck
+   * @param token runner owner token
+   * @param requestedBatchId optional existing batch identifier
+   * @param drainEpoch optional epoch for the required post-barrier preflight
    * @return preflight result
    */
   @Transactional
-  public Result preflight(Long requestedBatchId, Long drainEpoch) {
+  public Result preflight(String token, Long requestedBatchId, Long drainEpoch) {
+    long leaseBatch = requestedBatchId == null ? 0 : requestedBatchId;
+    long leaseEpoch = drainEpoch == null ? 0 : drainEpoch;
+    leases.requireOwned(token, leaseBatch, leaseEpoch);
     long batchId;
     if (requestedBatchId == null) {
       mapper.createBatch();
@@ -53,59 +66,58 @@ public class FamilyCartWalletMigrationService {
       batchId = requestedBatchId;
     }
     Map<String, Object> batch = requireBatch(batchId);
-    if (requestedBatchId != null) requireEpoch(batch, drainEpoch);
-    mapper.clearAnomalies(batchId);
-    int anomalies = mapper.insertPreflightAnomalies(batchId) + mapper.insertPreflightReports(batchId);
-    mapper.bindPreflight(batchId, drainEpoch);
-    return new Result(batchId, drainEpoch == null ? 0 : drainEpoch, "PREFLIGHT", anomalies);
-  }
-
-  /**
-   * Enables the barrier and advances to drained when all web leases expire.
-   *
-   * @param batchId batch identifier
-   * @param owner runner owner
-   * @return quiescing or drained result
-   */
-  @Transactional
-  public Result quiesce(Long batchId, String owner) {
-    Map<String, Object> batch = requireBatch(batchId);
-    mapper.ensureCutover();
-    Map<String, Object> cutover = mapper.lockCutover();
-    long epoch;
-    if (!Boolean.TRUE.equals(bool(cutover.get("maintenanceEnabled")))) {
-      epoch = mapper.nextDrainEpoch();
-      mapper.enableBarrier(batchId, epoch, owner);
-      mapper.markBatchQuiescing(batchId, epoch);
-    } else {
-      epoch = number(cutover, "drainEpoch", -1).longValue();
-      requireEpoch(batch, epoch);
-      String state = text(cutover.get("state"));
-      if (!"QUIESCING".equals(state) && !"DRAINED".equals(state)) {
-        throw new IllegalStateException("another cutover is already active");
+    String status = text(batch.get("status"));
+    if (requestedBatchId == null && !"DRAFT".equals(status)) {
+      throw new IllegalStateException("new preflight batch is not draft");
+    }
+    if (requestedBatchId != null) {
+      if (drainEpoch != null) requireEpoch(batch, drainEpoch);
+      if (drainEpoch == null && !"PREFLIGHT".equals(status)) {
+        throw new IllegalStateException("initial preflight refresh requires PREFLIGHT");
+      }
+      if (drainEpoch != null && !"DRAINED".equals(status)) {
+        throw new IllegalStateException("barrier preflight requires DRAINED");
       }
     }
-    if (mapper.countActiveLeases() != 0) {
-      return new Result(batchId, epoch, "QUIESCING", 0);
-    }
-    mapper.markDrained(batchId, epoch);
-    mapper.markBatchDrained(batchId, epoch);
-    return new Result(batchId, epoch, "DRAINED", 0);
+    mapper.clearAnomalies(batchId);
+    mapper.populateEligibleFamilies(batchId);
+    int anomalies = mapper.insertPreflightAnomalies(batchId) + mapper.insertPreflightReports(batchId);
+    mapper.bindPreflight(batchId, drainEpoch);
+    return new Result(batchId, leaseEpoch, drainEpoch == null ? "PREFLIGHT" : "BARRIER_PREFLIGHT", anomalies);
   }
 
   /**
-   * Clears the barrier only before any wallet, cart, or DDL source is recorded.
+   * Publishes the write barrier and attempts to prove the compatibility fleet drained.
    *
-   * @param batchId batch identifier
+   * @param token runner owner token
+   * @param batchId preflight batch identifier
+   * @param owner human-readable barrier owner
+   * @return quiescing or drained result
+   */
+  public Result quiesce(String token, Long batchId, String owner) {
+    if (batchId == null) throw new IllegalArgumentException("batch id required");
+    long epoch = barriers.enable(token, batchId, owner);
+    boolean drained = barriers.proveDrained(token, batchId, epoch);
+    return new Result(batchId, epoch, drained ? "DRAINED" : "QUIESCING", 0);
+  }
+
+  /**
+   * Clears a drained barrier only while no migration data or finalization DDL exists.
+   *
+   * @param token runner owner token
+   * @param batchId migration batch identifier
    * @param epoch drain epoch
    * @return aborted result
    */
   @Transactional
-  public Result abortBeforeExecute(Long batchId, Long epoch) {
+  public Result abortBeforeExecute(String token, Long batchId, Long epoch) {
+    leases.requireOwned(token, required(batchId), required(epoch));
     Map<String, Object> batch = requireBatch(batchId);
     requireEpoch(batch, epoch);
+    requireOneOf(batch, "DRAINED", "BARRIER_PREFLIGHT");
+    requireDrainProof(batchId, epoch);
     if (mapper.countSources(batchId) != 0 || mapper.countCartSources(batchId) != 0
-        || mapper.countFinalizationDdl() != 0) {
+        || mapper.countFinalizationDdl(batchId) != 0) {
       throw new IllegalStateException("migration can no longer be aborted");
     }
     mapper.clearBarrier();
@@ -114,127 +126,128 @@ public class FamilyCartWalletMigrationService {
   }
 
   /**
-   * Validates the batch and current drain proof before a continuation phase.
+   * Validates lease, batch phase, epoch, barrier, drain, and anomaly continuation proof.
    *
-   * @param batchId batch identifier
+   * @param token runner owner token
+   * @param batchId migration batch identifier
    * @param epoch drain epoch
    * @param mode requested continuation mode
-   * @return active family identifiers
+   * @return deterministic family identifiers for the requested phase
    */
-  @Transactional(readOnly = true)
-  public List<Long> validateContinuation(Long batchId, Long epoch, Mode mode) {
+  @Transactional
+  public List<Long> validateContinuation(String token, Long batchId, Long epoch, Mode mode) {
+    leases.requireOwned(token, required(batchId), required(epoch));
     Map<String, Object> batch = requireBatch(batchId);
     requireEpoch(batch, epoch);
-    Map<String, Object> cutover = mapper.lockCutover();
-    if (cutover == null || !Boolean.TRUE.equals(bool(cutover.get("maintenanceEnabled")))
-        || !"DRAINED".equals(text(cutover.get("state")))) {
-      throw new IllegalStateException("current unexpired drain proof is required");
+    requireDrainProof(batchId, epoch);
+    String status = text(batch.get("status"));
+    if (mode == Mode.EXECUTE && !status.equals("BARRIER_PREFLIGHT") && !status.equals("EXECUTING")) {
+      throw new IllegalStateException("EXECUTE requires barrier preflight");
     }
-    if (mapper.countAnomalies(batchId) != 0 && mode == Mode.EXECUTE) {
+    if (mode == Mode.VERIFY && !status.equals("EXECUTED")) {
+      throw new IllegalStateException("VERIFY requires completed execution");
+    }
+    if (mode == Mode.FINALIZE && !status.equals("VERIFIED")) {
+      throw new IllegalStateException("FINALIZE requires VERIFIED");
+    }
+    if (mode == Mode.EXECUTE && mapper.countAnomalies(batchId) != 0) {
       throw new IllegalStateException("unresolved preflight anomalies");
     }
-    return mapper.selectFamilies();
+    return mode == Mode.EXECUTE ? mapper.selectPendingFamilies(batchId) : mapper.selectBatchFamilies(batchId);
   }
 
   /**
-   * Executes one family through the independent transaction bean.
+   * Executes one independently committed family migration.
    *
-   * @param batchId batch identifier
+   * @param token runner owner token
+   * @param batchId migration batch identifier
    * @param epoch drain epoch
    * @param familyId family identifier
-   * @return whether the family transaction completed
+   * @return {@code true} when the family is migrated or was already migrated
    */
-  public boolean executeFamily(Long batchId, Long epoch, Long familyId) {
-    validateContinuation(batchId, epoch, Mode.EXECUTE);
-    return familyExecutor.execute(batchId, epoch, familyId);
+  public boolean executeFamily(String token, Long batchId, Long epoch, Long familyId) {
+    if (familyId == null) throw new IllegalArgumentException("family id required");
+    return familyExecutor.execute(token, required(batchId), required(epoch), familyId);
   }
 
   /**
-   * Records completion after every family transaction succeeds.
+   * Marks execution complete only when no eligible family remains pending.
    *
-   * @param batchId batch identifier
+   * @param token runner owner token
+   * @param batchId migration batch identifier
    * @param epoch drain epoch
    */
   @Transactional
-  public void markExecutionComplete(Long batchId, Long epoch) {
-    validateContinuation(batchId, epoch, Mode.EXECUTE);
-    mapper.markExecuted(batchId, epoch);
+  public void markExecutionComplete(String token, Long batchId, Long epoch) {
+    validateContinuation(token, batchId, epoch, Mode.EXECUTE);
+    if (mapper.countPendingFamilies(batchId) != 0) {
+      throw new IllegalStateException("eligible families remain pending");
+    }
+    if (mapper.markExecuted(batchId, epoch) != 1) throw new IllegalStateException("execution transition rejected");
   }
 
   /**
-   * Verifies money, source clearing, holds, selections, and anomalies.
+   * Verifies per-family and global wallet, hold, and selection invariants.
    *
-   * @param batchId batch identifier
+   * @param token runner owner token
+   * @param batchId migration batch identifier
    * @param epoch drain epoch
    * @return verified result
    */
   @Transactional
-  public Result verify(Long batchId, Long epoch) {
-    validateContinuation(batchId, epoch, Mode.VERIFY);
+  public Result verify(String token, Long batchId, Long epoch) {
+    List<Long> families = validateContinuation(token, batchId, epoch, Mode.VERIFY);
+    if (mapper.countPendingFamilies(batchId) != 0 || mapper.countUnmigratedWallets(batchId) != 0
+        || mapper.countMissingExpectedHolds(batchId) != 0 || families.isEmpty()) {
+      throw new IllegalStateException("migration has pending or unmigrated eligible sources");
+    }
+    for (Long familyId : families) {
+      if (mapper.countFamilyVerificationFailures(batchId, familyId) != 0) {
+        throw new IllegalStateException("family conservation verification failed: " + familyId);
+      }
+    }
     Map<String, Object> totals = mapper.verificationTotals(batchId);
     BigDecimal sourceAvailable = decimal(totals.get("sourceAvailable"));
     BigDecimal sourceFrozen = decimal(totals.get("sourceFrozen"));
     BigDecimal targetAvailable = decimal(totals.get("targetAvailable"));
     BigDecimal targetFrozen = decimal(totals.get("targetFrozen"));
-    long nonzeroSources = number(totals, "nonzeroSources", 0).longValue();
-    long badSelections = number(totals, "badSelections", 0).longValue();
     if (sourceAvailable.compareTo(targetAvailable) != 0 || sourceFrozen.compareTo(targetFrozen) != 0
-        || nonzeroSources != 0 || badSelections != 0 || mapper.countInvalidHolds(batchId) != 0
-        || mapper.countAnomalies(batchId) != 0) {
-      throw new IllegalStateException("migration conservation verification failed");
+        || number(totals, "nonzeroSources", 0).longValue() != 0
+        || number(totals, "badSelections", 0).longValue() != 0
+        || mapper.countInvalidHolds(batchId) != 0 || mapper.countAnomalies(batchId) != 0) {
+      throw new IllegalStateException("global migration conservation verification failed");
     }
-    mapper.markVerified(batchId, epoch, sourceAvailable, sourceFrozen, targetAvailable, targetFrozen);
+    if (mapper.markVerified(batchId, epoch, sourceAvailable, sourceFrozen, targetAvailable, targetFrozen) != 1) {
+      throw new IllegalStateException("verification transition rejected");
+    }
     return new Result(batchId, epoch, "VERIFIED", 0);
   }
 
   /**
-   * Installs resumable final DDL and advances the cutover to family-ready.
+   * Applies resumable final cart DDL and publishes family-ready state.
    *
-   * @param batchId batch identifier
-   * @param epoch drain epoch
+   * @param token runner owner token
+   * @param batchId verified migration batch identifier
+   * @param epoch verified drain epoch
    * @return finalized result
    */
-  @Transactional
-  public Result finalizeBatch(Long batchId, Long epoch) {
-    Map<String, Object> batch = requireBatch(batchId);
-    requireEpoch(batch, epoch);
-    if ("FINALIZED".equals(text(batch.get("status")))) {
-      Map<String, Object> cutover = mapper.lockCutover();
-      if (cutover != null && "FAMILY_READY".equals(text(cutover.get("state")))) {
-        return new Result(batchId, epoch, "FINALIZED", 0);
-      }
-      throw new IllegalStateException("finalized batch has inconsistent cutover state");
-    }
-    validateContinuation(batchId, epoch, Mode.FINALIZE);
-    if (!"VERIFIED".equals(text(batch.get("status"))) && !"FINALIZED".equals(text(batch.get("status")))) {
-      throw new IllegalStateException("only a verified batch may finalize");
-    }
-    mapper.recordDdl(batchId, "DDL_BEFORE", "legacy=" + mapper.indexExists("uk_carts_active_cart")
-        + ",family=" + mapper.indexExists("uk_carts_active_family"));
-    if (mapper.indexExists("uk_carts_active_family") == 0) {
-      mapper.recordDdl(batchId, "DDL_REQUIRED", "uk_carts_active_family");
-      mapper.applyFinalCartIndex();
-    }
-    if (mapper.indexExists("uk_carts_active_family") == 0) {
-      throw new IllegalStateException("family active-cart index was not installed");
-    }
-    mapper.recordDdl(batchId, "DDL_AFTER", "uk_carts_active_family=confirmed");
-    if (mapper.setFamilyReady(batchId, epoch) != 1) {
-      throw new IllegalStateException("cutover state changed before finalization");
-    }
-    mapper.markBatchFinalized(batchId);
+  public Result finalizeBatch(String token, Long batchId, Long epoch) {
+    validateContinuation(token, batchId, epoch, Mode.FINALIZE);
+    ddl.dropLegacyIndex(token, batchId, epoch);
+    ddl.dropLegacyColumn(token, batchId, epoch);
+    ddl.addFamilyColumn(token, batchId, epoch);
+    ddl.addFamilyIndex(token, batchId, epoch);
+    ddl.cutover(token, batchId, epoch);
     return new Result(batchId, epoch, "FINALIZED", 0);
   }
 
   /**
-   * Reads the actual database selected by the datasource connection.
+   * Reads the database selected by the current connection for safety validation.
    *
    * @return current database name
    */
   @Transactional(readOnly = true)
-  public String currentDatabase() {
-    return mapper.currentDatabase();
-  }
+  public String currentDatabase() { return mapper.currentDatabase(); }
 
   private Map<String, Object> requireBatch(Long batchId) {
     if (batchId == null) throw new IllegalArgumentException("batch id required");
@@ -243,23 +256,38 @@ public class FamilyCartWalletMigrationService {
     return batch;
   }
 
+  private void requireDrainProof(long batchId, long epoch) {
+    Map<String, Object> cutover = mapper.lockCutover();
+    if (cutover == null || !bool(cutover.get("maintenanceEnabled"))
+        || !"DRAINED".equals(text(cutover.get("state")))
+        || number(cutover, "activeBatchId", -1).longValue() != batchId
+        || number(cutover, "drainEpoch", -1).longValue() != epoch || mapper.countActiveLeases() != 0) {
+      throw new IllegalStateException("current unexpired drain proof is required");
+    }
+  }
+
   private static void requireEpoch(Map<String, Object> batch, Long epoch) {
     if (epoch == null || number(batch, "drainEpoch", -1).longValue() != epoch) {
       throw new IllegalStateException("stale drain epoch");
     }
   }
-
+  private static void requireOneOf(Map<String, Object> batch, String first, String second) {
+    String status = text(batch.get("status"));
+    if (!first.equals(status) && !second.equals(status)) throw new IllegalStateException("illegal migration phase");
+  }
+  private static long required(Long value) {
+    if (value == null) throw new IllegalArgumentException("batch and epoch are required");
+    return value;
+  }
   private static Number number(Map<String, Object> row, String key, Number fallback) {
     Object value = row.get(key);
-    return value instanceof Number number ? number : fallback;
+    return value instanceof Number n ? n : fallback;
   }
-
   static BigDecimal decimal(Object value) {
     return value == null ? BigDecimal.ZERO : new BigDecimal(value.toString());
   }
-
   static String text(Object value) { return value == null ? "" : value.toString(); }
-  private static Boolean bool(Object value) {
+  private static boolean bool(Object value) {
     return value instanceof Boolean b ? b : value instanceof Number n && n.intValue() != 0;
   }
 }
