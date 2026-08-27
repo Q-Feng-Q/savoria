@@ -26,6 +26,11 @@ public interface FamilyWalletMapper {
    * @return locked hold or null
    */
   FamilyWalletOrderHoldDO lockHold(long orderId);
+  /** Locks an order before any existing-order wallet mutation.
+   * @param orderId order identifier
+   * @return owning family identifier or null
+   */
+  Long lockOrder(long orderId);
   /** Inserts an order hold.
    * @param hold new hold
    * @return affected rows

@@ -2,6 +2,7 @@ package com.familykitchen.wallet.service.impl;
 
 import com.familykitchen.common.error.BusinessException;
 import com.familykitchen.common.error.ErrorCode;
+import com.familykitchen.common.idempotency.CommandIdempotencyService;
 import com.familykitchen.wallet.mapper.FamilyWalletMapper;
 import com.familykitchen.wallet.model.bo.FamilyWalletAccount;
 import com.familykitchen.wallet.model.entity.FamilyWalletAccountDO;
@@ -17,10 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class FamilyWalletServiceImpl implements FamilyWalletService {
   private static final BigDecimal ZERO = new BigDecimal("0.00");
   private final FamilyWalletMapper mapper;
+  private final CommandIdempotencyService commands;
   /** Creates the service.
    * @param mapper persistence mapper
+   * @param commands persistent idempotency coordinator
    */
-  public FamilyWalletServiceImpl(FamilyWalletMapper mapper) { this.mapper=mapper; }
+  public FamilyWalletServiceImpl(FamilyWalletMapper mapper,CommandIdempotencyService commands) { this.mapper=mapper;this.commands=commands; }
 
   /** {@inheritDoc} */
   @Override public FamilyWalletAccountDO get(long familyId) {
@@ -32,6 +35,11 @@ public class FamilyWalletServiceImpl implements FamilyWalletService {
   /** {@inheritDoc} */
   @Override @Transactional
   public void freezeNewOrder(long familyId,long orderId,long actorId,BigDecimal amount,String key){
+    BigDecimal value=FamilyWalletAccount.command(amount);
+    idempotent(actorId,familyId,"ORDER_FREEZE",key,"order="+orderId+"&amount="+value.toPlainString(),"order",orderId,
+        ()->freezeNewOrderOnce(familyId,orderId,actorId,value,key));
+  }
+  private void freezeNewOrderOnce(long familyId,long orderId,long actorId,BigDecimal amount,String key){
     FamilyWalletAccountDO row=lockAccount(familyId);
     if(mapper.lockHold(orderId)!=null) conflict("订单冻结单已存在");
     FamilyWalletAccount account=domain(row); BigDecimal beforeA=account.availableAmount(),beforeF=account.frozenAmount();
@@ -45,6 +53,12 @@ public class FamilyWalletServiceImpl implements FamilyWalletService {
   /** {@inheritDoc} */
   @Override @Transactional
   public void appendFreeze(long familyId,long orderId,long actorId,BigDecimal amount,String key){
+    BigDecimal value=FamilyWalletAccount.command(amount);
+    idempotent(actorId,familyId,"ORDER_APPEND_FREEZE",key,"order="+orderId+"&amount="+value.toPlainString(),"order",orderId,
+        ()->appendFreezeOnce(familyId,orderId,actorId,value,key));
+  }
+  private void appendFreezeOnce(long familyId,long orderId,long actorId,BigDecimal amount,String key){
+    lockOrder(orderId,familyId);
     FamilyWalletOrderHoldDO hold=lockHold(orderId,familyId); FamilyWalletAccount account=domain(lockAccount(familyId));
     BigDecimal value=FamilyWalletAccount.command(amount),beforeA=account.availableAmount(),beforeF=account.frozenAmount(); account.freeze(value);
     hold.additionalFrozenAmount=hold.additionalFrozenAmount.add(value);hold.remainingFrozenAmount=hold.remainingFrozenAmount.add(value);hold.status="ACTIVE";
@@ -54,6 +68,12 @@ public class FamilyWalletServiceImpl implements FamilyWalletService {
   /** {@inheritDoc} */
   @Override @Transactional
   public void release(long familyId,long orderId,long actorId,BigDecimal amount,String key){
+    BigDecimal value=FamilyWalletAccount.command(amount);
+    idempotent(actorId,familyId,"ORDER_RELEASE",key,"order="+orderId+"&amount="+value.toPlainString(),"order",orderId,
+        ()->releaseOnce(familyId,orderId,actorId,value,key));
+  }
+  private void releaseOnce(long familyId,long orderId,long actorId,BigDecimal amount,String key){
+    lockOrder(orderId,familyId);
     FamilyWalletOrderHoldDO hold=lockHold(orderId,familyId); BigDecimal value=FamilyWalletAccount.command(amount);requireAtLeast(hold.remainingFrozenAmount,value,"释放金额超过订单剩余冻结");
     FamilyWalletAccount account=domain(lockAccount(familyId));BigDecimal beforeA=account.availableAmount(),beforeF=account.frozenAmount();account.release(value);
     hold.remainingFrozenAmount=hold.remainingFrozenAmount.subtract(value);hold.releasedAmount=hold.releasedAmount.add(value);hold.status=hold.remainingFrozenAmount.signum()==0?"RELEASED":"ACTIVE";
@@ -63,6 +83,12 @@ public class FamilyWalletServiceImpl implements FamilyWalletService {
   /** {@inheritDoc} */
   @Override @Transactional
   public void capture(long familyId,long orderId,long actorId,BigDecimal amount,String key){
+    BigDecimal value=FamilyWalletAccount.command(amount);
+    idempotent(actorId,familyId,"ORDER_CAPTURE",key,"order="+orderId+"&amount="+value.toPlainString(),"order",orderId,
+        ()->captureOnce(familyId,orderId,actorId,value,key));
+  }
+  private void captureOnce(long familyId,long orderId,long actorId,BigDecimal amount,String key){
+    lockOrder(orderId,familyId);
     FamilyWalletOrderHoldDO hold=lockHold(orderId,familyId);BigDecimal value=FamilyWalletAccount.command(amount);requireAtLeast(hold.remainingFrozenAmount,value,"扣款金额超过订单剩余冻结");
     FamilyWalletAccount account=domain(lockAccount(familyId));BigDecimal beforeA=account.availableAmount(),beforeF=account.frozenAmount();account.capture(value);
     hold.remainingFrozenAmount=hold.remainingFrozenAmount.subtract(value);hold.capturedAmount=hold.capturedAmount.add(value);hold.status=hold.remainingFrozenAmount.signum()==0?"CAPTURED":"ACTIVE";
@@ -72,6 +98,12 @@ public class FamilyWalletServiceImpl implements FamilyWalletService {
   /** {@inheritDoc} */
   @Override @Transactional
   public void refund(long familyId,long orderId,long actorId,BigDecimal amount,String key){
+    BigDecimal value=FamilyWalletAccount.command(amount);
+    idempotent(actorId,familyId,"ORDER_REFUND",key,"order="+orderId+"&amount="+value.toPlainString(),"order",orderId,
+        ()->refundOnce(familyId,orderId,actorId,value,key));
+  }
+  private void refundOnce(long familyId,long orderId,long actorId,BigDecimal amount,String key){
+    lockOrder(orderId,familyId);
     FamilyWalletOrderHoldDO hold=lockHold(orderId,familyId);BigDecimal value=FamilyWalletAccount.command(amount);
     requireAtLeast(hold.capturedAmount.subtract(hold.refundedAmount),value,"退款金额超过订单已扣未退金额");
     FamilyWalletAccount account=domain(lockAccount(familyId));BigDecimal beforeA=account.availableAmount(),beforeF=account.frozenAmount();account.refund(value);
@@ -80,9 +112,9 @@ public class FamilyWalletServiceImpl implements FamilyWalletService {
   }
 
   /** {@inheritDoc} */
-  @Override @Transactional public void manualCredit(long familyId,long actorId,BigDecimal amount,String key,String remark){adjust(familyId,actorId,amount,key,remark,true);}
+  @Override @Transactional public void manualCredit(long familyId,long actorId,BigDecimal amount,String key,String remark){BigDecimal value=FamilyWalletAccount.command(amount);idempotent(actorId,familyId,"MANUAL_CREDIT",key,"amount="+value.toPlainString()+"&remark="+String.valueOf(remark),"family_wallet",familyId,()->adjust(familyId,actorId,value,key,remark,true));}
   /** {@inheritDoc} */
-  @Override @Transactional public void manualDebit(long familyId,long actorId,BigDecimal amount,String key,String remark){adjust(familyId,actorId,amount,key,remark,false);}
+  @Override @Transactional public void manualDebit(long familyId,long actorId,BigDecimal amount,String key,String remark){BigDecimal value=FamilyWalletAccount.command(amount);idempotent(actorId,familyId,"MANUAL_DEBIT",key,"amount="+value.toPlainString()+"&remark="+String.valueOf(remark),"family_wallet",familyId,()->adjust(familyId,actorId,value,key,remark,false));}
 
   private void adjust(long familyId,long actorId,BigDecimal amount,String key,String remark,boolean credit){
     FamilyWalletAccount account=domain(lockAccount(familyId));BigDecimal beforeA=account.availableAmount(),beforeF=account.frozenAmount();
@@ -90,6 +122,7 @@ public class FamilyWalletServiceImpl implements FamilyWalletService {
     ledger(familyId,null,actorId,credit?"MANUAL_CREDIT":"MANUAL_DEBIT",key,amount,beforeA,beforeF,account,remark);
   }
   private FamilyWalletAccountDO lockAccount(long id){FamilyWalletAccountDO row=mapper.lockAccount(id);if(row==null)throw new BusinessException(ErrorCode.NOT_FOUND,"家庭钱包不存在");return row;}
+  private void lockOrder(long orderId,long familyId){Long owner=mapper.lockOrder(orderId);if(owner==null)throw new BusinessException(ErrorCode.NOT_FOUND,"订单不存在");if(owner!=familyId)throw new BusinessException(ErrorCode.FORBIDDEN,"订单不属于当前家庭");}
   private FamilyWalletOrderHoldDO lockHold(long orderId,long familyId){FamilyWalletOrderHoldDO h=mapper.lockHold(orderId);if(h==null)throw new BusinessException(ErrorCode.NOT_FOUND,"订单冻结单不存在");if(!Long.valueOf(familyId).equals(h.familyId))throw new BusinessException(ErrorCode.FORBIDDEN,"订单不属于当前家庭");return h;}
   private static FamilyWalletAccount domain(FamilyWalletAccountDO r){return new FamilyWalletAccount(r.familyId,r.availableAmount,r.frozenAmount);}
   private void persist(FamilyWalletAccount a){if(mapper.updateAccount(a.familyId(),a.availableAmount(),a.frozenAmount())!=1)conflict("家庭钱包并发更新失败");}
@@ -98,4 +131,7 @@ public class FamilyWalletServiceImpl implements FamilyWalletService {
   }
   private static void requireAtLeast(BigDecimal actual,BigDecimal wanted,String message){if(actual.compareTo(wanted)<0)throw new BusinessException(ErrorCode.BUSINESS_INVALID,message);}
   private static void conflict(String message){throw new BusinessException(ErrorCode.STATE_CONFLICT,message);}
+  private void idempotent(long actor,long family,String operation,String requestId,String payload,String resourceType,Long resourceId,Runnable action){
+    commands.execute(new CommandIdempotencyService.Command(actor,family,operation,requestId,payload),()->{action.run();return new CommandIdempotencyService.Result(resourceType,resourceId,null);});
+  }
 }

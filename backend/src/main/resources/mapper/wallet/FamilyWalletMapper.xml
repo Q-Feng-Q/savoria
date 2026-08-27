@@ -25,6 +25,7 @@
   <select id="selectAccount" resultMap="account">select <include refid="accountColumns"/> from family_wallets where family_id=#{familyId}</select>
   <select id="lockAccount" resultMap="account">select <include refid="accountColumns"/> from family_wallets where family_id=#{familyId} for update</select>
   <select id="lockHold" resultMap="hold">select * from family_wallet_order_holds where order_id=#{orderId} for update</select>
+  <select id="lockOrder" resultType="long">select family_id from orders where id=#{orderId} for update</select>
   <insert id="insertHold" parameterType="com.familykitchen.wallet.model.entity.FamilyWalletOrderHoldDO" useGeneratedKeys="true" keyProperty="id">
     insert into family_wallet_order_holds(order_id,family_id,initial_amount,additional_frozen_amount,remaining_frozen_amount,captured_amount,released_amount,refunded_amount,status)
     values(#{orderId},#{familyId},#{initialAmount},#{additionalFrozenAmount},#{remainingFrozenAmount},#{capturedAmount},#{releasedAmount},#{refundedAmount},#{status})
