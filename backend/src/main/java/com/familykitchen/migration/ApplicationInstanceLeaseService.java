@@ -1,10 +1,11 @@
 package com.familykitchen.migration;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.core.Ordered;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @ConditionalOnExpression("${family-kitchen.instance.lease-enabled:false}"
     + " && '${family-kitchen.migration.mode:OFF}'.equalsIgnoreCase('OFF')")
-public class ApplicationInstanceLeaseService {
+public class ApplicationInstanceLeaseService implements ApplicationRunner, Ordered {
   private final FamilyCartWalletMigrationMapper mapper;
   private final String instanceId;
   private final String build;
@@ -33,9 +34,12 @@ public class ApplicationInstanceLeaseService {
     this.build = build;
   }
 
-  /** Registers this compatibility instance when the opt-in bean starts. */
-  @PostConstruct
-  public void register() { heartbeat(); }
+  /** Registers this compatibility instance atomically before ordinary startup runners execute. */
+  @Override
+  @Transactional
+  public void run(ApplicationArguments args) {
+    publishHeartbeat();
+  }
 
   /**
    * Serializes renewal with barrier publication and keeps reporting a live compatibility instance.
@@ -45,9 +49,19 @@ public class ApplicationInstanceLeaseService {
   @Scheduled(fixedDelayString = "${family-kitchen.instance.heartbeat-ms:10000}")
   @Transactional
   public void heartbeat() {
+    publishHeartbeat();
+  }
+
+  private void publishHeartbeat() {
     mapper.ensureCutover();
-    Map<String, Object> cutover = mapper.lockCutover();
+    mapper.lockCutover();
     mapper.heartbeat(instanceId, build, "web", 30);
+  }
+
+  /** Runs after the one-shot migration runner but before default-priority business initializers. */
+  @Override
+  public int getOrder() {
+    return Ordered.HIGHEST_PRECEDENCE + 100;
   }
 
   /** Releases this compatibility instance''s lease during orderly shutdown. */
