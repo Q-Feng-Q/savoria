@@ -6,6 +6,8 @@ import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.web.context.WebServerApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +40,7 @@ public class FamilyCartWalletMigrationRunner implements ApplicationRunner, Order
   private final String expectedDatabase;
   private final String safetyToken;
   private final String configuredToken;
+  private final ConfigurableApplicationContext context;
 
   /**
    * Creates the explicitly gated application runner.
@@ -50,6 +53,7 @@ public class FamilyCartWalletMigrationRunner implements ApplicationRunner, Order
    * @param expectedDatabase required disposable database name
    * @param safetyToken supplied safety token
    * @param configuredToken configured expected safety token
+   * @param context application context closed after any one-shot migration command
    */
   public FamilyCartWalletMigrationRunner(FamilyCartWalletMigrationService service,
       FamilyWalletMigrationLeaseService leases,
@@ -58,7 +62,8 @@ public class FamilyCartWalletMigrationRunner implements ApplicationRunner, Order
       @Value("${family-kitchen.migration.drain-epoch:#{null}}") Long drainEpoch,
       @Value("${family-kitchen.migration.expected-database:}") String expectedDatabase,
       @Value("${family-kitchen.migration.safety-token:}") String safetyToken,
-      @Value("${family-kitchen.migration.configured-token:}") String configuredToken) {
+      @Value("${family-kitchen.migration.configured-token:}") String configuredToken,
+      ConfigurableApplicationContext context) {
     this.service = service;
     this.leases = leases;
     this.mode = Mode.valueOf(mode.trim().toUpperCase(Locale.ROOT));
@@ -67,12 +72,16 @@ public class FamilyCartWalletMigrationRunner implements ApplicationRunner, Order
     this.expectedDatabase = expectedDatabase;
     this.safetyToken = safetyToken;
     this.configuredToken = configuredToken;
+    this.context = context;
   }
 
   /** {@inheritDoc} */
   @Override
   public void run(ApplicationArguments args) {
     if (mode == Mode.OFF) return;
+    if (context instanceof WebServerApplicationContext) {
+      throw new IllegalStateException("migration mode must run as a non-web one-shot process");
+    }
     validateArguments();
     validateSafety();
     long leaseBatch = batchId == null ? 0 : batchId;
@@ -81,7 +90,11 @@ public class FamilyCartWalletMigrationRunner implements ApplicationRunner, Order
     try {
       runOwned(token, leaseBatch, leaseEpoch);
     } finally {
-      leases.release(token);
+      try {
+        leases.release(token);
+      } finally {
+        context.close();
+      }
     }
   }
 

@@ -6,11 +6,14 @@ import com.familykitchen.user.mapper.UserRoleMapper;
 import com.familykitchen.user.model.entity.UserDO;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /** 初始化统一用户模型中的平台管理员账号。 */
 @Component
+@ConditionalOnProperty(name = "family-kitchen.migration.mode", havingValue = "OFF",
+    matchIfMissing = true)
 public class AdminAccountInitializer implements ApplicationRunner {
   private final UserMapper userMapper;
   private final UserRoleMapper userRoleMapper;

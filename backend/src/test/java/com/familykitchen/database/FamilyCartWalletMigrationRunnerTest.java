@@ -15,17 +15,21 @@ import com.familykitchen.migration.FamilyWalletMigrationLeaseService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.DefaultApplicationArguments;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.boot.web.context.ConfigurableWebServerApplicationContext;
 
 /** Verifies persistent lease ownership and dispatch without a database. */
 class FamilyCartWalletMigrationRunnerTest {
   private final FamilyCartWalletMigrationService service = mock(FamilyCartWalletMigrationService.class);
   private final FamilyWalletMigrationLeaseService leases = mock(FamilyWalletMigrationLeaseService.class);
+  private final ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
 
   @Test
   void defaultOffDoesNotTouchServiceOrLease() {
     runner("OFF", null, null, "", "", "").run(args());
     verify(leases, never()).acquire(0, 0, "OFF");
     verify(service, never()).currentDatabase();
+    verify(context, never()).close();
   }
 
   @Test
@@ -38,6 +42,7 @@ class FamilyCartWalletMigrationRunnerTest {
         "wallet_family_wallet_disposable", "once", "once").run(args()));
     verify(service).preflight("owner", null, null);
     verify(leases).release("owner");
+    verify(context).close();
   }
 
   @Test
@@ -84,6 +89,7 @@ class FamilyCartWalletMigrationRunnerTest {
     verify(leases, times(2)).renew("owner", 12, 7);
     verify(service, never()).markExecutionComplete("owner", 12L, 7L);
     verify(leases).release("owner");
+    verify(context).close();
   }
 
   @Test
@@ -108,10 +114,24 @@ class FamilyCartWalletMigrationRunnerTest {
     verify(leases, never()).acquire(0, 0, "PREFLIGHT");
   }
 
+  @Test
+  void nonOffModeRejectsAWebApplicationContextBeforeDatabaseAccess() {
+    ConfigurableWebServerApplicationContext webContext =
+        mock(ConfigurableWebServerApplicationContext.class);
+    FamilyCartWalletMigrationRunner webRunner = new FamilyCartWalletMigrationRunner(
+        service, leases, "PREFLIGHT", null, null, "runner_family_wallet_disposable",
+        "once", "once", webContext);
+
+    assertThrows(IllegalStateException.class, () -> webRunner.run(args()));
+
+    verify(service, never()).currentDatabase();
+    verify(leases, never()).acquire(0, 0, "PREFLIGHT");
+  }
+
   private FamilyCartWalletMigrationRunner runner(String mode, Long batch, Long epoch,
       String database, String token, String configured) {
     return new FamilyCartWalletMigrationRunner(service, leases, mode, batch, epoch,
-        database, token, configured);
+        database, token, configured, context);
   }
   private static DefaultApplicationArguments args() { return new DefaultApplicationArguments(); }
 }

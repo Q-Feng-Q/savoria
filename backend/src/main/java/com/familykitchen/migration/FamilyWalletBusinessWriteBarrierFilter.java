@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Set;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /** Global compatibility-build barrier for every mutating HTTP/business request. */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 10)
-@ConditionalOnProperty(name = "family-kitchen.instance.lease-enabled", havingValue = "true")
+@ConditionalOnExpression("${family-kitchen.instance.lease-enabled:false}"
+    + " && '${family-kitchen.migration.mode:OFF}'.equalsIgnoreCase('OFF')")
 public class FamilyWalletBusinessWriteBarrierFilter extends OncePerRequestFilter {
   private static final Set<String> SAFE = Set.of("GET", "HEAD", "OPTIONS", "TRACE");
   private final FamilyCartWalletMigrationMapper mapper;

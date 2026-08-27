@@ -4,15 +4,15 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Publishes compatibility-instance heartbeats only when explicitly enabled. */
 @Service
-@ConditionalOnProperty(name = "family-kitchen.instance.lease-enabled", havingValue = "true",
-    matchIfMissing = false)
+@ConditionalOnExpression("${family-kitchen.instance.lease-enabled:false}"
+    + " && '${family-kitchen.migration.mode:OFF}'.equalsIgnoreCase('OFF')")
 public class ApplicationInstanceLeaseService {
   private final FamilyCartWalletMigrationMapper mapper;
   private final String instanceId;

@@ -4,7 +4,7 @@ import java.util.Map;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +16,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Aspect
 @Component
-@ConditionalOnProperty(name = "family-kitchen.instance.lease-enabled", havingValue = "true")
+@ConditionalOnExpression("${family-kitchen.instance.lease-enabled:false}"
+    + " && '${family-kitchen.migration.mode:OFF}'.equalsIgnoreCase('OFF')")
 public class FamilyWalletBusinessTransactionBarrierAspect {
   private final FamilyCartWalletMigrationMapper mapper;
   private final TransactionTemplate transactions;

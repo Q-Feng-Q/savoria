@@ -31,6 +31,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -177,7 +178,10 @@ class FamilyCartWalletMigrationRecoveryMySqlTest {
   }
   private FamilyCartWalletMigrationRunner runner(String mode,Long batch,Long epoch) {
     return new FamilyCartWalletMigrationRunner(service,leases,mode,batch,epoch,
-        "runner_family_wallet_disposable","token","token");
+        "runner_family_wallet_disposable","token","token",mockContext());
+  }
+  private static ConfigurableApplicationContext mockContext() {
+    return org.mockito.Mockito.mock(ConfigurableApplicationContext.class);
   }
   private long count(String table) { return jdbc.queryForObject("select count(*) from "+table,Long.class); }
   private BigDecimal money(String sql) { return jdbc.queryForObject(sql,BigDecimal.class); }
