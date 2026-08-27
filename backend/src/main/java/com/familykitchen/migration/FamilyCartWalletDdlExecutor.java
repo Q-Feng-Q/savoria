@@ -67,11 +67,7 @@ public class FamilyCartWalletDdlExecutor {
     requireProof(token, batchId, epoch);
     marker(batchId, "DDL_ADD_FAMILY_COLUMN_BEFORE", "active_family_id");
     if (mapper.columnExists("active_family_id") == 0) mapper.addActiveFamilyColumn();
-    String expression = mapper.generatedColumnExpression("active_family_id");
-    if (expression == null || !expression.toLowerCase().contains("family_id")
-        || !expression.toLowerCase().contains("status")) {
-      throw new IllegalStateException("active_family_id expression mismatch");
-    }
+    String expression = requireExactFamilyColumn();
     marker(batchId, "DDL_ADD_FAMILY_COLUMN_AFTER", expression);
   }
 
@@ -87,8 +83,7 @@ public class FamilyCartWalletDdlExecutor {
     requireProof(token, batchId, epoch);
     marker(batchId, "DDL_ADD_FAMILY_INDEX_BEFORE", "uk_carts_active_family(active_family_id)");
     if (mapper.indexExists("uk_carts_active_family") == 0) mapper.addActiveFamilyIndex();
-    if (mapper.indexExists("uk_carts_active_family") != 1
-        || !"active_family_id".equalsIgnoreCase(mapper.indexColumn("uk_carts_active_family"))) {
+    if (mapper.exactUniqueIndexExists("uk_carts_active_family", "active_family_id") != 1) {
       throw new IllegalStateException("family cart index mismatch");
     }
     marker(batchId, "DDL_ADD_FAMILY_INDEX_AFTER", "confirmed");
@@ -105,10 +100,11 @@ public class FamilyCartWalletDdlExecutor {
   public void cutover(String token, long batchId, long epoch) {
     requireProof(token, batchId, epoch);
     if (mapper.indexExists("uk_carts_active_cart") != 0 || mapper.columnExists("active_cart_key") != 0
-        || mapper.columnExists("active_family_id") != 1 || mapper.indexExists("uk_carts_active_family") != 1
-        || !"active_family_id".equalsIgnoreCase(mapper.indexColumn("uk_carts_active_family"))) {
+        || mapper.columnExists("active_family_id") != 1
+        || mapper.exactUniqueIndexExists("uk_carts_active_family", "active_family_id") != 1) {
       throw new IllegalStateException("final cart DDL inventory is incomplete");
     }
+    requireExactFamilyColumn();
     if (mapper.setFamilyReady(batchId, epoch) != 1) {
       throw new IllegalStateException("cutover state changed before finalization");
     }
@@ -132,6 +128,21 @@ public class FamilyCartWalletDdlExecutor {
   }
 
   private void marker(long batchId, String type, String detail) { mapper.recordDdl(batchId, type, detail); }
+  private String requireExactFamilyColumn() {
+    Map<String, Object> metadata = mapper.generatedColumnMetadata("active_family_id");
+    String type = text(metadata == null ? null : metadata.get("dataType"));
+    String extra = text(metadata == null ? null : metadata.get("extra")).toLowerCase();
+    String expression = text(metadata == null ? null : metadata.get("generationExpression"));
+    if (!"bigint".equalsIgnoreCase(type) || !extra.contains("stored generated")
+        || !"casewhenstatus='active'thenfamily_idelsenullend".equals(canonical(expression))) {
+      throw new IllegalStateException("active_family_id metadata mismatch");
+    }
+    return expression;
+  }
+  private static String canonical(String expression) {
+    return expression.toLowerCase().replace("`", "").replace("_utf8mb4", "")
+        .replaceAll("[\\s()]", "");
+  }
   private static String text(Object value) { return value == null ? "" : value.toString(); }
   private static long number(Object value) { return value instanceof Number n ? n.longValue() : -1; }
   private static boolean truth(Object value) {

@@ -102,25 +102,40 @@ public class FamilyCartWalletFamilyExecutor {
         .reduce((older, newer) -> newer).orElse(carts.get(carts.size() - 1));
     long targetId = number(target, "id");
     String newestRemark = null;
+    List<Map<String, Object>> chronologicalItems = new ArrayList<>();
     for (Map<String, Object> cart : carts) {
       String cartRemark = text(cart.get("remark"));
       if (!cartRemark.isBlank()) newestRemark = cartRemark;
       long sourceId = number(cart, "id");
       long ownerId = number(cart, "userId");
       for (Map<String, Object> item : itemsByCart.get(sourceId)) {
-        long dishId = number(item, "dishId");
-        int quantity = (int) number(item, "quantity");
-        BigDecimal price = FamilyCartWalletMigrationService.decimal(item.get("currentPrice"));
-        String remark = text(item.get("itemRemark"));
-        Long targetItemId = mapper.findTargetItem(targetId, dishId);
-        if (targetItemId == null) {
-          mapper.insertTargetItem(targetId, dishId, text(item.get("dishName")), quantity, price, remark);
-          targetItemId = mapper.lastInsertId();
-        } else if (sourceId != targetId) {
-          mapper.updateTargetItem(targetItemId, quantity, price, remark);
-        }
-        mapper.upsertSelection(targetItemId, ownerId, quantity, remark);
+        Map<String, Object> source = new HashMap<>(item);
+        source.put("sourceCartId", sourceId);
+        source.put("ownerId", ownerId);
+        chronologicalItems.add(source);
       }
+    }
+    chronologicalItems.sort(Comparator
+        .<Map<String, Object>, String>comparing(row -> orderKey(row, "updatedAt"))
+        .thenComparingLong(row -> number(row, "id")));
+    for (Map<String, Object> item : chronologicalItems) {
+      long sourceId = number(item, "sourceCartId");
+      long ownerId = number(item, "ownerId");
+      long dishId = number(item, "dishId");
+      int quantity = (int) number(item, "quantity");
+      BigDecimal price = FamilyCartWalletMigrationService.decimal(item.get("currentPrice"));
+      String remark = text(item.get("itemRemark"));
+      Long targetItemId = mapper.findTargetItem(targetId, dishId);
+      if (targetItemId == null) {
+        mapper.insertTargetItem(targetId, dishId, text(item.get("dishName")), quantity, price, remark);
+        targetItemId = mapper.lastInsertId();
+      } else {
+        mapper.updateTargetItem(targetItemId, sourceId == targetId ? 0 : quantity, price, remark);
+      }
+      mapper.upsertSelection(targetItemId, ownerId, quantity, remark);
+    }
+    for (Map<String, Object> cart : carts) {
+      long sourceId = number(cart, "id");
       mapper.markCartMigrated(batchId, sourceId, targetId, familyId);
       if (sourceId != targetId) mapper.absorbCart(sourceId);
     }

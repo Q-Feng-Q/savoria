@@ -13,6 +13,12 @@ import com.familykitchen.migration.FamilyWalletMigrationBarrierService;
 import com.familykitchen.migration.FamilyWalletMigrationLeaseService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,9 +72,21 @@ class FamilyCartWalletMigrationRecoveryMySqlTest {
   }
 
   @Test void crossProcessLeaseRaceAllowsExactlyOneOwner() {
-    String owner = leases.acquire(0, 0, "PREFLIGHT");
-    try { assertThrows(IllegalStateException.class, () -> leases.acquire(0, 0, "PREFLIGHT")); }
-    finally { leases.release(owner); }
+    ExecutorService pool = Executors.newFixedThreadPool(2);
+    CountDownLatch start = new CountDownLatch(1);
+    List<String> owners = new ArrayList<>();
+    try {
+      List<Future<String>> attempts = List.of(
+          pool.submit(() -> acquireAfter(start)), pool.submit(() -> acquireAfter(start)));
+      start.countDown();
+      for (Future<String> attempt : attempts) {
+        try { owners.add(attempt.get()); } catch (Exception expected) { /* losing owner is rejected */ }
+      }
+      assertEquals(1, owners.size());
+    } finally {
+      owners.forEach(leases::release);
+      pool.shutdownNow();
+    }
   }
 
   @Test void barrierCommitsBeforeDrainAndAVisibleLeasePreventsProof() {
@@ -119,6 +137,8 @@ class FamilyCartWalletMigrationRecoveryMySqlTest {
     try { assertEquals("VERIFIED", service.verify(verify, batch, epoch).status()); }
     finally { leases.release(verify); }
     assertEquals(3L, jdbc.queryForObject("select sum(quantity) from cart_item_selections", Long.class));
+    assertEquals("a-new", jdbc.queryForObject(
+        "select item_remark from cart_item_selections where user_id=11", String.class));
     jdbc.execute("alter table carts drop index uk_carts_active_cart");
     String finalize = leases.acquire(batch, epoch, "FINALIZE");
     try { service.finalizeBatch(finalize, batch, epoch); }
@@ -137,7 +157,15 @@ class FamilyCartWalletMigrationRecoveryMySqlTest {
   }
   private void barrierPreflight(long batch,long epoch) {
     String token=leases.acquire(batch,epoch,"PREFLIGHT");
-    try { service.preflight(token,batch,epoch); } finally { leases.release(token); }
+    try {
+      assertEquals("BARRIER_PREFLIGHT", service.preflight(token,batch,epoch).status());
+      assertEquals("BARRIER_PREFLIGHT", jdbc.queryForObject(
+          "select status from family_wallet_migration_batches where id=?", String.class, batch));
+    } finally { leases.release(token); }
+  }
+  private String acquireAfter(CountDownLatch start) throws InterruptedException {
+    start.await();
+    return leases.acquire(0,0,"PREFLIGHT");
   }
   private void execute(long batch,long epoch,long family) {
     String token=leases.acquire(batch,epoch,"EXECUTE");
@@ -164,8 +192,8 @@ class FamilyCartWalletMigrationRecoveryMySqlTest {
     jdbc.update("insert into dishes(id,merchant_id,category_id,name,base_price,status) values(501,91,401,'dish',15.50,'active')");
     jdbc.update("insert into family_menu_items(family_id,dish_id,enabled,final_price) values(101,501,1,15.50)");
     jdbc.update("insert into meal_slots(id,family_id,name,enabled) values(601,101,'dinner',1)");
-    jdbc.update("insert into carts(id,merchant_id,family_id,user_id,meal_slot_id,service_date,remark,status,updated_at) values(1001,91,101,11,601,?,'old','active','2026-01-01'),(1002,91,101,12,601,?,'new','active','2026-01-02')",LocalDate.now(),LocalDate.now());
-    jdbc.update("insert into cart_items(id,cart_id,dish_id,price,quantity,item_remark,updated_at) values(1101,1001,501,9,1,'a','2026-01-01'),(1102,1002,501,9,2,'b','2026-01-02')");
+    jdbc.update("insert into carts(id,merchant_id,family_id,user_id,meal_slot_id,service_date,remark,status,updated_at) values(1001,91,101,11,601,?,'old','active','2026-01-01'),(1002,91,101,11,601,?,'new','active','2026-01-02')",LocalDate.now(),LocalDate.now());
+    jdbc.update("insert into cart_items(id,cart_id,dish_id,price,quantity,item_remark,updated_at) values(1101,1001,501,9,1,'a-new','2026-01-03'),(1102,1002,501,9,2,'b-old','2026-01-02')");
   }
 
   /** Minimal Spring Boot application used only by the disposable MySQL migration tests. */

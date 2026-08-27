@@ -57,6 +57,13 @@
       from member_wallets mw left join family_user_relations fur on fur.user_id=mw.user_id and fur.status='ACTIVE'
       where fur.family_id is null and (mw.balance_amount&lt;&gt;0 or mw.frozen_amount&lt;&gt;0)
       union all
+      select 'WALLET_INACTIVE_FAMILY','USER',mw.user_id,
+             json_object('userId',mw.user_id,'familyId',fur.family_id)
+      from member_wallets mw
+      join family_user_relations fur on fur.user_id=mw.user_id and fur.status='ACTIVE'
+      left join families f on f.id=fur.family_id and f.status='active'
+      where f.id is null and (mw.balance_amount&lt;&gt;0 or mw.frozen_amount&lt;&gt;0)
+      union all
       select 'WALLET_MULTIPLE_ACTIVE_FAMILIES','USER',fur.user_id,json_object('userId',fur.user_id,'families',count(*))
       from family_user_relations fur where fur.status='ACTIVE' group by fur.user_id having count(*)&gt;1
       union all
@@ -117,16 +124,28 @@
   </insert>
   <insert id="insertPreflightReports">
     insert into family_wallet_migration_anomalies(batch_id,anomaly_type,source_type,source_id,detail_json,resolved)
-    select #{batchId},'CART_REMARK_CONFLICT','FAMILY',c.family_id,
-           json_object('familyId',c.family_id,'distinctRemarks',count(distinct trim(c.remark))),1
-    from carts c where c.status='active' and c.remark is not null and trim(c.remark)&lt;&gt;''
-    group by c.family_id having count(distinct trim(c.remark))&gt;1
+    select #{batchId},report_type,source_type,source_id,detail_json,1 from (
+      select 'CART_REMARK_CONFLICT' report_type,'FAMILY' source_type,c.family_id source_id,
+             json_object('familyId',c.family_id,'distinctRemarks',count(distinct trim(c.remark))) detail_json
+      from carts c where c.status='active' and c.remark is not null and trim(c.remark)&lt;&gt;''
+      group by c.family_id having count(distinct trim(c.remark))&gt;1
+      union all
+      select 'ITEM_REMARK_CONFLICT','USER',c.user_id,
+             json_object('familyId',c.family_id,'userId',c.user_id,'dishId',ci.dish_id,
+                         'distinctRemarks',count(distinct trim(ci.item_remark)))
+      from carts c join cart_items ci on ci.cart_id=c.id
+      where c.status='active' and ci.item_remark is not null and trim(ci.item_remark)&lt;&gt;''
+      group by c.family_id,c.user_id,ci.dish_id
+      having count(distinct trim(ci.item_remark))&gt;1
+    ) reports
   </insert>
   <select id="countAnomalies" resultType="int">
     select count(*) from family_wallet_migration_anomalies where batch_id=#{batchId} and resolved=0
   </select>
   <update id="bindPreflight">
-    update family_wallet_migration_batches set phase='PRECHECK',status='PREFLIGHT',drain_epoch=coalesce(#{epoch},drain_epoch)
+    update family_wallet_migration_batches set phase='PRECHECK',
+      status=case when #{epoch} is null then 'PREFLIGHT' else 'BARRIER_PREFLIGHT' end,
+      drain_epoch=coalesce(#{epoch},drain_epoch)
     where id=#{batchId}
   </update>
   <select id="selectFamilies" resultType="long">
@@ -302,6 +321,11 @@
     insert ignore into family_wallet_migration_families(batch_id,family_id,status)
     select #{batchId},id,'PENDING' from families where status='active'
   </insert>
+  <delete id="removeIneligibleFamilies">
+    delete mf from family_wallet_migration_families mf
+    left join families f on f.id=mf.family_id and f.status='active'
+    where mf.batch_id=#{batchId} and mf.status='PENDING' and f.id is null
+  </delete>
   <select id="selectPendingFamilies" resultType="long">
     select family_id from family_wallet_migration_families where batch_id=#{batchId} and status='PENDING' order by family_id
   </select>
@@ -337,6 +361,13 @@
   </select>
   <select id="countFamilyVerificationFailures" resultType="int">
     select
+      (select case when coalesce(sum(s.source_available_amount),0)&lt;&gt;coalesce(max(fw.available_amount),0)
+                        or coalesce(sum(s.source_frozen_amount),0)&lt;&gt;coalesce(max(fw.frozen_amount),0)
+                   then 1 else 0 end
+       from family_wallet_migration_sources s
+       left join family_wallets fw on fw.family_id=#{familyId}
+       where s.batch_id=#{batchId} and s.family_id=#{familyId})
+      +
       (select count(*) from family_wallet_migration_sources s join member_wallets mw on mw.user_id=s.source_user_id
        where s.batch_id=#{batchId} and s.family_id=#{familyId} and (mw.balance_amount&lt;&gt;0 or mw.frozen_amount&lt;&gt;0))
       + (select count(*) from family_wallet_order_holds h where h.family_id=#{familyId} and
@@ -349,14 +380,18 @@
   <select id="columnExists" resultType="int">
     select count(*) from information_schema.columns where table_schema=database() and table_name='carts' and column_name=#{columnName}
   </select>
-  <select id="generatedColumnExpression" resultType="string">
-    select generation_expression from information_schema.columns
+  <select id="generatedColumnMetadata" resultType="map">
+    select data_type as dataType,extra,generation_expression as generationExpression
+    from information_schema.columns
     where table_schema=database() and table_name='carts' and column_name=#{columnName}
   </select>
-  <select id="indexColumn" resultType="string">
-    select column_name from information_schema.statistics where table_schema=database() and table_name='carts'
-      and index_name=#{indexName} and seq_in_index=1
-  </select>  <update id="dropActiveCartIndex">alter table carts drop index uk_carts_active_cart</update>
+  <select id="exactUniqueIndexExists" resultType="int">
+    select case when count(*)=1 and max(non_unique)=0 and max(seq_in_index)=1
+                     and max(column_name)=#{columnName} then 1 else 0 end
+    from information_schema.statistics where table_schema=database() and table_name='carts'
+      and index_name=#{indexName}
+  </select>
+  <update id="dropActiveCartIndex">alter table carts drop index uk_carts_active_cart</update>
   <update id="dropActiveCartColumn">alter table carts drop column active_cart_key</update>
   <update id="addActiveFamilyColumn">
     alter table carts add column active_family_id bigint generated always as

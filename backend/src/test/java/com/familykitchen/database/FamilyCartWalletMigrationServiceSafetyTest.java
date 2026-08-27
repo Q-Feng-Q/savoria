@@ -15,6 +15,7 @@ import com.familykitchen.migration.FamilyCartWalletMigrationRunner.Mode;
 import com.familykitchen.migration.FamilyCartWalletMigrationService;
 import com.familykitchen.migration.FamilyWalletMigrationBarrierService;
 import com.familykitchen.migration.FamilyWalletMigrationLeaseService;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,19 @@ class FamilyCartWalletMigrationServiceSafetyTest {
     when(mapper.countPendingFamilies(9)).thenReturn(1);
     assertThrows(IllegalStateException.class, () -> service.verify("owner", 9L, 7L));
     verify(mapper, never()).verificationTotals(9);
+  }
+
+  @Test void emptyDatabaseCanVerifyWithoutInventingAFamily() {
+    drainedBatch("EXECUTED");
+    when(mapper.selectBatchFamilies(9)).thenReturn(List.of());
+    when(mapper.verificationTotals(9)).thenReturn(Map.of(
+        "sourceAvailable", BigDecimal.ZERO, "sourceFrozen", BigDecimal.ZERO,
+        "targetAvailable", BigDecimal.ZERO, "targetFrozen", BigDecimal.ZERO,
+        "nonzeroSources", 0, "badSelections", 0));
+    when(mapper.markVerified(9, 7, BigDecimal.ZERO, BigDecimal.ZERO,
+        BigDecimal.ZERO, BigDecimal.ZERO)).thenReturn(1);
+
+    assertEquals("VERIFIED", service.verify("owner", 9L, 7L).status());
   }
 
   @Test void executePhaseRejectsDrainedBatchUntilBarrierPreflightCommits() {

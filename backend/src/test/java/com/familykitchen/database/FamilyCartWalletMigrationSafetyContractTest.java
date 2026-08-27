@@ -37,7 +37,7 @@ class FamilyCartWalletMigrationSafetyContractTest {
   void preflightAndCartQueriesExposeEveryInvalidSourceInsteadOfInnerJoinOmission() throws Exception {
     String xml = Files.readString(XML).toLowerCase();
     for (String anomaly : new String[] {"wallet_amount_overflow", "wallet_precision_invalid",
-        "cart_user_missing", "cart_user_not_family_member", "cart_quantity_invalid",
+        "wallet_inactive_family", "cart_user_missing", "cart_user_not_family_member", "cart_quantity_invalid",
         "cart_dish_unavailable", "order_frozen_unmapped"}) {
       assertTrue(xml.contains(anomaly), anomaly);
     }
@@ -57,5 +57,20 @@ class FamilyCartWalletMigrationSafetyContractTest {
     assertTrue(xml.contains("id=\"dropactivecartcolumn\""));
     assertTrue(xml.contains("id=\"addactivefamilycolumn\""));
     assertTrue(xml.contains("id=\"addactivefamilyindex\""));
+    assertTrue(xml.contains("id=\"generatedcolumnmetadata\""));
+    assertTrue(xml.contains("id=\"exactuniqueindexexists\""));
+    assertTrue(xml.contains("max(non_unique)=0"));
+  }
+
+  @Test
+  void barrierPreflightAndPerFamilyConservationArePersistedExactly() throws Exception {
+    String xml = Files.readString(XML).toLowerCase();
+    assertTrue(xml.contains("else 'barrier_preflight' end"));
+    assertTrue(xml.contains("id=\"removeineligiblefamilies\""));
+    assertTrue(xml.contains("sum(s.source_available_amount)"));
+    assertTrue(xml.contains("max(fw.available_amount)"));
+    assertTrue(xml.contains("sum(s.source_frozen_amount)"));
+    assertTrue(xml.contains("max(fw.frozen_amount)"));
+    assertTrue(xml.contains("item_remark_conflict"));
   }
 }

@@ -6,11 +6,12 @@ import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /** Explicitly gated runner protected by a persistent cross-process owner lease. */
 @Component
-public class FamilyCartWalletMigrationRunner implements ApplicationRunner {
+public class FamilyCartWalletMigrationRunner implements ApplicationRunner, Ordered {
   /** Explicit migration lifecycle modes. */
   public enum Mode {
     /** Keeps the runner completely inert. */
@@ -84,6 +85,12 @@ public class FamilyCartWalletMigrationRunner implements ApplicationRunner {
     }
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public int getOrder() {
+    return Ordered.HIGHEST_PRECEDENCE;
+  }
+
   private void runOwned(String token, long leaseBatch, long leaseEpoch) {
     FamilyCartWalletMigrationService.Result result;
     switch (mode) {
@@ -123,6 +130,12 @@ public class FamilyCartWalletMigrationRunner implements ApplicationRunner {
     if (requiresEpoch(mode) && drainEpoch == null) {
       throw new IllegalArgumentException(mode + " requires drain-epoch");
     }
+    if (batchId != null && batchId <= 0) {
+      throw new IllegalArgumentException("batch-id must be positive");
+    }
+    if (drainEpoch != null && drainEpoch <= 0) {
+      throw new IllegalArgumentException("drain-epoch must be positive");
+    }
   }
 
   private void validateSafety() {
@@ -136,7 +149,8 @@ public class FamilyCartWalletMigrationRunner implements ApplicationRunner {
       throw new IllegalStateException("migration safety token rejected");
     }
     String actual = service.currentDatabase();
-    if (actual != null && !database.equals(actual.trim().toLowerCase(Locale.ROOT))) {
+    if (actual == null || actual.isBlank()
+        || !database.equals(actual.trim().toLowerCase(Locale.ROOT))) {
       throw new IllegalStateException("migration database target mismatch");
     }
   }

@@ -80,6 +80,7 @@ public class FamilyCartWalletMigrationService {
       }
     }
     mapper.clearAnomalies(batchId);
+    mapper.removeIneligibleFamilies(batchId);
     mapper.populateEligibleFamilies(batchId);
     int anomalies = mapper.insertPreflightAnomalies(batchId) + mapper.insertPreflightReports(batchId);
     mapper.bindPreflight(batchId, drainEpoch);
@@ -198,7 +199,7 @@ public class FamilyCartWalletMigrationService {
   public Result verify(String token, Long batchId, Long epoch) {
     List<Long> families = validateContinuation(token, batchId, epoch, Mode.VERIFY);
     if (mapper.countPendingFamilies(batchId) != 0 || mapper.countUnmigratedWallets(batchId) != 0
-        || mapper.countMissingExpectedHolds(batchId) != 0 || families.isEmpty()) {
+        || mapper.countMissingExpectedHolds(batchId) != 0) {
       throw new IllegalStateException("migration has pending or unmigrated eligible sources");
     }
     for (Long familyId : families) {

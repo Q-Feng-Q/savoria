@@ -30,6 +30,7 @@ class FamilyCartWalletMigrationRunnerTest {
 
   @Test
   void preflightIsPersistentlyOwnedAndAlwaysReleased() {
+    when(service.currentDatabase()).thenReturn("wallet_family_wallet_disposable");
     when(leases.acquire(0, 0, "PREFLIGHT")).thenReturn("owner");
     when(service.preflight("owner", null, null)).thenReturn(
         new FamilyCartWalletMigrationService.Result(41, 0, "PREFLIGHT", 0));
@@ -73,6 +74,7 @@ class FamilyCartWalletMigrationRunnerTest {
 
   @Test
   void executeRenewsBetweenIndependentFamiliesAndDoesNotMarkPartialRunComplete() {
+    when(service.currentDatabase()).thenReturn("runner_family_wallet_disposable");
     when(leases.acquire(12, 7, "EXECUTE")).thenReturn("owner");
     when(service.validateContinuation("owner", 12L, 7L, Mode.EXECUTE)).thenReturn(List.of(101L, 102L));
     when(service.executeFamily("owner", 12L, 7L, 101L)).thenReturn(true);
@@ -86,11 +88,24 @@ class FamilyCartWalletMigrationRunnerTest {
 
   @Test
   void staleOwnerFailureStillReleasesOnlyItsToken() {
+    when(service.currentDatabase()).thenReturn("wallet_family_wallet_disposable");
     when(leases.acquire(9, 4, "VERIFY")).thenReturn("owner");
     when(service.verify("owner", 9L, 4L)).thenThrow(new IllegalStateException("stale"));
     assertThrows(IllegalStateException.class, () -> runner("VERIFY", 9L, 4L,
         "wallet_family_wallet_disposable", "once", "once").run(args()));
     verify(leases).release("owner");
+  }
+
+  @Test
+  void rejectsNonPositiveIdentifiersAndUnknownActualDatabaseBeforeLease() {
+    assertThrows(IllegalArgumentException.class, () -> runner("EXECUTE", 0L, 7L,
+        "runner_family_wallet_disposable", "once", "once").run(args()));
+    assertThrows(IllegalArgumentException.class, () -> runner("EXECUTE", 9L, -1L,
+        "runner_family_wallet_disposable", "once", "once").run(args()));
+    when(service.currentDatabase()).thenReturn(null);
+    assertThrows(IllegalStateException.class, () -> runner("PREFLIGHT", null, null,
+        "runner_family_wallet_disposable", "once", "once").run(args()));
+    verify(leases, never()).acquire(0, 0, "PREFLIGHT");
   }
 
   private FamilyCartWalletMigrationRunner runner(String mode, Long batch, Long epoch,

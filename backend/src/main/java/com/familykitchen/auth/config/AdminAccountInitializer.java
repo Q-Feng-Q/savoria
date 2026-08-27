@@ -4,13 +4,14 @@ import com.familykitchen.auth.security.PasswordCodec;
 import com.familykitchen.user.mapper.UserMapper;
 import com.familykitchen.user.mapper.UserRoleMapper;
 import com.familykitchen.user.model.entity.UserDO;
-import jakarta.annotation.PostConstruct;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /** 初始化统一用户模型中的平台管理员账号。 */
 @Component
-public class AdminAccountInitializer {
+public class AdminAccountInitializer implements ApplicationRunner {
   private final UserMapper userMapper;
   private final UserRoleMapper userRoleMapper;
   private final PasswordCodec passwordCodec;
@@ -35,9 +36,10 @@ public class AdminAccountInitializer {
   /**
    * 处理平台管理AccountInitializer。
    */
-  @PostConstruct
+  /** {@inheritDoc} */
+  @Override
   @Transactional
-  public void initialize() {
+  public void run(ApplicationArguments arguments) {
     String username = required(properties.username(), "family-kitchen.auth.bootstrap-admin.username").toLowerCase();
     UserDO user = userMapper.findByUsername(username);
     if (user == null) {

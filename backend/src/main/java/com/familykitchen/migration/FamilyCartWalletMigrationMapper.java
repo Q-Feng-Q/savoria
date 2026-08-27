@@ -342,6 +342,12 @@ public interface FamilyCartWalletMigrationMapper {
    */
   void populateEligibleFamilies(long batchId);
   /**
+   * Removes pending families that became ineligible before barrier preflight.
+   *
+   * @param batchId batch identifier
+   */
+  void removeIneligibleFamilies(long batchId);
+  /**
    * Selects deterministic not-yet-migrated families.
    *
    * @param batchId batch identifier
@@ -409,19 +415,21 @@ public interface FamilyCartWalletMigrationMapper {
    */
   int columnExists(@Param("columnName") String columnName);
   /**
-   * Reads a generated cart-column expression.
+   * Reads exact generated-column metadata.
    *
    * @param columnName column name
-   * @return generation expression, or {@code null} when absent
+   * @return data type, extra flags, and generation expression
    */
-  String generatedColumnExpression(@Param("columnName") String columnName);
+  Map<String, Object> generatedColumnMetadata(@Param("columnName") String columnName);
   /**
-   * Reads the first column of a named cart index.
+   * Counts an exact single-column unique cart index.
    *
    * @param indexName index name
-   * @return first indexed column, or {@code null} when absent
+   * @param columnName required indexed column
+   * @return one only for the exact unique single-column index
    */
-  String indexColumn(String indexName);
+  int exactUniqueIndexExists(@Param("indexName") String indexName,
+      @Param("columnName") String columnName);
   /** Drops the legacy active-cart unique index. */
   void dropActiveCartIndex();
   /** Drops the legacy active-cart generated column. */

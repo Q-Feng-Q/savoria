@@ -36,8 +36,8 @@ class FamilyCartWalletDdlExecutorSafetyTest {
     when(mapper.indexExists("uk_carts_active_cart")).thenReturn(0);
     when(mapper.columnExists("active_cart_key")).thenReturn(0);
     when(mapper.columnExists("active_family_id")).thenReturn(1);
-    when(mapper.indexExists("uk_carts_active_family")).thenReturn(1);
-    when(mapper.indexColumn("uk_carts_active_family")).thenReturn("family_id");
+    when(mapper.generatedColumnMetadata("active_family_id")).thenReturn(validColumn());
+    when(mapper.exactUniqueIndexExists("uk_carts_active_family", "active_family_id")).thenReturn(0);
     when(mapper.setFamilyReady(9, 7)).thenReturn(1);
     when(mapper.markBatchFinalized(9)).thenReturn(1);
 
@@ -46,10 +46,26 @@ class FamilyCartWalletDdlExecutorSafetyTest {
     verify(mapper, never()).setFamilyReady(9, 7);
   }
 
+  @Test
+  void rejectsGeneratedColumnWithOnlySuperficiallyMatchingTokens() {
+    verifiedDrain();
+    when(mapper.columnExists("active_family_id")).thenReturn(1);
+    when(mapper.generatedColumnMetadata("active_family_id")).thenReturn(Map.of(
+        "dataType", "bigint", "extra", "STORED GENERATED",
+        "generationExpression", "case when status='inactive' then family_id else 0 end"));
+
+    assertThrows(IllegalStateException.class, () -> ddl.addFamilyColumn("owner", 9, 7));
+  }
+
   private void verifiedDrain() {
     when(mapper.lockBatch(9)).thenReturn(Map.of("status", "VERIFIED"));
     when(mapper.lockCutover()).thenReturn(Map.of(
         "maintenanceEnabled", 1, "state", "DRAINED", "activeBatchId", 9L, "drainEpoch", 7L));
     when(mapper.countActiveLeases()).thenReturn(0);
+  }
+
+  private static Map<String, Object> validColumn() {
+    return Map.of("dataType", "bigint", "extra", "STORED GENERATED",
+        "generationExpression", "case when (`status` = 'active') then `family_id` else NULL end");
   }
 }
