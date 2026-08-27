@@ -1,60 +1,46 @@
 package com.familykitchen.cart.service;
 
-import com.familykitchen.cart.model.dto.CartItemRequest;
+import com.familykitchen.cart.model.dto.CartMutationRequest;
 import com.familykitchen.cart.model.dto.CartRemarkRequest;
+import com.familykitchen.cart.model.dto.ExpectedMealTimeRequest;
 import com.familykitchen.cart.model.vo.CartView;
 import com.familykitchen.common.security.CurrentUserContext;
-import java.time.LocalDate;
 
-/**
- * 餐篮服务。
- *
- * <p>餐篮是家庭端下单前的购物车，按家庭、成员、餐次和日期隔离。服务负责查询餐篮、
- * 添加菜品、修改数量、删除菜品和维护点餐备注。</p>
- */
+/** Shared family-cart application service. */
 public interface CartApplicationService {
 
   /**
-   * 查询指定日期和餐次的餐篮。
+   * Returns the family's current active cart and authoritative booking metadata.
    *
-   * @param user 当前登录用户上下文
-   * @param mealSlotId 餐次 ID
-   * @param date 服务日期
-   * @return 餐篮视图
+   * @param user current user
+   * @return authoritative cart view
    */
-  CartView cart(CurrentUserContext user, Long mealSlotId, LocalDate date);
+  CartView cart(CurrentUserContext user);
 
   /**
-   * 添加菜品到餐篮。
+   * Sets the current member's absolute quantity for one dish.
    *
-   * @param user 当前登录用户上下文
-   * @param request 菜品、数量、餐次、日期和备注
-   * @return 添加后的餐篮菜品视图
+   * @param user current user
+   * @param request versioned mutation
+   * @return authoritative cart view
    */
-  CartView.CartItemView addItem(CurrentUserContext user, CartItemRequest request);
+  CartView mutateItem(CurrentUserContext user, CartMutationRequest request);
 
   /**
-   * 修改餐篮菜品数量、日期、餐次或备注。
+   * Updates the expected meal time.
    *
-   * @param user 当前登录用户上下文
-   * @param itemId 餐篮菜品 ID
-   * @param request 修改内容
+   * @param user current user
+   * @param request versioned mutation
+   * @return authoritative cart view
    */
-  void updateItem(CurrentUserContext user, Long itemId, CartItemRequest request);
+  CartView updateExpectedMealTime(CurrentUserContext user, ExpectedMealTimeRequest request);
 
   /**
-   * 删除餐篮菜品。
+   * Updates the shared cart remark.
    *
-   * @param user 当前登录用户上下文
-   * @param itemId 餐篮菜品 ID
+   * @param user current user
+   * @param request versioned mutation
+   * @return authoritative cart view
    */
-  void deleteItem(CurrentUserContext user, Long itemId);
-
-  /**
-   * 修改餐篮整体点餐备注。
-   *
-   * @param user 当前登录用户上下文
-   * @param request 餐次、日期和备注内容
-   */
-  void updateRemark(CurrentUserContext user, CartRemarkRequest request);
+  CartView updateRemark(CurrentUserContext user, CartRemarkRequest request);
 }

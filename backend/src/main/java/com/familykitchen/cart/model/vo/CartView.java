@@ -2,53 +2,51 @@ package com.familykitchen.cart.model.vo;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 封装返回给调用方的购物车数据。
+ * Authoritative shared family-cart view.
  *
- * @param familyId 家庭标识
- * @param mealSlotId mealSlot标识
- * @param date date
- * @param remark 备注
- * @param totalQuantity totalQuantity
- * @param totalAmount total金额
- * @param items 项目列表
+ * @param serverNow current Shanghai server time
+ * @param serverDate current Shanghai server date
+ * @param minimumExpectedMealTime minimum selectable time
+ * @param timeStepMinutes selection grid minutes
+ * @param bookingEnded whether no valid time remains today
+ * @param cartId active cart identifier
+ * @param familyId family identifier
+ * @param version optimistic mutation version
+ * @param expectedMealTime selected expected meal time
+ * @param remark cart remark
+ * @param totalQuantity aggregate quantity
+ * @param totalAmount aggregate amount
+ * @param items aggregate dish rows
  */
-public record CartView(
-    Long familyId,
-    Long mealSlotId,
-    LocalDate date,
-    String remark,
-    int totalQuantity,
-    BigDecimal totalAmount,
-    List<CartItemView> items
-) {
-
+public record CartView(LocalDateTime serverNow,LocalDate serverDate,
+    LocalDateTime minimumExpectedMealTime,int timeStepMinutes,boolean bookingEnded,
+    Long cartId,Long familyId,long version,LocalDateTime expectedMealTime,String remark,
+    int totalQuantity,BigDecimal totalAmount,List<CartItemView> items) {
   /**
-   * 封装返回给调用方的购物车项目数据。
+   * Aggregate cart item.
    *
-   * @param itemId 项目标识
-   * @param dishId 菜品标识
-   * @param dishName 菜品名称
-   * @param price price
-   * @param quantity quantity
-   * @param ownerMemberId 负责人成员标识
-   * @param ownerMemberName 负责人成员名称
-   * @param editable editable
-   * @param itemRemark 项目备注
+   * @param itemId aggregate item identifier
+   * @param dishId dish identifier
+   * @param dishName dish name
+   * @param price unit price
+   * @param quantity aggregate quantity
+   * @param currentMemberQuantity current member quantity
+   * @param currentMemberRemark current member remark
+   * @param selections member attribution details
    */
-  public record CartItemView(
-      Long itemId,
-      Long dishId,
-      String dishName,
-      BigDecimal price,
-      int quantity,
-      Long ownerMemberId,
-      String ownerMemberName,
-      boolean editable,
-      String itemRemark
-  ) {
-  }
+  public record CartItemView(Long itemId,Long dishId,String dishName,BigDecimal price,int quantity,
+      int currentMemberQuantity,String currentMemberRemark,List<SelectionView> selections) {}
+  /**
+   * Member attribution detail.
+   *
+   * @param memberId member identifier
+   * @param memberName member display name
+   * @param quantity selected quantity
+   * @param itemRemark member remark
+   */
+  public record SelectionView(Long memberId,String memberName,int quantity,String itemRemark) {}
 }
-

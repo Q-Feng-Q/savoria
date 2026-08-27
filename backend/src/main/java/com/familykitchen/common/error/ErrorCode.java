@@ -24,6 +24,10 @@ public enum ErrorCode {
   SYSTEM_MAINTENANCE(50301),
   /** 菜品审核状态不允许当前流转。 */
   DISH_REVIEW_STATE_CONFLICT(40921),
+  /** 家庭餐篮版本已变化，需要刷新后确认。 */
+  CART_CHANGED(40931),
+  /** 指定家庭餐篮已经提交，原操作不得写入新餐篮。 */
+  CART_SUBMITTED(40932),
   /** 输入合法但不满足业务规则。 */
   BUSINESS_INVALID(42201),
   /** 未归类的服务端内部错误。 */

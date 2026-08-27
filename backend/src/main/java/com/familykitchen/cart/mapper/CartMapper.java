@@ -3,6 +3,8 @@ package com.familykitchen.cart.mapper;
 import com.familykitchen.cart.model.entity.CartDishSnapshot;
 import com.familykitchen.cart.model.entity.CartEntity;
 import com.familykitchen.cart.model.entity.CartItemEntity;
+import com.familykitchen.cart.model.entity.CartItemSelectionEntity;
+import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
@@ -15,6 +17,124 @@ import org.apache.ibatis.annotations.Param;
  */
 @Mapper
 public interface CartMapper {
+  /**
+   * Locks the owning family row while an initial active cart is created.
+   *
+   * @param familyId family identifier
+   * @return locked family identifier, or null when missing
+   */
+  Long lockFamilyForCart(@Param("familyId") Long familyId);
+
+  /**
+   * Selects the one active shared cart.
+   *
+   * @param familyId family identifier
+   * @return active cart or null
+   */
+  CartEntity selectFamilyActiveCart(@Param("familyId") Long familyId);
+
+  /**
+   * Current-reads and locks the active family cart.
+   *
+   * @param familyId family identifier
+   * @return active cart or null
+   */
+  CartEntity selectFamilyActiveCartForUpdate(@Param("familyId") Long familyId);
+
+  /**
+   * Selects a cart by identifier.
+   *
+   * @param cartId cart identifier
+   * @param familyId family identifier
+   * @return cart or null
+   */
+  CartEntity selectFamilyCart(@Param("cartId") Long cartId, @Param("familyId") Long familyId);
+
+  /**
+   * Current-reads and locks a family cart for conflict classification.
+   *
+   * @param cartId cart identifier
+   * @param familyId family identifier
+   * @return cart or null
+   */
+  CartEntity selectFamilyCartForUpdate(
+      @Param("cartId") Long cartId, @Param("familyId") Long familyId);
+
+  /**
+   * Atomically advances an active cart version.
+   *
+   * @param cartId cart identifier
+   * @param familyId family identifier
+   * @param version expected version
+   * @return affected rows
+   */
+  int bumpVersion(@Param("cartId") Long cartId, @Param("familyId") Long familyId,
+      @Param("version") long version);
+
+  /**
+   * Updates expected meal time after a successful version bump.
+   *
+   * @param cartId cart identifier
+   * @param expectedMealTime validated expected time
+   * @return affected rows
+   */
+  int updateExpectedMealTime(@Param("cartId") Long cartId,
+      @Param("expectedMealTime") LocalDateTime expectedMealTime);
+
+  /**
+   * Selects one member selection.
+   *
+   * @param itemId aggregate item identifier
+   * @param userId member identifier
+   * @return selection or null
+   */
+  CartItemSelectionEntity selectSelection(@Param("itemId") Long itemId,
+      @Param("userId") Long userId);
+
+  /**
+   * Lists member attribution rows.
+   *
+   * @param itemId aggregate item identifier
+   * @return selections
+   */
+  List<CartItemSelectionEntity> selectSelections(@Param("itemId") Long itemId);
+
+  /**
+   * Upserts a member absolute quantity.
+   *
+   * @param itemId aggregate item identifier
+   * @param userId member identifier
+   * @param quantity absolute quantity
+   * @param remark member remark
+   * @return affected rows
+   */
+  int upsertSelection(@Param("itemId") Long itemId, @Param("userId") Long userId,
+      @Param("quantity") int quantity, @Param("remark") String remark);
+
+  /**
+   * Deletes only one member selection.
+   *
+   * @param itemId aggregate item identifier
+   * @param userId member identifier
+   * @return affected rows
+   */
+  int deleteSelection(@Param("itemId") Long itemId, @Param("userId") Long userId);
+
+  /**
+   * Sums positive selection quantities.
+   *
+   * @param itemId aggregate item identifier
+   * @return aggregate quantity
+   */
+  int sumSelections(@Param("itemId") Long itemId);
+
+  /**
+   * Deletes an empty aggregate item.
+   *
+   * @param itemId item identifier
+   * @return affected rows
+   */
+  int deleteAggregateItem(@Param("itemId") Long itemId);
 
   /**
    * 新增餐篮并回填数据库生成的餐篮 ID。

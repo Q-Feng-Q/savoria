@@ -10,9 +10,41 @@
     <result property="memberId" column="user_id"/>
     <result property="mealSlotId" column="meal_slot_id"/>
     <result property="serviceDate" column="service_date"/>
+    <result property="expectedMealTime" column="expected_meal_time"/>
     <result property="remark" column="remark"/>
     <result property="status" column="status"/>
+    <result property="version" column="version"/>
   </resultMap>
+
+  <resultMap id="SelectionMap" type="com.familykitchen.cart.model.entity.CartItemSelectionEntity">
+    <id property="id" column="id"/><result property="cartItemId" column="cart_item_id"/>
+    <result property="userId" column="user_id"/><result property="memberName" column="member_name"/>
+    <result property="quantity" column="quantity"/><result property="itemRemark" column="item_remark"/>
+  </resultMap>
+
+  <select id="lockFamilyForCart" resultType="long">
+    select id from families where id=#{familyId} for update
+  </select>
+  <select id="selectFamilyActiveCart" resultMap="CartMap">
+    select id,merchant_id,family_id,user_id,meal_slot_id,service_date,expected_meal_time,remark,status,version
+    from carts where family_id=#{familyId} and status='active' limit 1
+  </select>
+  <select id="selectFamilyActiveCartForUpdate" resultMap="CartMap">
+    select id,merchant_id,family_id,user_id,meal_slot_id,service_date,expected_meal_time,remark,status,version
+    from carts where family_id=#{familyId} and status='active' limit 1 for update
+  </select>
+  <select id="selectFamilyCart" resultMap="CartMap">
+    select id,merchant_id,family_id,user_id,meal_slot_id,service_date,expected_meal_time,remark,status,version
+    from carts where id=#{cartId} and family_id=#{familyId} limit 1
+  </select>
+  <select id="selectFamilyCartForUpdate" resultMap="CartMap">
+    select id,merchant_id,family_id,user_id,meal_slot_id,service_date,expected_meal_time,remark,status,version
+    from carts where id=#{cartId} and family_id=#{familyId} limit 1 for update
+  </select>
+  <update id="bumpVersion">
+    update carts set version=version+1 where id=#{cartId} and family_id=#{familyId} and status='active' and version=#{version}
+  </update>
+  <update id="updateExpectedMealTime">update carts set expected_meal_time=#{expectedMealTime} where id=#{cartId}</update>
 
   <resultMap id="CartItemMap" type="com.familykitchen.cart.model.entity.CartItemEntity">
     <id property="id" column="id"/>
@@ -25,7 +57,7 @@
   </resultMap>
 
   <select id="selectActiveCart" resultMap="CartMap">
-    select id, merchant_id, family_id, user_id, meal_slot_id, service_date, remark, status
+    select id, merchant_id, family_id, user_id, meal_slot_id, service_date, expected_meal_time, remark, status, version
     from carts
     where family_id = #{familyId}
       and user_id = #{memberId}
@@ -37,14 +69,14 @@
 
   <insert id="insertCart" parameterType="com.familykitchen.cart.model.entity.CartEntity"
           useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-    insert into carts (merchant_id, family_id, user_id, meal_slot_id, service_date, remark, status)
-    values (#{merchantId}, #{familyId}, #{memberId}, #{mealSlotId}, #{serviceDate}, #{remark}, #{status})
+    insert into carts (merchant_id, family_id, user_id, meal_slot_id, service_date, expected_meal_time, remark, status,version)
+    values (#{merchantId}, #{familyId}, #{memberId}, #{mealSlotId}, #{serviceDate}, #{expectedMealTime}, #{remark}, #{status},#{version})
   </insert>
 
   <select id="selectAvailableDish" resultType="com.familykitchen.cart.model.entity.CartDishSnapshot">
     select d.id as dishId,
            d.name as dishName,
-           d.base_price as price
+           coalesce(fmd.final_price, d.base_price) as price
     from family_menu_items fmd
     join dishes d on d.id = fmd.dish_id
     where fmd.family_id = #{familyId}
@@ -91,10 +123,30 @@
 
   <update id="updateCartItem" parameterType="com.familykitchen.cart.model.entity.CartItemEntity">
     update cart_items
-    set quantity = #{quantity},
+    set dish_name_snapshot = #{dishNameSnapshot},
+        price = #{price},
+        quantity = #{quantity},
         item_remark = #{itemRemark}
     where id = #{id}
   </update>
+
+  <select id="selectSelection" resultMap="SelectionMap">
+    select cis.id,cis.cart_item_id,cis.user_id,coalesce(nullif(u.nickname,''),u.username) member_name,cis.quantity,cis.item_remark
+    from cart_item_selections cis left join users u on u.id=cis.user_id
+    where cis.cart_item_id=#{itemId} and cis.user_id=#{userId}
+  </select>
+  <select id="selectSelections" resultMap="SelectionMap">
+    select cis.id,cis.cart_item_id,cis.user_id,coalesce(nullif(u.nickname,''),u.username) member_name,cis.quantity,cis.item_remark
+    from cart_item_selections cis left join users u on u.id=cis.user_id
+    where cis.cart_item_id=#{itemId} order by cis.user_id
+  </select>
+  <insert id="upsertSelection">
+    insert into cart_item_selections(cart_item_id,user_id,quantity,item_remark) values(#{itemId},#{userId},#{quantity},#{remark})
+    on duplicate key update quantity=values(quantity),item_remark=values(item_remark)
+  </insert>
+  <delete id="deleteSelection">delete from cart_item_selections where cart_item_id=#{itemId} and user_id=#{userId}</delete>
+  <select id="sumSelections" resultType="int">select coalesce(sum(quantity),0) from cart_item_selections where cart_item_id=#{itemId}</select>
+  <delete id="deleteAggregateItem">delete from cart_items where id=#{itemId}</delete>
 
   <delete id="deleteCartItem">
     delete ci

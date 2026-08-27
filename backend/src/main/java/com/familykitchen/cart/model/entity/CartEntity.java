@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 餐篮持久化实体。
@@ -38,6 +39,10 @@ public class CartEntity {
   @TableField("service_date")
   private LocalDate serviceDate;
 
+  /** Expected meal time. */
+  @TableField("expected_meal_time")
+  private LocalDateTime expectedMealTime;
+
   /** 餐篮备注。 */
   @TableField("remark")
   private String remark;
@@ -45,6 +50,10 @@ public class CartEntity {
   /** 餐篮状态。 */
   @TableField("status")
   private String status;
+
+  /** Optimistic mutation version. */
+  @TableField("version")
+  private Long version;
 
   /**
    * 获取标识。
@@ -166,4 +175,28 @@ public class CartEntity {
    * @param status 状态
    */
   public void setStatus(String status) { this.status = status; }
+  /**
+   * Returns expected meal time.
+   *
+   * @return expected meal time
+   */
+  public LocalDateTime getExpectedMealTime() { return expectedMealTime; }
+  /**
+   * Sets expected meal time.
+   *
+   * @param value expected meal time
+   */
+  public void setExpectedMealTime(LocalDateTime value) { expectedMealTime=value; }
+  /**
+   * Returns version.
+   *
+   * @return mutation version
+   */
+  public Long getVersion() { return version; }
+  /**
+   * Sets version.
+   *
+   * @param value mutation version
+   */
+  public void setVersion(Long value) { version=value; }
 }
