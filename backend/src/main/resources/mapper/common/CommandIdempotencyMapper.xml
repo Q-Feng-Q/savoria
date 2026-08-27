@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.common.idempotency.CommandIdempotencyMapper">
+  <insert id="insertClaim">
+    insert ignore into command_idempotency(actor_user_id,family_id,operation,request_id,payload_hash,state)
+    values(#{actorId},#{familyId},#{operation},#{requestId},#{payloadHash},'PROCESSING')
+  </insert>
+  <select id="lockClaim" resultType="map">
+    select id,payload_hash as payloadHash,state,result_resource_type as resourceType,
+      result_resource_id as resourceId,result_body as resultBody
+    from command_idempotency
+    where actor_user_id=#{actorId} and family_id=#{familyId} and operation=#{operation} and request_id=#{requestId}
+    for update
+  </select>
+  <update id="complete">
+    update command_idempotency set state='COMPLETED',result_resource_type=#{resourceType},
+      result_resource_id=#{resourceId},result_body=#{resultBody}
+    where id=#{id} and state='PROCESSING'
+  </update>
+</mapper>

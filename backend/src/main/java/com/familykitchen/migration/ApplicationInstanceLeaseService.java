@@ -34,7 +34,9 @@ public class ApplicationInstanceLeaseService implements ApplicationRunner, Order
     this.build = build;
   }
 
-  /** Registers this compatibility instance atomically before ordinary startup runners execute. */
+  /** Registers this compatibility instance atomically before ordinary startup runners execute.
+   * @param args application arguments
+   */
   @Override
   @Transactional
   public void run(ApplicationArguments args) {
@@ -58,7 +60,9 @@ public class ApplicationInstanceLeaseService implements ApplicationRunner, Order
     mapper.heartbeat(instanceId, build, "web", 30);
   }
 
-  /** Runs after the one-shot migration runner but before default-priority business initializers. */
+  /** Runs after the one-shot migration runner but before default-priority business initializers.
+   * @return runner order
+   */
   @Override
   public int getOrder() {
     return Ordered.HIGHEST_PRECEDENCE + 100;

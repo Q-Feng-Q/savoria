@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
     "com.familykitchen.admin.mapper",
     "com.familykitchen.auth.mapper",
     "com.familykitchen.cart.mapper",
+    "com.familykitchen.common.idempotency",
     "com.familykitchen.common.security",
     "com.familykitchen.dish.mapper",
     "com.familykitchen.family.mapper",

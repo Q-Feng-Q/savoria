@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.wallet.mapper.FamilyWalletMapper">
+  <resultMap id="account" type="com.familykitchen.wallet.model.entity.FamilyWalletAccountDO">
+    <id property="familyId" column="family_id"/><result property="availableAmount" column="available_amount"/>
+    <result property="frozenAmount" column="frozen_amount"/><result property="version" column="version"/>
+    <result property="createdAt" column="created_at"/><result property="updatedAt" column="updated_at"/>
+  </resultMap>
+  <resultMap id="hold" type="com.familykitchen.wallet.model.entity.FamilyWalletOrderHoldDO">
+    <id property="id" column="id"/><result property="orderId" column="order_id"/><result property="familyId" column="family_id"/>
+    <result property="initialAmount" column="initial_amount"/><result property="additionalFrozenAmount" column="additional_frozen_amount"/>
+    <result property="remainingFrozenAmount" column="remaining_frozen_amount"/><result property="capturedAmount" column="captured_amount"/>
+    <result property="releasedAmount" column="released_amount"/><result property="refundedAmount" column="refunded_amount"/>
+    <result property="status" column="status"/><result property="createdAt" column="created_at"/><result property="updatedAt" column="updated_at"/>
+  </resultMap>
+  <resultMap id="ledger" type="com.familykitchen.wallet.model.entity.FamilyWalletLedgerDO">
+    <id property="id" column="id"/><result property="familyId" column="family_id"/><result property="orderId" column="order_id"/>
+    <result property="operatorUserId" column="operator_user_id"/><result property="scopeKey" column="scope_key"/>
+    <result property="businessType" column="business_type"/><result property="businessKey" column="business_key"/>
+    <result property="amount" column="amount"/><result property="availableBefore" column="available_before"/>
+    <result property="availableAfter" column="available_after"/><result property="frozenBefore" column="frozen_before"/>
+    <result property="frozenAfter" column="frozen_after"/><result property="remark" column="remark"/><result property="createdAt" column="created_at"/>
+  </resultMap>
+  <sql id="accountColumns">family_id,available_amount,frozen_amount,version,created_at,updated_at</sql>
+  <select id="selectAccount" resultMap="account">select <include refid="accountColumns"/> from family_wallets where family_id=#{familyId}</select>
+  <select id="lockAccount" resultMap="account">select <include refid="accountColumns"/> from family_wallets where family_id=#{familyId} for update</select>
+  <select id="lockHold" resultMap="hold">select * from family_wallet_order_holds where order_id=#{orderId} for update</select>
+  <insert id="insertHold" parameterType="com.familykitchen.wallet.model.entity.FamilyWalletOrderHoldDO" useGeneratedKeys="true" keyProperty="id">
+    insert into family_wallet_order_holds(order_id,family_id,initial_amount,additional_frozen_amount,remaining_frozen_amount,captured_amount,released_amount,refunded_amount,status)
+    values(#{orderId},#{familyId},#{initialAmount},#{additionalFrozenAmount},#{remainingFrozenAmount},#{capturedAmount},#{releasedAmount},#{refundedAmount},#{status})
+  </insert>
+  <update id="updateHold" parameterType="com.familykitchen.wallet.model.entity.FamilyWalletOrderHoldDO">
+    update family_wallet_order_holds set additional_frozen_amount=#{additionalFrozenAmount},remaining_frozen_amount=#{remainingFrozenAmount},
+      captured_amount=#{capturedAmount},released_amount=#{releasedAmount},refunded_amount=#{refundedAmount},status=#{status} where id=#{id}
+  </update>
+  <update id="updateAccount">update family_wallets set available_amount=#{available},frozen_amount=#{frozen},version=version+1 where family_id=#{familyId}</update>
+  <insert id="insertLedger" parameterType="com.familykitchen.wallet.model.entity.FamilyWalletLedgerDO" useGeneratedKeys="true" keyProperty="id">
+    insert into family_wallet_ledgers(family_id,order_id,operator_user_id,scope_key,business_type,business_key,amount,available_before,available_after,frozen_before,frozen_after,remark)
+    values(#{familyId},#{orderId},#{operatorUserId},#{scopeKey},#{businessType},#{businessKey},#{amount},#{availableBefore},#{availableAfter},#{frozenBefore},#{frozenAfter},#{remark})
+  </insert>
+  <select id="selectLedgers" resultMap="ledger">select * from family_wallet_ledgers where family_id=#{familyId} order by id desc</select>
+</mapper>
