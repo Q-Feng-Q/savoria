@@ -37,16 +37,17 @@ public class ApplicationInstanceLeaseService {
   @PostConstruct
   public void register() { heartbeat(); }
 
-  /** Serializes renewal with barrier publication; no lease can appear after maintenance is visible. */
+  /**
+   * Serializes renewal with barrier publication and keeps reporting a live compatibility instance.
+   * A maintenance barrier blocks business writes; it must not make a still-running process look
+   * drained. Only orderly shutdown or lease expiry after actual process death removes the lease.
+   */
   @Scheduled(fixedDelayString = "${family-kitchen.instance.heartbeat-ms:10000}")
   @Transactional
   public void heartbeat() {
     mapper.ensureCutover();
     Map<String, Object> cutover = mapper.lockCutover();
-    Object enabled = cutover == null ? null : cutover.get("maintenanceEnabled");
-    boolean maintenance = enabled instanceof Boolean b ? b
-        : enabled instanceof Number n && n.intValue() != 0;
-    if (!maintenance) mapper.heartbeat(instanceId, build, "web", 30);
+    mapper.heartbeat(instanceId, build, "web", 30);
   }
 
   /** Releases this compatibility instance''s lease during orderly shutdown. */

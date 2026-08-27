@@ -5,10 +5,10 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Wraps every non-migration business transaction in the persistent cutover-row fence.
@@ -16,22 +16,19 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Aspect
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE + 10)
 @ConditionalOnExpression("${family-kitchen.instance.lease-enabled:false}"
     + " && '${family-kitchen.migration.mode:OFF}'.equalsIgnoreCase('OFF')")
 public class FamilyWalletBusinessTransactionBarrierAspect {
   private final FamilyCartWalletMigrationMapper mapper;
-  private final TransactionTemplate transactions;
 
   /**
    * Creates the transaction-level compatibility write barrier.
    *
    * @param mapper migration persistence mapper
-   * @param transactionManager application transaction manager
    */
-  public FamilyWalletBusinessTransactionBarrierAspect(FamilyCartWalletMigrationMapper mapper,
-      PlatformTransactionManager transactionManager) {
+  public FamilyWalletBusinessTransactionBarrierAspect(FamilyCartWalletMigrationMapper mapper) {
     this.mapper = mapper;
-    this.transactions = new TransactionTemplate(transactionManager);
   }
 
   @Around("execution(* com.familykitchen..*(..))"
@@ -51,21 +48,13 @@ public class FamilyWalletBusinessTransactionBarrierAspect {
     return transactional.readOnly() ? joinPoint.proceed() : guarded(joinPoint);
   }
 
-  private Object guarded(ProceedingJoinPoint joinPoint) {
-    return transactions.execute(status -> {
-      mapper.ensureCutover();
-      Map<String, Object> cutover = mapper.lockCutover();
-      if (cutover != null && truth(cutover.get("maintenanceEnabled"))) {
-        throw new IllegalStateException("family wallet migration write barrier is active");
-      }
-      try {
-        return joinPoint.proceed();
-      } catch (RuntimeException | Error exception) {
-        throw exception;
-      } catch (Throwable throwable) {
-        throw new IllegalStateException("business transaction failed", throwable);
-      }
-    });
+  private Object guarded(ProceedingJoinPoint joinPoint) throws Throwable {
+    mapper.ensureCutover();
+    Map<String, Object> cutover = mapper.lockCutover();
+    if (cutover != null && truth(cutover.get("maintenanceEnabled"))) {
+      throw new IllegalStateException("family wallet migration write barrier is active");
+    }
+    return joinPoint.proceed();
   }
 
   private static boolean truth(Object value) {
