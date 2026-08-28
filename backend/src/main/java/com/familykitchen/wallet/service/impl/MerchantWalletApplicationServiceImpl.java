@@ -5,7 +5,6 @@ import com.familykitchen.common.error.ErrorCode;
 import com.familykitchen.common.security.CurrentUserContext;
 import com.familykitchen.wallet.mapper.WalletPersistenceMapper;
 import com.familykitchen.wallet.model.dto.AdjustMemberBalanceRequest;
-import com.familykitchen.wallet.model.entity.WalletAccountDO;
 import com.familykitchen.wallet.model.entity.WalletLedgerDO;
 import com.familykitchen.wallet.model.enums.LedgerType;
 import com.familykitchen.wallet.model.vo.WalletLedgerView;
@@ -62,36 +61,8 @@ public class MerchantWalletApplicationServiceImpl implements MerchantWalletAppli
   @Transactional
   public WalletLedgerView adjustBalance(CurrentUserContext user, Long memberId, AdjustMemberBalanceRequest request) {
     requireMerchantMember(user, memberId);
-    WalletAccountDO wallet = walletMapper.selectWalletByMemberIdForUpdate(memberId);
-    if (wallet == null) {
-      throw new BusinessException(ErrorCode.NOT_FOUND, "未找到成员钱包");
-    }
-
-    BigDecimal amount = money(request.amount());
-    if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-      throw new BusinessException(ErrorCode.BAD_REQUEST, "调整金额必须大于 0");
-    }
-
-    BigDecimal balanceBefore = money(wallet.getBalanceAmount());
-    BigDecimal frozenBefore = money(wallet.getFrozenAmount());
-    BigDecimal balanceAfter = calculateBalanceAfter(balanceBefore, request.type(), amount);
-    if (balanceAfter.compareTo(BigDecimal.ZERO) < 0) {
-      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "成员余额不足");
-    }
-
-    walletMapper.updateWalletAmounts(memberId, balanceAfter, frozenBefore);
-
-    WalletLedgerDO ledger = new WalletLedgerDO();
-    ledger.setMemberId(memberId);
-    ledger.setType(request.type().name());
-    ledger.setAmount(amount);
-    ledger.setBalanceBefore(balanceBefore);
-    ledger.setBalanceAfter(balanceAfter);
-    ledger.setFrozenBefore(frozenBefore);
-    ledger.setFrozenAfter(frozenBefore);
-    ledger.setRemark(request.remark());
-    walletMapper.insertWalletLedger(ledger);
-    return toView(ledger);
+    throw new BusinessException(ErrorCode.CLIENT_UPGRADE_REQUIRED,
+        "个人钱包调账已停用，请改用商户家庭钱包调账接口");
   }
 
   private void requireMerchantMember(CurrentUserContext user, Long memberId) {
@@ -99,18 +70,6 @@ public class MerchantWalletApplicationServiceImpl implements MerchantWalletAppli
         || walletMapper.countMerchantMember(user.merchantId(), memberId) == 0) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "未找到商户服务范围内的家庭成员");
     }
-  }
-
-  private static BigDecimal calculateBalanceAfter(BigDecimal balanceBefore, LedgerType type, BigDecimal amount) {
-    BigDecimal balanceAfter = switch (type) {
-      case MERCHANT_RECHARGE, MANUAL_CREDIT -> balanceBefore.add(amount);
-      case MANUAL_DEBIT -> balanceBefore.subtract(amount);
-      case FREEZE, RELEASE, SETTLE -> throw new BusinessException(
-          ErrorCode.BAD_REQUEST,
-          "商户人工调账不支持该流水类型"
-      );
-    };
-    return balanceAfter.setScale(2, RoundingMode.HALF_UP);
   }
 
   private static WalletLedgerView toView(WalletLedgerDO ledger) {

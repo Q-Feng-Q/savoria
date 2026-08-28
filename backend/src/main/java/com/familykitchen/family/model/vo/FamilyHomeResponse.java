@@ -3,6 +3,7 @@ package com.familykitchen.family.model.vo;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import com.familykitchen.wallet.model.vo.FamilyWalletSummaryView;
 
 /**
  * 封装返回给调用方的家庭首页数据。
@@ -12,6 +13,7 @@ import java.util.List;
  * @param serviceDate serviceDate
  * @param featuredDish featured菜品
  * @param featuredDishes featured菜品列表
+ * @param wallet family wallet summary
  * @param dashboardCards dashboardCards
  * @param mealSlots mealSlots
  * @param recentOrders recentOrders
@@ -22,6 +24,7 @@ public record FamilyHomeResponse(
     LocalDate serviceDate,
     FeaturedDish featuredDish,
     List<FeaturedDish> featuredDishes,
+    FamilyWalletSummaryView wallet,
     List<DashboardCard> dashboardCards,
     List<MealSlotView> mealSlots,
     List<OrderSummary> recentOrders

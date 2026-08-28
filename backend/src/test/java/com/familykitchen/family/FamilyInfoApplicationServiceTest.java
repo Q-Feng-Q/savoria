@@ -14,7 +14,6 @@ import com.familykitchen.family.mapper.FamilyMapper;
 import com.familykitchen.family.model.dto.UpdateFamilyInfoRequest;
 import com.familykitchen.family.model.entity.FamilyRecord;
 import com.familykitchen.family.service.impl.FamilyApplicationServiceImpl;
-import com.familykitchen.wallet.mapper.WalletPersistenceMapper;
 import java.math.BigDecimal;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,9 +29,7 @@ class FamilyInfoApplicationServiceTest {
     familyMapper = mock(FamilyMapper.class);
     service = new FamilyApplicationServiceImpl(
         familyMapper,
-        mock(DishMapper.class),
-        mock(WalletPersistenceMapper.class),
-        mock(ObjectMapper.class));
+        mock(DishMapper.class), mock(ObjectMapper.class));
   }
 
   @Test

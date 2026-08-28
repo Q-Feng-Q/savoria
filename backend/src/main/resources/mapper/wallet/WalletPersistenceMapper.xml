@@ -30,37 +30,11 @@
     </foreach>
   </select>
 
-  <select id="selectWalletsByMemberIdsForUpdate" resultMap="WalletAccountMap">
-    select user_id, balance_amount, frozen_amount
-    from member_wallets
-    where user_id in
-    <foreach collection="memberIds" item="memberId" open="(" separator="," close=")">
-      #{memberId}
-    </foreach>
-    order by user_id
-    for update
-  </select>
-
   <select id="selectWalletByMemberId" resultMap="WalletAccountMap">
     select user_id, balance_amount, frozen_amount
     from member_wallets
     where user_id = #{memberId}
   </select>
-
-  <update id="updateWalletAmounts">
-    update member_wallets
-    set balance_amount = #{balanceAmount},
-        frozen_amount = #{frozenAmount}
-    where user_id = #{memberId}
-  </update>
-
-  <insert id="insertWalletLedger" parameterType="com.familykitchen.wallet.model.entity.WalletLedgerDO" useGeneratedKeys="true" keyProperty="id">
-    insert into wallet_ledgers (
-      user_id, type, amount, balance_before, balance_after, frozen_before, frozen_after, remark
-    ) values (
-      #{memberId}, #{type}, #{amount}, #{balanceBefore}, #{balanceAfter}, #{frozenBefore}, #{frozenAfter}, #{remark}
-    )
-  </insert>
 
   <select id="selectWalletLedgers" resultMap="WalletLedgerMap">
     select id, user_id, type, amount, balance_before, balance_after, frozen_before, frozen_after, remark, created_at

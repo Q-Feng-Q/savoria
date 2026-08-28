@@ -11,11 +11,10 @@ import org.junit.jupiter.api.Test;
 class WalletOrderLockingContractTest {
 
   @Test
-  void bulkWalletLockQueryUsesDeterministicOrderBeforeForUpdate() throws Exception {
+  void retiredPersonalWalletMapperExposesNoMoneyMutationStatements() throws Exception {
     String mapper = read("src/main/resources/mapper/wallet/WalletPersistenceMapper.xml");
-    assertThat(mapper).contains("<select id=\"selectWalletsByMemberIdsForUpdate\"");
-    assertThat(mapper).containsPattern(
-        "(?s)selectWalletsByMemberIdsForUpdate.*where user_id in.*order by user_id.*for update");
+    assertThat(mapper).doesNotContain("selectWalletsByMemberIdsForUpdate",
+        "selectWalletByMemberIdForUpdate", "updateWalletAmounts", "insertWalletLedger");
   }
 
   @Test

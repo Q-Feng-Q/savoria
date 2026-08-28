@@ -19,10 +19,7 @@ import com.familykitchen.family.model.vo.FamilyHomeResponse;
 import com.familykitchen.family.model.vo.FamilyInfoView;
 import com.familykitchen.family.model.vo.FamilyMenuItemView;
 import com.familykitchen.family.service.FamilyApplicationService;
-import com.familykitchen.wallet.mapper.WalletPersistenceMapper;
-import com.familykitchen.wallet.model.entity.WalletLedgerDO;
-import com.familykitchen.wallet.model.enums.LedgerType;
-import com.familykitchen.wallet.model.vo.WalletLedgerView;
+import com.familykitchen.wallet.model.vo.FamilyWalletSummaryView;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -42,7 +39,6 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
 
   private final FamilyMapper familyMapper;
   private final DishMapper dishMapper;
-  private final WalletPersistenceMapper walletMapper;
   private final ObjectMapper objectMapper;
 
   /**
@@ -50,18 +46,15 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
    *
    * @param familyMapper 家庭Mapper
    * @param dishMapper   菜品Mapper
-   * @param walletMapper 钱包Mapper
    * @param objectMapper JSON序列化
    */
   public FamilyApplicationServiceImpl(
       FamilyMapper familyMapper,
       DishMapper dishMapper,
-      WalletPersistenceMapper walletMapper,
       ObjectMapper objectMapper
   ) {
     this.familyMapper = familyMapper;
     this.dishMapper = dishMapper;
-    this.walletMapper = walletMapper;
     this.objectMapper = objectMapper;
   }
 
@@ -88,6 +81,10 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
       java.time.LocalDate.now(),
       featuredDishes.isEmpty() ? null : featuredDishes.get(0),
       featuredDishes,
+      new FamilyWalletSummaryView(family.getFamilyId(), money(family.getFamilyWalletAvailable()),
+          money(family.getFamilyWalletFrozen()),
+          money(family.getFamilyWalletAvailable()).add(money(family.getFamilyWalletFrozen())),
+          family.getFamilyWalletVersion(), null),
       List.of(
         new FamilyHomeResponse.DashboardCard("menu", "可点菜品", String.valueOf(family.getActiveMenuCount())),
         new FamilyHomeResponse.DashboardCard("address", "地址数量", String.valueOf(family.getAddressCount()))
@@ -273,19 +270,6 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
   }
 
   /**
-   * 处理Ledgers。
-   *
-   * @param user 用户
-   * @return 处理Ledgers的结果
-   */
-  @Override
-  public List<WalletLedgerView> walletLedgers(CurrentUserContext user) {
-    return walletMapper.selectWalletLedgers(user.memberId()).stream()
-        .map(FamilyApplicationServiceImpl::toWalletLedgerView)
-        .toList();
-  }
-
-  /**
    * 更新当前家庭名称与备注。
    *
    * @param user 当前用户
@@ -346,21 +330,6 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
 
   private static FamilyHomeResponse.MealSlotView toMealSlotView(MealSlotRecord row) {
     return new FamilyHomeResponse.MealSlotView(row.getMealSlotId(), row.getName(), row.getDisplayTime(), false);
-  }
-
-  private static WalletLedgerView toWalletLedgerView(WalletLedgerDO ledger) {
-    return new WalletLedgerView(
-      ledger.getId(),
-      ledger.getMemberId(),
-      LedgerType.valueOf(ledger.getType()),
-      money(ledger.getAmount()),
-      money(ledger.getBalanceBefore()),
-      money(ledger.getBalanceAfter()),
-      money(ledger.getFrozenBefore()),
-      money(ledger.getFrozenAfter()),
-      ledger.getRemark(),
-      ledger.getCreatedAt()
-    );
   }
 
   private static BigDecimal money(BigDecimal value) {

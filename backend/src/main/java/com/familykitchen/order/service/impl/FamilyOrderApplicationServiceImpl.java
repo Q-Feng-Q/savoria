@@ -36,6 +36,7 @@ import com.familykitchen.order.service.OrderStateMachine;
 import com.familykitchen.order.service.OrderSubmissionService;
 import com.familykitchen.purchase.model.enums.IngredientCalcType;
 import com.familykitchen.wallet.service.FamilyWalletService;
+import com.familykitchen.wallet.service.PersonalWalletCutoverGuard;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -63,6 +64,7 @@ public class FamilyOrderApplicationServiceImpl implements FamilyOrderApplication
   private final ExpectedMealTimePolicy times;
   private final FamilyWalletService wallet;
   private final CommandIdempotencyService commands;
+  private final PersonalWalletCutoverGuard cutover;
 
   /** Creates the family order coordinator.
    * @param calculator aggregate order calculator
@@ -76,21 +78,24 @@ public class FamilyOrderApplicationServiceImpl implements FamilyOrderApplication
    * @param times expected-time policy
    * @param wallet family wallet service
    * @param commands durable command coordinator
+   * @param cutover personal-wallet cutover guard
    */
   public FamilyOrderApplicationServiceImpl(OrderSubmissionService calculator,
       OrderPersistenceMapper orders,CartMapper carts,DishMapper dishes,FamilyMapper families,
       FamilyRelationMapper relations,NotificationPersistenceMapper notifications,
       OrderStateMachine states,ExpectedMealTimePolicy times,FamilyWalletService wallet,
-      CommandIdempotencyService commands){
+      CommandIdempotencyService commands,PersonalWalletCutoverGuard cutover){
     this.calculator=calculator;this.orders=orders;this.carts=carts;this.dishes=dishes;
     this.families=families;this.relations=relations;this.notifications=notifications;
     this.states=states;this.times=times;this.wallet=wallet;this.commands=commands;
+    this.cutover=cutover;
   }
 
   /** {@inheritDoc} */
   @Override
   public OrderView submit(CurrentUserContext user,SubmitOrderRequest request){
     requireRequest(user,request);
+    cutover.requireReady(user.familyId());
     String payload=payload(request);
     CommandIdempotencyService.Result result=commands.execute(
         new CommandIdempotencyService.Command(user.userId(),user.familyId(),"ORDER_SUBMIT",

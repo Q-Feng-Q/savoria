@@ -8,7 +8,6 @@ import com.familykitchen.family.model.dto.UpdateFamilyInfoRequest;
 import com.familykitchen.family.model.vo.AddressView;
 import com.familykitchen.family.model.vo.FamilyHomeResponse;
 import com.familykitchen.family.model.vo.FamilyInfoView;
-import com.familykitchen.wallet.model.vo.WalletLedgerView;
 import java.util.List;
 
 /**
@@ -103,14 +102,6 @@ public interface FamilyApplicationService {
    * @return 早餐、午餐、晚餐等餐次配置
    */
   List<FamilyHomeResponse.MealSlotView> mealSlots(CurrentUserContext user);
-
-  /**
-   * 查询当前成员的钱包流水。
-   *
-   * @param user 当前登录用户上下文
-   * @return 钱包余额变动记录
-   */
-  List<WalletLedgerView> walletLedgers(CurrentUserContext user);
 
   /**
    * 修改当前家庭的基本资料（名称、备注）。

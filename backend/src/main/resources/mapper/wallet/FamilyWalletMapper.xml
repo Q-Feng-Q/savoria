@@ -40,4 +40,8 @@
     values(#{familyId},#{orderId},#{operatorUserId},#{scopeKey},#{businessType},#{businessKey},#{amount},#{availableBefore},#{availableAfter},#{frozenBefore},#{frozenAfter},#{remark})
   </insert>
   <select id="selectLedgers" resultMap="ledger">select * from family_wallet_ledgers where family_id=#{familyId} order by id desc</select>
+  <select id="selectLedgersPage" resultMap="ledger">
+    select * from family_wallet_ledgers where family_id=#{familyId}
+    order by id desc limit #{limit} offset #{offset}
+  </select>
 </mapper>

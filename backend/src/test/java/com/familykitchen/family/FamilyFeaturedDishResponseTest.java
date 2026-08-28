@@ -19,7 +19,6 @@ import com.familykitchen.family.model.entity.FamilyRecord;
 import com.familykitchen.family.model.vo.FamilyHomeResponse;
 import com.familykitchen.family.model.vo.FamilyMenuItemView;
 import com.familykitchen.family.service.impl.FamilyApplicationServiceImpl;
-import com.familykitchen.wallet.mapper.WalletPersistenceMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -47,8 +46,8 @@ class FamilyFeaturedDishResponseTest {
   @BeforeEach
   void setUp() {
     familyMapper = mock(FamilyMapper.class);
-    service = new FamilyApplicationServiceImpl(familyMapper, mock(DishMapper.class),
-      mock(WalletPersistenceMapper.class), mock(ObjectMapper.class));
+    service = new FamilyApplicationServiceImpl(
+      familyMapper, mock(DishMapper.class), mock(ObjectMapper.class));
 
     FamilyRecord family = new FamilyRecord();
     family.setFamilyId(USER.familyId());

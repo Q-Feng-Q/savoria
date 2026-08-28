@@ -59,4 +59,12 @@ public interface FamilyWalletMapper {
    * @return newest-first ledgers
    */
   List<FamilyWalletLedgerDO> selectLedgers(long familyId);
+  /** Lists a page of wallet ledgers.
+   * @param familyId family identifier
+   * @param offset zero-based offset
+   * @param limit maximum rows
+   * @return newest-first ledger page
+   */
+  List<FamilyWalletLedgerDO> selectLedgersPage(@Param("familyId") long familyId,
+      @Param("offset") int offset, @Param("limit") int limit);
 }

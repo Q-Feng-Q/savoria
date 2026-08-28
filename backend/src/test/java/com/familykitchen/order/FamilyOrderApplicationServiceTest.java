@@ -32,6 +32,7 @@ import com.familykitchen.order.service.OrderStateMachine;
 import com.familykitchen.order.service.impl.FamilyOrderApplicationServiceImpl;
 import com.familykitchen.order.service.impl.OrderSubmissionServiceImpl;
 import com.familykitchen.wallet.service.FamilyWalletService;
+import com.familykitchen.wallet.service.PersonalWalletCutoverGuard;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
@@ -54,6 +55,7 @@ class FamilyOrderApplicationServiceTest {
     FamilyMapper families=mock(FamilyMapper.class);FamilyRelationMapper relations=mock(FamilyRelationMapper.class);
     NotificationPersistenceMapper notifications=mock(NotificationPersistenceMapper.class);
     FamilyWalletService wallet=mock(FamilyWalletService.class);
+    PersonalWalletCutoverGuard cutover=mock(PersonalWalletCutoverGuard.class);
     CommandIdempotencyService commands=mock(CommandIdempotencyService.class);
     when(commands.execute(any(),any())).thenAnswer(this::execute);
     AtomicReference<OrderRecordEntity> orderRef=new AtomicReference<>();
@@ -94,7 +96,7 @@ class FamilyOrderApplicationServiceTest {
         Instant.parse("2026-08-28T02:00:00Z"),ZoneOffset.UTC));
     FamilyOrderApplicationServiceImpl service=new FamilyOrderApplicationServiceImpl(
         new OrderSubmissionServiceImpl(),orders,carts,dishes,families,relations,notifications,
-        new OrderStateMachine(),times,wallet,commands);
+        new OrderStateMachine(),times,wallet,commands,cutover);
     CurrentUserContext user=new CurrentUserContext(21L,1L,2L,21L,"member",Set.of(),Set.of());
 
     OrderView view=service.submit(user,new SubmitOrderRequest(40L,6L,"submit-1",

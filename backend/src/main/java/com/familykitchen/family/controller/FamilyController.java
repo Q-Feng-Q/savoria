@@ -20,7 +20,6 @@ import com.familykitchen.family.model.vo.AddressView;
 import com.familykitchen.family.model.vo.FamilyHomeResponse;
 import com.familykitchen.family.model.vo.FamilyInfoView;
 import com.familykitchen.family.model.vo.OwnerCandidateView;
-import com.familykitchen.wallet.model.vo.WalletLedgerView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -220,19 +219,6 @@ public class FamilyController {
     CurrentUserContext user = currentUserProvider.require(request);
     familyApplicationService.deleteAddress(user, addressId);
     return ApiResponse.ok();
-  }
-
-  /**
-   * 处理Ledgers相关的 HTTP 请求。
-   *
-   * @param request 请求参数
-   * @return 处理Ledgers的结果
-   */
-  @GetMapping("/me/wallet/ledgers")
-  @Operation(summary = "获取钱包流水", description = "返回当前成员的钱包流水记录。")
-  public ApiResponse<List<WalletLedgerView>> walletLedgers(HttpServletRequest request) {
-    CurrentUserContext user = currentUserProvider.require(request);
-    return ApiResponse.ok(familyApplicationService.walletLedgers(user));
   }
 
   /**

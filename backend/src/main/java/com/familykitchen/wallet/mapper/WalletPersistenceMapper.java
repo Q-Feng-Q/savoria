@@ -18,6 +18,18 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface WalletPersistenceMapper {
 
+  /** Counts active members whose retired personal wallet still contains money.
+   * @param familyId family identifier
+   * @return non-zero legacy wallet count
+   */
+  @Select("""
+      SELECT COUNT(*) FROM family_user_relations fr
+      JOIN member_wallets mw ON mw.user_id=fr.user_id
+      WHERE fr.family_id=#{familyId} AND fr.status='ACTIVE'
+        AND (mw.balance_amount<>0 OR mw.frozen_amount<>0)
+      """)
+  int countNonZeroPersonalWallets(@Param("familyId") Long familyId);
+
   /**
    * Counts active family membership belonging to the specified merchant.
    *
@@ -53,56 +65,12 @@ public interface WalletPersistenceMapper {
   List<WalletAccountDO> selectWalletsByMemberIds(@Param("memberIds") Set<Long> memberIds);
 
   /**
-   * Selects member wallets in deterministic identifier order and locks them for mutation.
-   *
-   * @param memberIds member identifiers; callers must guard an empty set
-   * @return locked wallet accounts
-   */
-  List<WalletAccountDO> selectWalletsByMemberIdsForUpdate(@Param("memberIds") Set<Long> memberIds);
-
-  /**
    * 查询钱包By成员标识。
    *
    * @param memberId 成员标识
    * @return 查询钱包By成员标识的结果
    */
   WalletAccountDO selectWalletByMemberId(@Param("memberId") Long memberId);
-
-  /**
-   * Selects a member wallet while locking the row for a financial mutation.
-   *
-   * @param memberId member identifier
-   * @return locked wallet account, or {@code null} when absent
-   */
-  @Select("""
-      SELECT user_id AS member_id, balance_amount, frozen_amount
-      FROM member_wallets
-      WHERE user_id = #{memberId}
-      FOR UPDATE
-      """)
-  WalletAccountDO selectWalletByMemberIdForUpdate(@Param("memberId") Long memberId);
-
-  /**
-   * 更新钱包Amounts。
-   *
-   * @param memberId 成员标识
-   * @param balanceAmount 余额金额
-   * @param frozenAmount frozen金额
-   * @return 更新钱包Amounts的结果
-   */
-  int updateWalletAmounts(
-      @Param("memberId") Long memberId,
-      @Param("balanceAmount") BigDecimal balanceAmount,
-      @Param("frozenAmount") BigDecimal frozenAmount
-  );
-
-  /**
-   * 新增钱包Ledger。
-   *
-   * @param entity 实体
-   * @return 新增钱包Ledger的结果
-   */
-  int insertWalletLedger(WalletLedgerDO entity);
 
   /**
    * 查询钱包Ledgers。

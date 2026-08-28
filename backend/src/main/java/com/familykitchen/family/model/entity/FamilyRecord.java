@@ -67,6 +67,12 @@ public class FamilyRecord {
    * frozen余额Total。
    */
   private BigDecimal frozenBalanceTotal;
+  /** Shared family wallet available amount. */
+  private BigDecimal familyWalletAvailable;
+  /** Shared family wallet frozen amount. */
+  private BigDecimal familyWalletFrozen;
+  /** Shared family wallet version. */
+  private Long familyWalletVersion;
 
   /**
    * 获取家庭标识。
@@ -293,4 +299,28 @@ public class FamilyRecord {
    * @param frozenBalanceTotal frozen余额Total
    */
   public void setFrozenBalanceTotal(BigDecimal frozenBalanceTotal) { this.frozenBalanceTotal = frozenBalanceTotal; }
+  /** Returns the shared family wallet available amount.
+   * @return shared family wallet available amount
+   */
+  public BigDecimal getFamilyWalletAvailable() { return familyWalletAvailable; }
+  /** Sets the shared family wallet available amount.
+   * @param value shared family wallet available amount
+   */
+  public void setFamilyWalletAvailable(BigDecimal value) { this.familyWalletAvailable = value; }
+  /** Returns the shared family wallet frozen amount.
+   * @return shared family wallet frozen amount
+   */
+  public BigDecimal getFamilyWalletFrozen() { return familyWalletFrozen; }
+  /** Sets the shared family wallet frozen amount.
+   * @param value shared family wallet frozen amount
+   */
+  public void setFamilyWalletFrozen(BigDecimal value) { this.familyWalletFrozen = value; }
+  /** Returns the shared family wallet version.
+   * @return shared family wallet version
+   */
+  public Long getFamilyWalletVersion() { return familyWalletVersion; }
+  /** Sets the shared family wallet version.
+   * @param value shared family wallet version
+   */
+  public void setFamilyWalletVersion(Long value) { this.familyWalletVersion = value; }
 }

@@ -19,6 +19,9 @@
     <result property="activeMenuCount" column="active_menu_count"/>
     <result property="lowBalanceMemberCount" column="low_balance_member_count"/>
     <result property="frozenBalanceTotal" column="frozen_balance_total"/>
+    <result property="familyWalletAvailable" column="family_wallet_available"/>
+    <result property="familyWalletFrozen" column="family_wallet_frozen"/>
+    <result property="familyWalletVersion" column="family_wallet_version"/>
   </resultMap>
 
   <resultMap id="AddressMap" type="com.familykitchen.family.model.entity.AddressEntity">
@@ -60,8 +63,12 @@
            (select count(*) from family_menu_items where family_id = f.id and enabled = 1) as active_menu_count,
            (select count(*) from family_user_relations fr left join member_wallets mw on mw.user_id = fr.user_id where fr.family_id = f.id and fr.status='ACTIVE' and coalesce(mw.balance_amount, 0) &lt; 20) as low_balance_member_count,
            (select coalesce(sum(mw.frozen_amount), 0) from family_user_relations fr left join member_wallets mw on mw.user_id = fr.user_id where fr.family_id = f.id and fr.status='ACTIVE') as frozen_balance_total
+           ,coalesce(fw.available_amount,0) as family_wallet_available
+           ,coalesce(fw.frozen_amount,0) as family_wallet_frozen
+           ,coalesce(fw.version,0) as family_wallet_version
     from families f
     join merchants m on m.id = f.merchant_id
+    left join family_wallets fw on fw.family_id=f.id
     where f.id = #{familyId}
     <if test="merchantId != null">
       and f.merchant_id = #{merchantId}
