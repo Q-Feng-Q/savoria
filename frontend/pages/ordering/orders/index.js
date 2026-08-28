@@ -23,8 +23,7 @@ Page({
       const orders = await runtime.orders.listOrders();
       const scene = buildApiOrdersScene({
         homeData: bundle.homeData,
-        orders,
-        mealSlots: bundle.mealSlots
+        orders
       });
       this.setData(scene);
     } catch (error) {

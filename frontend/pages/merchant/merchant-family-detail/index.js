@@ -8,6 +8,7 @@ const {
   requireSession,
   resolveApiErrorMessage
 } = require('../../../utils/page-api');
+const { createRequestId } = require('../../../utils/action-request');
 
 const readyState = () => ({
   phase: 'ready',
@@ -33,7 +34,7 @@ Page({
     addresses: [],
     menuPreview: [],
     orderPreview: [],
-    memberAdjustValues: {},
+    walletAdjustValue: '20',
     feeInput: '',
     deliveryBusy: false,
     busyMemberId: null,
@@ -59,24 +60,17 @@ Page({
       familyDetail: this._familyDetail,
       familyMenuItems: this._familyMenuItems || [],
       orders: this._orders || [],
-      ledgersByMember: this._ledgersByMember || {}
+      familyWallet: this._familyWallet || null
     });
   },
 
   applyScene(session, extra = {}, resetFee = true) {
     const scene = this.buildScene(session);
-    const memberAdjustValues = {
-      ...this.data.memberAdjustValues
-    };
-    (scene.members || []).forEach((member) => {
-      if (memberAdjustValues[member.id] === undefined) memberAdjustValues[member.id] = '20';
-    });
     const feeState = resetFee ? {
       feeInput: `${scene.family.deliveryFeeDefault || 0}`
     } : {};
     this.setData({
       ...scene,
-      memberAdjustValues,
       ...feeState,
       ...extra
     });
@@ -101,7 +95,7 @@ Page({
         this._familyDetail = null;
         this._familyMenuItems = [];
         this._orders = [];
-        this._ledgersByMember = {};
+        this._familyWallet = null;
         this.setData({
           phase: 'empty',
           pageTitle: '未找到家庭',
@@ -117,7 +111,7 @@ Page({
       this._familyDetail = familyDetail;
       this._familyMenuItems = [];
       this._orders = [];
-      this._ledgersByMember = {};
+      this._familyWallet = null;
       const optionalStates = {
         ledger: loadingState(),
         menu: loadingState(),
@@ -130,21 +124,20 @@ Page({
         optionalStates
       });
 
-      const ledgerTask = Promise.allSettled((familyDetail.members || []).map((member) => runtime.merchant.getMemberWalletLedgers(member.memberId)))
-        .then((results) => {
+      const ledgerTask = runtime.merchant.getFamilyWallet(this.data.familyId)
+        .then((wallet) => {
           if (generation !== this._loadGeneration) return;
-          let failedMessage = '';
-          (familyDetail.members || []).forEach((member, index) => {
-            const result = results[index];
-            if (result && result.status === 'fulfilled') this._ledgersByMember[member.memberId] = result.value;
-            if (result && result.status === 'rejected') failedMessage = resolveApiErrorMessage(result.reason, '部分余额流水暂不可用');
-          });
+          this._familyWallet = wallet;
           this.applyScene(session, {
             optionalStates: {
               ...this.data.optionalStates,
-              ledger: failedMessage ? errorState(failedMessage) : readyState()
+              ledger: readyState()
             }
           }, false);
+        }).catch((error) => {
+          if (generation !== this._loadGeneration) return;
+          this.setData({ optionalStates: { ...this.data.optionalStates,
+            ledger: errorState(resolveApiErrorMessage(error, '家庭钱包暂不可用')) } });
         });
       const menuTask = runtime.merchant.getFamilyMenu(this.data.familyId)
         .then((items) => {
@@ -219,8 +212,7 @@ Page({
       if (region === 'menu') this._familyMenuItems = await runtime.merchant.getFamilyMenu(this.data.familyId);
       if (region === 'orders') this._orders = await runtime.merchant.getOrders();
       if (region === 'ledger') {
-        const pairs = await Promise.all((this._familyDetail.members || []).map(async (member) => [member.memberId, await runtime.merchant.getMemberWalletLedgers(member.memberId)]));
-        this._ledgersByMember = Object.fromEntries(pairs);
+        this._familyWallet = await runtime.merchant.getFamilyWallet(this.data.familyId);
       }
       if (generation !== this._loadGeneration) return;
       this.applyScene(session, {
@@ -298,16 +290,13 @@ Page({
       deliveryFeeDefault: Number(this.data.feeInput || 0)
     }, '配送费已保存');
   },
-  bindMemberAdjustValue(event) {
-    this.setData({
-      [`memberAdjustValues.${event.currentTarget.dataset.memberId}`]: event.detail.value
-    });
+  bindWalletAdjustValue(event) {
+    this.setData({ walletAdjustValue: event.detail.value });
   },
 
-  async adjustMemberBalance(event) {
-    const memberId = event.currentTarget.dataset.memberId;
+  async adjustFamilyBalance(event) {
     const direction = event.currentTarget.dataset.direction;
-    const amount = Number(this.data.memberAdjustValues[memberId] || 0);
+    const amount = Number(this.data.walletAdjustValue || 0);
     if (!Number.isFinite(amount) || amount <= 0 || this.data.busyMemberId || this.data.deliveryBusy) {
       if (!Number.isFinite(amount) || amount <= 0) wx.showToast({
         title: '请输入有效金额',
@@ -316,10 +305,11 @@ Page({
       return;
     }
     this.setData({
-      busyMemberId: memberId
+      busyMemberId: 'family-wallet'
     });
     try {
-      await createApiRuntime().merchant.adjustMemberBalance(memberId, {
+      await createApiRuntime().merchant.adjustFamilyBalance(this.data.familyId, {
+        requestId: createRequestId(`family-wallet-${this.data.familyId}`),
         type: direction === 'decrease' ? 'MANUAL_DEBIT' : 'MANUAL_CREDIT',
         amount,
         remark: direction === 'decrease' ? '商户手动扣减' : '商户手动充值'
@@ -341,9 +331,9 @@ Page({
     }
   },
 
-  openMemberLedger(event) {
+  openFamilyWalletLedger() {
     wx.navigateTo({
-      url: `/pages/family/wallet-ledger/index?actor=merchant&memberId=${event.currentTarget.dataset.memberId}`
+      url: `/pages/family/wallet-ledger/index?actor=merchant&familyId=${this.data.familyId}`
     });
   },
   openFamilyMenu() {

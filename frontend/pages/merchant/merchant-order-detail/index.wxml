@@ -9,7 +9,7 @@
 
     <view class="detail-section">
       <text class="detail-section__title">订单信息</text>
-      <text class="detail-line">日期与餐次：{{scene.order.serviceDate}} · {{scene.order.mealLabel}}</text>
+      <text class="detail-line">预计用餐：{{scene.order.mealLabel}}</text>
       <text class="detail-line">提交人：{{scene.order.submitterName}}</text>
       <text class="detail-line">整单备注：{{scene.order.note || '无'}}</text>
     </view>
@@ -18,9 +18,11 @@
       <text class="detail-section__title">菜品明细</text>
       <block wx:for="{{scene.items}}" wx:key="id">
         <view class="dish-line">
-          <view><text class="dish-line__name">{{item.dishName}} × {{item.quantity}}</text><text class="detail-line">{{item.ownerName}} · {{item.note || '无单品备注'}}</text></view>
+          <view><text class="dish-line__name">{{item.dishName}} · 共 × {{item.quantity}}</text><text class="detail-line">{{item.note || '无单品备注'}}</text></view>
           <text class="dish-line__amount">￥{{item.amount}}</text>
         </view>
+        <view wx:if="{{item.hasSelectionDetails}}" class="ui-button selection-toggle" data-id="{{item.id}}" bindtap="toggleSelectionDetails" aria-role="button" aria-label="查看点菜成员" hover-class="ui-button--pressed">{{expandedDishIds[item.id] ? '收起选择明细' : '查看谁选了这道菜'}}</view>
+        <view wx:if="{{expandedDishIds[item.id]}}" class="selection-box"><view wx:for="{{item.selections}}" wx:key="memberId" class="selection-line"><text>{{item.memberName}} × {{item.quantity}}</text><text>{{item.itemRemark || '无备注'}}</text></view></view>
       </block>
     </view>
 

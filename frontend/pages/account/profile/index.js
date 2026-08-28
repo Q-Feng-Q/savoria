@@ -93,13 +93,15 @@ Page({
         });
         return;
       }
-      const [addresses, ledgers] = await Promise.all([
+      const [addresses, wallet, ledgers] = await Promise.all([
         runtime.family.getAddresses().catch(() => []),
+        runtime.family.getWallet().catch(() => null),
         runtime.family.getWalletLedgers().catch(() => [])
       ]);
       const scene = buildApiProfileScene({
         homeData,
         addresses,
+        wallet,
         ledgers,
         session: refreshedSession
       });

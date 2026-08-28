@@ -23,6 +23,7 @@ test('optional address and wallet failures do not hide an existing family', () =
   const source = fs.readFileSync(profilePagePath, 'utf8');
 
   assert.match(source, /runtime\.family\.getAddresses\(\)\.catch\(\(\) => \[\]\)/);
+  assert.match(source, /runtime\.family\.getWallet\(\)\.catch\(\(\) => null\)/);
   assert.match(source, /runtime\.family\.getWalletLedgers\(\)\.catch\(\(\) => \[\]\)/);
 });
 

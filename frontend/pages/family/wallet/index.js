@@ -21,9 +21,12 @@ Page({
     const runtime = createApiRuntime();
     try {
       const bundle = await loadFamilyBundle(runtime);
-      const ledgers = await runtime.family.getWalletLedgers();
+      const [wallet, ledgers] = await Promise.all([
+        runtime.family.getWallet(), runtime.family.getWalletLedgers({ page: 1, pageSize: 20 })
+      ]);
       const scene = buildApiWalletScene({
         homeData: bundle.homeData,
+        wallet,
         ledgers
       });
       this.setData(scene);

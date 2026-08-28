@@ -1,8 +1,8 @@
 <view class="warm-page warm-state-host page wallet-page" wx:if="{{context}}">
   <view class="hero wallet-hero">
-    <text class="eyebrow">成员余额</text>
-    <text class="title">{{context.member.name}}</text>
-    <text class="subtitle">谁点的菜扣谁的余额，提交订单后先冻结，完成后再正式扣减。</text>
+    <text class="eyebrow">家庭钱包</text>
+    <text class="title">{{context.family.name}}</text>
+    <text class="subtitle">全家共享余额；点菜成员会保留在订单明细中，结算统一从家庭钱包完成。</text>
   </view>
 
   <view class="summary-strip">

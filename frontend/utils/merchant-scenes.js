@@ -5,7 +5,8 @@ const {
   formatCurrency,
   formatAmountNumber,
   formatDateText,
-  formatDateTimeText
+  formatDateTimeText,
+  formatExpectedMealTime
 } = require('./api-scenes');
 
 const ACTIVE_ORDER_STATUSES = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY'];
@@ -74,7 +75,9 @@ function summarizeOrderItems(items = []) {
 
 function mapMerchantOrder(order, familyNameMap = new Map(), mealSlotMap = new Map()) {
   const familyName = familyNameMap.get(order.familyId) || order.familyName || `家庭 ${order.familyId}`;
-  const mealLabel = order.mealSlotName || `餐次 ${order.mealSlotId}`;
+  const mealLabel = order.expectedMealTime
+    ? formatExpectedMealTime(order.expectedMealTime)
+    : `${order.serviceDate || ''} ${order.mealSlotName || '历史餐次'}`.trim();
   const itemCount = summarizeOrderItems(order.items);
 
   return {
@@ -231,7 +234,8 @@ function buildApiMerchantOrderDetailScene({ session, order, familyDetail = null,
       rawStatus: status,
       statusLabel: mapOrderStatusLabel(status),
       serviceDate: order.serviceDate,
-      mealLabel: mealSlotMap.get(order.mealSlotId) || `餐次 ${order.mealSlotId}`,
+      mealLabel: order.expectedMealTime ? formatExpectedMealTime(order.expectedMealTime)
+        : `${order.serviceDate || ''} ${mealSlotMap.get(order.mealSlotId) || order.mealSlotName || '历史餐次'}`.trim(),
       submitterName: (submitter && submitter.name) || '家庭成员',
       deliveryMode: lowerStatus(order.deliveryMode),
       note: order.remark || '',
@@ -256,7 +260,14 @@ function buildApiMerchantOrderDetailScene({ session, order, familyDetail = null,
       quantity: Number(item.quantity || 0),
       price: formatAmountNumber(item.price),
       amount: formatAmountNumber(item.amount),
-      note: item.itemRemark || ''
+      note: item.itemRemark || '',
+      selections: Array.isArray(item.selections) ? item.selections.map((selection) => ({
+        memberId: selection.userId,
+        memberName: selection.memberName || '家庭成员',
+        quantity: Number(selection.quantity || 0),
+        itemRemark: selection.itemRemark || ''
+      })) : [],
+      hasSelectionDetails: Array.isArray(item.selections) && item.selections.length > 0
     })),
     charges: [
       {
@@ -320,7 +331,7 @@ function buildApiMerchantFamilyDetailScene({
   familyDetail,
   familyMenuItems = [],
   orders = [],
-  ledgersByMember = {}
+  familyWallet = null
 }) {
   const merchantName = getMerchantName(session, [], familyDetail);
   const addresses = normalizeAddresses(familyDetail.addresses || []);
@@ -342,7 +353,8 @@ function buildApiMerchantFamilyDetailScene({
       orderNo: `#${item.orderId}`,
       statusLabel: mapOrderStatusLabel(item.status),
       serviceDate: item.serviceDate,
-      mealLabel: item.mealSlotName || `餐次 ${item.mealSlotId}`,
+      mealLabel: item.expectedMealTime ? formatExpectedMealTime(item.expectedMealTime)
+        : `${item.serviceDate || ''} ${item.mealSlotName || '历史餐次'}`.trim(),
       totalText: `合计 ${formatCurrency(item.totalAmount)}`
     }));
 
@@ -366,21 +378,14 @@ function buildApiMerchantFamilyDetailScene({
       { key: 'addressCount', label: '地址数', value: `${addresses.length}`, note: '普通成员也可维护' },
       { key: 'menuCount', label: '生效菜品', value: `${familyDetail.activeMenuCount || 0}`, note: '当前家庭菜单' }
     ],
-    members: (familyDetail.members || []).map((item) => {
-      const ledgers = ledgersByMember[item.memberId] || [];
-      const latest = ledgers[0] || null;
-      const available = latest ? latest.balanceAfter : item.availableBalance;
-      const frozen = latest ? latest.frozenAfter : item.frozenBalance;
-
-      return {
-        id: item.memberId,
-        name: item.name,
-        roleText: '家庭成员',
-        balanceText: `可用 ${formatCurrency(available)}`,
-        frozenText: `冻结 ${formatCurrency(frozen)}`,
-        warningText: item.lowBalance ? '余额偏低，建议尽快补充' : ''
-      };
-    }),
+    wallet: {
+      availableText: formatCurrency(familyWallet ? familyWallet.availableAmount : 0),
+      frozenText: formatCurrency(familyWallet ? familyWallet.frozenAmount : 0),
+      totalText: formatCurrency(familyWallet ? familyWallet.totalAmount : 0)
+    },
+    members: (familyDetail.members || []).map((item) => ({
+      id: item.memberId, name: item.name, roleText: '家庭成员'
+    })),
     addresses,
     menuPreview,
     orderPreview

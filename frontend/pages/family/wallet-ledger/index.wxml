@@ -1,8 +1,8 @@
 <view class="warm-page warm-state-host page wallet-ledger-page" wx:if="{{context}}">
   <view class="hero">
-    <text class="eyebrow">余额变化</text>
-    <text class="title">余额流水</text>
-    <text class="subtitle">充值、冻结、释放和正式扣减都会留在这里。</text>
+    <text class="eyebrow">家庭钱包</text>
+    <text class="title">家庭钱包流水</text>
+    <text class="subtitle">商户调整、订单冻结、释放和正式扣减都会留在这里。</text>
   </view>
 
   <view wx:if="{{!transactions.length}}" class="empty">还没有可查看的流水记录。</view>

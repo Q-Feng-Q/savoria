@@ -11,7 +11,8 @@ Page({
     scene: null,
     feeInput: '',
     reasonInput: '',
-    mutationBusy: false
+    mutationBusy: false,
+    expandedDishIds: {}
   },
 
   onLoad(query) { this.setData({ id: (query && query.id) || '' }); },
@@ -56,6 +57,10 @@ Page({
   retryLoad() { return this.load(); },
   bindFeeInput(event) { this.setData({ feeInput: event.detail.value }); },
   bindReasonInput(event) { this.setData({ reasonInput: event.detail.value }); },
+  toggleSelectionDetails(event) {
+    const id = String(event.currentTarget.dataset.id);
+    this.setData({ [`expandedDishIds.${id}`]: !this.data.expandedDishIds[id] });
+  },
 
   async runMutation(operation, successTitle, fallbackMessage) {
     if (this.data.mutationBusy) return;

@@ -384,7 +384,14 @@ function buildApiOrderDetailScene({ homeData, order, mealSlots = [] }) {
       quantity: item.quantity,
       price: formatAmountNumber(item.price),
       amount: formatAmountNumber(item.amount),
-      note: item.itemRemark || ''
+      note: item.itemRemark || '',
+      selections: Array.isArray(item.selections) ? item.selections.map((selection) => ({
+        memberId: selection.userId,
+        memberName: selection.memberName || '家庭成员',
+        quantity: Number(selection.quantity || 0),
+        itemRemark: selection.itemRemark || ''
+      })) : [],
+      hasSelectionDetails: Array.isArray(item.selections) && item.selections.length > 0
     })),
     charges: [
       {
@@ -431,13 +438,13 @@ function mapLedgerItem(item) {
 
   return {
     id: item.ledgerId,
-    title: LEDGER_TYPE_LABELS[item.type] || item.type || '余额变动',
-    note: item.remark || `余额 ${formatCurrency(item.balanceAfter)}`,
+    title: LEDGER_TYPE_LABELS[item.businessType || item.type] || item.businessType || item.type || '余额变动',
+    note: item.remark || `可用 ${formatCurrency(item.availableAfter ?? item.balanceAfter)}`,
     amountText: formatSignedCurrency(amount),
     amountClass: amount < 0 ? 'negative' : 'positive',
     createdAt: formatDateTimeText(item.createdAt),
-    statusText: `余额 ${formatCurrency(item.balanceAfter)}`,
-    balanceAfterText: `余额 ${formatCurrency(item.balanceAfter)}`,
+    statusText: `可用 ${formatCurrency(item.availableAfter ?? item.balanceAfter)}`,
+    balanceAfterText: `可用 ${formatCurrency(item.availableAfter ?? item.balanceAfter)}`,
     frozenAfterText: `冻结 ${formatCurrency(item.frozenAfter)}`
   };
 }
@@ -449,8 +456,10 @@ function buildApiWalletLedgerScene({ homeData, ledgers = [] }) {
   };
 }
 
-function buildApiWalletScene({ homeData, ledgers = [] }) {
+function buildApiWalletScene({ homeData, wallet = null, ledgers = [] }) {
   const latest = ledgers[0] || null;
+  const available = wallet ? wallet.availableAmount : (latest ? latest.availableAfter ?? latest.balanceAfter : 0);
+  const frozen = wallet ? wallet.frozenAmount : (latest ? latest.frozenAfter : 0);
 
   return {
     context: buildContext(homeData),
@@ -458,13 +467,13 @@ function buildApiWalletScene({ homeData, ledgers = [] }) {
       {
         key: 'available',
         label: '当前余额',
-        value: formatCurrency(latest ? latest.balanceAfter : 0),
-        note: '按最新流水余额展示'
+        value: formatCurrency(available),
+        note: '家庭成员共同使用'
       },
       {
         key: 'frozen',
         label: '冻结金额',
-        value: formatCurrency(latest ? latest.frozenAfter : 0),
+        value: formatCurrency(frozen),
         note: '待商户确认后结算'
       },
       {
@@ -478,7 +487,7 @@ function buildApiWalletScene({ homeData, ledgers = [] }) {
   };
 }
 
-function buildApiProfileScene({ homeData, addresses = [], ledgers = [], session = null }) {
+function buildApiProfileScene({ homeData, addresses = [], wallet = null, ledgers = [], session = null }) {
   const normalizedAddresses = normalizeAddresses(addresses);
   const latest = ledgers[0] || null;
   const defaultAddress = findDefaultAddress(normalizedAddresses);
@@ -495,13 +504,13 @@ function buildApiProfileScene({ homeData, addresses = [], ledgers = [], session 
       {
         key: 'balance',
         label: '当前余额',
-        value: formatCurrency(latest ? latest.balanceAfter : 0),
-        note: '来自最新钱包流水'
+        value: formatCurrency(wallet ? wallet.availableAmount : (latest ? latest.availableAfter ?? latest.balanceAfter : 0)),
+        note: '家庭钱包可用余额'
       },
       {
         key: 'frozen',
         label: '冻结金额',
-        value: formatCurrency(latest ? latest.frozenAfter : 0),
+        value: formatCurrency(wallet ? wallet.frozenAmount : (latest ? latest.frozenAfter : 0)),
         note: '待确认订单会先冻结'
       }
     ],

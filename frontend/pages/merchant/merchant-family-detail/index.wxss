@@ -23,3 +23,4 @@
 .section-link, .local-retry { min-width: 132rpx; padding: 0 18rpx; color: #218d68; }
 .preview-row { color: #574537; font-size: 24rpx; }
 .local-state { margin-top: 18rpx; padding: 14rpx 0 14rpx 16rpx; border-left: 6rpx solid #d98532; color: #985c28; font-size: 23rpx; }
+.family-wallet-card{margin-top:18rpx;padding:22rpx;border-radius:24rpx 10rpx 24rpx 10rpx;background:#e8f7f0}.wallet-balance,.wallet-meta{display:flex;align-items:center;justify-content:space-between;gap:16rpx}.wallet-balance text:first-child{color:#574537;font-size:23rpx;font-weight:800}.wallet-balance text:last-child{color:#276f55;font-size:38rpx;font-weight:900}.wallet-meta{margin-top:10rpx;color:#8f7865;font-size:21rpx}.family-wallet-input{width:100%;margin-top:18rpx;box-sizing:border-box}

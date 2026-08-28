@@ -1190,11 +1190,11 @@ test('merchant family detail keeps core state separate from optional ledger menu
 
   assert.doesNotMatch(markup, /merchant-workbench-nav|summary-card|<button\b|hero/);
   assert.match(markup, /<page-state[^>]+phase="\{\{phase\}\}"[^>]+bind:retry="retryLoad"/);
-  for (const heading of ['家庭概览', '配送规则', '成员与余额', '地址', '菜单预览', '订单预览']) assert.match(markup, new RegExp(heading));
+  for (const heading of ['家庭概览', '配送规则', '家庭钱包', '家庭成员', '地址', '菜单预览', '订单预览']) assert.match(markup, new RegExp(heading));
   for (const region of ['ledger', 'menu', 'orders']) {
     assert.match(markup, new RegExp(`optionalStates\\.${region}\\.phase === 'error'`));
   }
-  assert.match(markup, /余额偏低/);
+  assert.match(markup, /可用余额/);
   assert.match(markup, /暂无地址/);
   assert.match(markup, /暂无生效菜单/);
   assert.match(source, /Promise\.allSettled/);
@@ -1206,7 +1206,7 @@ test('merchant family detail keeps core state separate from optional ledger menu
   assert.match(source, /retryMenu\s*\(/);
   assert.match(source, /retryOrders\s*\(/);
   assert.match(source, /updateFamilyDeliveryPolicy\(this\.data\.familyId,\s*\{/);
-  assert.match(source, /adjustMemberBalance\(memberId,\s*\{/);
+  assert.match(source, /adjustFamilyBalance\(this\.data\.familyId,\s*\{/);
   assert.match(styles, /min-height:\s*88rpx/);
   assert.match(styles, /env\(safe-area-inset-bottom\)/);
   assert.equal(config.usingComponents['page-state'], '/components/page-state/index');
@@ -1386,6 +1386,7 @@ test('family detail renders core before deferred optional sections settle', asyn
   const slowMenu = deferred(); let definition;
   require.cache[runtimePath] = { exports: { createApiRuntime: () => ({ merchant: {
     getFamilyDetail: async () => ({ familyId: 8, familyName: '核心家庭', members: [], addresses: [] }),
+    getFamilyWallet: async () => ({ availableAmount: 0, frozenAmount: 0, totalAmount: 0 }),
     getFamilyMenu: () => slowMenu.promise,
     getOrders: async () => []
   } }) } };
@@ -1423,22 +1424,22 @@ test('family detail scene preserves zero menu price and chooses the explicit def
   assert.match(scene.family.defaultAddressText, /默认人/);
 });
 
-test('family detail rejects non-finite and non-positive balance adjustments before API calls', async () => {
+test('family detail rejects non-finite and non-positive family-wallet adjustments before API calls', async () => {
   const pagePath = path.join(root, 'pages', 'merchant', 'merchant-family-detail', 'index.js');
   const runtimePath = require.resolve(path.join(root, 'utils', 'api-runtime.js'));
   const pageApiPath = require.resolve(path.join(root, 'utils', 'page-api.js'));
   const oldPage = global.Page; const oldWx = global.wx; const oldRuntime = require.cache[runtimePath]; const oldPageApi = require.cache[pageApiPath];
   let definition; let calls = 0;
-  require.cache[runtimePath] = { exports: { createApiRuntime: () => ({ merchant: { adjustMemberBalance: async () => { calls += 1; } } }) } };
+  require.cache[runtimePath] = { exports: { createApiRuntime: () => ({ merchant: { adjustFamilyBalance: async () => { calls += 1; } } }) } };
   require.cache[pageApiPath] = { exports: { requireSession: () => ({ merchantId: 3 }), resolveApiErrorMessage: (error) => error.message } };
   global.Page = (value) => { definition = value; }; global.wx = { showToast() {} };
   try {
     delete require.cache[require.resolve(pagePath)]; require(pagePath);
-    const page = Object.assign({}, definition, { data: { ...definition.data, memberAdjustValues: { 7: '-2' } }, setData(update) { this.data = { ...this.data, ...update }; } });
-    const event = { currentTarget: { dataset: { memberId: 7, direction: 'increase' } } };
-    await page.adjustMemberBalance(event);
-    page.data.memberAdjustValues[7] = 'Infinity';
-    await page.adjustMemberBalance(event);
+    const page = Object.assign({}, definition, { data: { ...definition.data, walletAdjustValue: '-2' }, setData(update) { this.data = { ...this.data, ...update }; } });
+    const event = { currentTarget: { dataset: { direction: 'increase' } } };
+    await page.adjustFamilyBalance(event);
+    page.data.walletAdjustValue = 'Infinity';
+    await page.adjustFamilyBalance(event);
     assert.equal(calls, 0);
   } finally {
     delete require.cache[require.resolve(pagePath)]; if (oldRuntime) require.cache[runtimePath] = oldRuntime; else delete require.cache[runtimePath];
@@ -1497,6 +1498,7 @@ test('family detail core load and delivery mutation finish while optional reads 
   const pending = new Promise(() => {}); let definition;
   const runtime = { merchant: {
     getFamilyDetail: async () => ({ familyId: 8, familyName: '甲', deliveryEnabled: true, members: [], addresses: [] }),
+    getFamilyWallet: () => pending,
     getFamilyMenu: () => pending,
     getOrders: () => pending,
     updateFamilyDeliveryPolicy: async () => {}
@@ -1522,7 +1524,7 @@ test('family detail core load and delivery mutation finish while optional reads 
 
 test('family detail optional regions distinguish loading from ready-empty', () => {
   const markup = read('pages/merchant/merchant-family-detail/index.wxml');
-  assert.match(markup, /optionalStates\.ledger\.phase === 'loading'[\s\S]*?正在加载余额流水/);
+  assert.match(markup, /optionalStates\.ledger\.phase === 'loading'[\s\S]*?正在加载家庭钱包/);
   assert.match(markup, /optionalStates\.menu\.phase === 'loading'[\s\S]*?正在加载菜单/);
   assert.match(markup, /optionalStates\.orders\.phase === 'loading'[\s\S]*?正在加载订单/);
   assert.match(markup, /optionalStates\.menu\.phase === 'ready' && !menuPreview\.length/);

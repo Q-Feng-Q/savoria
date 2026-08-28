@@ -23,26 +23,22 @@
     </view>
 
     <view class="detail-section">
-      <text class="section-heading">成员与余额</text>
-      <text wx:if="{{optionalStates.ledger.phase === 'loading'}}" class="empty-line">正在加载余额流水…</text>
-      <view wx:elif="{{optionalStates.ledger.phase === 'error'}}" class="local-state">
-        <text>{{optionalStates.ledger.message}}</text>
-        <view class="ui-button local-retry" bindtap="retryLedger" aria-role="button" aria-label="重试流水" hover-class="ui-button--pressed" hover-stay-time="80">重试流水</view>
-      </view>
-      <block wx:for="{{members}}" wx:key="id">
-        <view class="member-row">
-          <view class="detail-line"><text class="strong">{{item.name}}</text><text>{{item.roleText}}</text></view>
-          <text class="detail-copy">{{item.balanceText}} · {{item.frozenText}}</text>
-          <text wx:if="{{item.warningText}}" class="low-balance">余额偏低 · {{item.warningText}}</text>
-          <view class="member-actions">
-            <input class="amount-input" type="digit" value="{{memberAdjustValues[item.id]}}" data-member-id="{{item.id}}" bindinput="bindMemberAdjustValue" aria-label="调整金额" />
-            <view class="ui-button compact-action" data-member-id="{{item.id}}" data-direction="increase" bindtap="adjustMemberBalance" aria-role="button" aria-label="充值余额" aria-disabled="{{busyMemberId !== null}}" hover-class="ui-button--pressed" hover-stay-time="80">充值</view>
-            <view class="ui-button compact-action" data-member-id="{{item.id}}" data-direction="decrease" bindtap="adjustMemberBalance" aria-role="button" aria-label="扣减余额" aria-disabled="{{busyMemberId !== null}}" hover-class="ui-button--pressed" hover-stay-time="80">扣减</view>
-            <view class="ui-button compact-action compact-action--quiet" data-member-id="{{item.id}}" bindtap="openMemberLedger" aria-role="button" aria-label="查看余额流水" hover-class="ui-button--pressed" hover-stay-time="80">流水</view>
-          </view>
+      <text class="section-heading">家庭钱包</text>
+      <text wx:if="{{optionalStates.ledger.phase === 'loading'}}" class="empty-line">正在加载家庭钱包…</text>
+      <view wx:elif="{{optionalStates.ledger.phase === 'error'}}" class="local-state"><text>{{optionalStates.ledger.message}}</text><view class="ui-button local-retry" bindtap="retryLedger" aria-role="button" aria-label="重试家庭钱包" hover-class="ui-button--pressed" hover-stay-time="80">重试</view></view>
+      <view wx:else class="family-wallet-card">
+        <view class="wallet-balance"><text>可用余额</text><text>{{wallet.availableText}}</text></view>
+        <view class="wallet-meta"><text>冻结 {{wallet.frozenText}}</text><text>总额 {{wallet.totalText}}</text></view>
+        <input class="amount-input family-wallet-input" type="digit" value="{{walletAdjustValue}}" bindinput="bindWalletAdjustValue" aria-label="家庭钱包调整金额" />
+        <view class="member-actions">
+          <view class="ui-button compact-action" data-direction="increase" bindtap="adjustFamilyBalance" aria-role="button" aria-label="增加家庭余额" aria-disabled="{{busyMemberId !== null}}" hover-class="ui-button--pressed" hover-stay-time="80">增加余额</view>
+          <view class="ui-button compact-action" data-direction="decrease" bindtap="adjustFamilyBalance" aria-role="button" aria-label="扣减家庭余额" aria-disabled="{{busyMemberId !== null}}" hover-class="ui-button--pressed" hover-stay-time="80">扣减余额</view>
+          <view class="ui-button compact-action compact-action--quiet" bindtap="openFamilyWalletLedger" aria-role="button" aria-label="查看家庭钱包流水" hover-class="ui-button--pressed" hover-stay-time="80">查看流水</view>
         </view>
-      </block>
+      </view>
     </view>
+
+    <view class="detail-section"><text class="section-heading">家庭成员</text><view wx:for="{{members}}" wx:key="id" class="member-row"><view class="detail-line"><text class="strong">{{item.name}}</text><text>{{item.roleText}}</text></view></view></view>
 
     <view class="detail-section">
       <text class="section-heading">地址</text>

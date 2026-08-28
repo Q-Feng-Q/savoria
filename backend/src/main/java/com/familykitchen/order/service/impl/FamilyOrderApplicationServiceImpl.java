@@ -170,7 +170,7 @@ public class FamilyOrderApplicationServiceImpl implements FamilyOrderApplication
 
   /** {@inheritDoc} */
   @Override public List<OrderView> list(CurrentUserContext user){
-    return hydrate(orders.selectOrdersByFamilyId(user.familyId())).stream()
+    return hydrate(orders.selectOrdersByFamilyId(user.familyId()),false).stream()
         .map(FamilyOrderApplicationServiceImpl::toView).toList();
   }
   /** {@inheritDoc} */
@@ -193,23 +193,24 @@ public class FamilyOrderApplicationServiceImpl implements FamilyOrderApplication
   private OrderSubmissionResult.SubmittedOrder requireOrder(Long familyId,Long orderId){
     OrderRecordEntity row=orders.selectOrderByFamilyId(familyId,orderId);
     if(row==null)throw new BusinessException(ErrorCode.NOT_FOUND,"未找到订单");
-    return hydrate(List.of(row)).get(0);
+    return hydrate(List.of(row),true).get(0);
   }
 
   private OrderSubmissionResult.SubmittedOrder requireOrderForUpdate(Long familyId,Long orderId){
     OrderRecordEntity row=orders.selectOrderByFamilyIdForUpdate(familyId,orderId);
     if(row==null)throw new BusinessException(ErrorCode.NOT_FOUND,"未找到订单");
-    return hydrate(List.of(row)).get(0);
+    return hydrate(List.of(row),true).get(0);
   }
 
-  private List<OrderSubmissionResult.SubmittedOrder> hydrate(List<OrderRecordEntity> rows){
+  private List<OrderSubmissionResult.SubmittedOrder> hydrate(
+      List<OrderRecordEntity> rows,boolean includeSelections){
     if(rows==null||rows.isEmpty())return List.of();
     List<Long> orderIds=rows.stream().map(OrderRecordEntity::getId).toList();
     List<OrderItemEntity> itemRows=orders.selectOrderItemsByOrderIds(orderIds);
     Map<Long,List<OrderItemEntity>> byOrder=itemRows.stream()
         .collect(Collectors.groupingBy(OrderItemEntity::getOrderId));
     List<Long> itemIds=itemRows.stream().map(OrderItemEntity::getId).filter(java.util.Objects::nonNull).toList();
-    Map<Long,List<OrderItemSelectionEntity>> byItem=itemIds.isEmpty()?Map.of():
+    Map<Long,List<OrderItemSelectionEntity>> byItem=!includeSelections||itemIds.isEmpty()?Map.of():
         orders.selectOrderItemSelections(itemIds).stream()
             .collect(Collectors.groupingBy(row->row.orderItemId));
     Map<Long,OrderDeliverySnapshotEntity> deliveries=orders.selectDeliverySnapshotsByOrderIds(orderIds)

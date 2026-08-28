@@ -6,7 +6,8 @@ const { requireSession, showApiError } = require('../../../utils/page-api');
 Page({
   data: {
     id: '',
-    scene: null
+    scene: null,
+    expandedDishIds: {}
   },
 
   onLoad(query) {
@@ -27,8 +28,7 @@ Page({
       const order = await runtime.orders.getOrderDetail(this.data.id);
       const scene = buildApiOrderDetailScene({
         homeData: bundle.homeData,
-        order,
-        mealSlots: bundle.mealSlots
+        order
       });
       this.setData({ scene });
     } catch (error) {
@@ -47,13 +47,8 @@ Page({
       showApiError(error, '取消订单失败');
     }
   },
-  async updateOrder() {
-    try {
-      await createApiRuntime().orders.updateOrder(this.data.id);
-      wx.showToast({ title: '订单已按餐篮更新', icon: 'success' });
-      await this.load();
-    } catch (error) {
-      showApiError(error, '订单更新失败');
-    }
+  toggleSelectionDetails(event) {
+    const id = String(event.currentTarget.dataset.id);
+    this.setData({ [`expandedDishIds.${id}`]: !this.data.expandedDishIds[id] });
   }
 });

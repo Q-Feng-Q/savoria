@@ -215,7 +215,7 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
    * 查询商户订单列表并补全明细与配送快照。
    */
   private List<OrderSubmissionResult.SubmittedOrder> merchantOrders(Long merchantId) {
-    return hydrate(orderMapper.selectOrdersByMerchantId(merchantId));
+    return hydrate(orderMapper.selectOrdersByMerchantId(merchantId), false);
   }
 
   /**
@@ -223,7 +223,7 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
    */
   private OrderSubmissionResult.SubmittedOrder findMerchantOrder(Long merchantId, Long orderId) {
     OrderRecordEntity order = orderMapper.selectOrderByMerchantId(merchantId, orderId);
-    return order == null ? null : hydrate(List.of(order)).get(0);
+    return order == null ? null : hydrate(List.of(order), true).get(0);
   }
 
   /**
@@ -256,7 +256,7 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
     if (row == null) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "未找到订单");
     }
-    return hydrate(List.of(row)).get(0);
+    return hydrate(List.of(row), true).get(0);
   }
 
   /**
@@ -275,7 +275,8 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
   /**
    * 为订单列表补全订单明细和配送地址快照。
    */
-  private List<OrderSubmissionResult.SubmittedOrder> hydrate(List<OrderRecordEntity> orders) {
+  private List<OrderSubmissionResult.SubmittedOrder> hydrate(
+      List<OrderRecordEntity> orders, boolean includeSelections) {
     if (orders == null || orders.isEmpty()) {
       return List.of();
     }
@@ -285,7 +286,7 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
       .collect(Collectors.groupingBy(OrderItemEntity::getOrderId));
     List<Long> itemIds = itemRows.stream().map(OrderItemEntity::getId)
         .filter(java.util.Objects::nonNull).toList();
-    Map<Long, List<OrderItemSelectionEntity>> selectionsByItem = itemIds.isEmpty()
+    Map<Long, List<OrderItemSelectionEntity>> selectionsByItem = !includeSelections || itemIds.isEmpty()
         ? Map.of()
         : orderMapper.selectOrderItemSelections(itemIds).stream()
             .collect(Collectors.groupingBy(item -> item.orderItemId));

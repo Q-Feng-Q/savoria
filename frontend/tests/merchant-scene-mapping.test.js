@@ -50,7 +50,7 @@ test('merchant order filters expose exact backend status sets', () => {
   });
 });
 
-test('merchant orders prefer a response meal name and otherwise show the truthful slot id', () => {
+test('merchant orders prefer expected time and use truthful historical fallback', () => {
   const named = mapMerchantOrder({
     orderId: 1,
     familyId: 2,
@@ -66,9 +66,13 @@ test('merchant orders prefer a response meal name and otherwise show the truthfu
     status: 'PENDING',
     items: []
   });
+  const expected = mapMerchantOrder({
+    orderId: 3, familyId: 2, expectedMealTime: '2026-08-28T18:30:00', status: 'PENDING', items: []
+  });
 
   assert.equal(named.mealLabel, '夜宵');
-  assert.equal(unknown.mealLabel, '餐次 73');
+  assert.equal(unknown.mealLabel, '历史餐次');
+  assert.equal(expected.mealLabel, '2026-08-28 18:30');
 });
 
 test('purchase meal options come only from unique valid response source slots', () => {

@@ -21,3 +21,4 @@
 .primary-action { background: #b65f2e; color: #fffaf1; }
 .quiet-action { background: var(--sk-wheat); color: #7b4433; }
 @media (max-width: 360px) { .detail-heading__title { font-size: 31rpx; } .safe-action-bar { padding-left: 18rpx; padding-right: 18rpx; } .primary-action, .quiet-action { font-size: 19rpx; } }
+.selection-toggle{min-height:72rpx;padding:16rpx 0;color:#6b4937;font-size:22rpx}.selection-box{padding:16rpx;border-radius:18rpx;background:#e8f7f0}.selection-line{display:flex;justify-content:space-between;gap:16rpx;padding:8rpx 0;color:#574537;font-size:21rpx}.selection-line text:last-child{min-width:0;color:#8f7865;overflow-wrap:anywhere}
