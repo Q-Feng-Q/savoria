@@ -36,7 +36,8 @@ class FamilyOwnerTransferServiceTest {
         workflow,
         mock(UserMapper.class),
         mock(MerchantInvitationMapper.class),
-        mock(NotificationPersistenceMapper.class));
+        mock(NotificationPersistenceMapper.class),
+        mock(com.familykitchen.cart.service.ActiveCartMemberCleanupService.class));
   }
 
   @Test

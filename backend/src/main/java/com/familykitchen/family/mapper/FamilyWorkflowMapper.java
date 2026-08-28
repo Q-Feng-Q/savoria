@@ -242,6 +242,15 @@ import org.apache.ibatis.annotations.*;
   @Update("UPDATE family_user_relations SET status='DISSOLVED',ended_at=NOW(),ended_by=#{userId},end_reason='家庭负责人解散家庭' WHERE family_id=#{familyId} AND status='ACTIVE'")
   int dissolveRelations(@Param("familyId")Long familyId,@Param("userId")Long userId);
   /**
+   * Locks all active family relations after the active cart has been locked.
+   *
+   * @param familyId family identifier
+   * @return locked member identifiers
+   */
+  @Select("SELECT user_id FROM family_user_relations WHERE family_id=#{familyId} "
+      + "AND status='ACTIVE' ORDER BY user_id FOR UPDATE")
+  List<Long> lockActiveMemberIds(Long familyId);
+  /**
    * 停用家庭。
    *
    * @param familyId 家庭标识

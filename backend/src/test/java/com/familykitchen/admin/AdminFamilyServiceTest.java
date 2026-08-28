@@ -11,6 +11,7 @@ import com.familykitchen.common.security.CurrentUserContext;
 import com.familykitchen.family.mapper.FamilyMapper;
 import com.familykitchen.family.service.MerchantFamilyMenuApplicationService;
 import com.familykitchen.wallet.service.MerchantWalletApplicationService;
+import com.familykitchen.cart.service.ActiveCartMemberCleanupService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,7 @@ class AdminFamilyServiceTest {
   @Mock private FamilyMapper familyMapper;
   @Mock private MerchantFamilyMenuApplicationService menuService;
   @Mock private MerchantWalletApplicationService walletService;
+  @Mock private ActiveCartMemberCleanupService cartCleanup;
 
   @Test
   void listsEveryFamilyOptionAcrossMerchants() {
@@ -35,7 +37,7 @@ class AdminFamilyServiceTest {
         new AdminFamilyOptionView(3L, "林家餐桌", 2L, "暖食厨房", "active", 4)
     ));
 
-    var service = new AdminFamilyServiceImpl(mapper, menuService, walletService);
+    var service = new AdminFamilyServiceImpl(mapper, menuService, walletService, cartCleanup);
 
     assertThat(service.options()).extracting(AdminFamilyOptionView::familyName)
         .containsExactly("林家餐桌");
@@ -43,7 +45,9 @@ class AdminFamilyServiceTest {
 
   @Test
   void deletingFamilyDisablesItToPreserveBusinessHistory() {
-    var service = new AdminFamilyServiceImpl(mapper, menuService, walletService);
+    when(mapper.selectFamilyOption(3L)).thenReturn(
+        new AdminFamilyOptionView(3L, "林家餐桌", 2L, "暖食厨房", "active", 4));
+    var service = new AdminFamilyServiceImpl(mapper, menuService, walletService, cartCleanup);
 
     service.disableFamily(3L);
 
@@ -54,12 +58,26 @@ class AdminFamilyServiceTest {
   void platformMenuUsesTheSelectedFamilyMerchantContext() {
     when(mapper.selectFamilyOption(3L)).thenReturn(
         new AdminFamilyOptionView(3L, "林家餐桌", 2L, "暖食厨房", "active", 4));
-    var service = new AdminFamilyServiceImpl(mapper, menuService, walletService);
+    var service = new AdminFamilyServiceImpl(mapper, menuService, walletService, cartCleanup);
     var platform = new CurrentUserContext(1L, null, null, null, "platform_admin",
         java.util.Set.of("platform_admin"), java.util.Set.of());
 
     service.menu(platform, 3L);
 
     verify(menuService).menu(org.mockito.ArgumentMatchers.argThat(user -> user.merchantId().equals(2L)), org.mockito.ArgumentMatchers.eq(3L));
+  }
+
+  @Test
+  void removingMemberCleansCartBeforeLockingAndEndingRelation() {
+    when(mapper.lockMemberRole(3L, 9L)).thenReturn("MEMBER");
+    when(mapper.disableMember(3L, 9L)).thenReturn(1);
+    var service = new AdminFamilyServiceImpl(mapper, menuService, walletService, cartCleanup);
+
+    service.disableMember(3L, 9L);
+
+    org.mockito.InOrder order = org.mockito.Mockito.inOrder(cartCleanup, mapper);
+    order.verify(cartCleanup).removeMember(3L, 9L);
+    order.verify(mapper).lockMemberRole(3L, 9L);
+    order.verify(mapper).disableMember(3L, 9L);
   }
 }

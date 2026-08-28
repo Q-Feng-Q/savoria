@@ -20,6 +20,7 @@ import com.familykitchen.family.service.MerchantFamilyMenuApplicationService;
 import com.familykitchen.wallet.model.dto.AdjustMemberBalanceRequest;
 import com.familykitchen.wallet.model.vo.WalletLedgerView;
 import com.familykitchen.wallet.service.MerchantWalletApplicationService;
+import com.familykitchen.cart.service.ActiveCartMemberCleanupService;
 
 /**
  * 实现平台管理家庭相关业务编排，并协调校验与持久化操作。
@@ -29,6 +30,7 @@ public class AdminFamilyServiceImpl implements AdminFamilyService {
   private final AdminFamilyMapper mapper;
   private final MerchantFamilyMenuApplicationService menuService;
   private final MerchantWalletApplicationService walletService;
+  private final ActiveCartMemberCleanupService cartCleanup;
 
   /**
    * 创建平台管理家庭实例。
@@ -36,12 +38,15 @@ public class AdminFamilyServiceImpl implements AdminFamilyService {
    * @param mapper mapper
    * @param menuService 菜单Service
    * @param walletService 钱包Service
+   * @param cartCleanup active cart cleanup
    */
   public AdminFamilyServiceImpl(AdminFamilyMapper mapper, MerchantFamilyMenuApplicationService menuService,
-                                MerchantWalletApplicationService walletService) {
+                                MerchantWalletApplicationService walletService,
+                                ActiveCartMemberCleanupService cartCleanup) {
     this.mapper = mapper;
     this.menuService = menuService;
     this.walletService = walletService;
+    this.cartCleanup = cartCleanup;
   }
 
   /**
@@ -81,7 +86,13 @@ public class AdminFamilyServiceImpl implements AdminFamilyService {
    *
    * @param familyId 家庭标识
    */
-  public void disableFamily(Long familyId) { mapper.disableFamily(familyId); }
+  @Transactional
+  public void disableFamily(Long familyId) {
+    requireFamily(familyId);
+    cartCleanup.removeFamily(familyId);
+    mapper.lockActiveMemberIds(familyId);
+    mapper.disableFamily(familyId);
+  }
 
   /**
    * 更新成员。
@@ -100,8 +111,14 @@ public class AdminFamilyServiceImpl implements AdminFamilyService {
    * @param familyId 家庭标识
    * @param memberId 成员标识
    */
+  @Transactional
   public void disableMember(Long familyId, Long memberId) {
-    if (mapper.disableMember(familyId, memberId) == 0) throw notFound("家庭成员不存在");
+    cartCleanup.removeMember(familyId, memberId);
+    String role = mapper.lockMemberRole(familyId, memberId);
+    if (role == null || "OWNER".equalsIgnoreCase(role)
+        || mapper.disableMember(familyId, memberId) == 0) {
+      throw notFound("家庭成员不存在");
+    }
   }
 
   /**

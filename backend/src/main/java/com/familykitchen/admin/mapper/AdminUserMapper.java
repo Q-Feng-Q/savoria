@@ -14,6 +14,14 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface AdminUserMapper {
   /**
+   * Locks a user against concurrent family admission.
+   *
+   * @param userId user identifier
+   * @return current status
+   */
+  @Select("SELECT status FROM users WHERE id=#{userId} FOR UPDATE")
+  String lockStatus(Long userId);
+  /**
    * 列出平台管理用户。
    *
    * @param keyword keyword
@@ -93,6 +101,26 @@ public interface AdminUserMapper {
    */
   @Update("UPDATE family_user_relations SET status='REMOVED',ended_at=NOW(),end_reason='平台管理员删除用户' WHERE user_id=#{userId} AND status='ACTIVE'")
   int disableFamilyRelations(Long userId);
+
+  /**
+   * Finds the active family before locking its cart.
+   *
+   * @param userId user identifier
+   * @return active family identifier
+   */
+  @Select("SELECT family_id FROM family_user_relations WHERE user_id=#{userId} "
+      + "AND status='ACTIVE' LIMIT 1")
+  Long findActiveFamilyId(Long userId);
+
+  /**
+   * Locks the active relation after the active cart has been locked.
+   *
+   * @param userId user identifier
+   * @return current active family identifier
+   */
+  @Select("SELECT family_id FROM family_user_relations WHERE user_id=#{userId} "
+      + "AND status='ACTIVE' LIMIT 1 FOR UPDATE")
+  Long lockActiveFamilyId(Long userId);
 
   /**
    * 停用商户Relations。

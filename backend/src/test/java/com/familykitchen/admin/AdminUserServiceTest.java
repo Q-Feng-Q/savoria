@@ -2,6 +2,7 @@ package com.familykitchen.admin;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,10 +13,12 @@ import com.familykitchen.auth.service.SessionService;
 import com.familykitchen.common.error.BusinessException;
 import com.familykitchen.user.mapper.UserMapper;
 import com.familykitchen.wallet.mapper.WalletPersistenceMapper;
+import com.familykitchen.cart.service.ActiveCartMemberCleanupService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.InOrder;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -28,18 +31,29 @@ class AdminUserServiceTest {
   @Mock private UserMapper users;
   @Mock private PasswordCodec passwords;
   @Mock private WalletPersistenceMapper wallets;
+  @Mock private ActiveCartMemberCleanupService cartCleanup;
   private AdminUserService service;
 
   @BeforeEach
   void setUp() {
-    service = new AdminUserService(mapper, sessions, users, passwords, wallets);
+    service = new AdminUserService(mapper, sessions, users, passwords, wallets, cartCleanup);
   }
 
   @Test
   void safelyDeletesUserAndRevokesSessions() {
+    when(mapper.lockStatus(9L)).thenReturn("ACTIVE");
+    when(mapper.findActiveFamilyId(9L)).thenReturn(13L);
+    when(mapper.lockActiveFamilyId(9L)).thenReturn(13L);
     when(mapper.anonymizeUser(9L)).thenReturn(1);
 
     service.delete(1L, 9L);
+
+    InOrder order = inOrder(mapper, cartCleanup);
+    order.verify(mapper).lockStatus(9L);
+    order.verify(mapper).findActiveFamilyId(9L);
+    order.verify(cartCleanup).removeMember(13L, 9L);
+    order.verify(mapper).lockActiveFamilyId(9L);
+    order.verify(mapper).anonymizeUser(9L);
 
     verify(mapper).disablePlatformRoles(9L);
     verify(mapper).disableFamilyRelations(9L);
@@ -58,8 +72,6 @@ class AdminUserServiceTest {
 
   @Test
   void reportsMissingOrAlreadyDeletedUser() {
-    when(mapper.anonymizeUser(99L)).thenReturn(0);
-
     assertThatThrownBy(() -> service.delete(1L, 99L))
         .isInstanceOf(BusinessException.class)
         .hasMessageContaining("用户不存在或已删除");

@@ -159,6 +159,27 @@ public interface AdminFamilyMapper {
   int disableMember(@Param("familyId") Long familyId, @Param("memberId") Long memberId);
 
   /**
+   * Locks an active member relation after its active cart.
+   *
+   * @param familyId family identifier
+   * @param memberId member identifier
+   * @return locked role
+   */
+  @Select("select family_role from family_user_relations where family_id=#{familyId} "
+      + "and user_id=#{memberId} and status='ACTIVE' for update")
+  String lockMemberRole(@Param("familyId") Long familyId, @Param("memberId") Long memberId);
+
+  /**
+   * Locks all active relations before platform family deactivation.
+   *
+   * @param familyId family identifier
+   * @return locked member identifiers
+   */
+  @Select("select user_id from family_user_relations where family_id=#{familyId} "
+      + "and status='ACTIVE' order by user_id for update")
+  List<Long> lockActiveMemberIds(@Param("familyId") Long familyId);
+
+  /**
    * 统计成员。
    *
    * @param familyId 家庭标识

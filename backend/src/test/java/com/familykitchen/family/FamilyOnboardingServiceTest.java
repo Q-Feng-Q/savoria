@@ -39,7 +39,9 @@ class FamilyOnboardingServiceTest {
     join.setStatus("PENDING");
     when(applications.findLatestByApplicant(7L)).thenReturn(application);
     when(workflows.findLatestCodeApplication(7L)).thenReturn(join);
-    var service = new FamilyMemberApplicationServiceImpl(applications, relations, workflows, users, merchantInvitations, notifications);
+    var service = new FamilyMemberApplicationServiceImpl(applications, relations, workflows, users,
+        merchantInvitations, notifications,
+        org.mockito.Mockito.mock(com.familykitchen.cart.service.ActiveCartMemberCleanupService.class));
     var current = new CurrentUserContext(7L, null, null, 7L, "user", Set.of(), Set.of());
 
     var result = service.onboarding(current);

@@ -3,6 +3,7 @@ package com.familykitchen.family.service.impl;
 import com.familykitchen.common.error.BusinessException;
 import com.familykitchen.common.error.ErrorCode;
 import com.familykitchen.common.security.CurrentUserContext;
+import com.familykitchen.cart.service.ActiveCartMemberCleanupService;
 import com.familykitchen.family.mapper.FamilyApplicationMapper;
 import com.familykitchen.family.mapper.FamilyRelationMapper;
 import com.familykitchen.family.mapper.FamilyWorkflowMapper;
@@ -32,6 +33,7 @@ public class FamilyMemberApplicationServiceImpl implements FamilyMemberApplicati
   private final FamilyWorkflowMapper workflowMapper; private final UserMapper userMapper;
   private final MerchantInvitationMapper merchantInvitations;
   private final NotificationPersistenceMapper notificationMapper;
+  private final ActiveCartMemberCleanupService cartCleanup;
   /**
    * 创建家庭成员实例。
    *
@@ -41,10 +43,12 @@ public class FamilyMemberApplicationServiceImpl implements FamilyMemberApplicati
    * @param userMapper 用户Mapper
    * @param merchantInvitations 商户Invitations
    * @param notificationMapper 通知Mapper
+   * @param cartCleanup active cart cleanup
    */
   public FamilyMemberApplicationServiceImpl(FamilyApplicationMapper applicationMapper,FamilyRelationMapper relationMapper,
-      FamilyWorkflowMapper workflowMapper,UserMapper userMapper,MerchantInvitationMapper merchantInvitations,NotificationPersistenceMapper notificationMapper){this.applicationMapper=applicationMapper;
-    this.relationMapper=relationMapper;this.workflowMapper=workflowMapper;this.userMapper=userMapper;this.merchantInvitations=merchantInvitations;this.notificationMapper=notificationMapper;}
+      FamilyWorkflowMapper workflowMapper,UserMapper userMapper,MerchantInvitationMapper merchantInvitations,
+      NotificationPersistenceMapper notificationMapper,ActiveCartMemberCleanupService cartCleanup){this.applicationMapper=applicationMapper;
+    this.relationMapper=relationMapper;this.workflowMapper=workflowMapper;this.userMapper=userMapper;this.merchantInvitations=merchantInvitations;this.notificationMapper=notificationMapper;this.cartCleanup=cartCleanup;}
 
   /**
    * 处理家庭成员。
@@ -164,8 +168,14 @@ public class FamilyMemberApplicationServiceImpl implements FamilyMemberApplicati
    * @param user 用户
    * @param reason 原因
    */
-  @Override @Transactional public void exitFamily(CurrentUserContext user,String reason){if(relationMapper.exit(user.userId(),user.userId(),reason)==0)
-    throw new BusinessException(ErrorCode.BUSINESS_INVALID,"家庭负责人需先转让或解散家庭");}
+  @Override @Transactional public void exitFamily(CurrentUserContext user,String reason){
+    if(user.familyId()==null||"owner".equalsIgnoreCase(user.roleTemplate()))
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID,"家庭负责人需先转让或解散家庭");
+    cartCleanup.removeMember(user.familyId(),user.userId());
+    String lockedRole=relationMapper.lockActiveRole(user.userId(),user.familyId());
+    if(lockedRole==null||"OWNER".equalsIgnoreCase(lockedRole)
+        ||relationMapper.exit(user.userId(),user.userId(),reason)==0)
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID,"家庭负责人需先转让或解散家庭");}
   /**
    * 查询当前负责人可选择的有效成员。
    *
@@ -217,6 +227,7 @@ public class FamilyMemberApplicationServiceImpl implements FamilyMemberApplicati
    * @param user 用户
    */
   @Override @Transactional public void dissolveFamily(CurrentUserContext user){if(!"owner".equalsIgnoreCase(user.roleTemplate()))throw new BusinessException(ErrorCode.FORBIDDEN,"只有负责人可以解散家庭");
+    cartCleanup.removeFamily(user.familyId());workflowMapper.lockActiveMemberIds(user.familyId());
     workflowMapper.invalidateRequests(user.familyId());workflowMapper.disableCodes(user.familyId());workflowMapper.dissolveRelations(user.familyId(),user.userId());workflowMapper.disableFamily(user.familyId());}
   private void requireFamilyAdmin(CurrentUserContext u){if(!u.hasFamilyAdminAccess())throw new BusinessException(ErrorCode.FORBIDDEN,"无家庭管理权限");}
   private void requireOwner(CurrentUserContext user) {
@@ -224,7 +235,12 @@ public class FamilyMemberApplicationServiceImpl implements FamilyMemberApplicati
       throw new BusinessException(ErrorCode.FORBIDDEN, "只有负责人可以转让家庭");
     }
   }
-  private void requireNoFamily(Long userId){if(relationMapper.findActiveFamilyId(userId)!=null)throw new BusinessException(ErrorCode.USER_ALREADY_IN_FAMILY,"用户已经加入家庭");}
+  private void requireNoFamily(Long userId){
+    String status=userMapper.lockStatus(userId);
+    if(!"ACTIVE".equalsIgnoreCase(status))
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID,"用户状态不允许加入家庭");
+    if(relationMapper.findActiveFamilyId(userId)!=null)
+      throw new BusinessException(ErrorCode.USER_ALREADY_IN_FAMILY,"用户已经加入家庭");}
   private void requireActiveFamily(Long familyId){if(workflowMapper.countActiveFamily(familyId)==0)
     throw new BusinessException(ErrorCode.BUSINESS_INVALID,"家庭不存在或已停用");}
   private FamilyMembershipRequestDO requirePending(Long id){FamilyMembershipRequestDO e=workflowMapper.lockRequest(id);if(e==null)throw new BusinessException(ErrorCode.NOT_FOUND,"邀请或申请不存在");

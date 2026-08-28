@@ -97,6 +97,10 @@
     where cart_id = #{cartId}
     order by id asc
   </select>
+  <select id="selectCartItemsForUpdate" resultMap="CartItemMap">
+    select id, cart_id, dish_id, dish_name_snapshot, price, quantity, item_remark
+    from cart_items where cart_id=#{cartId} order by id asc for update
+  </select>
 
   <select id="selectCartItem" resultMap="CartItemMap">
     select id, cart_id, dish_id, dish_name_snapshot, price, quantity, item_remark
@@ -135,10 +139,20 @@
     from cart_item_selections cis left join users u on u.id=cis.user_id
     where cis.cart_item_id=#{itemId} and cis.user_id=#{userId}
   </select>
+  <select id="selectSelectionForUpdate" resultMap="SelectionMap">
+    select cis.id,cis.cart_item_id,cis.user_id,cis.quantity,cis.item_remark
+    from cart_item_selections cis
+    where cis.cart_item_id=#{itemId} and cis.user_id=#{userId} for update
+  </select>
   <select id="selectSelections" resultMap="SelectionMap">
     select cis.id,cis.cart_item_id,cis.user_id,coalesce(nullif(u.nickname,''),u.username) member_name,cis.quantity,cis.item_remark
     from cart_item_selections cis left join users u on u.id=cis.user_id
     where cis.cart_item_id=#{itemId} order by cis.user_id
+  </select>
+  <select id="selectSelectionsForUpdate" resultMap="SelectionMap">
+    select cis.id,cis.cart_item_id,cis.user_id,cis.quantity,cis.item_remark
+    from cart_item_selections cis
+    where cis.cart_item_id=#{itemId} order by cis.user_id for update
   </select>
   <insert id="upsertSelection">
     insert into cart_item_selections(cart_item_id,user_id,quantity,item_remark) values(#{itemId},#{userId},#{quantity},#{remark})
@@ -147,6 +161,11 @@
   <delete id="deleteSelection">delete from cart_item_selections where cart_item_id=#{itemId} and user_id=#{userId}</delete>
   <select id="sumSelections" resultType="int">select coalesce(sum(quantity),0) from cart_item_selections where cart_item_id=#{itemId}</select>
   <delete id="deleteAggregateItem">delete from cart_items where id=#{itemId}</delete>
+  <delete id="deleteAllSelections">
+    delete cis from cart_item_selections cis join cart_items ci on ci.id=cis.cart_item_id
+    where ci.cart_id=#{cartId}
+  </delete>
+  <delete id="deleteAllAggregateItems">delete from cart_items where cart_id=#{cartId}</delete>
 
   <delete id="deleteCartItem">
     delete ci

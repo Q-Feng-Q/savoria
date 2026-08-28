@@ -17,6 +17,13 @@ public interface UserMapper {
    */
   UserDO findById(@Param("id") Long id);
   /**
+   * Locks a user while an active family relation is created.
+   *
+   * @param id user identifier
+   * @return current user status
+   */
+  String lockStatus(@Param("id") Long id);
+  /**
    * 查询ByLoginIdentifier。
    *
    * @param identifier identifier

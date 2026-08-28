@@ -92,12 +92,30 @@ public interface CartMapper {
       @Param("userId") Long userId);
 
   /**
+   * Current-reads and locks one member attribution row.
+   *
+   * @param itemId aggregate item identifier
+   * @param userId member identifier
+   * @return locked selection or null
+   */
+  CartItemSelectionEntity selectSelectionForUpdate(
+      @Param("itemId") Long itemId, @Param("userId") Long userId);
+
+  /**
    * Lists member attribution rows.
    *
    * @param itemId aggregate item identifier
    * @return selections
    */
   List<CartItemSelectionEntity> selectSelections(@Param("itemId") Long itemId);
+
+  /**
+   * Current-reads and locks all attribution rows for immutable order snapshotting.
+   *
+   * @param itemId aggregate item identifier
+   * @return locked selections
+   */
+  List<CartItemSelectionEntity> selectSelectionsForUpdate(@Param("itemId") Long itemId);
 
   /**
    * Upserts a member absolute quantity.
@@ -135,6 +153,22 @@ public interface CartMapper {
    * @return affected rows
    */
   int deleteAggregateItem(@Param("itemId") Long itemId);
+
+  /**
+   * Deletes all attribution rows from one cart.
+   *
+   * @param cartId cart identifier
+   * @return affected rows
+   */
+  int deleteAllSelections(@Param("cartId") Long cartId);
+
+  /**
+   * Deletes all aggregate rows from one cart.
+   *
+   * @param cartId cart identifier
+   * @return affected rows
+   */
+  int deleteAllAggregateItems(@Param("cartId") Long cartId);
 
   /**
    * 新增餐篮并回填数据库生成的餐篮 ID。
@@ -185,6 +219,14 @@ public interface CartMapper {
    * @return 查询购物车项目列表的结果
    */
   List<CartItemEntity> selectCartItems(@Param("cartId") Long cartId);
+
+  /**
+   * Current-reads and locks aggregate items for membership cleanup or submission.
+   *
+   * @param cartId cart identifier
+   * @return locked cart items
+   */
+  List<CartItemEntity> selectCartItemsForUpdate(@Param("cartId") Long cartId);
 
   /**
    * 查询购物车项目。

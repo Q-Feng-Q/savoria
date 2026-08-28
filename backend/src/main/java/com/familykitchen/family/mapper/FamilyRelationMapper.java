@@ -1,5 +1,6 @@
 package com.familykitchen.family.mapper;
 
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -13,6 +14,24 @@ public interface FamilyRelationMapper {
    * @return 查询Active家庭标识的结果
    */
   Long findActiveFamilyId(@Param("userId") Long userId);
+  /**
+   * Locks one active membership after the active cart has been locked.
+   *
+   * @param userId user identifier
+   * @param familyId family identifier
+   * @return role of the locked relation
+   */
+  String lockActiveRole(@Param("userId") Long userId, @Param("familyId") Long familyId);
+
+  /**
+   * Locks all currently active relations for members participating in a cart.
+   *
+   * @param familyId family identifier
+   * @param userIds participating user identifiers
+   * @return locked user identifiers
+   */
+  List<Long> lockActiveParticipants(
+      @Param("familyId") Long familyId, @Param("userIds") List<Long> userIds);
   /**
    * 新增Active。
    *

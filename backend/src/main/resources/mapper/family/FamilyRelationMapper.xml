@@ -4,6 +4,18 @@
   <select id="findActiveFamilyId" resultType="long">
     SELECT family_id FROM family_user_relations WHERE user_id=#{userId} AND status='ACTIVE' LIMIT 1
   </select>
+  <select id="lockActiveRole" resultType="string">
+    SELECT family_role FROM family_user_relations
+    WHERE user_id=#{userId} AND family_id=#{familyId} AND status='ACTIVE' FOR UPDATE
+  </select>
+  <select id="lockActiveParticipants" resultType="long">
+    SELECT user_id FROM family_user_relations
+    WHERE family_id=#{familyId} AND status='ACTIVE' AND user_id IN
+    <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+      #{userId}
+    </foreach>
+    ORDER BY user_id FOR UPDATE
+  </select>
   <insert id="insertActive">
     INSERT INTO family_user_relations(user_id,family_id,family_role,status,join_source,invitation_id,created_by)
     VALUES(#{userId},#{familyId},#{familyRole},'ACTIVE',#{joinSource},#{invitationId},#{createdBy})

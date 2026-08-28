@@ -11,6 +11,7 @@ import com.familykitchen.family.model.entity.FamilyApplicationDO;
 import com.familykitchen.family.model.entity.FamilyRecord;
 import com.familykitchen.notification.mapper.NotificationPersistenceMapper;
 import com.familykitchen.merchant.service.MerchantDefaultDataInitializer;
+import com.familykitchen.user.mapper.UserMapper;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ public class AdminFamilyApplicationServiceImpl implements AdminFamilyApplication
   private final FamilyWorkflowMapper workflowMapper;
   private final NotificationPersistenceMapper notificationMapper;
   private final MerchantDefaultDataInitializer merchantDefaults;
+  private final UserMapper users;
 
   /**
    * 创建平台管理家庭实例。
@@ -32,14 +34,16 @@ public class AdminFamilyApplicationServiceImpl implements AdminFamilyApplication
    * @param workflowMapper workflowMapper
    * @param notificationMapper 通知Mapper
    * @param merchantDefaults 商户默认目录初始化器
+   * @param users user mapper
    */
   public AdminFamilyApplicationServiceImpl(FamilyApplicationMapper applicationMapper,
       FamilyRelationMapper relationMapper,FamilyWorkflowMapper workflowMapper,
       NotificationPersistenceMapper notificationMapper,
-      MerchantDefaultDataInitializer merchantDefaults) {
+      MerchantDefaultDataInitializer merchantDefaults,UserMapper users) {
     this.applicationMapper=applicationMapper;
     this.relationMapper=relationMapper;this.workflowMapper=workflowMapper;this.notificationMapper=notificationMapper;
     this.merchantDefaults=merchantDefaults;
+    this.users=users;
   }
 
   /**
@@ -75,6 +79,8 @@ public class AdminFamilyApplicationServiceImpl implements AdminFamilyApplication
     }
     if(application.getMerchantId()==null||workflowMapper.countActiveMerchant(application.getMerchantId())==0)
       throw new BusinessException(ErrorCode.BUSINESS_INVALID,"申请关联的商户不存在或未启用");
+    if(!"ACTIVE".equalsIgnoreCase(users.lockStatus(application.getApplicantMemberId())))
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID,"申请人状态不允许创建家庭");
     if(relationMapper.findActiveFamilyId(application.getApplicantMemberId())!=null)
       throw new BusinessException(ErrorCode.USER_ALREADY_IN_FAMILY,"申请人已经加入家庭");
     FamilyRecord family=new FamilyRecord();family.setFamilyName(application.getFamilyName());family.setMerchantId(application.getMerchantId());

@@ -15,6 +15,7 @@ import com.familykitchen.wallet.model.entity.WalletAccountDO;
 import com.familykitchen.admin.model.dto.AdminUserCreateRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.familykitchen.cart.service.ActiveCartMemberCleanupService;
 
 /**
  * 定义平台管理用户相关的应用服务能力与调用边界。
@@ -24,6 +25,7 @@ public class AdminUserService {
   private final AdminUserMapper mapper;
   private final SessionService sessions;
   private final UserMapper users; private final PasswordCodec passwords; private final WalletPersistenceMapper wallets;
+  private final ActiveCartMemberCleanupService cartCleanup;
   /**
    * 创建平台管理用户实例。
    *
@@ -32,8 +34,11 @@ public class AdminUserService {
    * @param users users
    * @param passwords passwords
    * @param wallets wallets
+   * @param cartCleanup active cart cleanup
    */
-  public AdminUserService(AdminUserMapper mapper, SessionService sessions, UserMapper users, PasswordCodec passwords, WalletPersistenceMapper wallets) { this.mapper=mapper; this.sessions=sessions; this.users=users; this.passwords=passwords; this.wallets=wallets; }
+  public AdminUserService(AdminUserMapper mapper, SessionService sessions, UserMapper users,
+      PasswordCodec passwords, WalletPersistenceMapper wallets,
+      ActiveCartMemberCleanupService cartCleanup) { this.mapper=mapper; this.sessions=sessions; this.users=users; this.passwords=passwords; this.wallets=wallets;this.cartCleanup=cartCleanup; }
   /**
    * 列出平台管理用户。
    *
@@ -87,6 +92,16 @@ public class AdminUserService {
    */
   @Transactional public void delete(Long operatorId, Long userId) {
     if (operatorId.equals(userId)) throw new BusinessException(ErrorCode.BUSINESS_INVALID,"不能删除当前登录账号");
+    String lockedStatus=mapper.lockStatus(userId);
+    if(lockedStatus==null||"CANCELLED".equalsIgnoreCase(lockedStatus))
+      throw new BusinessException(ErrorCode.NOT_FOUND,"用户不存在或已删除");
+    Long familyId=mapper.findActiveFamilyId(userId);
+    if(familyId!=null){
+      cartCleanup.removeMember(familyId,userId);
+      Long lockedFamilyId=mapper.lockActiveFamilyId(userId);
+      if(lockedFamilyId!=null&&!familyId.equals(lockedFamilyId))
+        throw new BusinessException(ErrorCode.STATE_CONFLICT,"用户家庭关系已变化，请重试");
+    }
     if (mapper.anonymizeUser(userId)==0) throw new BusinessException(ErrorCode.NOT_FOUND,"用户不存在或已删除");
     mapper.disablePlatformRoles(userId);
     mapper.disableFamilyRelations(userId);

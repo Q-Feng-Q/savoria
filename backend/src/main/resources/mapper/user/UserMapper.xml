@@ -26,6 +26,7 @@
     status, password_changed_at, last_login_at, created_at, updated_at</sql>
 
   <select id="findById" resultMap="userMap">SELECT <include refid="columns"/> FROM users WHERE id=#{id}</select>
+  <select id="lockStatus" resultType="string">SELECT status FROM users WHERE id=#{id} FOR UPDATE</select>
   <select id="findByLoginIdentifier" resultMap="userMap">
     SELECT <include refid="columns"/> FROM users
     WHERE username=#{identifier} OR (email=#{identifier} AND email_verified=1) LIMIT 1
