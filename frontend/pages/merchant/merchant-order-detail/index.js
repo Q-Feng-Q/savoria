@@ -72,8 +72,12 @@ Page({
   },
 
   saveFee() {
+    const requestId = `fee-${this.data.id}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     return this.runMutation(
-      (merchant) => merchant.updateDeliveryFee(this.data.id, { deliveryFee: Number(this.data.feeInput || 0) }),
+      (merchant) => merchant.updateDeliveryFee(this.data.id, {
+        deliveryFee: Number(this.data.feeInput || 0),
+        requestId
+      }),
       '配送费已更新',
       '更新配送费失败'
     );

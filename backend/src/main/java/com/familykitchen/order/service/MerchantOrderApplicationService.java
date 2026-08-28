@@ -61,13 +61,14 @@ public interface MerchantOrderApplicationService {
   OrderStatus cancel(CurrentUserContext user, Long orderId, String reason);
 
   /**
-   * 在商户确认前调整配送费，多退少补会同步处理提交成员钱包冻结金额。
+   * 在商户确认前调整配送费，多退少补会同步处理家庭订单冻结金额。
    *
    * @param user 当前登录用户上下文
    * @param orderId 订单 ID
    * @param deliveryFee 新配送费
+   * @param requestId 幂等请求号
    */
-  void adjustDeliveryFee(CurrentUserContext user, Long orderId, BigDecimal deliveryFee);
+  void adjustDeliveryFee(CurrentUserContext user, Long orderId, BigDecimal deliveryFee, String requestId);
 
   /**
    * 推进订单状态。

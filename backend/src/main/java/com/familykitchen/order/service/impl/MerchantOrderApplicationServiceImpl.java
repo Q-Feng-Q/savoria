@@ -10,25 +10,19 @@ import com.familykitchen.order.model.bo.OrderSubmissionResult;
 import com.familykitchen.order.model.dto.OrderStatusRequest;
 import com.familykitchen.order.model.entity.OrderDeliverySnapshotEntity;
 import com.familykitchen.order.model.entity.OrderItemEntity;
+import com.familykitchen.order.model.entity.OrderItemSelectionEntity;
 import com.familykitchen.order.model.entity.OrderRecordEntity;
 import com.familykitchen.order.model.enums.DeliveryMode;
 import com.familykitchen.order.model.enums.OrderStatus;
 import com.familykitchen.order.model.vo.OrderView;
 import com.familykitchen.order.service.MerchantOrderApplicationService;
 import com.familykitchen.order.service.OrderStateMachine;
-import com.familykitchen.wallet.mapper.WalletPersistenceMapper;
-import com.familykitchen.wallet.model.bo.WalletAccount;
-import com.familykitchen.wallet.model.bo.WalletChange;
-import com.familykitchen.wallet.model.entity.WalletAccountDO;
-import com.familykitchen.wallet.model.entity.WalletLedgerDO;
+import com.familykitchen.wallet.service.FamilyWalletService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -46,7 +40,7 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
 
   private final OrderStateMachine orderStateMachine;
   private final OrderPersistenceMapper orderMapper;
-  private final WalletPersistenceMapper walletMapper;
+  private final FamilyWalletService wallet;
   private final NotificationPersistenceMapper notificationMapper;
 
   /**
@@ -54,18 +48,18 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
    *
    * @param orderStateMachine 订单StateMachine
    * @param orderMapper 订单Mapper
-   * @param walletMapper 钱包Mapper
+   * @param wallet family wallet service
    * @param notificationMapper 通知Mapper
    */
   public MerchantOrderApplicationServiceImpl(
     OrderStateMachine orderStateMachine,
     OrderPersistenceMapper orderMapper,
-    WalletPersistenceMapper walletMapper,
+    FamilyWalletService wallet,
     NotificationPersistenceMapper notificationMapper
   ) {
     this.orderStateMachine = orderStateMachine;
     this.orderMapper = orderMapper;
-    this.walletMapper = walletMapper;
+    this.wallet = wallet;
     this.notificationMapper = notificationMapper;
   }
 
@@ -103,7 +97,8 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
    */
   @Override
   public OrderStatus confirm(CurrentUserContext user, Long orderId) {
-    OrderSubmissionResult.SubmittedOrder current = requireOrder(user, orderId);
+    OrderSubmissionResult.SubmittedOrder current = requireOrderForUpdate(user, orderId);
+    if (current.status() == OrderStatus.CONFIRMED) return current.status();
     OrderStatus next = orderStateMachine.confirm(current.status());
     replaceAndNotify(current, next, current.deliveryFee(), current.totalAmount(), null, "订单已确认");
     return next;
@@ -118,9 +113,11 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
    */
   @Override
   public OrderStatus reject(CurrentUserContext user, Long orderId) {
-    OrderSubmissionResult.SubmittedOrder current = requireOrder(user, orderId);
+    OrderSubmissionResult.SubmittedOrder current = requireOrderForUpdate(user, orderId);
+    if (current.status() == OrderStatus.REJECTED) return current.status();
     OrderStatus next = orderStateMachine.reject(current.status());
-    addWalletChanges(releaseOrderFunds(current));
+    wallet.release(current.familyId(),current.orderId(),user.userId(),current.totalAmount(),
+        "order:"+current.orderId()+":merchant-reject");
     replaceAndNotify(current, next, current.deliveryFee(), current.totalAmount(), null, "订单已驳回");
     return next;
   }
@@ -135,9 +132,11 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
    */
   @Override
   public OrderStatus cancel(CurrentUserContext user, Long orderId, String reason) {
-    OrderSubmissionResult.SubmittedOrder current = requireOrder(user, orderId);
+    OrderSubmissionResult.SubmittedOrder current = requireOrderForUpdate(user, orderId);
+    if (current.status() == OrderStatus.CANCELLED) return current.status();
     OrderStatus next = orderStateMachine.merchantCancel(current.status(), reason);
-    addWalletChanges(releaseOrderFunds(current));
+    wallet.release(current.familyId(),current.orderId(),user.userId(),current.totalAmount(),
+        "order:"+current.orderId()+":merchant-cancel");
     replaceAndNotify(current, next, current.deliveryFee(), current.totalAmount(), blankToNull(reason), "订单已取消");
     return next;
   }
@@ -148,21 +147,29 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
    * @param user 用户
    * @param orderId 订单标识
    * @param deliveryFee 配送费用
+   * @param requestId 幂等请求号
    */
   @Override
-  public void adjustDeliveryFee(CurrentUserContext user, Long orderId, BigDecimal deliveryFee) {
-    // 配送费调整只影响提交人承担部分，因此只对提交人的钱包做补冻或释放。
-    OrderSubmissionResult.SubmittedOrder current = requireOrder(user, orderId);
+  public void adjustDeliveryFee(
+      CurrentUserContext user, Long orderId, BigDecimal deliveryFee, String requestId) {
+    if (deliveryFee == null || deliveryFee.scale() > 2 || deliveryFee.signum() < 0
+        || requestId == null || requestId.isBlank()) {
+      throw new BusinessException(ErrorCode.BAD_REQUEST, "配送费和请求号格式不正确");
+    }
+    OrderSubmissionResult.SubmittedOrder current = requireOrderForUpdate(user, orderId);
     orderStateMachine.validateDeliveryFeeAdjustment(current.status());
 
-    BigDecimal targetFee = money(deliveryFee);
-    BigDecimal diff = targetFee.subtract(money(current.deliveryFee())).setScale(2, RoundingMode.HALF_UP);
-    WalletAccount submitterWallet = walletOf(current.submitterMemberId());
-
+    BigDecimal targetFee = deliveryFee.setScale(2);
+    BigDecimal diff = targetFee.subtract(money(current.deliveryFee()));
+    String businessKey = "order:" + current.orderId() + ":fee:" + requestId.trim();
     if (diff.compareTo(BigDecimal.ZERO) > 0) {
-      addWalletChanges(List.of(submitterWallet.freeze(diff)));
+      wallet.appendFreeze(current.familyId(),current.orderId(),user.userId(),diff,
+          businessKey);
     } else if (diff.compareTo(BigDecimal.ZERO) < 0) {
-      addWalletChanges(List.of(submitterWallet.release(diff.abs())));
+      wallet.release(current.familyId(),current.orderId(),user.userId(),diff.abs(),
+          businessKey);
+    } else {
+      return;
     }
 
     BigDecimal totalAmount = money(current.totalAmount()).subtract(money(current.deliveryFee())).add(targetFee);
@@ -180,10 +187,12 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
    */
   @Override
   public OrderStatus advance(CurrentUserContext user, Long orderId, OrderStatusRequest request) {
-    OrderSubmissionResult.SubmittedOrder current = requireOrder(user, orderId);
+    OrderSubmissionResult.SubmittedOrder current = requireOrderForUpdate(user, orderId);
+    if (current.status() == request.status()) return current.status();
     OrderStatus next = orderStateMachine.advance(current.status(), request.status(), request.reason());
     if (next == OrderStatus.DONE) {
-      addWalletChanges(settleOrderFunds(current));
+      wallet.capture(current.familyId(),current.orderId(),user.userId(),current.totalAmount(),
+          "order:"+current.orderId()+":complete");
       replaceAndNotify(current, next, current.deliveryFee(), current.totalAmount(), current.cancelReason(), "订单已完成");
       return next;
     }
@@ -218,71 +227,6 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
   }
 
   /**
-   * 批量加载成员钱包。
-   */
-  private Map<Long, WalletAccount> loadWallets(Set<Long> memberIds) {
-    if (memberIds == null || memberIds.isEmpty()) {
-      return Map.of();
-    }
-    return walletMapper.selectWalletsByMemberIdsForUpdate(memberIds).stream()
-      .collect(Collectors.toMap(
-        WalletAccountDO::getMemberId,
-        item -> new WalletAccount(item.getMemberId(), item.getBalanceAmount(), item.getFrozenAmount()),
-        (left, right) -> left,
-        LinkedHashMap::new
-      ));
-  }
-
-  /**
-   * 读取单个成员钱包。
-   */
-  private WalletAccount walletOf(Long memberId) {
-    WalletAccountDO wallet = walletMapper.selectWalletByMemberIdForUpdate(memberId);
-    if (wallet == null) {
-      throw new BusinessException(ErrorCode.NOT_FOUND, "未找到成员钱包");
-    }
-    return new WalletAccount(wallet.getMemberId(), wallet.getBalanceAmount(), wallet.getFrozenAmount());
-  }
-
-  /**
-   * 释放订单关联的全部冻结资金，用于驳回和取消。
-   */
-  private List<WalletChange> releaseOrderFunds(OrderSubmissionResult.SubmittedOrder order) {
-    Map<Long, BigDecimal> amounts = memberAmounts(order);
-    Map<Long, WalletAccount> wallets = loadWallets(amounts.keySet());
-    List<WalletChange> changes = new ArrayList<>();
-    for (Map.Entry<Long, BigDecimal> entry : amounts.entrySet()) {
-      changes.add(wallets.get(entry.getKey()).release(entry.getValue()));
-    }
-    return changes;
-  }
-
-  /**
-   * 将订单冻结金额结算为正式消费。
-   */
-  private List<WalletChange> settleOrderFunds(OrderSubmissionResult.SubmittedOrder order) {
-    Map<Long, BigDecimal> amounts = memberAmounts(order);
-    Map<Long, WalletAccount> wallets = loadWallets(amounts.keySet());
-    List<WalletChange> changes = new ArrayList<>();
-    for (Map.Entry<Long, BigDecimal> entry : amounts.entrySet()) {
-      changes.add(wallets.get(entry.getKey()).settle(entry.getValue()));
-    }
-    return changes;
-  }
-
-  /**
-   * 计算每个成员在订单中的应付金额。
-   */
-  private Map<Long, BigDecimal> memberAmounts(OrderSubmissionResult.SubmittedOrder order) {
-    Map<Long, BigDecimal> result = new LinkedHashMap<>();
-    for (OrderSubmissionResult.SubmittedOrderItem item : order.items()) {
-      result.merge(item.ownerMemberId(), money(item.amount()), BigDecimal::add);
-    }
-    result.merge(order.submitterMemberId(), money(order.deliveryFee()), BigDecimal::add);
-    return result;
-  }
-
-  /**
    * 替换订单状态并发送通知。
    */
   private void replaceAndNotify(
@@ -304,26 +248,15 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
     orderMapper.updateOrder(toOrderEntity(order));
   }
 
-  /**
-   * 写入钱包变更及流水。
-   */
-  private void addWalletChanges(List<WalletChange> changes) {
-    if (changes == null || changes.isEmpty()) {
-      return;
+  /** Locks and reads one merchant order before changing lifecycle or money state. */
+  private OrderSubmissionResult.SubmittedOrder requireOrderForUpdate(
+      CurrentUserContext user, Long orderId) {
+    OrderRecordEntity row = orderMapper.selectOrderByMerchantIdForUpdate(
+        user.merchantId(), orderId);
+    if (row == null) {
+      throw new BusinessException(ErrorCode.NOT_FOUND, "未找到订单");
     }
-    for (WalletChange change : changes) {
-      walletMapper.updateWalletAmounts(change.memberId(), change.balanceAfter(), change.frozenAfter());
-      WalletLedgerDO ledger = new WalletLedgerDO();
-      ledger.setMemberId(change.memberId());
-      ledger.setType(change.type().name());
-      ledger.setAmount(change.amount());
-      ledger.setBalanceBefore(change.balanceBefore());
-      ledger.setBalanceAfter(change.balanceAfter());
-      ledger.setFrozenBefore(change.frozenBefore());
-      ledger.setFrozenAfter(change.frozenAfter());
-      ledger.setRemark("order");
-      walletMapper.insertWalletLedger(ledger);
-    }
+    return hydrate(List.of(row)).get(0);
   }
 
   /**
@@ -347,14 +280,22 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
       return List.of();
     }
     List<Long> ids = orders.stream().map(OrderRecordEntity::getId).toList();
-    Map<Long, List<OrderItemEntity>> itemsByOrder = orderMapper.selectOrderItemsByOrderIds(ids).stream()
+    List<OrderItemEntity> itemRows = orderMapper.selectOrderItemsByOrderIds(ids);
+    Map<Long, List<OrderItemEntity>> itemsByOrder = itemRows.stream()
       .collect(Collectors.groupingBy(OrderItemEntity::getOrderId));
+    List<Long> itemIds = itemRows.stream().map(OrderItemEntity::getId)
+        .filter(java.util.Objects::nonNull).toList();
+    Map<Long, List<OrderItemSelectionEntity>> selectionsByItem = itemIds.isEmpty()
+        ? Map.of()
+        : orderMapper.selectOrderItemSelections(itemIds).stream()
+            .collect(Collectors.groupingBy(item -> item.orderItemId));
     Map<Long, OrderDeliverySnapshotEntity> snapshots = orderMapper.selectDeliverySnapshotsByOrderIds(ids).stream()
       .collect(Collectors.toMap(OrderDeliverySnapshotEntity::getOrderId, item -> item));
     return orders.stream()
       .map(order -> toSubmittedOrder(
         order,
         itemsByOrder.getOrDefault(order.getId(), List.of()),
+        selectionsByItem,
         snapshots.get(order.getId())
       ))
       .toList();
@@ -366,6 +307,7 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
   private OrderSubmissionResult.SubmittedOrder toSubmittedOrder(
     OrderRecordEntity order,
     List<OrderItemEntity> items,
+    Map<Long, List<OrderItemSelectionEntity>> selectionsByItem,
     OrderDeliverySnapshotEntity snapshot
   ) {
     DeliverySnapshot deliverySnapshot = snapshot == null
@@ -373,11 +315,13 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
       : new DeliverySnapshot(snapshot.getContactName(), snapshot.getContactPhone(), snapshot.getAddressText());
     return new OrderSubmissionResult.SubmittedOrder(
       order.getId(),
+      order.getSourceCartId(),
       order.getMerchantId(),
       order.getFamilyId(),
       order.getSubmitterMemberId(),
       order.getMealSlotId(),
       order.getServiceDate(),
+      order.getExpectedMealTime(),
       DeliveryMode.valueOf(order.getDeliveryMode()),
       order.getDeliveryFee(),
       OrderStatus.valueOf(order.getStatus()),
@@ -393,7 +337,12 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
           item.getPrice(),
           item.getQuantity(),
           item.getAmount(),
-          item.getItemRemark()
+          item.getItemRemark(),
+          selectionsByItem.getOrDefault(item.getId(), List.of()).stream()
+              .map(selection -> new OrderSubmissionResult.MemberSelection(
+                  selection.userId, selection.memberNameSnapshot,
+                  selection.quantity, selection.itemRemark))
+              .toList()
         ))
         .toList()
     );
@@ -405,45 +354,21 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
   private OrderRecordEntity toOrderEntity(OrderSubmissionResult.SubmittedOrder order) {
     OrderRecordEntity entity = new OrderRecordEntity();
     entity.setId(order.orderId());
+    entity.setSourceCartId(order.sourceCartId());
     entity.setMerchantId(order.merchantId());
     entity.setFamilyId(order.familyId());
     entity.setSubmitterMemberId(order.submitterMemberId());
     entity.setMealSlotId(order.mealSlotId());
     entity.setServiceDate(order.serviceDate());
+    entity.setExpectedMealTime(order.expectedMealTime());
     entity.setDeliveryMode(order.deliveryMode().name());
     entity.setDeliveryFee(order.deliveryFee());
-    entity.setDeliveryFeePayerMemberId(order.submitterMemberId());
+    entity.setDeliveryFeePayerMemberId(null);
     entity.setStatus(order.status().name());
     entity.setTotalAmount(order.totalAmount());
     entity.setRemark(order.remark());
     entity.setCancelReason(order.cancelReason());
     return entity;
-  }
-
-  /**
-   * 保存订单明细和配送快照。
-   */
-  private void saveOrderChildren(Long orderId, OrderSubmissionResult.SubmittedOrder order) {
-    for (OrderSubmissionResult.SubmittedOrderItem item : order.items()) {
-      OrderItemEntity entity = new OrderItemEntity();
-      entity.setOrderId(orderId);
-      entity.setDishId(item.dishId());
-      entity.setOwnerMemberId(item.ownerMemberId());
-      entity.setDishNameSnapshot(item.dishName());
-      entity.setPrice(item.price());
-      entity.setQuantity(item.quantity());
-      entity.setAmount(item.amount());
-      entity.setItemRemark(item.itemRemark());
-      orderMapper.insertOrderItem(entity);
-    }
-    if (order.deliverySnapshot() != null) {
-      OrderDeliverySnapshotEntity snapshot = new OrderDeliverySnapshotEntity();
-      snapshot.setOrderId(orderId);
-      snapshot.setContactName(order.deliverySnapshot().contactName());
-      snapshot.setContactPhone(order.deliverySnapshot().contactPhone());
-      snapshot.setAddressText(order.deliverySnapshot().addressText());
-      orderMapper.insertDeliverySnapshot(snapshot);
-    }
   }
 
   /**
@@ -458,11 +383,13 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
   ) {
     return new OrderSubmissionResult.SubmittedOrder(
       current.orderId(),
+      current.sourceCartId(),
       current.merchantId(),
       current.familyId(),
       current.submitterMemberId(),
       current.mealSlotId(),
       current.serviceDate(),
+      current.expectedMealTime(),
       current.deliveryMode(),
       money(deliveryFee),
       status,
@@ -480,11 +407,13 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
   private static OrderView toView(OrderSubmissionResult.SubmittedOrder order) {
     return new OrderView(
       order.orderId(),
+      order.sourceCartId(),
       order.merchantId(),
       order.familyId(),
       order.submitterMemberId(),
       order.mealSlotId(),
       order.serviceDate(),
+      order.expectedMealTime(),
       order.deliveryMode(),
       order.deliveryFee(),
       order.status(),
@@ -499,7 +428,10 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
           item.price(),
           item.quantity(),
           item.amount(),
-          item.itemRemark()
+          item.itemRemark(),
+          item.selections().stream().map(selection ->
+              new OrderView.MemberSelectionView(selection.userId(), selection.memberName(),
+                  selection.quantity(), selection.itemRemark())).toList()
         ))
         .toList()
     );

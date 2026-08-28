@@ -30,11 +30,16 @@ class WalletOrderLockingContractTest {
 
     String merchant = read(
         "src/main/java/com/familykitchen/order/service/impl/MerchantOrderApplicationServiceImpl.java");
-    assertThat(merchant).contains("walletMapper.selectWalletsByMemberIdsForUpdate(memberIds)");
-    assertThat(merchant).doesNotContain("walletMapper.selectWalletsByMemberIds(memberIds)");
-    assertThat(merchant).contains("walletMapper.selectWalletByMemberIdForUpdate(memberId)");
-    assertThat(merchant).doesNotContain("walletMapper.selectWalletByMemberId(memberId)");
+    assertThat(merchant).contains("FamilyWalletService");
+    assertThat(merchant).contains("wallet.appendFreeze(", "wallet.release(", "wallet.capture(");
+    assertThat(merchant).doesNotContain("WalletPersistenceMapper", "selectWalletByMemberId");
     assertThat(merchant).contains("@Transactional");
+
+    String orderMapper = read("src/main/resources/mapper/order/OrderPersistenceMapper.xml");
+    assertThat(orderMapper).containsPattern(
+        "(?s)selectOrderByFamilyIdForUpdate.*family_id.*id.*for update");
+    assertThat(orderMapper).containsPattern(
+        "(?s)selectOrderByMerchantIdForUpdate.*merchant_id.*id.*for update");
   }
 
   private static String read(String relative) throws Exception {

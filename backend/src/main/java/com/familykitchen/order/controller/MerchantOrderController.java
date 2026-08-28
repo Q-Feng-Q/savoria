@@ -150,7 +150,8 @@ public class MerchantOrderController {
       @Valid @RequestBody DeliveryFeeRequest body
   ) {
     CurrentUserContext user = requireMerchant(request);
-    merchantOrderApplicationService.adjustDeliveryFee(user, orderId, body.deliveryFee());
+    merchantOrderApplicationService.adjustDeliveryFee(
+        user, orderId, body.deliveryFee(), body.requestId());
     return ApiResponse.ok();
   }
 

@@ -71,9 +71,21 @@
     from orders where family_id = #{familyId} and id = #{orderId}
   </select>
 
+  <select id="selectOrderByFamilyIdForUpdate" resultMap="OrderRecordMap">
+    select <include refid="OrderColumns"/>
+    from orders where family_id = #{familyId} and id = #{orderId}
+    for update
+  </select>
+
   <select id="selectOrderByMerchantId" resultMap="OrderRecordMap">
     select <include refid="OrderColumns"/>
     from orders where merchant_id = #{merchantId} and id = #{orderId}
+  </select>
+
+  <select id="selectOrderByMerchantIdForUpdate" resultMap="OrderRecordMap">
+    select <include refid="OrderColumns"/>
+    from orders where merchant_id = #{merchantId} and id = #{orderId}
+    for update
   </select>
 
   <select id="selectOrderItemsByOrderIds" resultMap="OrderItemMap">

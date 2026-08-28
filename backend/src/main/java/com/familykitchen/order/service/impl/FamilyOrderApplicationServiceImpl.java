@@ -171,7 +171,7 @@ public class FamilyOrderApplicationServiceImpl implements FamilyOrderApplication
   }
   /** {@inheritDoc} */
   @Override public void cancel(CurrentUserContext user,Long orderId,String reason){
-    OrderSubmissionResult.SubmittedOrder current=requireOrder(user.familyId(),orderId);
+    OrderSubmissionResult.SubmittedOrder current=requireOrderForUpdate(user.familyId(),orderId);
     if(current.status()==OrderStatus.CANCELLED)return;
     OrderStatus next=states.familyCancel(current.status());
     wallet.release(user.familyId(),orderId,user.userId(),current.totalAmount(),
@@ -184,6 +184,12 @@ public class FamilyOrderApplicationServiceImpl implements FamilyOrderApplication
 
   private OrderSubmissionResult.SubmittedOrder requireOrder(Long familyId,Long orderId){
     OrderRecordEntity row=orders.selectOrderByFamilyId(familyId,orderId);
+    if(row==null)throw new BusinessException(ErrorCode.NOT_FOUND,"未找到订单");
+    return hydrate(List.of(row)).get(0);
+  }
+
+  private OrderSubmissionResult.SubmittedOrder requireOrderForUpdate(Long familyId,Long orderId){
+    OrderRecordEntity row=orders.selectOrderByFamilyIdForUpdate(familyId,orderId);
     if(row==null)throw new BusinessException(ErrorCode.NOT_FOUND,"未找到订单");
     return hydrate(List.of(row)).get(0);
   }

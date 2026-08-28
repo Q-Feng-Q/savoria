@@ -49,6 +49,14 @@ public interface OrderPersistenceMapper {
    */
   OrderRecordEntity selectOrderByFamilyId(@Param("familyId") Long familyId, @Param("orderId") Long orderId);
 
+  /** Locks one family order before a money or lifecycle mutation.
+   * @param familyId family identifier
+   * @param orderId order identifier
+   * @return locked order row, or null
+   */
+  OrderRecordEntity selectOrderByFamilyIdForUpdate(
+      @Param("familyId") Long familyId, @Param("orderId") Long orderId);
+
   /**
    * 查询订单By商户标识。
    *
@@ -57,6 +65,14 @@ public interface OrderPersistenceMapper {
    * @return 查询订单By商户标识的结果
    */
   OrderRecordEntity selectOrderByMerchantId(@Param("merchantId") Long merchantId, @Param("orderId") Long orderId);
+
+  /** Locks one merchant order before a money or lifecycle mutation.
+   * @param merchantId merchant identifier
+   * @param orderId order identifier
+   * @return locked order row, or null
+   */
+  OrderRecordEntity selectOrderByMerchantIdForUpdate(
+      @Param("merchantId") Long merchantId, @Param("orderId") Long orderId);
 
   /**
    * 查询订单项目列表By订单Ids。
