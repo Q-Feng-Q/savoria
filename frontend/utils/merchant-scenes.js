@@ -304,12 +304,9 @@ function buildApiMerchantFamiliesScene({ session, families = [] }) {
         value: `${families.filter((item) => item.deliveryEnabled).length}`,
         note: '已开启配送家庭'
       },
-      {
-        key: 'lowBalance',
-        label: '低余额提醒',
-        value: `${families.reduce((sum, item) => sum + Number(item.lowBalanceMemberCount || 0), 0)}`,
-        note: '需关注成员余额'
-      }
+      { key: 'activeMenus', label: '生效菜品',
+        value: `${families.reduce((sum, item) => sum + Number(item.activeMenuCount || 0), 0)}`,
+        note: '全部服务家庭已启用菜品' }
     ],
     families: families.map((item) => ({
       id: item.familyId,
@@ -318,7 +315,7 @@ function buildApiMerchantFamiliesScene({ session, families = [] }) {
       note: item.note || '暂无家庭备注',
       deliveryText: item.deliverySummary || '未设置配送规则',
       pendingOrderText: `生效菜品 ${item.activeMenuCount || 0} 道`,
-      lowBalanceText: `低余额成员 ${item.lowBalanceMemberCount || 0} 人`,
+      lowBalanceText: '家庭钱包统一结算',
       defaultAddressText: item.defaultAddressText || '暂无默认地址',
       menuSourceText: `冻结金额 ${formatCurrency(item.frozenBalanceTotal)}`,
       activeClass: ''

@@ -5,11 +5,10 @@ const path = require('node:path');
 
 const { createAuthService } = require('../services/auth');
 const { createFamilyService } = require('../services/family');
-const { createOrdersService } = require('../services/orders');
 
 const root = path.resolve(__dirname, '..');
 
-test('account recovery, family exit and pending order update use backend endpoints', async () => {
+test('account recovery and family exit use backend endpoints', async () => {
   const calls = [];
   const request = async (pathname, options) => {
     calls.push({ pathname, options });
@@ -17,18 +16,15 @@ test('account recovery, family exit and pending order update use backend endpoin
   };
   const auth = createAuthService({ request });
   const family = createFamilyService({ request });
-  const orders = createOrdersService({ request });
 
   await auth.sendPasswordResetCode({ email: 'family@example.com' });
   await auth.resetPassword({ email: 'family@example.com', code: '123456', newPassword: '654321' });
   await family.exitFamily();
-  await orders.updateOrder(18);
 
   assert.deepEqual(calls.map((item) => `${item.options.method} ${item.pathname}`), [
     'POST /api/auth/password/reset-code',
     'POST /api/auth/password/reset',
-    'POST /api/family/exit',
-    'PUT /api/family/orders/18'
+    'POST /api/family/exit'
   ]);
 });
 

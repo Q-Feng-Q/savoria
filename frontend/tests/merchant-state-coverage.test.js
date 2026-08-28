@@ -82,7 +82,7 @@ test('missing merchant family detail becomes a successful empty state without op
     getFamilyDetail: async () => null,
     getFamilyMenu: async () => { optionalReads += 1; return [] },
     getOrders: async () => { optionalReads += 1; return [] },
-    getMemberWalletLedgers: async () => { optionalReads += 1; return [] }
+    getFamilyWallet: async () => { optionalReads += 1; return null }
   } }) } }
   require.cache[pageApiPath] = { exports: {
     requireSession: () => ({ merchantId: 3 }),

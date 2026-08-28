@@ -1768,3 +1768,102 @@ Content-Type: application/json
 6. 审核通过只更新平台模板，不把新模板自动覆盖到当前商户或其他商户已有菜品。
 
 服务端自动覆盖菜名、简介、图片、价格和食材；模板分类、标签、餐次、图片授权、排序和启用状态保持来源模板值。因此前端没有这些字段的选择或编辑步骤。
+
+## 21. 家庭共享餐篮、预计用餐时间与家庭钱包（当前权威契约）
+
+本节自 2026-08-25 起取代本文旧版按 `date + mealSlotId` 划分餐篮、提交订单选择付款成员、个人钱包结算的说明。旧字段只用于读取历史订单，不得用于新点餐流程。
+
+### 21.1 单一活动餐篮
+
+```http
+GET /api/family/cart
+```
+
+查询不接收日期或餐次参数。响应必须包含服务器权威可用性字段：
+
+```json
+{
+  "serverNow": "2026-08-28T17:02:00",
+  "serverDate": "2026-08-28",
+  "minimumExpectedMealTime": "2026-08-28T17:15:00",
+  "timeStepMinutes": 15,
+  "bookingEnded": false,
+  "cartId": 7,
+  "version": 3,
+  "expectedMealTime": "2026-08-28T18:30:00",
+  "remark": "少盐",
+  "totalQuantity": 3,
+  "totalAmount": 114.00,
+  "items": [{
+    "itemId": 21,
+    "dishId": 9,
+    "dishName": "番茄牛腩",
+    "price": 38.00,
+    "quantity": 3,
+    "currentMemberQuantity": 1,
+    "currentMemberRemark": "少盐",
+    "selections": [
+      { "memberId": 10, "memberName": "小林", "quantity": 1, "itemRemark": "少盐" },
+      { "memberId": 11, "memberName": "阿禾", "quantity": 2, "itemRemark": null }
+    ]
+  }]
+}
+```
+
+`quantity` 是全家汇总数量；当前成员只能修改自己的绝对数量 `currentMemberQuantity`。主列表只显示汇总，`selections` 仅在用户主动展开明细时展示。
+
+所有餐篮写操作必须带 `cartId`、当前 `cartVersion` 和同一次用户动作内稳定的 `requestId`：
+
+```http
+PUT /api/family/cart/items
+PUT /api/family/cart/expected-meal-time
+PUT /api/family/cart/remark
+```
+
+菜品更新请求使用绝对数量而不是增量；数量 `0` 表示当前成员移除自己的选择。预计用餐时间只能从 `minimumExpectedMealTime` 开始，按 `timeStepMinutes` 生成，并且必须位于 `serverDate` 当天。客户端本地时钟不得扩大服务器允许范围；`bookingEnded=true` 时禁用提交。
+
+`requestId` 用于幂等：相同请求号与相同负载返回同一结果；同一请求号若被不同负载复用则返回冲突。`CART_CHANGED`（40931）表示版本过期，前端刷新并要求用户重新操作；`CART_SUBMITTED`（40932）表示原餐篮已提交，前端加载新的空餐篮，不重放旧动作。
+
+### 21.2 提交与订单快照
+
+```http
+POST /api/family/orders
+Content-Type: application/json
+
+{
+  "cartId": 7,
+  "cartVersion": 4,
+  "requestId": "submit-...",
+  "deliveryMode": "PICKUP",
+  "addressId": null,
+  "remark": "少盐"
+}
+```
+
+新提交不得发送 `date`、`mealSlotId`、`payerMemberId` 或个人钱包字段。提交成功后，原餐篮成为不可变订单快照，并立即为家庭生成一个新的活动餐篮；用户可继续点菜并提交新的预约。
+
+家庭和商户订单列表返回聚合菜品，不携带成员 `selections`；详情接口返回提交时冻结的成员昵称、数量和备注快照。新订单显示 `expectedMealTime`。只有该字段为空的历史订单才回退显示 `serviceDate + mealSlotName`，不得虚构餐次。
+
+### 21.3 家庭钱包
+
+```http
+GET /api/family/wallet
+GET /api/family/wallet/ledgers?page=1&pageSize=20
+
+GET /api/merchant/families/{familyId}/wallet
+GET /api/merchant/families/{familyId}/wallet/ledgers?page=1&pageSize=20
+POST /api/merchant/families/{familyId}/wallet/adjust
+```
+
+商户调整请求体：
+
+```json
+{
+  "requestId": "family-wallet-...",
+  "type": "MANUAL_CREDIT",
+  "amount": 20.00,
+  "remark": "商户手动充值"
+}
+```
+
+订单提交冻结、拒单/取消释放、完成扣减均操作家庭钱包。成员选择归属仅用于订单明细与审计，不参与拆分扣款。旧 `/api/family/me/wallet/ledgers`、`/api/merchant/members/{memberId}/wallet/*` 和 `/api/family/meal-slots` 为退役契约，新页面不得调用；个人钱包余额切换由受控迁移流程完成，禁止在当前业务数据库中以页面操作或普通启动流程执行清空。
