@@ -44,6 +44,10 @@
   <update id="bumpVersion">
     update carts set version=version+1 where id=#{cartId} and family_id=#{familyId} and status='active' and version=#{version}
   </update>
+  <update id="submitFamilyCart">
+    update carts set status=''submitted'',version=version+1
+    where id=#{cartId} and family_id=#{familyId} and status=''active'' and version=#{version}
+  </update>
   <update id="updateExpectedMealTime">update carts set expected_meal_time=#{expectedMealTime} where id=#{cartId}</update>
 
   <resultMap id="CartItemMap" type="com.familykitchen.cart.model.entity.CartItemEntity">
@@ -96,6 +100,12 @@
     from cart_items
     where cart_id = #{cartId}
     order by id asc
+  </select>
+  <select id="selectAvailableDishForUpdate" resultType="com.familykitchen.cart.model.entity.CartDishSnapshot">
+    select d.id as dishId,d.name as dishName,coalesce(fmd.final_price,d.base_price) as price
+    from family_menu_items fmd join dishes d on d.id=fmd.dish_id
+    where fmd.family_id=#{familyId} and fmd.dish_id=#{dishId}
+      and fmd.enabled=1 and d.status=''active'' limit 1 for update
   </select>
   <select id="selectCartItemsForUpdate" resultMap="CartItemMap">
     select id, cart_id, dish_id, dish_name_snapshot, price, quantity, item_remark

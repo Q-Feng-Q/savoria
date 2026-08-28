@@ -6,7 +6,10 @@ import com.familykitchen.common.security.CurrentUserProvider;
 import com.familykitchen.order.model.dto.CancelOrderRequest;
 import com.familykitchen.order.model.dto.SubmitOrderRequest;
 import com.familykitchen.order.service.FamilyOrderApplicationService;
+import com.familykitchen.order.service.LegacyOrderPayloadGuard;
 import com.familykitchen.order.model.vo.OrderView;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,7 +19,6 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,19 +35,23 @@ public class FamilyOrderController {
 
   private final CurrentUserProvider currentUserProvider;
   private final FamilyOrderApplicationService familyOrderApplicationService;
+  private final ObjectMapper objectMapper;
 
   /**
    * 创建家庭订单实例。
    *
    * @param currentUserProvider 当前用户Provider
    * @param familyOrderApplicationService 家庭订单申请Service
+   * @param objectMapper JSON mapper
    */
   public FamilyOrderController(
       CurrentUserProvider currentUserProvider,
-      FamilyOrderApplicationService familyOrderApplicationService
+      FamilyOrderApplicationService familyOrderApplicationService,
+      ObjectMapper objectMapper
   ) {
     this.currentUserProvider = currentUserProvider;
     this.familyOrderApplicationService = familyOrderApplicationService;
+    this.objectMapper = objectMapper;
   }
 
   /**
@@ -59,28 +65,18 @@ public class FamilyOrderController {
   @Operation(summary = "提交订单", description = "基于当前成员餐篮提交订单。")
   public ApiResponse<OrderView> submit(
       HttpServletRequest request,
-      @Valid @RequestBody SubmitOrderRequest body
+      @RequestBody JsonNode body
   ) {
     CurrentUserContext user = currentUserProvider.require(request);
-    return ApiResponse.ok(familyOrderApplicationService.submit(user, body));
-  }
-
-  /**
-   * 处理家庭订单相关的 HTTP 请求。
-   *
-   * @param request 请求参数
-   * @param orderId 订单标识
-   * @return 更新的结果
-   */
-  @PutMapping("/{orderId}")
-  @Operation(summary = "更新订单", description = "在待处理阶段按当前餐篮内容重算订单。")
-  public ApiResponse<Void> update(
-      HttpServletRequest request,
-      @Parameter(description = "订单 ID") @PathVariable Long orderId
-  ) {
-    CurrentUserContext user = currentUserProvider.require(request);
-    familyOrderApplicationService.update(user, orderId);
-    return ApiResponse.ok();
+    LegacyOrderPayloadGuard.requireCompatible(body);
+    SubmitOrderRequest command;
+    try {
+      command = objectMapper.treeToValue(body, SubmitOrderRequest.class);
+    } catch (Exception exception) {
+      throw new com.familykitchen.common.error.BusinessException(
+          com.familykitchen.common.error.ErrorCode.BAD_REQUEST, "订单请求格式不正确");
+    }
+    return ApiResponse.ok(familyOrderApplicationService.submit(user, command));
   }
 
   /**

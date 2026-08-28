@@ -20,19 +20,21 @@ class WalletOrderLockingContractTest {
 
   @Test
   void orderMutationServicesUseOnlyLockedWalletSelectorsAndAreTransactional() throws Exception {
-    for (String relative : new String[] {
-        "src/main/java/com/familykitchen/order/service/impl/FamilyOrderApplicationServiceImpl.java",
-        "src/main/java/com/familykitchen/order/service/impl/MerchantOrderApplicationServiceImpl.java"
-    }) {
-      String source = read(relative);
-      assertThat(source).contains("walletMapper.selectWalletsByMemberIdsForUpdate(memberIds)");
-      assertThat(source).doesNotContain("walletMapper.selectWalletsByMemberIds(memberIds)");
-      assertThat(source).contains("@Transactional");
-    }
+    String family = read(
+        "src/main/java/com/familykitchen/order/service/impl/FamilyOrderApplicationServiceImpl.java");
+    assertThat(family).contains("FamilyWalletService");
+    assertThat(family).contains("wallet.freezeNewOrder(");
+    assertThat(family).doesNotContain("WalletPersistenceMapper");
+    assertThat(family).doesNotContain("selectWalletsByMemberIds");
+    assertThat(family).contains("@Transactional");
+
     String merchant = read(
         "src/main/java/com/familykitchen/order/service/impl/MerchantOrderApplicationServiceImpl.java");
+    assertThat(merchant).contains("walletMapper.selectWalletsByMemberIdsForUpdate(memberIds)");
+    assertThat(merchant).doesNotContain("walletMapper.selectWalletsByMemberIds(memberIds)");
     assertThat(merchant).contains("walletMapper.selectWalletByMemberIdForUpdate(memberId)");
     assertThat(merchant).doesNotContain("walletMapper.selectWalletByMemberId(memberId)");
+    assertThat(merchant).contains("@Transactional");
   }
 
   private static String read(String relative) throws Exception {

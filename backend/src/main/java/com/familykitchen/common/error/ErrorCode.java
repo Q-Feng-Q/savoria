@@ -28,6 +28,8 @@ public enum ErrorCode {
   CART_CHANGED(40931),
   /** 指定家庭餐篮已经提交，原操作不得写入新餐篮。 */
   CART_SUBMITTED(40932),
+  /** 客户端仍在提交已经退役的订单字段，需要升级。 */
+  CLIENT_UPGRADE_REQUIRED(42601),
   /** 输入合法但不满足业务规则。 */
   BUSINESS_INVALID(42201),
   /** 未归类的服务端内部错误。 */

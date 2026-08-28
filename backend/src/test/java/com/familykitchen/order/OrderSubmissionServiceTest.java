@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.familykitchen.common.error.BusinessException;
-import com.familykitchen.order.model.bo.CheckoutIngredient;
 import com.familykitchen.order.model.bo.CheckoutItem;
 import com.familykitchen.order.model.bo.DeliverySnapshot;
 import com.familykitchen.order.model.bo.FamilyDeliveryPolicy;
@@ -14,183 +13,68 @@ import com.familykitchen.order.model.enums.DeliveryMode;
 import com.familykitchen.order.model.enums.OrderStatus;
 import com.familykitchen.order.service.OrderSubmissionService;
 import com.familykitchen.order.service.impl.OrderSubmissionServiceImpl;
-import com.familykitchen.purchase.model.enums.IngredientCalcType;
-import com.familykitchen.wallet.model.bo.WalletAccount;
-import com.familykitchen.wallet.model.enums.LedgerType;
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.LinkedHashMap;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/**
- * 验证订单SubmissionService相关业务契约与回归场景。
- */
+/** Verifies aggregate order calculation without any personal-wallet mutation. */
 class OrderSubmissionServiceTest {
-
   private final OrderSubmissionService service = new OrderSubmissionServiceImpl();
 
   @Test
-  void submitOrderFreezesEachMemberDishAmountAndSubmitterDeliveryFee() {
-    OrderCheckoutCommand command = new OrderCheckoutCommand(
-        1L,
-        2L,
-        10L,
-        20L,
-        LocalDate.of(2026, 6, 30),
-        DeliveryMode.DELIVERY,
-        "Less oil please",
-        new DeliverySnapshot("Chen Mei", "13800000000", "1 Tianyaoqiao Rd, Shanghai"),
-        new FamilyDeliveryPolicy(true, new BigDecimal("6.00"), false),
-        List.of(
-            new CheckoutItem(
-                100L,
-                "Tomato Egg",
-                10L,
-                "Chen Mei",
-                new BigDecimal("18.00"),
-                2,
-                null,
-                List.of(new CheckoutIngredient("Tomato", new BigDecimal("2.00"), "pcs", IngredientCalcType.PER_PERSON))
-            ),
-            new CheckoutItem(
-                101L,
-                "Mapo Tofu",
-                11L,
-                "Chen Feng",
-                new BigDecimal("19.00"),
-                1,
-                "No cilantro",
-                List.of(new CheckoutIngredient("Tofu", new BigDecimal("1.00"), "block", IngredientCalcType.FIXED))
-            )
-        )
-    );
-
-    Map<Long, WalletAccount> wallets = wallets(
-        wallet(10L, "100.00"),
-        wallet(11L, "50.00")
-    );
-
-    OrderSubmissionResult result = service.submit(command, wallets);
+  void createsOneAggregateItemAndPreservesMemberAttribution() {
+    OrderSubmissionResult result = service.submit(command(DeliveryMode.DELIVERY));
 
     assertThat(result.order().status()).isEqualTo(OrderStatus.PENDING);
-    assertThat(result.order().deliveryFee()).isEqualByComparingTo("6.00");
-    assertThat(result.order().totalAmount()).isEqualByComparingTo("61.00");
-    assertThat(result.memberCharges()).hasSize(2);
-    assertThat(result.memberCharges())
-        .filteredOn(charge -> charge.memberId().equals(10L))
-        .singleElement()
-        .satisfies(charge -> {
-          assertThat(charge.dishAmount()).isEqualByComparingTo("36.00");
-          assertThat(charge.deliveryFeeAmount()).isEqualByComparingTo("6.00");
-          assertThat(charge.totalAmount()).isEqualByComparingTo("42.00");
-        });
-    assertThat(result.memberCharges())
-        .filteredOn(charge -> charge.memberId().equals(11L))
-        .singleElement()
-        .satisfies(charge -> {
-          assertThat(charge.dishAmount()).isEqualByComparingTo("19.00");
-          assertThat(charge.deliveryFeeAmount()).isEqualByComparingTo("0.00");
-          assertThat(charge.totalAmount()).isEqualByComparingTo("19.00");
-        });
-    assertThat(result.walletChanges()).hasSize(2);
-    assertThat(result.walletChanges())
-        .allSatisfy(change -> assertThat(change.type()).isEqualTo(LedgerType.FREEZE));
-    assertThat(wallets.get(10L).balanceAmount()).isEqualByComparingTo("58.00");
-    assertThat(wallets.get(10L).frozenAmount()).isEqualByComparingTo("42.00");
-    assertThat(wallets.get(11L).balanceAmount()).isEqualByComparingTo("31.00");
-    assertThat(wallets.get(11L).frozenAmount()).isEqualByComparingTo("19.00");
-    assertThat(result.purchaseDemands()).singleElement().satisfies(demand -> {
-      assertThat(demand.orderStatus()).isEqualTo(com.familykitchen.purchase.model.enums.OrderSourceStatus.PENDING);
-      assertThat(demand.ingredients()).hasSize(2);
+    assertThat(result.order().sourceCartId()).isEqualTo(40L);
+    assertThat(result.order().expectedMealTime())
+        .isEqualTo(LocalDateTime.of(2026, 8, 28, 12, 30));
+    assertThat(result.order().totalAmount()).isEqualByComparingTo("120.00");
+    assertThat(result.order().items()).singleElement().satisfies(item -> {
+      assertThat(item.quantity()).isEqualTo(3);
+      assertThat(item.amount()).isEqualByComparingTo("114.00");
+      assertThat(item.ownerMemberId()).isNull();
+      assertThat(item.selections()).containsExactly(
+          new OrderSubmissionResult.MemberSelection(21L, "小林", 1, null),
+          new OrderSubmissionResult.MemberSelection(22L, "阿禾", 2, "少盐"));
     });
-    assertThat(result.notifications()).singleElement().satisfies(notification -> {
-      assertThat(notification.scope()).isEqualTo("merchant");
-      assertThat(notification.category()).isEqualTo("order");
-    });
+    assertThat(result.memberCharges()).isEmpty();
+    assertThat(result.walletChanges()).isEmpty();
   }
 
   @Test
-  void submitOrderUsesPickupWhenDeliveryDisabled() {
-    OrderCheckoutCommand command = new OrderCheckoutCommand(
-        1L,
-        2L,
-        10L,
-        20L,
-        LocalDate.of(2026, 6, 30),
-        DeliveryMode.PICKUP,
-        null,
-        null,
-        new FamilyDeliveryPolicy(false, new BigDecimal("6.00"), false),
-        List.of(
-            new CheckoutItem(
-                100L,
-                "Tomato Egg",
-                10L,
-                "Chen Mei",
-                new BigDecimal("18.00"),
-                1,
-                null,
-                List.of()
-            )
-        )
-    );
-
-    Map<Long, WalletAccount> wallets = wallets(wallet(10L, "20.00"));
-
-    OrderSubmissionResult result = service.submit(command, wallets);
-
-    assertThat(result.order().deliveryMode()).isEqualTo(DeliveryMode.PICKUP);
+  void pickupDoesNotChargeDeliveryFee() {
+    OrderSubmissionResult result = service.submit(command(DeliveryMode.PICKUP));
     assertThat(result.order().deliveryFee()).isEqualByComparingTo("0.00");
+    assertThat(result.order().totalAmount()).isEqualByComparingTo("114.00");
     assertThat(result.order().deliverySnapshot()).isNull();
   }
 
   @Test
-  void submitOrderRejectsWhenAnyMemberBalanceIsInsufficient() {
-    OrderCheckoutCommand command = new OrderCheckoutCommand(
-        1L,
-        2L,
-        10L,
-        20L,
-        LocalDate.of(2026, 6, 30),
-        DeliveryMode.DELIVERY,
-        null,
-        new DeliverySnapshot("Chen Mei", "13800000000", "1 Tianyaoqiao Rd, Shanghai"),
-        new FamilyDeliveryPolicy(true, new BigDecimal("6.00"), false),
-        List.of(
-            new CheckoutItem(
-                100L,
-                "Tomato Egg",
-                11L,
-                "Chen Feng",
-                new BigDecimal("18.00"),
-                3,
-                null,
-                List.of()
-            )
-        )
-    );
+  void rejectsAggregateQuantityThatDoesNotEqualSelections() {
+    CheckoutItem invalid = new CheckoutItem(31L, "番茄牛腩", new BigDecimal("38.00"), 4,
+        null, List.of(), List.of(
+            new CheckoutItem.MemberSelection(21L, "小林", 1, null),
+            new CheckoutItem.MemberSelection(22L, "阿禾", 2, null)));
+    OrderCheckoutCommand command = new OrderCheckoutCommand(40L, 1L, 2L, 21L,
+        LocalDateTime.of(2026, 8, 28, 12, 30), DeliveryMode.PICKUP, null, null,
+        new FamilyDeliveryPolicy(true, new BigDecimal("6.00"), false), List.of(invalid));
 
-    Map<Long, WalletAccount> wallets = wallets(
-        wallet(10L, "100.00"),
-        wallet(11L, "20.00")
-    );
-
-    assertThatThrownBy(() -> service.submit(command, wallets))
+    assertThatThrownBy(() -> service.submit(command))
         .isInstanceOf(BusinessException.class)
-        .hasMessageContaining("成员余额不足");
+        .hasMessageContaining("成员选择数量");
   }
 
-  private static WalletAccount wallet(Long memberId, String balance) {
-    return new WalletAccount(memberId, new BigDecimal(balance), BigDecimal.ZERO);
-  }
-
-  private static Map<Long, WalletAccount> wallets(WalletAccount... accounts) {
-    Map<Long, WalletAccount> result = new LinkedHashMap<>();
-    for (WalletAccount account : accounts) {
-      result.put(account.memberId(), account);
-    }
-    return result;
+  private static OrderCheckoutCommand command(DeliveryMode mode) {
+    CheckoutItem item = new CheckoutItem(31L, "番茄牛腩", new BigDecimal("38.00"), 3,
+        null, List.of(), List.of(
+            new CheckoutItem.MemberSelection(21L, "小林", 1, null),
+            new CheckoutItem.MemberSelection(22L, "阿禾", 2, "少盐")));
+    return new OrderCheckoutCommand(40L, 1L, 2L, 21L,
+        LocalDateTime.of(2026, 8, 28, 12, 30), mode, null,
+        mode == DeliveryMode.DELIVERY
+            ? new DeliverySnapshot("小林", "13800000000", "上海市徐汇区") : null,
+        new FamilyDeliveryPolicy(true, new BigDecimal("6.00"), false), List.of(item));
   }
 }

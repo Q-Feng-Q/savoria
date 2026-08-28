@@ -302,9 +302,6 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
    */
   private void replaceOrder(OrderSubmissionResult.SubmittedOrder order) {
     orderMapper.updateOrder(toOrderEntity(order));
-    orderMapper.deleteOrderItems(order.orderId());
-    orderMapper.deleteDeliverySnapshot(order.orderId());
-    saveOrderChildren(order.orderId(), order);
   }
 
   /**

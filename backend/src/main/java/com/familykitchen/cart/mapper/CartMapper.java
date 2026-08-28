@@ -71,6 +71,15 @@ public interface CartMapper {
   int bumpVersion(@Param("cartId") Long cartId, @Param("familyId") Long familyId,
       @Param("version") long version);
 
+  /** Atomically marks the versioned shared cart submitted.
+   * @param cartId cart identifier
+   * @param familyId family identifier
+   * @param version expected version
+   * @return affected rows
+   */
+  int submitFamilyCart(@Param("cartId") Long cartId,@Param("familyId") Long familyId,
+      @Param("version") long version);
+
   /**
    * Updates expected meal time after a successful version bump.
    *
@@ -202,6 +211,14 @@ public interface CartMapper {
    * @return 查询Available菜品的结果
    */
   CartDishSnapshot selectAvailableDish(@Param("familyId") Long familyId, @Param("dishId") Long dishId);
+
+  /** Locks the currently enabled family-menu price used for immutable order snapshotting.
+   * @param familyId family identifier
+   * @param dishId dish identifier
+   * @return current sale snapshot, or null
+   */
+  CartDishSnapshot selectAvailableDishForUpdate(
+      @Param("familyId") Long familyId,@Param("dishId") Long dishId);
 
   /**
    * 校验餐次存在、启用且属于当前家庭。

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.apache.ibatis.type.Alias;
 
 /**
@@ -33,6 +34,10 @@ public class OrderRecordEntity {
   @TableField("submitter_user_id")
   private Long submitterMemberId;
 
+  /** Source shared cart ID. */
+  @TableField("source_cart_id")
+  private Long sourceCartId;
+
   /** 餐次 ID。 */
   @TableField("meal_slot_id")
   private Long mealSlotId;
@@ -40,6 +45,10 @@ public class OrderRecordEntity {
   /** 服务日期。 */
   @TableField("service_date")
   private LocalDate serviceDate;
+
+  /** Expected meal time for a new order. */
+  @TableField("expected_meal_time")
+  private LocalDateTime expectedMealTime;
 
   /** 配送方式编码。 */
   @TableField("delivery_mode")
@@ -129,6 +138,14 @@ public class OrderRecordEntity {
    * @param submitterMemberId submitter成员标识
    */
   public void setSubmitterMemberId(Long submitterMemberId) { this.submitterMemberId = submitterMemberId; }
+  /** Returns the source shared cart identifier.
+   * @return source shared cart identifier
+   */
+  public Long getSourceCartId() { return sourceCartId; }
+  /** Sets the source shared cart identifier.
+   * @param value source shared cart identifier
+   */
+  public void setSourceCartId(Long value) { sourceCartId=value; }
   /**
    * 获取MealSlot标识。
    *
@@ -159,6 +176,14 @@ public class OrderRecordEntity {
    * @param serviceDate serviceDate
    */
   public void setServiceDate(LocalDate serviceDate) { this.serviceDate = serviceDate; }
+  /** Returns the expected meal time.
+   * @return expected meal time
+   */
+  public LocalDateTime getExpectedMealTime() { return expectedMealTime; }
+  /** Sets the expected meal time.
+   * @param value expected meal time
+   */
+  public void setExpectedMealTime(LocalDateTime value) { expectedMealTime=value; }
   /**
    * 获取配送Mode。
    *

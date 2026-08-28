@@ -3,6 +3,7 @@ package com.familykitchen.order.mapper;
 import com.familykitchen.order.model.entity.OrderDeliverySnapshotEntity;
 import com.familykitchen.order.model.entity.OrderItemEntity;
 import com.familykitchen.order.model.entity.OrderRecordEntity;
+import com.familykitchen.order.model.entity.OrderItemSelectionEntity;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -96,6 +97,19 @@ public interface OrderPersistenceMapper {
    * @return 新增订单项目的结果
    */
   int insertOrderItem(OrderItemEntity entity);
+
+  /** Inserts one immutable member selection snapshot.
+   * @param entity selection snapshot
+   * @return affected rows
+   */
+  int insertOrderItemSelection(OrderItemSelectionEntity entity);
+
+  /** Loads selection snapshots for aggregate order items.
+   * @param orderItemIds aggregate item identifiers
+   * @return member snapshots
+   */
+  List<OrderItemSelectionEntity> selectOrderItemSelections(
+      @Param("orderItemIds") List<Long> orderItemIds);
 
   /**
    * 删除配送Snapshot。

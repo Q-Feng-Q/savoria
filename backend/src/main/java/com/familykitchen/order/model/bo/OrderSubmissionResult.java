@@ -7,6 +7,7 @@ import com.familykitchen.purchase.model.bo.PurchaseDemand;
 import com.familykitchen.wallet.model.bo.WalletChange;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -30,11 +31,13 @@ public record OrderSubmissionResult(
    * 表示Submitted订单领域计算过程中的业务数据。
    *
    * @param orderId 订单标识
+   * @param sourceCartId source cart identifier
    * @param merchantId 商户标识
    * @param familyId 家庭标识
    * @param submitterMemberId submitter成员标识
    * @param mealSlotId mealSlot标识
    * @param serviceDate serviceDate
+   * @param expectedMealTime expected meal time
    * @param deliveryMode 配送Mode
    * @param deliveryFee 配送费用
    * @param status 状态
@@ -46,11 +49,13 @@ public record OrderSubmissionResult(
    */
   public record SubmittedOrder(
       Long orderId,
+      Long sourceCartId,
       Long merchantId,
       Long familyId,
       Long submitterMemberId,
       Long mealSlotId,
       LocalDate serviceDate,
+      LocalDateTime expectedMealTime,
       DeliveryMode deliveryMode,
       BigDecimal deliveryFee,
       OrderStatus status,
@@ -60,6 +65,29 @@ public record OrderSubmissionResult(
       DeliverySnapshot deliverySnapshot,
       List<SubmittedOrderItem> items
   ) {
+    /** Compatibility constructor for historical-order flows.
+     * @param orderId order identifier
+     * @param merchantId merchant identifier
+     * @param familyId family identifier
+     * @param submitterMemberId submitter identifier
+     * @param mealSlotId historical meal-slot identifier
+     * @param serviceDate historical service date
+     * @param deliveryMode delivery mode
+     * @param deliveryFee delivery fee
+     * @param status order status
+     * @param totalAmount total amount
+     * @param remark order remark
+     * @param cancelReason cancellation reason
+     * @param deliverySnapshot delivery snapshot
+     * @param items order items
+     */
+    public SubmittedOrder(Long orderId,Long merchantId,Long familyId,Long submitterMemberId,
+        Long mealSlotId,LocalDate serviceDate,DeliveryMode deliveryMode,BigDecimal deliveryFee,
+        OrderStatus status,BigDecimal totalAmount,String remark,String cancelReason,
+        DeliverySnapshot deliverySnapshot,List<SubmittedOrderItem> items) {
+      this(orderId,null,merchantId,familyId,submitterMemberId,mealSlotId,serviceDate,null,
+          deliveryMode,deliveryFee,status,totalAmount,remark,cancelReason,deliverySnapshot,items);
+    }
   }
 
   /**
@@ -72,6 +100,7 @@ public record OrderSubmissionResult(
    * @param quantity quantity
    * @param amount 金额
    * @param itemRemark 项目备注
+   * @param selections member attribution snapshots
    */
   public record SubmittedOrderItem(
       Long dishId,
@@ -81,8 +110,30 @@ public record OrderSubmissionResult(
       int quantity,
       BigDecimal amount,
       String itemRemark
+      ,List<MemberSelection> selections
   ) {
+    /** Compatibility constructor for legacy historical rows.
+     * @param dishId dish identifier
+     * @param dishName dish name
+     * @param ownerMemberId legacy owner member identifier
+     * @param price price snapshot
+     * @param quantity quantity
+     * @param amount row amount
+     * @param itemRemark item remark
+     */
+    public SubmittedOrderItem(Long dishId,String dishName,Long ownerMemberId,BigDecimal price,
+        int quantity,BigDecimal amount,String itemRemark) {
+      this(dishId,dishName,ownerMemberId,price,quantity,amount,itemRemark,List.of());
+    }
   }
+
+  /** Immutable member attribution stored below one aggregate order item.
+   * @param userId member identifier
+   * @param memberName member name snapshot
+   * @param quantity selected quantity
+   * @param itemRemark selection remark
+   */
+  public record MemberSelection(Long userId,String memberName,int quantity,String itemRemark) {}
 
   /**
    * 表示成员Charge领域计算过程中的业务数据。

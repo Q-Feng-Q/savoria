@@ -8,8 +8,10 @@
     <result property="merchantId" column="merchant_id"/>
     <result property="familyId" column="family_id"/>
     <result property="submitterMemberId" column="submitter_user_id"/>
+    <result property="sourceCartId" column="source_cart_id"/>
     <result property="mealSlotId" column="meal_slot_id"/>
     <result property="serviceDate" column="service_date"/>
+    <result property="expectedMealTime" column="expected_meal_time"/>
     <result property="deliveryMode" column="delivery_mode"/>
     <result property="deliveryFee" column="delivery_fee"/>
     <result property="deliveryFeePayerMemberId" column="delivery_fee_payer_user_id"/>
@@ -19,6 +21,7 @@
     <result property="cancelReason" column="cancel_reason"/>
   </resultMap>
   <resultMap id="OrderItemMap" type="com.familykitchen.order.model.entity.OrderItemEntity">
+    <id property="id" column="id"/>
     <result property="orderId" column="order_id"/>
     <result property="dishId" column="dish_id"/>
     <result property="ownerMemberId" column="owner_user_id"/>
@@ -28,6 +31,12 @@
     <result property="amount" column="amount"/>
     <result property="itemRemark" column="item_remark"/>
   </resultMap>
+  <resultMap id="OrderItemSelectionMap" type="com.familykitchen.order.model.entity.OrderItemSelectionEntity">
+    <id property="id" column="id"/><result property="orderItemId" column="order_item_id"/>
+    <result property="userId" column="user_id"/><result property="quantity" column="quantity"/>
+    <result property="memberNameSnapshot" column="member_name_snapshot"/>
+    <result property="itemRemark" column="item_remark"/>
+  </resultMap>
   <resultMap id="OrderDeliverySnapshotMap" type="com.familykitchen.order.model.entity.OrderDeliverySnapshotEntity">
     <result property="orderId" column="order_id"/>
     <result property="contactName" column="contact_name"/>
@@ -35,14 +44,14 @@
     <result property="addressText" column="address_text"/>
   </resultMap>
 
-  <sql id="OrderColumns">id, merchant_id, family_id, submitter_user_id, meal_slot_id, service_date, delivery_mode, delivery_fee, delivery_fee_payer_user_id, status, total_amount, remark, cancel_reason</sql>
+  <sql id="OrderColumns">id, merchant_id, family_id, submitter_user_id, source_cart_id, meal_slot_id, service_date, expected_meal_time, delivery_mode, delivery_fee, delivery_fee_payer_user_id, status, total_amount, remark, cancel_reason</sql>
 
   <insert id="insertOrder" parameterType="com.familykitchen.order.model.entity.OrderRecordEntity"
           useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-    insert into orders (merchant_id, family_id, submitter_user_id, meal_slot_id, service_date,
-      delivery_mode, delivery_fee, delivery_fee_payer_user_id, status, total_amount, remark, cancel_reason)
-    values (#{merchantId}, #{familyId}, #{submitterMemberId}, #{mealSlotId}, #{serviceDate},
-      #{deliveryMode}, #{deliveryFee}, #{deliveryFeePayerMemberId}, #{status}, #{totalAmount}, #{remark}, #{cancelReason})
+    insert into orders (merchant_id, family_id, submitter_user_id, source_cart_id, meal_slot_id, service_date,
+      expected_meal_time,delivery_mode, delivery_fee, delivery_fee_payer_user_id, status, total_amount, remark, cancel_reason)
+    values (#{merchantId}, #{familyId}, #{submitterMemberId}, #{sourceCartId},#{mealSlotId}, #{serviceDate},
+      #{expectedMealTime},#{deliveryMode}, #{deliveryFee}, #{deliveryFeePayerMemberId}, #{status}, #{totalAmount}, #{remark}, #{cancelReason})
   </insert>
 
   <select id="selectOrdersByFamilyId" resultMap="OrderRecordMap">
@@ -68,7 +77,7 @@
   </select>
 
   <select id="selectOrderItemsByOrderIds" resultMap="OrderItemMap">
-    select order_id, dish_id, owner_user_id, dish_name_snapshot, price, quantity, amount, item_remark
+    select id,order_id, dish_id, owner_user_id, dish_name_snapshot, price, quantity, amount, item_remark
     from order_items
     where order_id in
     <foreach collection="orderIds" item="orderId" open="(" separator="," close=")">
@@ -101,10 +110,21 @@
     delete from order_items where order_id = #{orderId}
   </delete>
 
-  <insert id="insertOrderItem" parameterType="com.familykitchen.order.model.entity.OrderItemEntity">
+  <insert id="insertOrderItem" parameterType="com.familykitchen.order.model.entity.OrderItemEntity"
+      useGeneratedKeys="true" keyProperty="id" keyColumn="id">
     insert into order_items (order_id, dish_id, owner_user_id, dish_name_snapshot, price, quantity, amount, item_remark)
     values (#{orderId}, #{dishId}, #{ownerMemberId}, #{dishNameSnapshot}, #{price}, #{quantity}, #{amount}, #{itemRemark})
   </insert>
+  <insert id="insertOrderItemSelection" parameterType="com.familykitchen.order.model.entity.OrderItemSelectionEntity">
+    insert into order_item_selections(order_item_id,user_id,quantity,member_name_snapshot,item_remark)
+    values(#{orderItemId},#{userId},#{quantity},#{memberNameSnapshot},#{itemRemark})
+  </insert>
+  <select id="selectOrderItemSelections" resultMap="OrderItemSelectionMap">
+    select id,order_item_id,user_id,quantity,member_name_snapshot,item_remark
+    from order_item_selections where order_item_id in
+    <foreach collection="orderItemIds" item="itemId" open="(" separator="," close=")">#{itemId}</foreach>
+    order by order_item_id,user_id
+  </select>
 
   <delete id="deleteDeliverySnapshot">
     delete from order_delivery_snapshots where order_id = #{orderId}

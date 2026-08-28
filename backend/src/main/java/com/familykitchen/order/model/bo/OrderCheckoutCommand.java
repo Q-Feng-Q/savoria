@@ -1,35 +1,22 @@
 package com.familykitchen.order.model.bo;
 
 import com.familykitchen.order.model.enums.DeliveryMode;
-
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 表示订单CheckoutCommand领域计算过程中的业务数据。
- *
- * @param merchantId 商户标识
- * @param familyId 家庭标识
- * @param submitterMemberId submitter成员标识
- * @param mealSlotId mealSlot标识
- * @param serviceDate serviceDate
- * @param deliveryMode 配送Mode
- * @param remark 备注
- * @param deliverySnapshot 配送Snapshot
- * @param familyDeliveryPolicy 家庭配送Policy
- * @param items 项目列表
+/** Immutable shared-cart checkout command.
+ * @param sourceCartId source cart identifier
+ * @param merchantId merchant identifier
+ * @param familyId family identifier
+ * @param submitterMemberId submitting member identifier
+ * @param expectedMealTime expected meal time
+ * @param deliveryMode requested delivery mode
+ * @param remark order remark
+ * @param deliverySnapshot delivery address snapshot
+ * @param familyDeliveryPolicy family delivery policy
+ * @param items aggregate items
  */
-public record OrderCheckoutCommand(
-    Long merchantId,
-    Long familyId,
-    Long submitterMemberId,
-    Long mealSlotId,
-    LocalDate serviceDate,
-    DeliveryMode deliveryMode,
-    String remark,
-    DeliverySnapshot deliverySnapshot,
-    FamilyDeliveryPolicy familyDeliveryPolicy,
-    List<CheckoutItem> items
-) {
-}
-
+public record OrderCheckoutCommand(Long sourceCartId,Long merchantId,Long familyId,
+    Long submitterMemberId,LocalDateTime expectedMealTime,DeliveryMode deliveryMode,
+    String remark,DeliverySnapshot deliverySnapshot,FamilyDeliveryPolicy familyDeliveryPolicy,
+    List<CheckoutItem> items) {}

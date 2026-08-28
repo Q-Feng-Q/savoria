@@ -13,6 +13,8 @@ import org.apache.ibatis.type.Alias;
 @Alias("orderItemDO")
 @TableName("order_items")
 public class OrderItemEntity {
+  /** Order item identifier. */
+  private Long id;
 
   /** 所属订单 ID。 */
   @TableField("order_id")
@@ -45,6 +47,14 @@ public class OrderItemEntity {
   /** 单项备注。 */
   @TableField("item_remark")
   private String itemRemark;
+  /** Returns the order item identifier.
+   * @return order item identifier
+   */
+  public Long getId() { return id; }
+  /** Sets the order item identifier.
+   * @param value order item identifier
+   */
+  public void setId(Long value) { id=value; }
 
   /**
    * 获取订单标识。
