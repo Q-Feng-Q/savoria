@@ -26,9 +26,6 @@ function createFamilyService({ request }) {
     async updateInfo(payload) {
       return unwrapData(await request('/api/family/info', { method: 'PUT', data: payload }));
     },
-    async getMealSlots() {
-      return unwrapData(await request('/api/family/meal-slots', { method: 'GET' }));
-    },
     async getMenuItems(params = {}) {
       return unwrapData(await request(`/api/family/menu${createQueryString(params)}`, { method: 'GET' }));
     },
@@ -50,8 +47,11 @@ function createFamilyService({ request }) {
     async setDefaultAddress(addressId) {
       return unwrapData(await request(`/api/family/addresses/${addressId}/default`, { method: 'POST' }));
     },
-    async getWalletLedgers() {
-      return unwrapData(await request('/api/family/me/wallet/ledgers', { method: 'GET' }));
+    async getWallet() {
+      return unwrapData(await request('/api/family/wallet', { method: 'GET' }));
+    },
+    async getWalletLedgers(params = {}) {
+      return unwrapData(await request(`/api/family/wallet/ledgers${createQueryString(params)}`, { method: 'GET' }));
     },
     async directInvite(payload) {
       return unwrapData(await request('/api/family/invitations/direct', { method: 'POST', data: payload }));

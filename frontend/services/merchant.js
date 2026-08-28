@@ -1,4 +1,4 @@
-const { unwrapData } = require('./_shared');
+const { createQueryString, unwrapData } = require('./_shared');
 
 function createMerchantService({ request }) {
   return {
@@ -159,11 +159,14 @@ function createMerchantService({ request }) {
     async copyFamilyMenu(familyId, payload) {
       return unwrapData(await request(`/api/merchant/families/${familyId}/menu/copy`, { method: 'POST', data: payload }));
     },
-    async getMemberWalletLedgers(memberId) {
-      return unwrapData(await request(`/api/merchant/members/${memberId}/wallet/ledgers`, { method: 'GET' }));
+    async getFamilyWallet(familyId) {
+      return unwrapData(await request(`/api/merchant/families/${familyId}/wallet`, { method: 'GET' }));
     },
-    async adjustMemberBalance(memberId, payload) {
-      return unwrapData(await request(`/api/merchant/members/${memberId}/wallet/adjust`, { method: 'POST', data: payload }));
+    async getFamilyWalletLedgers(familyId, params = {}) {
+      return unwrapData(await request(`/api/merchant/families/${familyId}/wallet/ledgers${createQueryString(params)}`, { method: 'GET' }));
+    },
+    async adjustFamilyBalance(familyId, payload) {
+      return unwrapData(await request(`/api/merchant/families/${familyId}/wallet/adjust`, { method: 'POST', data: payload }));
     }
   };
 }

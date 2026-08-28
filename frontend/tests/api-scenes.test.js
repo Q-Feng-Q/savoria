@@ -127,7 +127,7 @@ test('buildApiHomeScene reduces the multi-item peek margin on 320px phones', () 
   assert.ok(parseInt(compact.featuredNextMargin, 10) > 0);
 });
 
-test('buildApiMenuScene merges menu items with cart counts and active meal slot', () => {
+test('buildApiMenuScene merges menu items with shared cart counts', () => {
   const scene = buildApiMenuScene({
     homeData,
     menuItems: [
@@ -135,12 +135,11 @@ test('buildApiMenuScene merges menu items with cart counts and active meal slot'
       { dishId: 101, categoryId: 4, name: '青菜豆腐汤', description: '清爽', imageUrl: '', price: 22, status: 'ACTIVE' }
     ],
     cart: {
-      mealSlotId: 20,
-      date: '2026-07-02',
+      expectedMealTime: '2026-07-02T18:30:00',
       totalQuantity: 2,
       totalAmount: 36,
       items: [
-        { itemId: 901, dishId: 100, dishName: '番茄炒蛋', price: 18, quantity: 2, ownerMemberId: 10, ownerMemberName: '陈梅', editable: true, itemRemark: '少盐' }
+        { itemId: 901, dishId: 100, dishName: '番茄炒蛋', price: 18, quantity: 2, currentMemberQuantity: 2, currentMemberRemark: '少盐' }
       ]
     },
     searchKeyword: '番茄',
@@ -273,15 +272,17 @@ test('buildApiMerchantDishesScene derives featured labels and disabled state fro
 test('buildApiCartScene groups cart items and keeps address selection state', () => {
   const scene = buildApiCartScene({
     homeData,
-    mealSlots: homeData.mealSlots,
     cart: {
-      mealSlotId: 20,
-      date: '2026-07-02',
+      serverDate: '2026-07-02',
+      minimumExpectedMealTime: '2026-07-02T18:00:00',
+      timeStepMinutes: 15,
+      bookingEnded: false,
+      expectedMealTime: '2026-07-02T18:30:00',
       remark: '送到门口',
       totalQuantity: 2,
       totalAmount: 36,
       items: [
-        { itemId: 901, dishId: 100, dishName: '番茄炒蛋', price: 18, quantity: 2, ownerMemberId: 10, ownerMemberName: '陈梅', editable: true, itemRemark: '少盐' }
+        { itemId: 901, dishId: 100, dishName: '番茄炒蛋', price: 18, quantity: 2, currentMemberQuantity: 2, currentMemberRemark: '少盐', selections: [] }
       ]
     },
     addresses: [

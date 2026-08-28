@@ -1,28 +1,25 @@
-const { createQueryString, unwrapData } = require('./_shared');
+const { unwrapData } = require('./_shared');
 
 function createCartService({ request }) {
   return {
-    async getCart(params) {
-      return unwrapData(await request(`/api/family/cart${createQueryString(params)}`, {
-        method: 'GET',
-        data: params
-      }));
+    async getCart() {
+      return unwrapData(await request('/api/family/cart', { method: 'GET' }));
+    },
+    async setItemQuantity(payload) {
+      return unwrapData(await request('/api/family/cart/items', { method: 'PUT', data: payload }));
     },
     async addItem(payload) {
-      return unwrapData(await request('/api/family/cart/items', {
-        method: 'POST',
-        data: payload
-      }));
+      return this.setItemQuantity(payload);
     },
-    async updateItem(itemId, payload) {
-      return unwrapData(await request(`/api/family/cart/items/${itemId}`, {
-        method: 'PUT',
-        data: payload
-      }));
+    async updateItem(_itemId, payload) {
+      return this.setItemQuantity(payload);
     },
-    async deleteItem(itemId) {
-      return unwrapData(await request(`/api/family/cart/items/${itemId}`, {
-        method: 'DELETE'
+    async deleteItem(_itemId, payload) {
+      return this.setItemQuantity({ ...payload, quantity: 0 });
+    },
+    async updateExpectedMealTime(payload) {
+      return unwrapData(await request('/api/family/cart/expected-meal-time', {
+        method: 'PUT', data: payload
       }));
     },
     async updateRemark(payload) {

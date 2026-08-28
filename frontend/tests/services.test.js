@@ -97,7 +97,7 @@ test('family and cart services target stable family endpoints', async () => {
   const cart = createCartService({ request });
 
   await family.getHome();
-  await family.getMealSlots();
+  await family.getWallet();
   await family.getMenuItems({ categoryId: 3, keyword: '番茄', serviceDate: '2026-07-02', mealSlotId: 20 });
   await family.getDishDetail(100);
   await family.getAddresses();
@@ -117,14 +117,14 @@ test('family and cart services target stable family endpoints', async () => {
   await family.getOwnerCandidates();
   await family.transferOwner({ targetMemberId: 9 });
   await family.dissolveFamily();
-  await cart.getCart({ mealSlotId: 20, date: '2026-07-02' });
-  await cart.addItem({ dishId: 100, quantity: 1 });
-  await cart.updateItem(9, { quantity: 2 });
-  await cart.deleteItem(9);
-  await cart.updateRemark({ mealSlotId: 20, date: '2026-07-02', remark: '不要香菜' });
+  await cart.getCart();
+  await cart.addItem({ cartId: 7, cartVersion: 0, requestId: 'add-1', dishId: 100, quantity: 1 });
+  await cart.updateItem(9, { cartId: 7, cartVersion: 1, requestId: 'set-2', dishId: 100, quantity: 2 });
+  await cart.deleteItem(9, { cartId: 7, cartVersion: 2, requestId: 'set-0', dishId: 100 });
+  await cart.updateRemark({ cartId: 7, cartVersion: 3, requestId: 'remark-1', remark: '不要香菜' });
 
   assert.equal(calls[0].pathname, '/api/family/home');
-  assert.equal(calls[1].pathname, '/api/family/meal-slots');
+  assert.equal(calls[1].pathname, '/api/family/wallet');
   assert.match(calls[2].pathname, /^\/api\/family\/menu\?/);
   assert.equal(calls[3].pathname, '/api/family/menu/100');
   assert.equal(calls[9].pathname, '/api/family/invitations/direct');
@@ -138,10 +138,10 @@ test('family and cart services target stable family endpoints', async () => {
   assert.equal(calls[19].pathname, '/api/family/owner');
   assert.deepEqual(calls[19].options.data, { targetMemberId: 9 });
   assert.equal(calls[20].pathname, '/api/family/current');
-  assert.equal(calls[21].pathname, '/api/family/cart?mealSlotId=20&date=2026-07-02');
+  assert.equal(calls[21].pathname, '/api/family/cart');
   assert.equal(calls[25].pathname, '/api/family/cart/remark');
   assert.match(calls[2].pathname, /categoryId=3/);
-  assert.equal(calls[21].options.data.mealSlotId, 20);
+  assert.deepEqual(calls[21].options, { method: 'GET' });
 });
 
 test('user service matches the unified identity endpoints', async () => {
@@ -264,8 +264,8 @@ test('merchant, purchase and file services target stable merchant endpoints', as
   await merchant.createIngredient({ name: '番茄', category: '蔬菜', unit: '个' });
   await merchant.updateIngredient(6, { name: '番茄', category: '蔬菜', unit: '个' });
   await merchant.deleteIngredient(6);
-  await merchant.getMemberWalletLedgers(10);
-  await merchant.adjustMemberBalance(10, { type: 'MANUAL_CREDIT', amount: 20, remark: '后台加款' });
+  await merchant.getFamilyWallet(2);
+  await merchant.adjustFamilyBalance(2, { requestId: 'adjust-1', type: 'MANUAL_CREDIT', amount: 20, remark: '后台加款' });
   await purchase.getSummary({ date: '2026-07-02', includePending: true });
   await purchase.getTempItems({ date: '2026-07-02' });
   await purchase.getByFamily({ familyId: 2, date: '2026-07-02', includePending: true });
@@ -288,8 +288,8 @@ test('merchant, purchase and file services target stable merchant endpoints', as
   assert.equal(calls[27].pathname, '/api/merchant/ingredients');
   assert.equal(calls[28].pathname, '/api/merchant/ingredients/6');
   assert.equal(calls[29].pathname, '/api/merchant/ingredients/6');
-  assert.equal(calls[30].pathname, '/api/merchant/members/10/wallet/ledgers');
-  assert.equal(calls[31].pathname, '/api/merchant/members/10/wallet/adjust');
+  assert.equal(calls[30].pathname, '/api/merchant/families/2/wallet');
+  assert.equal(calls[31].pathname, '/api/merchant/families/2/wallet/adjust');
   assert.equal(calls[14].options.data, undefined);
   assert.match(calls[33].pathname, /^\/api\/merchant\/purchases\/temp-items\?date=2026-07-02$/);
   assert.match(calls[34].pathname, /^\/api\/merchant\/purchases\/by-family\?/);

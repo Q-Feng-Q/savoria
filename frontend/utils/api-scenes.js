@@ -78,6 +78,31 @@ function getSelectedMealSlot(mealSlots = []) {
   return mealSlots.find((item) => item.selected) || mealSlots[0] || null;
 }
 
+function formatExpectedMealTime(value, fallback = '待选择') {
+  if (!value) return fallback;
+  const text = String(value);
+  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  return match ? `${match[1]}-${match[2]}-${match[3]} ${match[4]}:${match[5]}` : text;
+}
+
+function buildExpectedMealTimeOptions(cart) {
+  if (!cart || cart.bookingEnded || !cart.serverDate || !cart.minimumExpectedMealTime) return [];
+  const step = Number(cart.timeStepMinutes);
+  if (!Number.isInteger(step) || step <= 0) return [];
+  const match = String(cart.minimumExpectedMealTime).match(/T(\d{2}):(\d{2})/);
+  if (!match) return [];
+  let minutes = Number(match[1]) * 60 + Number(match[2]);
+  const options = [];
+  while (minutes < 24 * 60) {
+    const hour = String(Math.floor(minutes / 60)).padStart(2, '0');
+    const minute = String(minutes % 60).padStart(2, '0');
+    const value = `${cart.serverDate}T${hour}:${minute}:00`;
+    options.push({ value, label: `${hour}:${minute}` });
+    minutes += step;
+  }
+  return options;
+}
+
 function buildContext(homeData, extra = {}) {
   return {
     merchant: {
@@ -161,8 +186,6 @@ function buildApiHomeScene(homeData, { imageBaseUrl = '', windowWidth = 0 } = {}
 }
 
 function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeyword = '', imageBaseUrl = '' }) {
-  const mealSlots = resolveMealSlots(homeData);
-  const currentMemberId = homeData.member.memberId;
   const normalizedKeyword = String(searchKeyword || '').trim().toLowerCase();
   const cartItems = (cart && cart.items) || [];
   const visibleItems = menuItems.filter((item) => {
@@ -173,9 +196,9 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
   });
 
   const menuCards = visibleItems.map((item, index) => {
-    const relatedItems = cartItems.filter((cartItem) => cartItem.dishId === item.dishId);
-    const currentMemberItem = relatedItems.find((cartItem) => cartItem.ownerMemberId === currentMemberId);
-    const selectedCount = relatedItems.reduce((sum, cartItem) => sum + Number(cartItem.quantity || 0), 0);
+    const cartItem = cartItems.find((candidate) => candidate.dishId === item.dishId);
+    const selectedCount = Number((cartItem && cartItem.quantity) || 0);
+    const myQuantity = Number((cartItem && cartItem.currentMemberQuantity) || 0);
 
     return {
       id: item.dishId,
@@ -193,8 +216,9 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
       description: item.description || '今日可点',
       featured: Boolean(item.featured),
       selectedCount,
-      selectedByCurrentMemberCount: currentMemberItem ? Number(currentMemberItem.quantity || 0) : 0,
-      cartLineId: currentMemberItem ? currentMemberItem.itemId : null
+      selectedByCurrentMemberCount: myQuantity,
+      myQuantity,
+      cartLineId: cartItem ? cartItem.itemId : null
     };
   });
 
@@ -207,13 +231,7 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
     activeCategoryKey: 'all',
     activeCategoryLabel: '全部菜品',
     categoryOptions: [{ key: 'all', label: '全部', activeClass: 'active' }],
-    mealOptions: mealSlots.map((slot) => ({
-      key: slot.mealSlotId,
-      label: slot.name,
-      time: slot.displayTime,
-      statusText: slot.selected ? '当前餐次' : '切换',
-      activeClass: slot.selected ? 'active' : ''
-    })),
+    expectedMealTimeText: formatExpectedMealTime(cart && cart.expectedMealTime),
     menuCards,
     visibleMenuCards: menuCards,
     searchKeyword,
@@ -223,11 +241,8 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
 }
 
 function buildApiDishDetailScene({ homeData, dishDetail, cart = null, mealSlots = [], imageBaseUrl = '' }) {
-  const slots = resolveMealSlots(homeData, mealSlots);
-  const selectedMealSlot = getSelectedMealSlot(slots);
-  const selectedCount = ((cart && cart.items) || [])
-    .filter((item) => item.dishId === dishDetail.dishId)
-    .reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+  const cartItem = ((cart && cart.items) || []).find((item) => item.dishId === dishDetail.dishId);
+  const selectedCount = Number((cartItem && cartItem.quantity) || 0);
 
   return {
     context: buildContext(homeData),
@@ -241,8 +256,9 @@ function buildApiDishDetailScene({ homeData, dishDetail, cart = null, mealSlots 
       finalPrice: formatAmountNumber(dishDetail.price),
       basePrice: formatAmountNumber(dishDetail.price),
       familyName: homeData.family.familyName,
-      mealLabel: selectedMealSlot ? selectedMealSlot.name : '当前餐次',
+      mealLabel: formatExpectedMealTime(cart && cart.expectedMealTime),
       selectedCount,
+      myQuantity: Number((cartItem && cartItem.currentMemberQuantity) || 0),
       ingredients: (dishDetail.ingredients || []).map((item, index) => ({
         id: `${dishDetail.dishId}-${index + 1}`,
         name: item.ingredientName,
@@ -265,39 +281,27 @@ function buildApiCartScene({ homeData, mealSlots = [], cart, addresses = [], del
     dishName: item.dishName,
     category: '',
     price: formatAmountNumber(item.price),
-    quantity: item.quantity,
-    ownerMemberId: item.ownerMemberId,
-    ownerName: item.ownerMemberName,
-    canEdit: Boolean(item.editable),
-    note: item.itemRemark || '',
+    quantity: Number(item.quantity || 0),
+    totalQuantity: Number(item.quantity || 0),
+    myQuantity: Number(item.currentMemberQuantity || 0),
+    canEdit: true,
+    note: item.currentMemberRemark || '',
+    selections: Array.isArray(item.selections) ? item.selections : [],
+    hasSelectionDetails: Array.isArray(item.selections) && item.selections.length > 0,
     amount: Number(item.price || 0) * Number(item.quantity || 0)
   }));
 
-  const groupedItems = rows.reduce((groups, row) => {
-    const current = groups.find((item) => item.memberId === row.ownerMemberId);
-    if (current) {
-      current.rows.push(row);
-      current.totalAmount += row.amount;
-      current.totalAmountText = `小计 ${formatCurrency(current.totalAmount)}`;
-      return groups;
-    }
-
-    groups.push({
-      memberId: row.ownerMemberId,
-      ownerName: row.ownerName,
-      rows: [row],
-      totalAmount: row.amount,
-      totalAmountText: `小计 ${formatCurrency(row.amount)}`
-    });
-    return groups;
-  }, []);
+  const groupedItems = rows.length ? [{ memberId: 'family', ownerName: '全家已选', rows,
+    totalAmount: Number((cart && cart.totalAmount) || 0),
+    totalAmountText: `合计 ${formatCurrency(cart && cart.totalAmount)}` }] : [];
 
   const effectiveAddressId = addressId !== null && addressId !== undefined
     ? addressId
     : ((findDefaultAddress(normalizedAddresses) || {}).id || null);
   const currentAddress = normalizedAddresses.find((item) => item.id === effectiveAddressId) || findDefaultAddress(normalizedAddresses);
   const effectiveDeliveryMode = deliveryMode || 'PICKUP';
-  const canSubmit = Boolean(cart && cart.items && cart.items.length) && (
+  const canSubmit = Boolean(cart && cart.items && cart.items.length) && !cart.bookingEnded
+    && Boolean(cart.expectedMealTime) && (
     effectiveDeliveryMode !== 'DELIVERY' || Boolean(currentAddress)
   );
   const foundAddressIndex = normalizedAddresses.findIndex((item) => item.id === effectiveAddressId);
@@ -307,14 +311,11 @@ function buildApiCartScene({ homeData, mealSlots = [], cart, addresses = [], del
     cart: {
       note: cart ? cart.remark || '' : ''
     },
-    serviceDate: cart ? cart.date : homeData.serviceDate,
-    mealSlotId: cart ? cart.mealSlotId : null,
-    mealOptions: resolveMealSlots(homeData, mealSlots).map((slot) => ({
-      key: slot.mealSlotId,
-      label: slot.name,
-      time: slot.displayTime,
-      activeClass: cart && slot.mealSlotId === cart.mealSlotId ? 'active' : ''
-    })),
+    serviceDate: cart ? cart.serverDate : homeData.serviceDate,
+    expectedMealTime: cart ? cart.expectedMealTime : null,
+    expectedMealTimeText: formatExpectedMealTime(cart && cart.expectedMealTime),
+    expectedMealTimeOptions: buildExpectedMealTimeOptions(cart),
+    bookingEnded: Boolean(cart && cart.bookingEnded),
     groupedItems,
     chargeLines: [],
     deliveryOptions: [
@@ -329,7 +330,9 @@ function buildApiCartScene({ homeData, mealSlots = [], cart, addresses = [], del
       deliveryFee: formatAmountNumber(0),
       totalAmount: formatAmountNumber(cart ? cart.totalAmount : 0)
     },
-    warningText: canSubmit ? '' : (effectiveDeliveryMode === 'DELIVERY' && !currentAddress ? '请选择配送地址' : ''),
+    warningText: canSubmit ? '' : (cart && cart.bookingEnded ? '今天已停止预约，请明天再来'
+      : (!cart || !cart.expectedMealTime ? '请选择今天的预计用餐时间'
+        : (effectiveDeliveryMode === 'DELIVERY' && !currentAddress ? '请选择配送地址' : ''))),
     canSubmit
   };
 }
@@ -343,7 +346,9 @@ function buildApiOrdersScene({ homeData, orders = [], mealSlots = [] }) {
       id: order.orderId,
       orderNo: `#${order.orderId}`,
       serviceDate: order.serviceDate,
-      mealLabel: (mealSlotMap.get(order.mealSlotId) || {}).name || `餐次 ${order.mealSlotId}`,
+      mealLabel: order.expectedMealTime
+        ? formatExpectedMealTime(order.expectedMealTime)
+        : `${order.serviceDate || ''} ${(mealSlotMap.get(order.mealSlotId) || {}).name || order.mealSlotName || '历史餐次'}`.trim(),
       statusLabel: mapOrderStatusLabel(order.status),
       dishSummaryText: (order.items || []).map((item) => `${item.dishName} x${item.quantity}`).join('、'),
       chargeSummaryText: `合计 ${formatCurrency(order.totalAmount)}`,
@@ -364,7 +369,9 @@ function buildApiOrderDetailScene({ homeData, order, mealSlots = [] }) {
       familyName: homeData.family.familyName,
       statusLabel: mapOrderStatusLabel(order.status),
       serviceDate: order.serviceDate,
-      mealLabel: mealSlot ? mealSlot.name : `餐次 ${order.mealSlotId}`,
+      mealLabel: order.expectedMealTime
+        ? formatExpectedMealTime(order.expectedMealTime)
+        : `${order.serviceDate || ''} ${mealSlot ? mealSlot.name : (order.mealSlotName || '历史餐次')}`.trim(),
       submitterName,
       deliveryMode: String(order.deliveryMode || '').toLowerCase(),
       note: order.remark || '',
@@ -528,6 +535,8 @@ function buildApiAddressBookScene({ homeData, addresses = [] }) {
 }
 
 module.exports = {
+  formatExpectedMealTime,
+  buildExpectedMealTimeOptions,
   buildApiHomeScene,
   buildApiMenuScene,
   buildApiDishDetailScene,
