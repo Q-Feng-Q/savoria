@@ -41,12 +41,6 @@
     <result property="frozenBalance" column="frozen_balance"/>
   </resultMap>
 
-  <resultMap id="MealSlotMap" type="com.familykitchen.family.model.entity.MealSlotRecord">
-    <id property="mealSlotId" column="meal_slot_id"/>
-    <result property="name" column="name"/>
-    <result property="displayTime" column="display_time"/>
-  </resultMap>
-
   <select id="selectFamily" resultMap="FamilyRecordMap">
     select f.id as family_id,
            f.name as family_name,
@@ -85,7 +79,8 @@
   </select>
 
   <select id="selectRecentOrders" resultType="com.familykitchen.family.model.vo.FamilyHomeResponse$OrderSummary">
-    select o.id as orderId, ms.name as mealSlotName, o.status, o.total_amount as totalAmount
+    select o.id as orderId, o.expected_meal_time as expectedMealTime,
+           ms.name as mealSlotName, o.status, o.total_amount as totalAmount
     from orders o
     left join meal_slots ms on ms.id = o.meal_slot_id
     where o.family_id = #{familyId}
@@ -176,13 +171,6 @@
                then coalesce(fmi.sort_order, 2147483647)
              end asc,
              d.id desc
-  </select>
-
-  <select id="selectMealSlots" resultMap="MealSlotMap">
-    select id as meal_slot_id, name, display_time
-    from meal_slots
-    where family_id = #{familyId} and enabled = 1
-    order by sort_order asc, id asc
   </select>
 
   <select id="selectMerchantFamilies" resultMap="FamilyRecordMap">

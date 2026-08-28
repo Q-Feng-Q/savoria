@@ -3,6 +3,7 @@ package com.familykitchen.purchase.model.vo;
 import com.familykitchen.purchase.model.enums.PurchaseSourceStatus;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -30,13 +31,15 @@ public record PurchaseItemSummary(
    * @param orderId 订单标识
    * @param dishId 菜品标识
    * @param serviceDate serviceDate
+   * @param expectedMealTime expected meal time
    */
   public record PurchaseSource(
       Long familyId,
       Long mealSlotId,
       Long orderId,
       Long dishId,
-      LocalDate serviceDate
+      LocalDate serviceDate,
+      LocalDateTime expectedMealTime
   ) {
   }
 }

@@ -86,7 +86,6 @@ public class AdminFamilyApplicationServiceImpl implements AdminFamilyApplication
     FamilyRecord family=new FamilyRecord();family.setFamilyName(application.getFamilyName());family.setMerchantId(application.getMerchantId());
     if(workflowMapper.insertFamily(family)!=1||family.getFamilyId()==null)
       throw new BusinessException(ErrorCode.SYSTEM_ERROR,"家庭创建失败");
-    workflowMapper.insertDefaultMealSlots(family.getFamilyId());
     if(relationMapper.insertActive(application.getApplicantMemberId(),family.getFamilyId(),"OWNER","CREATOR",null,application.getApplicantMemberId())!=1)
       throw new BusinessException(ErrorCode.SYSTEM_ERROR,"家庭负责人关系创建失败");
     if(applicationMapper.updateStatus(applicationId,"approved",user.userId(),remark)==0)

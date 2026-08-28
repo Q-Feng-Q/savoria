@@ -96,14 +96,6 @@ public interface FamilyApplicationService {
   DishDetailView dishDetail(CurrentUserContext user, Long dishId);
 
   /**
-   * 查询当前家庭启用的餐次。
-   *
-   * @param user 当前登录用户上下文
-   * @return 早餐、午餐、晚餐等餐次配置
-   */
-  List<FamilyHomeResponse.MealSlotView> mealSlots(CurrentUserContext user);
-
-  /**
    * 修改当前家庭的基本资料（名称、备注）。
    *
    * @param user 当前登录用户上下文

@@ -3,7 +3,6 @@ package com.familykitchen.family.mapper;
 import com.familykitchen.family.model.entity.AddressEntity;
 import com.familykitchen.family.model.entity.FamilyMemberRecord;
 import com.familykitchen.family.model.entity.FamilyRecord;
-import com.familykitchen.family.model.entity.MealSlotRecord;
 import com.familykitchen.family.model.vo.FamilyMenuItemView;
 import com.familykitchen.family.model.vo.FamilyHomeResponse;
 import java.math.BigDecimal;
@@ -132,14 +131,6 @@ public interface FamilyMapper {
    * @return 查询家庭菜单项目列表的结果
    */
   List<FamilyMenuItemView> selectFamilyMenuItems(@Param("merchantId") Long merchantId, @Param("familyId") Long familyId);
-
-  /**
-   * 查询MealSlots。
-   *
-   * @param familyId 家庭标识
-   * @return 查询MealSlots的结果
-   */
-  List<MealSlotRecord> selectMealSlots(@Param("familyId") Long familyId);
 
   /**
    * 查询商户Families。

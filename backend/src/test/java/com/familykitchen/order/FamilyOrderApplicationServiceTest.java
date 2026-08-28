@@ -112,7 +112,7 @@ class FamilyOrderApplicationServiceTest {
     verify(wallet).freezeNewOrder(2L,77L,21L,new BigDecimal("114.00"),"order:77:initial");
     verify(carts).submitFamilyCart(40L,2L,6L);
     verify(notifications).insertNotification(eq("merchant"),eq(1L),eq("merchant"),
-        eq("order"),eq("收到新订单"),any());
+        eq("order"),eq("收到新订单"),eq("家庭 2 提交了订单 #77，预计 12:30 用餐"));
   }
 
   private CommandIdempotencyService.Result execute(InvocationOnMock invocation){

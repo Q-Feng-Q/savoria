@@ -13,7 +13,6 @@ import com.familykitchen.family.model.dto.UpdateFamilyInfoRequest;
 import com.familykitchen.family.model.entity.AddressEntity;
 import com.familykitchen.family.model.entity.FamilyMemberRecord;
 import com.familykitchen.family.model.entity.FamilyRecord;
-import com.familykitchen.family.model.entity.MealSlotRecord;
 import com.familykitchen.family.model.vo.AddressView;
 import com.familykitchen.family.model.vo.FamilyHomeResponse;
 import com.familykitchen.family.model.vo.FamilyInfoView;
@@ -68,7 +67,6 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
   public FamilyHomeResponse home(CurrentUserContext user) {
     FamilyRecord family = requireFamily(user.merchantId(), user.familyId());
     FamilyMemberRecord member = familyMapper.selectMember(user.memberId());
-    List<FamilyHomeResponse.MealSlotView> slots = mealSlots(user);
     List<FamilyHomeResponse.FeaturedDish> featuredDishes =
       familyMapper.selectFeaturedDishes(user.familyId(), 5);
     if (featuredDishes == null || featuredDishes.isEmpty()) {
@@ -89,7 +87,6 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
         new FamilyHomeResponse.DashboardCard("menu", "可点菜品", String.valueOf(family.getActiveMenuCount())),
         new FamilyHomeResponse.DashboardCard("address", "地址数量", String.valueOf(family.getAddressCount()))
       ),
-      slots,
       familyMapper.selectRecentOrders(user.familyId())
     );
   }
@@ -257,19 +254,6 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
   }
 
   /**
-   * 处理Slots。
-   *
-   * @param user 用户
-   * @return 处理Slots的结果
-   */
-  @Override
-  public List<FamilyHomeResponse.MealSlotView> mealSlots(CurrentUserContext user) {
-    return familyMapper.selectMealSlots(user.familyId()).stream()
-      .map(FamilyApplicationServiceImpl::toMealSlotView)
-      .toList();
-  }
-
-  /**
    * 更新当前家庭名称与备注。
    *
    * @param user 当前用户
@@ -326,10 +310,6 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
       entity.getAddressText(),
       Boolean.TRUE.equals(entity.getDefaultAddress())
     );
-  }
-
-  private static FamilyHomeResponse.MealSlotView toMealSlotView(MealSlotRecord row) {
-    return new FamilyHomeResponse.MealSlotView(row.getMealSlotId(), row.getName(), row.getDisplayTime(), false);
   }
 
   private static BigDecimal money(BigDecimal value) {

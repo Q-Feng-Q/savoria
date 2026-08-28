@@ -15,4 +15,11 @@ class FamilyNotificationEventContractTest {
   assertTrue(member.contains("家庭邀请"));
   assertTrue(admin.contains("家庭创建申请已通过"));
  }
+ @Test void newOrderNotificationIncludesExpectedMealTime() throws Exception {
+  String order=Files.readString(Path.of(
+      "src/main/java/com/familykitchen/order/service/impl/FamilyOrderApplicationServiceImpl.java"));
+  assertTrue(order.contains("预计 "));
+  assertTrue(order.contains("用餐"));
+  assertTrue(order.contains("cart.getExpectedMealTime().format(MEAL_TIME)"));
+ }
 }

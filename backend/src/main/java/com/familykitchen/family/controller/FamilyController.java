@@ -94,19 +94,6 @@ public class FamilyController {
   }
 
   /**
-   * 处理Slots相关的 HTTP 请求。
-   *
-   * @param request 请求参数
-   * @return 处理Slots的结果
-   */
-  @GetMapping("/meal-slots")
-  @Operation(summary = "获取家庭餐次", description = "返回当前家庭已启用的餐次选择项。")
-  public ApiResponse<List<FamilyHomeResponse.MealSlotView>> mealSlots(HttpServletRequest request) {
-    CurrentUserContext user = currentUserProvider.require(request);
-    return ApiResponse.ok(familyApplicationService.mealSlots(user));
-  }
-
-  /**
    * 处理家庭相关的 HTTP 请求。
    *
    * @param request 请求参数

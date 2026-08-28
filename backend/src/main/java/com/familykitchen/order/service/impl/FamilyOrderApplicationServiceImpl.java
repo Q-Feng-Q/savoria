@@ -39,6 +39,7 @@ import com.familykitchen.wallet.service.FamilyWalletService;
 import com.familykitchen.wallet.service.PersonalWalletCutoverGuard;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -53,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class FamilyOrderApplicationServiceImpl implements FamilyOrderApplicationService {
+  private static final DateTimeFormatter MEAL_TIME = DateTimeFormatter.ofPattern("HH:mm");
   private final OrderSubmissionService calculator;
   private final OrderPersistenceMapper orders;
   private final CartMapper carts;
@@ -161,7 +163,8 @@ public class FamilyOrderApplicationServiceImpl implements FamilyOrderApplication
     if(carts.submitFamilyCart(cart.getId(),user.familyId(),actualVersion)!=1)
       throw new BusinessException(ErrorCode.CART_CHANGED,"餐篮内容已变化，请刷新后重新确认");
     notifications.insertNotification("merchant",cart.getMerchantId(),"merchant","order",
-        "收到新订单","家庭 "+user.familyId()+" 提交了订单 #"+order.getId());
+        "收到新订单","家庭 "+user.familyId()+" 提交了订单 #"+order.getId()+"，预计 "+
+            cart.getExpectedMealTime().format(MEAL_TIME)+" 用餐");
     return order.getId();
   }
 

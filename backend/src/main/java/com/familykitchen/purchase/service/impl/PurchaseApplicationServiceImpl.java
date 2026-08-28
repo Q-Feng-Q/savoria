@@ -263,11 +263,20 @@ public class PurchaseApplicationServiceImpl implements PurchaseApplicationServic
           row.getMealSlotId(),
           row.getOrderId(),
           row.getDishId(),
-          row.getServiceDate()
+          row.getServiceDate(),
+          row.getExpectedMealTime()
       ));
     }
 
     private PurchaseItemSummary toSummary() {
+      sources.sort(Comparator
+          .comparing(PurchaseItemSummary.PurchaseSource::expectedMealTime,
+              Comparator.nullsLast(Comparator.naturalOrder()))
+          .thenComparing(PurchaseItemSummary.PurchaseSource::serviceDate,
+              Comparator.nullsLast(Comparator.naturalOrder()))
+          .thenComparing(PurchaseItemSummary.PurchaseSource::mealSlotId,
+              Comparator.nullsLast(Comparator.naturalOrder()))
+          .thenComparing(PurchaseItemSummary.PurchaseSource::orderId));
       return new PurchaseItemSummary(
           key.ingredientName(),
           quantity,

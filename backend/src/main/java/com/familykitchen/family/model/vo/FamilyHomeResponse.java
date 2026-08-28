@@ -15,7 +15,6 @@ import com.familykitchen.wallet.model.vo.FamilyWalletSummaryView;
  * @param featuredDishes featured菜品列表
  * @param wallet family wallet summary
  * @param dashboardCards dashboardCards
- * @param mealSlots mealSlots
  * @param recentOrders recentOrders
  */
 public record FamilyHomeResponse(
@@ -26,7 +25,6 @@ public record FamilyHomeResponse(
     List<FeaturedDish> featuredDishes,
     FamilyWalletSummaryView wallet,
     List<DashboardCard> dashboardCards,
-    List<MealSlotView> mealSlots,
     List<OrderSummary> recentOrders
 ) {
 
@@ -73,25 +71,16 @@ public record FamilyHomeResponse(
   }
 
   /**
-   * 封装返回给调用方的MealSlot数据。
-   *
-   * @param mealSlotId mealSlot标识
-   * @param name 名称
-   * @param displayTime display时间
-   * @param selected selected
-   */
-  public record MealSlotView(Long mealSlotId, String name, String displayTime, boolean selected) {
-  }
-
-  /**
    * 封装返回给调用方的订单Summary数据。
    *
    * @param orderId 订单标识
+   * @param expectedMealTime expected meal time for new orders
    * @param mealSlotName mealSlot名称
    * @param status 状态
    * @param totalAmount total金额
    */
-  public record OrderSummary(Long orderId, String mealSlotName, String status, BigDecimal totalAmount) {
+  public record OrderSummary(Long orderId, java.time.LocalDateTime expectedMealTime,
+      String mealSlotName, String status, BigDecimal totalAmount) {
   }
 }
 

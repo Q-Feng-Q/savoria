@@ -2,6 +2,7 @@ package com.familykitchen.purchase.model.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 订单采购需求查询行对象。
@@ -27,6 +28,8 @@ public class PurchaseDemandRow {
    * serviceDate。
    */
   private LocalDate serviceDate;
+  /** Expected meal time for new orders. */
+  private LocalDateTime expectedMealTime;
   /**
    * 订单状态。
    */
@@ -127,6 +130,16 @@ public class PurchaseDemandRow {
    * @param serviceDate serviceDate
    */
   public void setServiceDate(LocalDate serviceDate) { this.serviceDate = serviceDate; }
+  /** Returns the expected meal time.
+   * @return expected meal time, or null for historical orders
+   */
+  public LocalDateTime getExpectedMealTime() { return expectedMealTime; }
+  /** Sets the expected meal time.
+   * @param expectedMealTime expected meal time
+   */
+  public void setExpectedMealTime(LocalDateTime expectedMealTime) {
+    this.expectedMealTime = expectedMealTime;
+  }
   /**
    * 获取订单状态。
    *

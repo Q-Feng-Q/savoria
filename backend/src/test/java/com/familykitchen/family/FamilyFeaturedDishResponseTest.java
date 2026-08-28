@@ -61,7 +61,6 @@ class FamilyFeaturedDishResponseTest {
     member.setRoleTemplate("member");
     when(familyMapper.selectFamily(USER.merchantId(), USER.familyId())).thenReturn(family);
     when(familyMapper.selectMember(USER.memberId())).thenReturn(member);
-    when(familyMapper.selectMealSlots(USER.familyId())).thenReturn(List.of());
     when(familyMapper.selectRecentOrders(USER.familyId())).thenReturn(List.of());
   }
 
@@ -114,7 +113,6 @@ class FamilyFeaturedDishResponseTest {
 
     verify(familyMapper).selectFamily(USER.merchantId(), USER.familyId());
     verify(familyMapper).selectMember(USER.memberId());
-    verify(familyMapper).selectMealSlots(USER.familyId());
     verify(familyMapper).selectFeaturedDishes(USER.familyId(), 5);
     verify(familyMapper).selectRecentOrders(USER.familyId());
     verifyNoMoreInteractions(familyMapper);

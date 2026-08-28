@@ -9,6 +9,7 @@
     <result property="orderId" column="order_id"/>
     <result property="dishId" column="dish_id"/>
     <result property="serviceDate" column="service_date"/>
+    <result property="expectedMealTime" column="expected_meal_time"/>
     <result property="orderStatus" column="order_status"/>
     <result property="ingredientName" column="ingredient_name"/>
     <result property="quantity" column="quantity"/>
@@ -36,6 +37,7 @@
            o.id as order_id,
            oi.dish_id,
            o.service_date,
+           o.expected_meal_time,
            o.status as order_status,
            di.ingredient_name,
            di.quantity,
@@ -46,12 +48,13 @@
     join order_items oi on oi.order_id = o.id
     join dish_ingredients di on di.dish_id = oi.dish_id
     where o.merchant_id = #{merchantId}
-      and o.service_date = #{date}
+      and coalesce(date(o.expected_meal_time),o.service_date) = #{date}
       and o.status not in ('CANCELLED', 'REJECTED')
     <if test="!includePending">
       and o.status != 'PENDING'
     </if>
-    order by o.family_id asc, o.meal_slot_id asc, o.id asc
+    order by o.family_id asc, o.expected_meal_time asc,
+             o.service_date asc, o.meal_slot_id asc, o.id asc
   </select>
 
   <select id="selectTempItems" resultMap="TempItemMap">

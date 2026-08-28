@@ -11,6 +11,7 @@ import com.familykitchen.purchase.model.entity.PurchaseDemandRow;
 import com.familykitchen.purchase.service.impl.PurchaseApplicationServiceImpl;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,6 +62,22 @@ class PurchaseApplicationServiceTest {
 
     assertThat(service.copyText(3L, date, 42L)).isEqualTo("土豆 2斤");
     assertThat(service.copyText(3L, date, null)).isEqualTo("土豆 7斤");
+  }
+
+  @Test
+  void summarySortsSourcesByExpectedMealTimeBeforeLegacyMealSlotFallback() {
+    LocalDate date = LocalDate.of(2026, 8, 2);
+    PurchaseDemandRow later = demandRow(1L, BigDecimal.ONE);
+    later.setOrderId(91L); later.setExpectedMealTime(LocalDateTime.of(2026, 8, 2, 18, 30));
+    PurchaseDemandRow earlier = demandRow(99L, BigDecimal.ONE);
+    earlier.setOrderId(92L); earlier.setExpectedMealTime(LocalDateTime.of(2026, 8, 2, 12, 15));
+    when(purchaseMapper.selectOrderPurchaseRows(3L, date, true))
+        .thenReturn(List.of(later, earlier));
+
+    var sources = new PurchaseApplicationServiceImpl(purchaseMapper)
+        .summary(3L, date, true).get(0).sources();
+
+    assertThat(sources).extracting(source -> source.orderId()).containsExactly(92L, 91L);
   }
 
   private static PurchaseDemandRow demandRow(Long mealSlotId, BigDecimal quantity) {

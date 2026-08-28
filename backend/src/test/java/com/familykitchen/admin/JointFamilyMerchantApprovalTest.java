@@ -20,7 +20,7 @@ class JointFamilyMerchantApprovalTest {
   var users=mock(com.familykitchen.user.mapper.UserMapper.class);
   when(users.lockStatus(9L)).thenReturn("ACTIVE");
   new AdminFamilyApplicationServiceImpl(apps,relations,workflow,notices,defaults,users).approve(new CurrentUserContext(1L,null,null,null,null,Set.of("PLATFORM_ADMIN"),Set.of()),7L,"ok");
-  var order=inOrder(workflow,defaults);order.verify(workflow).insertMerchant(application);order.verify(defaults).initialize(33L);order.verify(workflow).insertMerchantOwner(9L,33L);order.verify(workflow).insertFamily(any());order.verify(workflow).insertDefaultMealSlots(44L);
+  var order=inOrder(workflow,defaults);order.verify(workflow).insertMerchant(application);order.verify(defaults).initialize(33L);order.verify(workflow).insertMerchantOwner(9L,33L);order.verify(workflow).insertFamily(any());
   verify(apps).attachMerchant(7L,33L);
   verify(relations).insertActive(9L,44L,"OWNER","CREATOR",null,9L);
  }
