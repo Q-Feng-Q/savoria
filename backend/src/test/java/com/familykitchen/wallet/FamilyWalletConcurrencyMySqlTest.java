@@ -45,7 +45,27 @@ class FamilyWalletConcurrencyMySqlTest {
   @Autowired CommandIdempotencyMapper commandMapper;@Autowired PlatformTransactionManager transactionManager;
   /** Exceptions observed by the latest race. */
   private final List<Throwable> raceFailures=Collections.synchronizedList(new ArrayList<>());
-  @BeforeEach void reset(){raceFailures.clear();jdbc.update("delete from family_wallet_ledgers where family_id=7001");jdbc.update("delete from family_wallet_order_holds where family_id=7001");jdbc.update("delete from command_idempotency where family_id=7001");jdbc.update("delete from orders where id=7200");jdbc.update("delete from family_wallets where family_id=7001");jdbc.update("insert into family_wallets(family_id,available_amount,frozen_amount) values(7001,100,0)");jdbc.update("insert into orders(id,merchant_id,family_id,submitter_user_id,meal_slot_id,service_date,delivery_mode,delivery_fee,delivery_fee_payer_user_id,status,total_amount) values(7200,1,7001,3,1,current_date,'PICKUP',0,3,'PENDING',100)");}
+  @BeforeEach void reset(){raceFailures.clear();jdbc.update("delete from family_wallet_ledgers where family_id=7001");jdbc.update("delete from family_wallet_order_holds where family_id=7001");jdbc.update("delete from command_idempotency where family_id=7001");jdbc.update("delete from orders where id=7200");jdbc.update("delete from family_wallets where family_id=7001");jdbc.update("insert into families(id,merchant_id,name,status) values(7001,1,'并发测试家庭','active') on duplicate key update status='active'");jdbc.update("insert into family_wallets(family_id,available_amount,frozen_amount) values(7001,100,0)");jdbc.update("insert into orders(id,merchant_id,family_id,submitter_user_id,meal_slot_id,service_date,delivery_mode,delivery_fee,delivery_fee_payer_user_id,status,total_amount) values(7200,1,7001,3,1,current_date,'PICKUP',0,3,'PENDING',100)");}
+
+  @Test void concurrentFirstReadsCreateExactlyOneZeroValuedWallet() throws Exception {
+    jdbc.update("delete from family_wallets where family_id=7001");
+
+    int successes=race(i->{var account=wallets.get(7001);return account.availableAmount.signum()==0&&account.frozenAmount.signum()==0;});
+
+    assertEquals(2,successes);assertNoDeadlock();
+    assertEquals(1,jdbc.queryForObject("select count(*) from family_wallets where family_id=7001",Integer.class));
+    assertEquals(new BigDecimal("0.00"),money("available_amount"));assertEquals(new BigDecimal("0.00"),money("frozen_amount"));
+  }
+
+  @Test void concurrentFirstCreditsInitializeOnceAndPreserveBothAmounts() throws Exception {
+    jdbc.update("delete from family_wallets where family_id=7001");
+
+    int successes=race(i->{wallets.manualCredit(7001,3,new BigDecimal("10.00"),"first-credit:"+i,"并发首次充值");return true;});
+
+    assertEquals(2,successes);assertNoDeadlock();
+    assertEquals(1,jdbc.queryForObject("select count(*) from family_wallets where family_id=7001",Integer.class));
+    assertEquals(new BigDecimal("20.00"),money("available_amount"));assertEquals(new BigDecimal("0.00"),money("frozen_amount"));
+  }
 
   @Test void twoFreezesCannotOverdrawOneFamilyBalance() throws Exception {
     int successes=race(i->{wallets.freezeNewOrder(7001,7100+i,3,new BigDecimal("80.00"),"freeze:"+i);return true;});
