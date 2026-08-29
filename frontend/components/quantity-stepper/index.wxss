@@ -12,16 +12,30 @@
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: 50%;
-  background: #f1d39c;
+  border-radius: 0;
+  background: transparent;
   color: #51372d;
   font-size: 30rpx;
   line-height: 1
 }
 
+.quantity-stepper__glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38rpx;
+  height: 38rpx;
+  border-radius: 50%;
+  background: #f1d39c;
+  line-height: 38rpx;
+}
+
 .quantity-stepper__button--add {
-  background: #ed7657;
   color: #fff
+}
+
+.quantity-stepper__button--add .quantity-stepper__glyph {
+  background: #ed7657;
 }
 
 .quantity-stepper__value {

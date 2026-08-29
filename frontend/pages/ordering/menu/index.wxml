@@ -6,6 +6,11 @@
       <view class="design-menu-header__art animal-menu-art"><image class="design-menu-header__image animal-menu-art__image" src="/assets/brand/animal-mascot-trio.webp" mode="aspectFill" /><text class="animal-menu-art__label">新鲜配菜到啦</text></view>
     </view>
 
+    <view class="menu-reservation" bindtap="openCart" aria-role="button" aria-label="查看或修改预计用餐时间" hover-class="menu-reservation--pressed" hover-stay-time="80">
+      <view><text class="menu-reservation__label">预计用餐时间</text><text class="menu-reservation__value">{{expectedMealTimeText}}</text></view>
+      <text class="menu-reservation__action">{{expectedMealTimeText === '待选择' ? '去设置' : '可在餐篮修改'}} ›</text>
+    </view>
+
     <view class="design-menu-search"><text class="design-menu-search__icon">⌕</text><input class="menu-search" value="{{searchKeyword}}" placeholder="搜索菜名或口味" bindinput="handleSearchInput" /><view wx:if="{{searchKeyword}}" class="ui-button clear-search" bindtap="clearSearch" aria-role="button" aria-label="清除" hover-class="ui-button--pressed" hover-stay-time="80">清除</view></view>
 
     <view class="menu-category-layout menu-content">

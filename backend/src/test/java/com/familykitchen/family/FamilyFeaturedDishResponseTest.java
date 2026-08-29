@@ -113,6 +113,7 @@ class FamilyFeaturedDishResponseTest {
 
     verify(familyMapper).selectFamily(USER.merchantId(), USER.familyId());
     verify(familyMapper).selectMember(USER.memberId());
+    verify(familyMapper).selectMembers(USER.familyId());
     verify(familyMapper).selectFeaturedDishes(USER.familyId(), 5);
     verify(familyMapper).selectRecentOrders(USER.familyId());
     verifyNoMoreInteractions(familyMapper);

@@ -27,10 +27,10 @@
   </view>
 
   <view class="panel explain-panel">
-    <text class="detail-line">当前家庭：{{scene.dish.familyName}}</text>
-    <text class="detail-line">预计用餐：{{scene.dish.mealLabel}}</text>
-    <text class="detail-line">全家共选：{{scene.dish.selectedCount}} 份 · 我选 {{scene.dish.myQuantity}} 份</text>
-    <text class="detail-line">菜品主数据由商户维护，家庭端只能点菜。</text>
+    <view class="detail-fact"><text class="detail-fact__label">当前家庭</text><text class="detail-fact__value">{{scene.dish.familyName}}</text></view>
+    <view class="detail-fact"><text class="detail-fact__label">预计用餐</text><text class="detail-fact__value">{{scene.dish.mealLabel}}</text></view>
+    <view class="detail-fact"><text class="detail-fact__label">餐篮数量</text><text class="detail-fact__value">全家共选 {{scene.dish.selectedCount}} 份 · 我选 {{scene.dish.myQuantity}} 份</text></view>
+    <view class="detail-fact detail-fact--note"><text class="detail-fact__label">点菜说明</text><text class="detail-fact__value">菜品资料由商户维护，家庭成员的选择会合并到共享餐篮。</text></view>
   </view>
 
   <text class="section-title">主要食材</text>
@@ -61,7 +61,7 @@
   <view class="detail-action-bar">
     <view>
       <text class="action-label">加入共享餐篮</text>
-      <text class="action-sub">选择人会被保留，订单统一从家庭钱包扣款。</text>
+      <text class="action-sub">保留成员选择明细，提交后由家庭钱包统一冻结并扣款。</text>
     </view>
     <view class="ui-button button detail-submit {{mutationBusy ? 'is-disabled' : ''}}" bindtap="addDish" aria-role="button" aria-disabled="{{mutationBusy}}" aria-label="加入" hover-class="ui-button--pressed" hover-stay-time="80">{{mutationBusy ? '处理中' : '加入'}}</view>
   </view>

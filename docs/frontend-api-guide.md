@@ -28,7 +28,7 @@
 | 模块 | 小程序页面 | PC 后台页面 | 后端能力 |
 | --- | --- | --- | --- |
 | 登录与找回密码 | `pages/auth/entry`、`pages/auth/password-recovery` | `admin-web` 登录页 | 用户登录、后台登录、微信登录、邮箱验证码找回密码 |
-| 家庭首页 | `pages/home` | 不适用 | 家庭信息、成员信息、特色菜、餐次、近期订单、首页数据卡片 |
+| 家庭首页 | `pages/home` | 不适用 | 家庭信息、动物角色人员、特色菜、预约与近期订单、首页数据卡片 |
 | 家庭点菜 | `pages/menu`、`pages/dish-detail` | 不适用 | 菜单列表、菜品详情、加入餐篮 |
 | 家庭餐篮 | `pages/cart` | 不适用 | 查询餐篮、增删改餐篮项、修改备注、提交订单 |
 | 家庭订单 | `pages/ordering/orders`、`pages/ordering/order-detail` | 不适用 | 家庭订单列表、详情、待确认订单按当前餐篮更新、取消订单 |
@@ -382,6 +382,11 @@ GET /api/family/home
     name,
     roleTemplate
   },
+  crew: {
+    chefName,   // 商户负责人；联系人为空时回退负责人账号名称
+    helperName, // 家庭管理员；不存在时为“无帮厨”
+    tasterName  // 普通成员；不存在时回退管理员，再不存在为“无试吃员”
+  },
   serviceDate,
   featuredDishes: [
     {
@@ -402,11 +407,8 @@ GET /api/family/home
   dashboardCards: [
     { key, label, value }
   ],
-  mealSlots: [
-    { mealSlotId, name, displayTime, selected }
-  ],
   recentOrders: [
-    { orderId, mealSlotName, status, totalAmount }
+    { orderId, expectedMealTime, mealSlotName, status, totalAmount }
   ]
 }
 ```
@@ -414,19 +416,20 @@ GET /api/family/home
 页面映射建议：
 - 顶部家庭/商户文案：`family.familyName`、`family.merchantName`
 - 当前成员：`member.name`
+- 首页动物角色：`crew.chefName`、`crew.helperName`、`crew.tasterName`
 - 今日推荐/特色菜：优先使用 `featuredDishes`，最多 5 项，按 `featuredAt` 对应的推荐时间降序、菜品 ID 降序返回；其中只包含当前有效家庭菜单中已启用、已上架的商户推荐菜。`featuredDish` 是 `featuredDishes[0]` 的兼容字段；没有有效商户推荐时，两者都回退为家庭菜单中 `sortOrder` 升序、菜品 ID 降序的第一道有效菜。
 - 首页推荐区使用 `swiper`：多于 1 项时开启自动播放、循环、指示点和下一项露出，轮播间隔 4 秒；只有 1 项时关闭自动播放、循环和指示点，也不保留下一项边距；显式空 `featuredDishes` 不再读取旧单项字段。推荐卡片说明使用菜品 `description`，为空时显示“今日家庭推荐”。
-- 早餐/午餐/晚餐卡片：`mealSlots`
+- 新订单预约时间：`recentOrders[].expectedMealTime`；旧订单才允许回退历史餐次名称
 - 数据卡片：`dashboardCards`
 - 近期订单入口：`recentOrders`
 
 ### 5.3 `pages/menu` 点菜页
 
-#### 餐次列表
+#### 预计用餐时间
 
-```http
-GET /api/family/meal-slots
-```
+新页面不再请求早餐/午餐/晚餐列表，也不得调用已退役的
+`GET /api/family/meal-slots`。预计用餐时间来自共享餐篮，
+完整读写契约以 [21. 家庭共享餐篮、预计用餐时间与家庭钱包](#21-家庭共享餐篮预计用餐时间与家庭钱包当前权威契约) 为准。
 
 #### 菜单列表
 

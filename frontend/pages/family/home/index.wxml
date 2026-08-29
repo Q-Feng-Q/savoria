@@ -14,9 +14,9 @@
     </view>
 
     <view class="home-role-strip animal-crew sk-stagger-in">
-      <view class="home-role"><view class="home-role__badge home-role__badge--bear">熊</view><view><text>小熊主厨</text><text>暖心掌勺</text></view></view>
-      <view class="home-role"><view class="home-role__badge home-role__badge--rabbit">兔</view><view><text>兔子帮厨</text><text>今日配菜</text></view></view>
-      <view class="home-role"><view class="home-role__badge home-role__badge--cat">猫</view><view><text>橘猫试吃员</text><text>进度提醒</text></view></view>
+      <view class="home-role"><view class="home-role__badge home-role__badge--bear">熊</view><view><text>小熊主厨</text><text>{{crew.chefName}}</text></view></view>
+      <view class="home-role"><view class="home-role__badge home-role__badge--rabbit">兔</view><view><text>兔子帮厨</text><text>{{crew.helperName}}</text></view></view>
+      <view class="home-role"><view class="home-role__badge home-role__badge--cat">猫</view><view><text>橘猫试吃员</text><text>{{crew.tasterName}}</text></view></view>
     </view>
 
     <view class="home-table-summary today-board sk-stagger-in">

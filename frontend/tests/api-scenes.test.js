@@ -63,6 +63,11 @@ test('buildApiHomeScene maps home response to homepage view model', () => {
 
   assert.equal(scene.context.family.name, '陈家晚饭');
   assert.equal(scene.currentMemberName, '陈梅');
+  assert.deepEqual(scene.crew, {
+    chefName: '食光知味',
+    helperName: '无帮厨',
+    tasterName: '无试吃员'
+  });
   assert.equal(scene.featuredDish.id, 100);
   assert.equal(scene.featuredDish.description, '酸甜开胃，适合全家分享');
   assert.equal(scene.featuredDish.priceText, '¥18.00');
@@ -72,6 +77,14 @@ test('buildApiHomeScene maps home response to homepage view model', () => {
   assert.deepEqual(scene.primaryAction, { key: 'menu', label: '翻开今日菜单' });
   assert.equal(scene.mealSummary.label, '午餐');
   assert.equal(scene.orderSummary.statusLabel, '待确认');
+});
+
+test('buildApiHomeScene maps backend crew names without leaking null text', () => {
+  const scene = buildApiHomeScene({
+    ...homeData,
+    crew: { chefName: '老祁', helperName: '阿禾', tasterName: null }
+  });
+  assert.deepEqual(scene.crew, { chefName: '老祁', helperName: '阿禾', tasterName: '无试吃员' });
 });
 
 test('buildApiHomeScene prefers the featured dish array and enables multi-item swiper behavior', () => {

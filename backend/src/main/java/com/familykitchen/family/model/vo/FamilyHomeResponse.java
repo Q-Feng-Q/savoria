@@ -10,6 +10,7 @@ import com.familykitchen.wallet.model.vo.FamilyWalletSummaryView;
  *
  * @param family 家庭
  * @param member 成员
+ * @param crew 首页动物角色对应人员
  * @param serviceDate serviceDate
  * @param featuredDish featured菜品
  * @param featuredDishes featured菜品列表
@@ -20,6 +21,7 @@ import com.familykitchen.wallet.model.vo.FamilyWalletSummaryView;
 public record FamilyHomeResponse(
     FamilySummary family,
     MemberSummary member,
+    CrewSummary crew,
     LocalDate serviceDate,
     FeaturedDish featuredDish,
     List<FeaturedDish> featuredDishes,
@@ -46,6 +48,16 @@ public record FamilyHomeResponse(
    * @param roleTemplate 角色Template
    */
   public record MemberSummary(Long memberId, String name, String roleTemplate) {
+  }
+
+  /**
+   * 首页动物角色对应的真实业务人员。
+   *
+   * @param chefName 商户负责人名称
+   * @param helperName 家庭管理员名称
+   * @param tasterName 家庭普通成员名称
+   */
+  public record CrewSummary(String chefName, String helperName, String tasterName) {
   }
 
   /**

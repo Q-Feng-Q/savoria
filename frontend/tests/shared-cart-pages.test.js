@@ -12,6 +12,33 @@ test('ordering pages remove meal slots and native buttons', () => {
   assert.doesNotMatch(sources, /早餐|午餐|晚餐|mealOptions|selectMeal/);
   assert.match(sources, /预计用餐时间/);
   assert.match(sources, /家庭钱包统一/);
+  assert.doesNotMatch(sources, /今天已选|谁点谁扣|分别冻结|个人钱包|\bNULL\b/i);
+});
+
+test('menu shows expected meal time and uses 38rpx visual stepper buttons', () => {
+  const menu = read('pages/ordering/menu/index.wxml');
+  const stepperMarkup = read('components/quantity-stepper/index.wxml');
+  const stepper = read('components/quantity-stepper/index.wxss');
+  assert.match(menu, /预计用餐时间/);
+  assert.match(menu, /expectedMealTimeText/);
+  assert.match(stepperMarkup, /quantity-stepper__glyph/);
+  assert.match(stepper, /\.quantity-stepper__glyph\s*\{[^}]*width:\s*38rpx[^}]*height:\s*38rpx/s);
+});
+
+test('homepage role cards display dynamic crew names', () => {
+  const home = read('pages/family/home/index.wxml');
+  assert.match(home, /crew\.chefName/);
+  assert.match(home, /crew\.helperName/);
+  assert.match(home, /crew\.tasterName/);
+});
+
+test('dish detail separates labels from values and documents family wallet settlement', () => {
+  const detail = read('pages/ordering/dish-detail/index.wxml');
+  const styles = read('pages/ordering/dish-detail/index.wxss');
+  assert.match(detail, /detail-fact__label/);
+  assert.match(detail, /detail-fact__value/);
+  assert.match(detail, /家庭钱包统一冻结并扣款/);
+  assert.match(styles, /\.detail-fact\s*\{/);
 });
 
 test('shared cart mutations are absolute, versioned and refresh stale carts', () => {

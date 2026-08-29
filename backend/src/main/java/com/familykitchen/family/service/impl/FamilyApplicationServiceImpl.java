@@ -23,6 +23,7 @@ import com.familykitchen.wallet.model.vo.FamilyWalletSummaryView;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Locale;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,6 +68,8 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
   public FamilyHomeResponse home(CurrentUserContext user) {
     FamilyRecord family = requireFamily(user.merchantId(), user.familyId());
     FamilyMemberRecord member = familyMapper.selectMember(user.memberId());
+    List<FamilyMemberRecord> members = familyMapper.selectMembers(user.familyId());
+    FamilyHomeResponse.CrewSummary crew = buildCrew(family, members);
     List<FamilyHomeResponse.FeaturedDish> featuredDishes =
       familyMapper.selectFeaturedDishes(user.familyId(), 5);
     if (featuredDishes == null || featuredDishes.isEmpty()) {
@@ -76,6 +79,7 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
     return new FamilyHomeResponse(
       new FamilyHomeResponse.FamilySummary(family.getFamilyId(), family.getFamilyName(), family.getMerchantName()),
       new FamilyHomeResponse.MemberSummary(member.getMemberId(), member.getName(), member.getRoleTemplate()),
+      crew,
       java.time.LocalDate.now(),
       featuredDishes.isEmpty() ? null : featuredDishes.get(0),
       featuredDishes,
@@ -89,6 +93,47 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
       ),
       familyMapper.selectRecentOrders(user.familyId())
     );
+  }
+
+  private static FamilyHomeResponse.CrewSummary buildCrew(
+      FamilyRecord family, List<FamilyMemberRecord> members) {
+    List<FamilyMemberRecord> safeMembers = members == null ? List.of() : members;
+    FamilyMemberRecord administrator = safeMembers.stream()
+        .filter(FamilyApplicationServiceImpl::isFamilyAdministrator)
+        .sorted((left, right) -> Integer.compare(rolePriority(left), rolePriority(right)))
+        .findFirst()
+        .orElse(null);
+    FamilyMemberRecord ordinaryMember = safeMembers.stream()
+        .filter(item -> "MEMBER".equals(normalizedRole(item)))
+        .findFirst()
+        .orElse(null);
+    String chefName = displayName(family.getMerchantResponsibleName(), family.getMerchantName());
+    String helperName = administrator == null ? "无帮厨" : displayName(administrator.getName(), "无帮厨");
+    String tasterName = ordinaryMember != null
+        ? displayName(ordinaryMember.getName(), administrator == null ? "无试吃员" : helperName)
+        : (administrator == null ? "无试吃员" : helperName);
+    return new FamilyHomeResponse.CrewSummary(chefName, helperName, tasterName);
+  }
+
+  private static boolean isFamilyAdministrator(FamilyMemberRecord member) {
+    String role = normalizedRole(member);
+    return "OWNER".equals(role) || "ADMIN".equals(role);
+  }
+
+  private static int rolePriority(FamilyMemberRecord member) {
+    return "OWNER".equals(normalizedRole(member)) ? 0 : 1;
+  }
+
+  private static String normalizedRole(FamilyMemberRecord member) {
+    return member == null || member.getRoleTemplate() == null
+        ? "" : member.getRoleTemplate().trim().toUpperCase(Locale.ROOT);
+  }
+
+  private static String displayName(String value, String fallback) {
+    if (value == null || value.isBlank() || "null".equalsIgnoreCase(value.trim())) {
+      return fallback;
+    }
+    return value.trim();
   }
 
   /**

@@ -8,6 +8,7 @@
     <result property="familyName" column="family_name"/>
     <result property="merchantId" column="merchant_id"/>
     <result property="merchantName" column="merchant_name"/>
+    <result property="merchantResponsibleName" column="merchant_responsible_name"/>
     <result property="note" column="note"/>
     <result property="contactNamesJson" column="contact_names_json"/>
     <result property="deliveryEnabled" column="delivery_enabled"/>
@@ -46,6 +47,16 @@
            f.name as family_name,
            f.merchant_id,
            m.name as merchant_name,
+           coalesce(
+             nullif(trim(m.contact_name), ''),
+             (select coalesce(nullif(trim(u.nickname), ''), u.username)
+                from merchant_user_relations mur
+                join users u on u.id = mur.user_id
+               where mur.merchant_id = m.id and mur.status = 'ACTIVE'
+               order by case when upper(mur.merchant_role) = 'MERCHANT_ADMIN' then 0 else 1 end, mur.id
+               limit 1),
+             m.name
+           ) as merchant_responsible_name,
            f.note,
            f.contact_names_json,
            f.delivery_enabled,
@@ -178,6 +189,16 @@
            f.name as family_name,
            f.merchant_id,
            m.name as merchant_name,
+           coalesce(
+             nullif(trim(m.contact_name), ''),
+             (select coalesce(nullif(trim(u.nickname), ''), u.username)
+                from merchant_user_relations mur
+                join users u on u.id = mur.user_id
+               where mur.merchant_id = m.id and mur.status = 'ACTIVE'
+               order by case when upper(mur.merchant_role) = 'MERCHANT_ADMIN' then 0 else 1 end, mur.id
+               limit 1),
+             m.name
+           ) as merchant_responsible_name,
            f.note,
            f.contact_names_json,
            f.delivery_enabled,

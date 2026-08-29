@@ -23,6 +23,8 @@ public class FamilyRecord {
    * 商户名称。
    */
   private String merchantName;
+  /** 商户负责人展示名称。 */
+  private String merchantResponsibleName;
   /**
    * note。
    */
@@ -134,6 +136,20 @@ public class FamilyRecord {
    * @param merchantName 商户名称
    */
   public void setMerchantName(String merchantName) { this.merchantName = merchantName; }
+  /**
+   * 获取商户负责人展示名称。
+   *
+   * @return 商户联系人或负责人账号名称
+   */
+  public String getMerchantResponsibleName() { return merchantResponsibleName; }
+  /**
+   * 设置商户负责人展示名称。
+   *
+   * @param merchantResponsibleName 商户负责人展示名称
+   */
+  public void setMerchantResponsibleName(String merchantResponsibleName) {
+    this.merchantResponsibleName = merchantResponsibleName;
+  }
   /**
    * 获取Note。
    *

@@ -85,6 +85,12 @@ function formatExpectedMealTime(value, fallback = '待选择') {
   return match ? `${match[1]}-${match[2]}-${match[3]} ${match[4]}:${match[5]}` : text;
 }
 
+function displayText(value, fallback) {
+  if (value === undefined || value === null) return fallback;
+  const text = String(value).trim();
+  return !text || ['null', 'undefined', 'nan'].includes(text.toLowerCase()) ? fallback : text;
+}
+
 function buildExpectedMealTimeOptions(cart) {
   if (!cart || cart.bookingEnded || !cart.serverDate || !cart.minimumExpectedMealTime) return [];
   const step = Number(cart.timeStepMinutes);
@@ -143,6 +149,11 @@ function buildApiHomeScene(homeData, { imageBaseUrl = '', windowWidth = 0 } = {}
 
   return {
     context: buildContext(homeData),
+    crew: {
+      chefName: displayText(homeData.crew && homeData.crew.chefName, homeData.family.merchantName || '无主厨'),
+      helperName: displayText(homeData.crew && homeData.crew.helperName, '无帮厨'),
+      tasterName: displayText(homeData.crew && homeData.crew.tasterName, '无试吃员')
+    },
     heroImageUrl: '/assets/brand/hero-warm-kitchen.webp',
     currentMemberName: homeData.member.name,
     currentDate: formatDateText(homeData.serviceDate),
@@ -278,7 +289,7 @@ function buildApiCartScene({ homeData, mealSlots = [], cart, addresses = [], del
   const rows = ((cart && cart.items) || []).map((item) => ({
     id: item.itemId,
     dishId: item.dishId,
-    dishName: item.dishName,
+    dishName: displayText(item.dishName, '未命名菜品'),
     category: '',
     price: formatAmountNumber(item.price),
     quantity: Number(item.quantity || 0),
@@ -286,7 +297,11 @@ function buildApiCartScene({ homeData, mealSlots = [], cart, addresses = [], del
     myQuantity: Number(item.currentMemberQuantity || 0),
     canEdit: true,
     note: item.currentMemberRemark || '',
-    selections: Array.isArray(item.selections) ? item.selections : [],
+    selections: Array.isArray(item.selections) ? item.selections.map((selection) => ({
+      ...selection,
+      memberName: displayText(selection.memberName, '家庭成员'),
+      itemRemark: displayText(selection.itemRemark, '无备注')
+    })) : [],
     hasSelectionDetails: Array.isArray(item.selections) && item.selections.length > 0,
     amount: Number(item.price || 0) * Number(item.quantity || 0)
   }));
