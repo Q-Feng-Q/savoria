@@ -89,7 +89,9 @@ Add a mocked `FamilyWalletAccountInitializer` to the service constructor in ever
 - existing `get` returns without invoking initializer;
 - missing `get` invokes initializer and returns the second selected zero account;
 - missing `get` still throws the existing `NOT_FOUND` error when the second select is null;
-- every wallet lock path calls `initializer.ensure(familyId)` before `mapper.lockAccount(familyId)`.
+- every wallet lock path calls `initializer.ensure(familyId)` before `mapper.lockAccount(familyId)`, verified with Mockito `inOrder(initializer, mapper)` rather than independent `verify` calls.
+
+Keep `get` non-transactional. The first select must not establish an outer repeatable-read snapshot around the `REQUIRES_NEW` initializer; after the initializer commits, the second select must execute without an enclosing read transaction.
 
 - [ ] **Step 2: Run the service test and verify RED**
 
@@ -132,7 +134,7 @@ Ensure the fixture creates active family `7001`. Add tests that:
 - delete its wallet, race two distinct `manualCredit` commands, require no deadlock/SQL state `40001`, one final wallet row, and the exact sum of both credits;
 - retain and run `twoFreezesCannotOverdrawOneFamilyBalance` to prove existing-wallet serialization remains safe.
 
-Keep the identity mapper contract assertion that `family_id` comes from active `families f`, not directly from the family relation.
+Run the existing identity mapper contract assertion that `family_id` comes from active `families f`, not directly from the family relation. Do not edit that already-sufficient test.
 
 - [ ] **Step 2: Run the Testcontainers test**
 
@@ -157,6 +159,6 @@ Run `git diff --check` and inspect `git status --short`. Confirm no migration ru
 - [ ] **Step 5: Commit Task 3**
 
 ```powershell
-git add backend/src/test/java/com/familykitchen/wallet/FamilyWalletConcurrencyMySqlTest.java backend/src/test/java/com/familykitchen/common/security/IdentityContextMapperContractTest.java
+git add backend/src/test/java/com/familykitchen/wallet/FamilyWalletConcurrencyMySqlTest.java
 git commit -m "test: cover family wallet first-use concurrency"
 ```
