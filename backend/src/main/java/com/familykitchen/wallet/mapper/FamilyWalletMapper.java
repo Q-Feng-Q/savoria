@@ -16,6 +16,11 @@ public interface FamilyWalletMapper {
    * @return account or null
    */
   FamilyWalletAccountDO selectAccount(long familyId);
+  /** Creates a zero-valued account for an active family when one does not exist.
+   * @param familyId family identifier
+   * @return affected rows
+   */
+  int insertAccountIfMissing(long familyId);
   /** Locks an account.
    * @param familyId family identifier
    * @return locked account or null

@@ -23,6 +23,10 @@
   </resultMap>
   <sql id="accountColumns">family_id,available_amount,frozen_amount,version,created_at,updated_at</sql>
   <select id="selectAccount" resultMap="account">select <include refid="accountColumns"/> from family_wallets where family_id=#{familyId}</select>
+  <insert id="insertAccountIfMissing">
+    insert ignore into family_wallets(family_id,available_amount,frozen_amount)
+    select id,0,0 from families where id=#{familyId} and status='active'
+  </insert>
   <select id="lockAccount" resultMap="account">select <include refid="accountColumns"/> from family_wallets where family_id=#{familyId} for update</select>
   <select id="lockHold" resultMap="hold">select * from family_wallet_order_holds where order_id=#{orderId} for update</select>
   <select id="lockOrder" resultType="long">select family_id from orders where id=#{orderId} for update</select>
