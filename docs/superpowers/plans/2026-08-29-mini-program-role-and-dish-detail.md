@@ -1,0 +1,56 @@
+# Mini Program Role And Dish Detail Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking.
+
+**Goal:** Make real crew names consistent across family screens and improve ordering/detail readability.
+
+**Architecture:** Centralize role-label formatting in frontend/utils/api-scenes.js, expose the formatted crew to every relevant scene, and keep WXML presentation declarative. Extend existing contract tests before changing production files.
+
+**Tech Stack:** WeChat Mini Program WXML/WXSS/CommonJS, Node.js built-in test runner.
+
+---
+
+### Task 1: Lock the desired UI contracts
+
+**Files:**
+- Modify: frontend/tests/api-scenes.test.js
+- Modify: frontend/tests/shared-cart-pages.test.js
+- Modify: frontend/tests/warm-animal-visual-contract.test.js
+
+- [ ] Add assertions for 老祁主厨, 阿禾帮厨, 无试吃员, readable category fallback, one price, section headings, lower stepper placement, and absence of fixed animal role copy.
+- [ ] Run the three test files and confirm failures are caused by the old UI.
+
+### Task 2: Centralize role labels and readable dish metadata
+
+**Files:**
+- Modify: frontend/utils/api-scenes.js
+
+- [ ] Add one role-label builder with correct missing-name fallbacks.
+- [ ] Expose the same formatted crew from home, menu, and profile scenes.
+- [ ] Prefer categoryName; otherwise use 今日菜单.
+- [ ] Keep only the customer-facing final price in the detail scene.
+- [ ] Run scene tests and confirm they pass.
+
+### Task 3: Update family-facing WXML and layout
+
+**Files:**
+- Modify: frontend/pages/family/home/index.wxml
+- Modify: frontend/pages/ordering/menu/index.wxml
+- Modify: frontend/pages/account/profile/index.wxml
+- Modify: frontend/pages/ordering/dish-detail/index.wxml
+- Modify: frontend/pages/ordering/dish-detail/index.wxss
+- Modify: frontend/components/dish-row/index.wxss
+
+- [ ] Replace fixed animal role copy with shared formatted labels.
+- [ ] Render one price and add separated detail section headings.
+- [ ] Move the menu stepper lower without changing its 38rpx glyph size.
+- [ ] Run targeted contract tests and confirm they pass.
+
+### Task 4: Full verification
+
+**Files:**
+- Verify all modified frontend files.
+
+- [ ] Run npm test from frontend.
+- [ ] Confirm no fixed animal role phrases remain in production WXML.
+- [ ] Inspect git diff and preserve unrelated backend changes.
