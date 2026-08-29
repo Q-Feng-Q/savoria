@@ -16,31 +16,47 @@
   </view>
 
   <view class="detail-meta">
-    <view>
-      <text class="meta-label">当前家庭价</text>
+    <view class="detail-price-card">
+      <text class="meta-label">家庭价格</text>
       <text class="meta-value">¥{{scene.dish.finalPrice}}</text>
     </view>
-    <view>
-      <text class="meta-label">商户基础价</text>
-      <text class="meta-value">¥{{scene.dish.basePrice}}</text>
+  </view>
+
+  <view class="detail-section detail-section--ordering">
+    <view class="detail-section__head">
+      <text class="detail-section__heading">点餐信息</text>
+      <text class="detail-section__intro">确认用餐安排和全家已经选择的份数</text>
+    </view>
+    <view class="panel explain-panel detail-section__body">
+      <view class="detail-fact"><text class="detail-fact__label">当前家庭</text><text class="detail-fact__value">{{scene.dish.familyName}}</text></view>
+      <view class="detail-fact"><text class="detail-fact__label">预计用餐</text><text class="detail-fact__value">{{scene.dish.mealLabel}}</text></view>
+      <view class="detail-fact"><text class="detail-fact__label">餐篮数量</text><text class="detail-fact__value">全家共选 {{scene.dish.selectedCount}} 份 · 我选 {{scene.dish.myQuantity}} 份</text></view>
     </view>
   </view>
 
-  <view class="panel explain-panel">
-    <view class="detail-fact"><text class="detail-fact__label">当前家庭</text><text class="detail-fact__value">{{scene.dish.familyName}}</text></view>
-    <view class="detail-fact"><text class="detail-fact__label">预计用餐</text><text class="detail-fact__value">{{scene.dish.mealLabel}}</text></view>
-    <view class="detail-fact"><text class="detail-fact__label">餐篮数量</text><text class="detail-fact__value">全家共选 {{scene.dish.selectedCount}} 份 · 我选 {{scene.dish.myQuantity}} 份</text></view>
-    <view class="detail-fact detail-fact--note"><text class="detail-fact__label">点菜说明</text><text class="detail-fact__value">菜品资料由商户维护，家庭成员的选择会合并到共享餐篮。</text></view>
+  <view class="detail-section detail-section--description">
+    <view class="detail-section__head">
+      <text class="detail-section__heading">菜品说明</text>
+      <text class="detail-section__intro">了解菜品资料与共享餐篮的协作方式</text>
+    </view>
+    <view class="panel detail-note detail-section__body">
+      <text>菜品资料由商户维护，家庭成员的选择会合并到共享餐篮，提交订单后由家庭钱包统一结算。</text>
+    </view>
   </view>
 
-  <text class="section-title">主要食材</text>
-  <view class="list">
-    <block wx:for="{{scene.dish.ingredients}}" wx:key="id">
-      <view class="panel ingredient-line">
-        <text class="strong">{{item.name}}</text>
-        <text class="quantity">{{item.quantity}}{{item.unit}}</text>
-      </view>
-    </block>
+  <view class="detail-section detail-section--ingredients">
+    <view class="detail-section__head">
+      <text class="detail-section__heading">主要食材</text>
+      <text class="detail-section__intro">以下用量来自商户维护的菜品资料</text>
+    </view>
+    <view class="list detail-section__body">
+      <block wx:for="{{scene.dish.ingredients}}" wx:key="id">
+        <view class="panel ingredient-line">
+          <text class="strong">{{item.name}}</text>
+          <text class="quantity">{{item.quantity}}{{item.unit}}</text>
+        </view>
+      </block>
+    </view>
   </view>
 
   <block wx:if="{{false}}">

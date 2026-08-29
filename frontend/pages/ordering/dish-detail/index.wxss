@@ -85,9 +85,7 @@
 }
 
 .detail-meta {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16rpx;
+  display: block;
   margin: -34rpx 0 6rpx;
   position: relative;
   z-index: 2;
@@ -99,6 +97,11 @@
   background: #fffdf9;
   border: 2rpx solid rgba(241, 223, 200, 0.72);
   box-shadow: 0 18rpx 38rpx rgba(132, 95, 52, 0.12);
+}
+
+.detail-price-card {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .meta-label,
@@ -119,10 +122,48 @@
   font-weight: 950;
 }
 
+.detail-section {
+  margin-top: 38rpx;
+}
+
+.detail-section__head {
+  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid var(--sk-line-soft);
+}
+
+.detail-section__heading,
+.detail-section__intro {
+  display: block;
+}
+
+.detail-section__heading {
+  color: var(--sk-text);
+  font-family: "STKaiti", "KaiTi", "Songti SC", serif;
+  font-size: 34rpx;
+  font-weight: 950;
+}
+
+.detail-section__intro {
+  margin-top: 8rpx;
+  color: var(--sk-muted);
+  font-size: 21rpx;
+  line-height: 1.55;
+}
+
+.detail-section__body {
+  margin-top: 18rpx;
+}
+
 .explain-panel {
-  margin-top: 24rpx;
   padding-top: 8rpx;
   padding-bottom: 8rpx;
+}
+
+.detail-note {
+  padding: 24rpx;
+  color: var(--sk-muted);
+  font-size: 24rpx;
+  line-height: 1.8;
 }
 
 .detail-fact {

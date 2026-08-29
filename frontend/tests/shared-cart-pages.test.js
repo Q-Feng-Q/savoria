@@ -27,9 +27,15 @@ test('menu shows expected meal time and uses 38rpx visual stepper buttons', () =
 
 test('homepage role cards display dynamic crew names', () => {
   const home = read('pages/family/home/index.wxml');
-  assert.match(home, /crew\.chefName/);
-  assert.match(home, /crew\.helperName/);
-  assert.match(home, /crew\.tasterName/);
+  const menu = read('pages/ordering/menu/index.wxml');
+  const profile = read('pages/account/profile/index.wxml');
+  assert.match(home, /crew\.chefLabel/);
+  assert.match(home, /crew\.helperLabel/);
+  assert.match(home, /crew\.tasterLabel/);
+  assert.match(menu, /crew\.chefLabel/);
+  assert.match(menu, /crew\.helperLabel/);
+  assert.match(profile, /crew\.tasterLabel/);
+  assert.doesNotMatch([home, menu, profile].join('\n'), /小熊|兔子帮厨|橘猫试吃员/);
 });
 
 test('dish detail separates labels from values and documents family wallet settlement', () => {
@@ -38,7 +44,26 @@ test('dish detail separates labels from values and documents family wallet settl
   assert.match(detail, /detail-fact__label/);
   assert.match(detail, /detail-fact__value/);
   assert.match(detail, /家庭钱包统一冻结并扣款/);
+  assert.match(detail, /detail-section__heading[^>]*>点餐信息</);
+  assert.match(detail, /detail-section__heading[^>]*>菜品说明</);
+  assert.match(detail, /detail-section__heading[^>]*>主要食材</);
+  assert.match(detail, /detail-section__body/);
+  assert.equal((detail.match(/class="meta-value"/g) || []).length, 1);
+  assert.doesNotMatch(detail, /商户价格|商户基础价|basePrice/);
   assert.match(styles, /\.detail-fact\s*\{/);
+  assert.match(styles, /\.detail-section\s*\{[^}]*margin-top:/s);
+  assert.match(styles, /\.detail-section__head\s*\{[^}]*padding-bottom:[^}]*border-bottom:/s);
+});
+
+test('dish row keeps the 38rpx stepper in a non-overlapping bottom action row', () => {
+  const markup = read('components/dish-row/index.wxml');
+  const styles = read('components/dish-row/index.wxss');
+  const stepper = read('components/quantity-stepper/index.wxss');
+  assert.match(markup, /dish-row__body[\s\S]*dish-row__action-row/);
+  assert.match(styles, /\.dish-row__action-row\s*\{[^}]*grid-column:\s*2[^}]*display:\s*flex/s);
+  assert.doesNotMatch(styles, /\.dish-row__action-row\s*\{[^}]*position:\s*absolute/s);
+  assert.match(styles, /@media\s*\(max-width:\s*360px\)[\s\S]*\.dish-row__action-row\s*\{/);
+  assert.match(stepper, /\.quantity-stepper__glyph\s*\{[^}]*width:\s*38rpx[^}]*height:\s*38rpx/s);
 });
 
 test('shared cart mutations are absolute, versioned and refresh stale carts', () => {

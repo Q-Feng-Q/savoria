@@ -20,9 +20,10 @@ test('home hero uses the generated warm animal kitchen artwork', () => {
   const wxss = read('pages/family/home/index.wxss')
 
   assert.match(wxml, /animal-kitchen-hero\.webp/)
-  assert.match(wxml, /小熊主厨/)
-  assert.match(wxml, /兔子帮厨/)
-  assert.match(wxml, /橘猫试吃员/)
+  assert.match(wxml, /crew\.chefLabel/)
+  assert.match(wxml, /crew\.helperLabel/)
+  assert.match(wxml, /crew\.tasterLabel/)
+  assert.doesNotMatch(wxml, /小熊|兔子帮厨|橘猫试吃员/)
   assert.match(wxss, /animal-breathe/)
 })
 
@@ -53,7 +54,7 @@ test('shared brand and account surfaces use the mascot trio', () => {
 
   assert.match(brandScene, /animal-mascot-trio\.webp/)
   assert.match(profile, /animal-mascot-trio\.webp/)
-  assert.match(menu, /兔子帮厨/)
+  assert.match(menu, /crew\.helperLabel/)
 })
 
 test('animal assets are never loaded from WXSS', () => {

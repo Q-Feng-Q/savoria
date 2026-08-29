@@ -1,5 +1,5 @@
 <view class="warm-page warm-state-host home-page concept-page">
-  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="首页暂时没准备好" description="{{errorMessage || '小熊主厨正在准备今天的家庭餐桌'}}" illustration="orders" bind:retry="load" />
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="首页暂时没准备好" description="{{errorMessage || '厨房正在准备今天的家庭餐桌'}}" illustration="orders" bind:retry="load" />
   <block wx:else>
     <view class="design-home-hero home-story warm-home-poster">
       <image class="home-hero__scene home-story__scene warm-home-poster__scene" src="/assets/brand/animal-kitchen-hero.webp" mode="aspectFill" />
@@ -14,9 +14,9 @@
     </view>
 
     <view class="home-role-strip animal-crew sk-stagger-in">
-      <view class="home-role"><view class="home-role__badge home-role__badge--bear">熊</view><view><text>小熊主厨</text><text>{{crew.chefName}}</text></view></view>
-      <view class="home-role"><view class="home-role__badge home-role__badge--rabbit">兔</view><view><text>兔子帮厨</text><text>{{crew.helperName}}</text></view></view>
-      <view class="home-role"><view class="home-role__badge home-role__badge--cat">猫</view><view><text>橘猫试吃员</text><text>{{crew.tasterName}}</text></view></view>
+      <view class="home-role"><view class="home-role__badge home-role__badge--bear">熊</view><view><text>{{crew.chefLabel}}</text><text>商户负责人</text></view></view>
+      <view class="home-role"><view class="home-role__badge home-role__badge--rabbit">兔</view><view><text>{{crew.helperLabel}}</text><text>家庭管理员</text></view></view>
+      <view class="home-role"><view class="home-role__badge home-role__badge--cat">猫</view><view><text>{{crew.tasterLabel}}</text><text>家庭成员</text></view></view>
     </view>
 
     <view class="home-table-summary today-board sk-stagger-in">
@@ -29,7 +29,7 @@
       <swiper-item wx:for="{{featuredDishes}}" wx:key="id" class="home-featured-slide">
         <view class="home-recommendation featured-story" data-id="{{item.id}}" bindtap="openDishDetail" aria-role="button" aria-label="查看{{item.name}}详情" hover-class="home-recommendation--pressed" hover-stay-time="80">
           <view class="home-recommendation__copy featured-story__copy">
-            <text class="home-recommendation__eyebrow section-kicker">小熊主厨今天推荐</text>
+            <text class="home-recommendation__eyebrow section-kicker">{{crew.chefLabel}}今天推荐</text>
             <text class="home-recommendation__title featured-story__title">{{item.name}}</text>
             <text class="home-recommendation__note featured-story__note">{{item.description}}</text>
             <text class="home-recommendation__price featured-story__price">{{item.priceText}}</text>

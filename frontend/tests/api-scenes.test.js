@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
+  buildCrewRoleLabels,
   buildApiHomeScene,
   buildApiMenuScene,
   buildApiDishDetailScene,
@@ -66,7 +67,10 @@ test('buildApiHomeScene maps home response to homepage view model', () => {
   assert.deepEqual(scene.crew, {
     chefName: '食光知味',
     helperName: '无帮厨',
-    tasterName: '无试吃员'
+    tasterName: '无试吃员',
+    chefLabel: '食光知味主厨',
+    helperLabel: '无帮厨',
+    tasterLabel: '无试吃员'
   });
   assert.equal(scene.featuredDish.id, 100);
   assert.equal(scene.featuredDish.description, '酸甜开胃，适合全家分享');
@@ -84,7 +88,41 @@ test('buildApiHomeScene maps backend crew names without leaking null text', () =
     ...homeData,
     crew: { chefName: '老祁', helperName: '阿禾', tasterName: null }
   });
-  assert.deepEqual(scene.crew, { chefName: '老祁', helperName: '阿禾', tasterName: '无试吃员' });
+  assert.deepEqual(scene.crew, {
+    chefName: '老祁',
+    helperName: '阿禾',
+    tasterName: '无试吃员',
+    chefLabel: '老祁主厨',
+    helperLabel: '阿禾帮厨',
+    tasterLabel: '无试吃员'
+  });
+});
+
+test('buildCrewRoleLabels formats names once and keeps blank fallbacks readable', () => {
+  assert.deepEqual(buildCrewRoleLabels({
+    chefName: ' 老祁 ',
+    helperName: '阿禾',
+    tasterName: '小林'
+  }), {
+    chefName: '老祁',
+    helperName: '阿禾',
+    tasterName: '小林',
+    chefLabel: '老祁主厨',
+    helperLabel: '阿禾帮厨',
+    tasterLabel: '小林试吃员'
+  });
+  assert.deepEqual(buildCrewRoleLabels({
+    chefName: ' ',
+    helperName: null,
+    tasterName: undefined
+  }), {
+    chefName: '无主厨',
+    helperName: '无帮厨',
+    tasterName: '无试吃员',
+    chefLabel: '无主厨',
+    helperLabel: '无帮厨',
+    tasterLabel: '无试吃员'
+  });
 });
 
 test('buildApiHomeScene prefers the featured dish array and enables multi-item swiper behavior', () => {
@@ -160,6 +198,8 @@ test('buildApiMenuScene merges menu items with shared cart counts', () => {
   });
 
   assert.equal(scene.cartItemCount, 2);
+  assert.equal(scene.crew.chefLabel, '食光知味主厨');
+  assert.equal(scene.crew.helperLabel, '无帮厨');
   assert.equal(scene.activeCategoryLabel, '全部菜品');
   assert.equal(scene.visibleMenuCards.length, 1);
   assert.equal(scene.visibleMenuCards[0].selectedByCurrentMemberCount, 2);
@@ -188,6 +228,7 @@ test('buildApiDishDetailScene keeps ingredient and selected count info', () => {
     dishDetail: {
       dishId: 100,
       categoryId: 3,
+      categoryName: '家常菜',
       name: '番茄炒蛋',
       description: '酸甜开胃',
       imageUrl: '/uploads/images/tomato.png',
@@ -209,10 +250,22 @@ test('buildApiDishDetailScene keeps ingredient and selected count info', () => {
   });
 
   assert.equal(scene.dish.name, '番茄炒蛋');
+  assert.equal(scene.dish.category, '家常菜');
   assert.equal(scene.dish.selectedCount, 2);
   assert.equal(scene.dish.ingredients.length, 2);
   assert.equal(scene.dish.cookingSteps.length, 1);
   assert.equal(scene.dish.finalPrice, '18.00');
+  assert.equal(Object.hasOwn(scene.dish, 'basePrice'), false);
+});
+
+test('buildApiDishDetailScene hides internal category ids behind readable copy', () => {
+  const scene = buildApiDishDetailScene({
+    homeData,
+    dishDetail: { dishId: 100, categoryId: 14, name: '番茄炒蛋', price: 18 }
+  });
+
+  assert.equal(scene.dish.category, '今日菜单');
+  assert.doesNotMatch(scene.dish.category, /14|分类/);
 });
 
 test('buildApiMerchantDishesScene marks only imported template dishes as syncable', () => {
@@ -385,6 +438,7 @@ test('wallet and profile scenes keep backend fields usable by pages', () => {
   assert.equal(walletScene.latestTransactions[0].amountText, '-¥42.00');
   assert.equal(walletLedgerScene.transactions[0].note, '午餐订单冻结');
   assert.equal(profileScene.defaultAddress.contactName, '陈梅');
+  assert.equal(profileScene.crew.tasterLabel, '无试吃员');
   assert.equal(profileScene.memberCards[0].balanceText, '可用 ¥88.00');
   assert.equal(profileScene.showDemoSwitchers, false);
 });

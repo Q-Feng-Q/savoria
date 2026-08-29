@@ -91,6 +91,28 @@ function displayText(value, fallback) {
   return !text || ['null', 'undefined', 'nan'].includes(text.toLowerCase()) ? fallback : text;
 }
 
+function buildCrewRoleLabels(crew = {}) {
+  const chefName = displayText(crew && crew.chefName, '无主厨');
+  const helperName = displayText(crew && crew.helperName, '无帮厨');
+  const tasterName = displayText(crew && crew.tasterName, '无试吃员');
+  return {
+    chefName,
+    helperName,
+    tasterName,
+    chefLabel: chefName === '无主厨' ? chefName : chefName + '主厨',
+    helperLabel: helperName === '无帮厨' ? helperName : helperName + '帮厨',
+    tasterLabel: tasterName === '无试吃员' ? tasterName : tasterName + '试吃员'
+  };
+}
+
+function buildHomeCrewRoleLabels(homeData) {
+  const crew = (homeData && homeData.crew) || {};
+  return buildCrewRoleLabels({
+    ...crew,
+    chefName: displayText(crew.chefName, homeData.family.merchantName || null)
+  });
+}
+
 function buildExpectedMealTimeOptions(cart) {
   if (!cart || cart.bookingEnded || !cart.serverDate || !cart.minimumExpectedMealTime) return [];
   const step = Number(cart.timeStepMinutes);
@@ -149,11 +171,7 @@ function buildApiHomeScene(homeData, { imageBaseUrl = '', windowWidth = 0 } = {}
 
   return {
     context: buildContext(homeData),
-    crew: {
-      chefName: displayText(homeData.crew && homeData.crew.chefName, homeData.family.merchantName || '无主厨'),
-      helperName: displayText(homeData.crew && homeData.crew.helperName, '无帮厨'),
-      tasterName: displayText(homeData.crew && homeData.crew.tasterName, '无试吃员')
-    },
+    crew: buildHomeCrewRoleLabels(homeData),
     heroImageUrl: '/assets/brand/hero-warm-kitchen.webp',
     currentMemberName: homeData.member.name,
     currentDate: formatDateText(homeData.serviceDate),
@@ -235,6 +253,7 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
 
   return {
     context: buildContext(homeData),
+    crew: buildHomeCrewRoleLabels(homeData),
     heroImageUrl: '/assets/ui/kitchen-hero.png',
     currentDate: formatDateText(homeData.serviceDate),
     currentMemberName: homeData.member.name,
@@ -259,13 +278,12 @@ function buildApiDishDetailScene({ homeData, dishDetail, cart = null, mealSlots 
     context: buildContext(homeData),
     dish: {
       id: dishDetail.dishId,
-      category: dishDetail.categoryId ? `分类 ${dishDetail.categoryId}` : '今日特色',
+      category: displayText(dishDetail.categoryName, '今日菜单'),
       name: dishDetail.name,
       description: dishDetail.description || '商户维护的菜品详情',
       tasteTags: dishDetail.description ? [dishDetail.description] : ['家常推荐'],
       imageUrl: toImageUrl(imageBaseUrl, dishDetail.imageUrl),
       finalPrice: formatAmountNumber(dishDetail.price),
-      basePrice: formatAmountNumber(dishDetail.price),
       familyName: homeData.family.familyName,
       mealLabel: formatExpectedMealTime(cart && cart.expectedMealTime),
       selectedCount,
@@ -509,6 +527,7 @@ function buildApiProfileScene({ homeData, addresses = [], wallet = null, ledgers
 
   return {
     context: buildContext(homeData, { addresses: normalizedAddresses }),
+    crew: buildHomeCrewRoleLabels(homeData),
     summaryCards: [
       {
         key: 'addressCount',
@@ -559,6 +578,7 @@ function buildApiAddressBookScene({ homeData, addresses = [] }) {
 }
 
 module.exports = {
+  buildCrewRoleLabels,
   formatExpectedMealTime,
   buildExpectedMealTimeOptions,
   buildApiHomeScene,
