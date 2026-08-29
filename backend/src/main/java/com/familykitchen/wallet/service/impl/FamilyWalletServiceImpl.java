@@ -8,6 +8,7 @@ import com.familykitchen.wallet.model.bo.FamilyWalletAccount;
 import com.familykitchen.wallet.model.entity.FamilyWalletAccountDO;
 import com.familykitchen.wallet.model.entity.FamilyWalletLedgerDO;
 import com.familykitchen.wallet.model.entity.FamilyWalletOrderHoldDO;
+import com.familykitchen.wallet.service.FamilyWalletAccountInitializer;
 import com.familykitchen.wallet.service.FamilyWalletService;
 import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
@@ -19,15 +20,21 @@ public class FamilyWalletServiceImpl implements FamilyWalletService {
   private static final BigDecimal ZERO = new BigDecimal("0.00");
   private final FamilyWalletMapper mapper;
   private final CommandIdempotencyService commands;
+  private final FamilyWalletAccountInitializer initializer;
   /** Creates the service.
    * @param mapper persistence mapper
    * @param commands persistent idempotency coordinator
+   * @param initializer safe first-use wallet initializer
    */
-  public FamilyWalletServiceImpl(FamilyWalletMapper mapper,CommandIdempotencyService commands) { this.mapper=mapper;this.commands=commands; }
+  public FamilyWalletServiceImpl(FamilyWalletMapper mapper,CommandIdempotencyService commands,
+      FamilyWalletAccountInitializer initializer) {
+    this.mapper=mapper;this.commands=commands;this.initializer=initializer;
+  }
 
   /** {@inheritDoc} */
   @Override public FamilyWalletAccountDO get(long familyId) {
     FamilyWalletAccountDO row=mapper.selectAccount(familyId);
+    if(row==null){initializer.ensure(familyId);row=mapper.selectAccount(familyId);}
     if(row==null) throw new BusinessException(ErrorCode.NOT_FOUND,"家庭钱包不存在");
     return row;
   }
@@ -121,7 +128,7 @@ public class FamilyWalletServiceImpl implements FamilyWalletService {
     if(credit)account.manualCredit(amount);else account.manualDebit(amount);persist(account);
     ledger(familyId,null,actorId,credit?"MANUAL_CREDIT":"MANUAL_DEBIT",key,amount,beforeA,beforeF,account,remark);
   }
-  private FamilyWalletAccountDO lockAccount(long id){FamilyWalletAccountDO row=mapper.lockAccount(id);if(row==null)throw new BusinessException(ErrorCode.NOT_FOUND,"家庭钱包不存在");return row;}
+  private FamilyWalletAccountDO lockAccount(long id){initializer.ensure(id);FamilyWalletAccountDO row=mapper.lockAccount(id);if(row==null)throw new BusinessException(ErrorCode.NOT_FOUND,"家庭钱包不存在");return row;}
   private void lockOrder(long orderId,long familyId){Long owner=mapper.lockOrder(orderId);if(owner==null)throw new BusinessException(ErrorCode.NOT_FOUND,"订单不存在");if(owner!=familyId)throw new BusinessException(ErrorCode.FORBIDDEN,"订单不属于当前家庭");}
   private FamilyWalletOrderHoldDO lockHold(long orderId,long familyId){FamilyWalletOrderHoldDO h=mapper.lockHold(orderId);if(h==null)throw new BusinessException(ErrorCode.NOT_FOUND,"订单冻结单不存在");if(!Long.valueOf(familyId).equals(h.familyId))throw new BusinessException(ErrorCode.FORBIDDEN,"订单不属于当前家庭");return h;}
   private static FamilyWalletAccount domain(FamilyWalletAccountDO r){return new FamilyWalletAccount(r.familyId,r.availableAmount,r.frozenAmount);}
