@@ -38,8 +38,8 @@ test('all global visual components are rebuilt with warm component roots', () =>
 })
 
 test('anchor and merchant pages expose their approved visual roles', () => {
-  assert.match(read('pages/family/home/index.wxml'), /crew\.chefLabel/)
+  assert.match(read('pages/family/home/index.wxml'), /crew\.chefRecommendationLabel/)
   assert.match(read('pages/ordering/menu/index.wxml'), /crew\.helperLabel/)
-  assert.match(read('pages/account/profile/index.wxml'), /crew\.tasterLabel/)
+  assert.match(read('pages/account/profile/index.wxml'), /crew\.tasterWelcomeLabel/)
   assert.match(read('pages/merchant/index.wxml'), /merchant-vignette-strip/)
 })

@@ -95,13 +95,18 @@ function buildCrewRoleLabels(crew = {}) {
   const chefName = displayText(crew && crew.chefName, '无主厨');
   const helperName = displayText(crew && crew.helperName, '无帮厨');
   const tasterName = displayText(crew && crew.tasterName, '无试吃员');
+  const chefLabel = chefName === '无主厨' ? chefName : chefName + '主厨';
+  const helperLabel = helperName === '无帮厨' ? helperName : helperName + '帮厨';
+  const tasterLabel = tasterName === '无试吃员' ? tasterName : tasterName + '试吃员';
   return {
     chefName,
     helperName,
     tasterName,
-    chefLabel: chefName === '无主厨' ? chefName : chefName + '主厨',
-    helperLabel: helperName === '无帮厨' ? helperName : helperName + '帮厨',
-    tasterLabel: tasterName === '无试吃员' ? tasterName : tasterName + '试吃员'
+    chefLabel,
+    helperLabel,
+    tasterLabel,
+    chefRecommendationLabel: chefName === '无主厨' ? '今日推荐' : chefLabel + '今日推荐',
+    tasterWelcomeLabel: tasterName === '无试吃员' ? '欢迎你' : tasterLabel + '欢迎你'
   };
 }
 

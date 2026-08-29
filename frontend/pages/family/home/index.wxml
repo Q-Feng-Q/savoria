@@ -29,7 +29,7 @@
       <swiper-item wx:for="{{featuredDishes}}" wx:key="id" class="home-featured-slide">
         <view class="home-recommendation featured-story" data-id="{{item.id}}" bindtap="openDishDetail" aria-role="button" aria-label="查看{{item.name}}详情" hover-class="home-recommendation--pressed" hover-stay-time="80">
           <view class="home-recommendation__copy featured-story__copy">
-            <text class="home-recommendation__eyebrow section-kicker">{{crew.chefLabel}}今天推荐</text>
+            <text class="home-recommendation__eyebrow section-kicker">{{crew.chefRecommendationLabel}}</text>
             <text class="home-recommendation__title featured-story__title">{{item.name}}</text>
             <text class="home-recommendation__note featured-story__note">{{item.description}}</text>
             <text class="home-recommendation__price featured-story__price">{{item.priceText}}</text>

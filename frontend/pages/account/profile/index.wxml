@@ -5,7 +5,7 @@
     <view class="warm-profile-portrait__welcome"><text class="warm-profile-portrait__welcome-kicker">暖暖动物私厨</text><text class="warm-profile-portrait__welcome-title">{{isUnbound ? '先认识一下新家' : '今天也一起好好吃饭'}}</text></view>
     <view class="profile-banner__identity warm-profile-portrait__identity">
       <view class="profile-avatar">{{avatarInitial}}</view>
-      <view class="profile-hero__copy"><text class="profile-kicker">{{isUnbound ? '欢迎你' : crew.tasterLabel + '欢迎你'}}</text><text class="profile-name">{{accountProfile.nickname || context.member.name}}</text><text class="profile-account">@{{accountProfile.username}} · {{sessionLabel}}</text></view>
+      <view class="profile-hero__copy"><text class="profile-kicker">{{isUnbound ? '欢迎你' : crew.tasterWelcomeLabel}}</text><text class="profile-name">{{accountProfile.nickname || context.member.name}}</text><text class="profile-account">@{{accountProfile.username}} · {{sessionLabel}}</text></view>
       <view class="profile-switch-link" aria-role="button" aria-label="切换账号或身份" hover-class="profile-switch-link--pressed" hover-stay-time="80" bindtap="switchIdentity">切换账号/身份</view>
     </view>
   </view>

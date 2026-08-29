@@ -29,12 +29,13 @@ test('homepage role cards display dynamic crew names', () => {
   const home = read('pages/family/home/index.wxml');
   const menu = read('pages/ordering/menu/index.wxml');
   const profile = read('pages/account/profile/index.wxml');
-  assert.match(home, /crew\.chefLabel/);
+  assert.match(home, /crew\.chefRecommendationLabel/);
   assert.match(home, /crew\.helperLabel/);
   assert.match(home, /crew\.tasterLabel/);
-  assert.match(menu, /crew\.chefLabel/);
+  assert.match(menu, /crew\.chefRecommendationLabel/);
   assert.match(menu, /crew\.helperLabel/);
-  assert.match(profile, /crew\.tasterLabel/);
+  assert.match(profile, /crew\.tasterWelcomeLabel/);
+  assert.doesNotMatch([home, menu, profile].join('\n'), /无主厨(?:今天|今日)推荐|无试吃员欢迎你/);
   assert.doesNotMatch([home, menu, profile].join('\n'), /小熊|兔子帮厨|橘猫试吃员/);
 });
 

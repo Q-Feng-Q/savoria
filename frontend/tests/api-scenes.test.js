@@ -70,7 +70,9 @@ test('buildApiHomeScene maps home response to homepage view model', () => {
     tasterName: '无试吃员',
     chefLabel: '食光知味主厨',
     helperLabel: '无帮厨',
-    tasterLabel: '无试吃员'
+    tasterLabel: '无试吃员',
+    chefRecommendationLabel: '食光知味主厨今日推荐',
+    tasterWelcomeLabel: '欢迎你'
   });
   assert.equal(scene.featuredDish.id, 100);
   assert.equal(scene.featuredDish.description, '酸甜开胃，适合全家分享');
@@ -94,7 +96,9 @@ test('buildApiHomeScene maps backend crew names without leaking null text', () =
     tasterName: '无试吃员',
     chefLabel: '老祁主厨',
     helperLabel: '阿禾帮厨',
-    tasterLabel: '无试吃员'
+    tasterLabel: '无试吃员',
+    chefRecommendationLabel: '老祁主厨今日推荐',
+    tasterWelcomeLabel: '欢迎你'
   });
 });
 
@@ -109,7 +113,9 @@ test('buildCrewRoleLabels formats names once and keeps blank fallbacks readable'
     tasterName: '小林',
     chefLabel: '老祁主厨',
     helperLabel: '阿禾帮厨',
-    tasterLabel: '小林试吃员'
+    tasterLabel: '小林试吃员',
+    chefRecommendationLabel: '老祁主厨今日推荐',
+    tasterWelcomeLabel: '小林试吃员欢迎你'
   });
   assert.deepEqual(buildCrewRoleLabels({
     chefName: ' ',
@@ -121,7 +127,9 @@ test('buildCrewRoleLabels formats names once and keeps blank fallbacks readable'
     tasterName: '无试吃员',
     chefLabel: '无主厨',
     helperLabel: '无帮厨',
-    tasterLabel: '无试吃员'
+    tasterLabel: '无试吃员',
+    chefRecommendationLabel: '今日推荐',
+    tasterWelcomeLabel: '欢迎你'
   });
 });
 
