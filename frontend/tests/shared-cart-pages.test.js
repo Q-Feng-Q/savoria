@@ -65,7 +65,7 @@ test('dish row keeps the 38rpx stepper in a non-overlapping bottom action row', 
   const stepperRule = styles.match(/\.dish-row__stepper\s*\{([^}]*)\}/)?.[1];
   const compactActionRowRule = styles.match(/@media\s*\(max-width:\s*360px\)[\s\S]*?\.dish-row__action-row\s*\{([^}]*)\}/)?.[1];
   assert.equal((markup.match(/dish-row__price/g) || []).length, 1);
-  assert.match(markup, /<view class="dish-row__action-row"[^>]*>\s*<text class="dish-row__price"[^>]*>[^<]*<\/text>\s*<view class="dish-row__stepper">\s*<quantity-stepper\b[^>]*\/>\s*<\/view>\s*<\/view>\s*<\/view>\s*$/);
+  assert.match(markup, /<view class="dish-row__action-row"(?![^>]*catchtap)[^>]*>\s*<text class="dish-row__price"[^>]*>[^<]*<\/text>\s*<view class="dish-row__stepper" catchtap="noop">\s*<quantity-stepper\b[^>]*\/>\s*<\/view>/);
   assert.ok(actionRowRule);
   assert.match(actionRowRule, /grid-column:\s*2/);
   assert.match(actionRowRule, /display:\s*flex/);
