@@ -22,10 +22,17 @@
 Extend `dish row keeps the 38rpx stepper in a non-overlapping bottom action row` to require:
 
 ```js
-assert.match(markup, /dish-row__action-row[\s\S]*dish-row__price[\s\S]*dish-row__stepper[\s\S]*quantity-stepper/);
-assert.doesNotMatch(markup, /dish-row__body[\s\S]*dish-row__price[\s\S]*<\/view>\s*<view class="dish-row__action-row"/);
-assert.match(styles, /\.dish-row__action-row\s*\{[^}]*justify-content:\s*space-between[^}]*align-items:\s*center[^}]*margin-top:\s*14rpx/s);
-assert.match(styles, /\.dish-row__price\s*\{[^}]*min-width:\s*0[^}]*overflow:\s*hidden[^}]*text-overflow:\s*ellipsis[^}]*white-space:\s*nowrap/s);
+assert.equal((markup.match(/dish-row__price/g) || []).length, 1);
+assert.match(markup, /<view class="dish-row__action-row" catchtap="noop">\s*<text class="dish-row__price">[^<]*<\/text>\s*<view class="dish-row__stepper">\s*<quantity-stepper[^>]*\/>\s*<\/view>\s*<\/view>/);
+const actionRule = styles.match(/\.dish-row__action-row\s*\{([^}]*)\}/)[1];
+assert.match(actionRule, /justify-content:\s*space-between/);
+assert.match(actionRule, /align-items:\s*center/);
+assert.match(actionRule, /margin-top:\s*14rpx/);
+const priceRule = styles.match(/\.dish-row__price\s*\{([^}]*)\}/)[1];
+assert.match(priceRule, /min-width:\s*0/);
+assert.match(priceRule, /overflow:\s*hidden/);
+assert.match(priceRule, /text-overflow:\s*ellipsis/);
+assert.match(priceRule, /white-space:\s*nowrap/);
 assert.match(styles, /\.dish-row__stepper\s*\{[^}]*flex:\s*0\s+0\s+auto/s);
 ```
 
@@ -83,7 +90,7 @@ Update `frontend/components/dish-row/index.wxss`:
 }
 ```
 
-Preserve the compact `max-width: 360px` rule and the existing quantity-stepper 38rpx glyph / 88rpx button rules.
+Preserve the compact `max-width: 360px` sizing rule, but replace its old `justify-content: flex-end` action-row override with `justify-content: space-between` so the 320px layout still keeps price left and stepper right. Preserve the existing quantity-stepper 38rpx glyph / 88rpx button rules.
 
 - [ ] **Step 5: Run the focused test and verify GREEN**
 
