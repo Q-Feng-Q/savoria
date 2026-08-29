@@ -17,7 +17,7 @@
 - Modify: frontend/tests/shared-cart-pages.test.js
 - Modify: frontend/tests/warm-animal-visual-contract.test.js
 
-- [ ] Add assertions for 老祁主厨, 阿禾帮厨, 无试吃员, readable category fallback, one price, section headings, lower stepper placement, and absence of fixed animal role copy.
+- [ ] Add assertions for 老祁主厨, 阿禾帮厨, 无试吃员, readable category fallback, exactly one price, section heading/body containers, an independent bottom action row, and no visible 小熊 copy in production WXML.
 - [ ] Run the three test files and confirm failures are caused by the old UI.
 
 ### Task 2: Centralize role labels and readable dish metadata
@@ -25,8 +25,8 @@
 **Files:**
 - Modify: frontend/utils/api-scenes.js
 
-- [ ] Add one role-label builder with correct missing-name fallbacks.
-- [ ] Expose the same formatted crew from home, menu, and profile scenes.
+- [ ] Add one role-label builder mapping chefName/helperName/tasterName with correct missing-name fallbacks.
+- [ ] Call it with homeData.crew from home, menu, and profile scenes.
 - [ ] Prefer categoryName; otherwise use 今日菜单.
 - [ ] Keep only the customer-facing final price in the detail scene.
 - [ ] Run scene tests and confirm they pass.
@@ -42,8 +42,8 @@
 - Modify: frontend/components/dish-row/index.wxss
 
 - [ ] Replace fixed animal role copy with shared formatted labels.
-- [ ] Render one price and add separated detail section headings.
-- [ ] Move the menu stepper lower without changing its 38rpx glyph size.
+- [ ] Render exactly one family price and add separate 点餐信息, 菜品说明, and 主要食材 heading/body sections.
+- [ ] Move the menu stepper into a non-overlapping bottom action row without changing its 38rpx glyph size.
 - [ ] Run targeted contract tests and confirm they pass.
 
 ### Task 4: Full verification
