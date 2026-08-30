@@ -116,6 +116,9 @@ public class DishApplicationServiceImpl implements DishApplicationService {
     dishMapper.insertDish(entity);
     replaceIngredients(entity.getId(), request.ingredients());
     replaceCookingSteps(entity.getId(), request.cookingSteps());
+    if ("active".equals(entity.getStatus())) {
+      familyMapper.enableDishForActiveFamilies(user.merchantId(), entity.getId());
+    }
     return toDishView(entity);
   }
 

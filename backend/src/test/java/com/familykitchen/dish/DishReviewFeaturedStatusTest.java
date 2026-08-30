@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -17,6 +18,7 @@ import com.familykitchen.dish.model.entity.DishEntity;
 import com.familykitchen.dish.model.entity.DishReviewSubmissionDO;
 import com.familykitchen.dish.service.MerchantDishMutationLock;
 import com.familykitchen.dish.service.impl.DishReviewServiceImpl;
+import com.familykitchen.family.mapper.FamilyMapper;
 import com.familykitchen.system.mapper.SystemAuditMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -42,7 +44,7 @@ class DishReviewFeaturedStatusTest {
     when(dishes.updateDish(any())).thenReturn(1);
 
     new DishReviewServiceImpl(reviews, dishes, new ObjectMapper(),
-        mock(SystemAuditMapper.class), lock).approve(7L, 99L, "ok");
+        mock(SystemAuditMapper.class), lock, mock(FamilyMapper.class)).approve(7L, 99L, "ok");
 
     InOrder order = inOrder(lock, dishes);
     order.verify(lock).lock(2L, 8L);
@@ -60,7 +62,7 @@ class DishReviewFeaturedStatusTest {
         com.familykitchen.common.error.ErrorCode.NOT_FOUND, "未找到菜品"));
 
     assertThrows(BusinessException.class, () -> new DishReviewServiceImpl(reviews, dishes,
-        new ObjectMapper(), mock(SystemAuditMapper.class), lock).approve(7L, 99L, "ok"));
+        new ObjectMapper(), mock(SystemAuditMapper.class), lock, mock(FamilyMapper.class)).approve(7L, 99L, "ok"));
 
     verify(dishes, never()).updateDish(any());
     verify(reviews, never()).approve(any(), any(), any());
@@ -76,10 +78,31 @@ class DishReviewFeaturedStatusTest {
     when(dishes.countCategoryOwnership(2L, 3L)).thenReturn(1);
 
     new DishReviewServiceImpl(reviews, dishes, new ObjectMapper(),
-        mock(SystemAuditMapper.class), lock).approve(7L, 99L, "ok");
+        mock(SystemAuditMapper.class), lock, mock(FamilyMapper.class)).approve(7L, 99L, "ok");
 
     verify(lock, never()).lock(any(), any());
     verify(dishes).insertDish(any());
+  }
+
+  @Test
+  void newActiveDishApprovalEnablesDishForEveryActiveMerchantFamily() throws Exception {
+    DishReviewMapper reviews = mock(DishReviewMapper.class);
+    DishMapper dishes = mock(DishMapper.class);
+    FamilyMapper families = mock(FamilyMapper.class);
+    when(reviews.selectById(7L)).thenReturn(review(7L, 2L, null, "active"));
+    when(reviews.approve(7L, 99L, "ok")).thenReturn(1);
+    when(dishes.countCategoryOwnership(2L, 3L)).thenReturn(1);
+    doAnswer(invocation -> {
+      DishEntity inserted = invocation.getArgument(0);
+      inserted.setId(8L);
+      return 1;
+    }).when(dishes).insertDish(any());
+
+    new DishReviewServiceImpl(reviews, dishes, new ObjectMapper(),
+        mock(SystemAuditMapper.class), mock(MerchantDishMutationLock.class), families)
+        .approve(7L, 99L, "ok");
+
+    verify(families).enableDishForActiveFamilies(2L, 8L);
   }
 
   @Test

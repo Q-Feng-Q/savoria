@@ -2,6 +2,7 @@ package com.familykitchen.dish;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
@@ -34,6 +35,64 @@ import org.mockito.InOrder;
  * 菜品更新事务编排测试，确保菜品主信息、食材配方和商户制作步骤在一次服务调用中同步更新。
  */
 class DishApplicationServiceUpdateTest {
+  @Test
+  void activeDishCreationEnablesDishForEveryActiveMerchantFamily() {
+    DishMapper mapper = mock(DishMapper.class);
+    SystemSettingService settings = mock(SystemSettingService.class);
+    FamilyMapper families = mock(FamilyMapper.class);
+    when(settings.dishReviewEnabled()).thenReturn(false);
+    when(mapper.countCategoryOwnership(2L, 3L)).thenReturn(1);
+    doAnswer(invocation -> {
+      DishEntity inserted = invocation.getArgument(0);
+      inserted.setId(8L);
+      return 1;
+    }).when(mapper).insertDish(any());
+    DishRequest request = new DishRequest("鱼", 3L, "", "", BigDecimal.TEN,
+        List.of(), List.of(), "active");
+
+    new DishApplicationServiceImpl(mapper, settings, mock(DishReviewService.class),
+        mock(MerchantDishMutationLock.class), families).createDish(
+        new CurrentUserContext(1L, 2L, null, null, null, Set.of("MERCHANT_ADMIN"), Set.of()), request);
+
+    verify(families).enableDishForActiveFamilies(2L, 8L);
+  }
+
+  @Test
+  void inactiveDishCreationDoesNotEnableFamilyMenus() {
+    DishMapper mapper = mock(DishMapper.class);
+    SystemSettingService settings = mock(SystemSettingService.class);
+    FamilyMapper families = mock(FamilyMapper.class);
+    when(settings.dishReviewEnabled()).thenReturn(false);
+    when(mapper.countCategoryOwnership(2L, 3L)).thenReturn(1);
+    DishRequest request = new DishRequest("鱼", 3L, "", "", BigDecimal.TEN,
+        List.of(), List.of(), "inactive");
+
+    new DishApplicationServiceImpl(mapper, settings, mock(DishReviewService.class),
+        mock(MerchantDishMutationLock.class), families).createDish(
+        new CurrentUserContext(1L, 2L, null, null, null, Set.of("MERCHANT_ADMIN"), Set.of()), request);
+
+    verify(families, never()).enableDishForActiveFamilies(any(), any());
+  }
+
+  @Test
+  void pendingReviewCreationDoesNotEnableFamilyMenusBeforeApproval() {
+    DishMapper mapper = mock(DishMapper.class);
+    SystemSettingService settings = mock(SystemSettingService.class);
+    DishReviewService reviews = mock(DishReviewService.class);
+    FamilyMapper families = mock(FamilyMapper.class);
+    when(settings.dishReviewEnabled()).thenReturn(true);
+    when(mapper.countCategoryOwnership(2L, 3L)).thenReturn(1);
+    DishRequest request = new DishRequest("鱼", 3L, "", "", BigDecimal.TEN,
+        List.of(), List.of(), "active");
+
+    new DishApplicationServiceImpl(mapper, settings, reviews,
+        mock(MerchantDishMutationLock.class), families).createDish(
+        new CurrentUserContext(1L, 2L, null, null, null, Set.of("MERCHANT_ADMIN"), Set.of()), request);
+
+    verify(reviews).submit(1L, 2L, null, request);
+    verify(families, never()).enableDishForActiveFamilies(any(), any());
+  }
+
   @Test
   void dishListExposesImportedTemplateSource() {
     DishMapper mapper = mock(DishMapper.class);
