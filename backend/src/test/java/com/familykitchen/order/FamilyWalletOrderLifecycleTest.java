@@ -2,7 +2,9 @@ package com.familykitchen.order;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.familykitchen.common.security.CurrentUserContext;
@@ -50,6 +52,18 @@ class FamilyWalletOrderLifecycleTest {
     verify(wallet).capture(2L,77L,9L,new BigDecimal("114.00"),"order:77:complete");
   }
 
+  @Test void completingLegacyOrderDoesNotCaptureTheFamilyWallet(){
+    order(OrderStatus.READY,new BigDecimal("114.00"),null);
+
+    assertThat(service.advance(merchant,77L,new OrderStatusRequest(OrderStatus.DONE,null)))
+        .isEqualTo(OrderStatus.DONE);
+
+    verifyNoInteractions(wallet);
+    verify(orders).updateOrder(argThat(row -> OrderStatus.DONE.name().equals(row.getStatus())));
+    verify(notifications).insertNotification(
+        "family",2L,"family","order","历史订单已完成","历史订单已完成 #77");
+  }
+
   @Test void deliveryFeeIncreaseAppendsFreezeAndDecreaseReleases(){
     order(OrderStatus.PENDING,new BigDecimal("120.00"));
     service.adjustDeliveryFee(merchant,77L,new BigDecimal("8.00"),"fee-up-1");
@@ -61,8 +75,12 @@ class FamilyWalletOrderLifecycleTest {
   }
 
   private void order(OrderStatus status,BigDecimal total){
+    order(status,total,40L);
+  }
+
+  private void order(OrderStatus status,BigDecimal total,Long sourceCartId){
     OrderRecordEntity row=new OrderRecordEntity();row.setId(77L);row.setMerchantId(1L);
-    row.setFamilyId(2L);row.setSubmitterMemberId(21L);row.setSourceCartId(40L);
+    row.setFamilyId(2L);row.setSubmitterMemberId(21L);row.setSourceCartId(sourceCartId);
     row.setExpectedMealTime(LocalDateTime.of(2026,8,28,12,30));
     row.setDeliveryMode("DELIVERY");row.setDeliveryFee(new BigDecimal("6.00"));
     row.setStatus(status.name());row.setTotalAmount(total);

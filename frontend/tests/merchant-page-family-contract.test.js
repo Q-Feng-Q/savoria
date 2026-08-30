@@ -1530,3 +1530,13 @@ test('family detail optional regions distinguish loading from ready-empty', () =
   assert.match(markup, /optionalStates\.menu\.phase === 'ready' && !menuPreview\.length/);
   assert.match(markup, /optionalStates\.orders\.phase === 'ready' && !orderPreview\.length/);
 });
+
+test('merchant order list and detail expose the legacy order marker', () => {
+  const list = read('pages/merchant/merchant-orders/index.wxml');
+  const detail = read('pages/merchant/merchant-order-detail/index.wxml');
+
+  assert.match(list, /item\.isLegacyOrder/);
+  assert.match(list, /历史订单/);
+  assert.match(detail, /scene\.order\.isLegacyOrder/);
+  assert.match(detail, /历史订单/);
+});

@@ -79,10 +79,13 @@ function mapMerchantOrder(order, familyNameMap = new Map(), mealSlotMap = new Ma
     ? formatExpectedMealTime(order.expectedMealTime)
     : `${order.serviceDate || ''} ${order.mealSlotName || '历史餐次'}`.trim();
   const itemCount = summarizeOrderItems(order.items);
+  const isLegacyOrder = order.sourceCartId === null;
 
   return {
     id: order.orderId,
     orderNo: `#${order.orderId}`,
+    isLegacyOrder,
+    orderTypeLabel: isLegacyOrder ? '历史订单' : '',
     familyId: order.familyId,
     familyName,
     mealLabel,
@@ -221,6 +224,7 @@ function buildApiMerchantOrderDetailScene({ session, order, familyDetail = null,
   const familyName = (familyDetail && familyDetail.familyName) || order.familyName || `家庭 ${order.familyId}`;
   const submitter = (familyDetail && familyDetail.members || []).find((item) => item.memberId === order.submitterMemberId);
   const status = String(order.status || '').toUpperCase();
+  const isLegacyOrder = order.sourceCartId === null;
 
   return {
     context: buildMerchantContext(session, merchantName, {
@@ -230,6 +234,8 @@ function buildApiMerchantOrderDetailScene({ session, order, familyDetail = null,
     order: {
       id: order.orderId,
       orderNo: `#${order.orderId}`,
+      isLegacyOrder,
+      orderTypeLabel: isLegacyOrder ? '历史订单' : '',
       familyName,
       rawStatus: status,
       statusLabel: mapOrderStatusLabel(status),

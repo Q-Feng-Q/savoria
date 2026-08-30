@@ -25,7 +25,9 @@
 .order-group__date { color: #8f7865; font-size: 22rpx; font-weight: 900; }
 .order-row { display: flex; align-items: center; gap: 16rpx; padding: 22rpx 0; border-bottom: 2rpx solid var(--sk-line-soft); }
 .order-row__main { flex: 1; min-width: 0; }
+.order-row__identity { display: flex; align-items: center; flex-wrap: wrap; gap: 10rpx; min-width: 0; }
 .order-row__family { color: var(--sk-ink); font-size: 27rpx; font-weight: 950; }
+.order-row__legacy { flex: none; padding: 4rpx 10rpx; border-radius: 999rpx; background: #f6dfb7; color: #7b4433; font-size: 18rpx; font-weight: 900; }
 .order-row__status { color: #b65f2e; font-size: 21rpx; font-weight: 900; }
 .order-row__meta, .order-row__amount { margin-top: 8rpx; color: #806854; font-size: 22rpx; line-height: 1.45; }
 .order-row__amount { color: var(--sk-ink); font-weight: 850; }

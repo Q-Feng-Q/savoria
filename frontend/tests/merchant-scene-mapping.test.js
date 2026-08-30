@@ -75,6 +75,34 @@ test('merchant orders prefer expected time and use truthful historical fallback'
   assert.equal(expected.mealLabel, '2026-08-28 18:30');
 });
 
+test('merchant order scenes label only orders without a shared cart source as legacy', () => {
+  const legacy = mapMerchantOrder({
+    orderId: 4,
+    sourceCartId: null,
+    familyId: 2,
+    status: 'READY',
+    items: []
+  });
+  const current = mapMerchantOrder({
+    orderId: 5,
+    sourceCartId: 40,
+    familyId: 2,
+    status: 'READY',
+    items: []
+  });
+  const detail = buildApiMerchantOrderDetailScene({
+    session: { merchantId: 3 },
+    order: { orderId: 4, sourceCartId: null, familyId: 2, status: 'READY', items: [] }
+  });
+
+  assert.equal(legacy.isLegacyOrder, true);
+  assert.equal(legacy.orderTypeLabel, '历史订单');
+  assert.equal(current.isLegacyOrder, false);
+  assert.equal(current.orderTypeLabel, '');
+  assert.equal(detail.order.isLegacyOrder, true);
+  assert.equal(detail.order.orderTypeLabel, '历史订单');
+});
+
 test('purchase meal options come only from unique valid response source slots', () => {
   const options = buildPurchaseMealOptions([
     { sources: [{ mealSlotId: 42 }, { mealSlotId: '42' }, { mealSlotId: null }] },

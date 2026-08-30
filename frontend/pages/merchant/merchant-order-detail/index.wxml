@@ -3,7 +3,10 @@
 
   <view wx:else class="detail-content">
     <view class="detail-heading">
-      <text class="detail-heading__status">{{scene.order.statusLabel}}</text>
+      <view class="detail-heading__labels">
+        <text class="detail-heading__status">{{scene.order.statusLabel}}</text>
+        <text wx:if="{{scene.order.isLegacyOrder}}" class="detail-heading__legacy">历史订单</text>
+      </view>
       <text class="detail-heading__title">{{scene.order.familyName}} · {{scene.order.orderNo}}</text>
     </view>
 

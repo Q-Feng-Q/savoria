@@ -1,7 +1,9 @@
 .detail-page { min-height: 100vh; box-sizing: border-box; padding-bottom: calc(190rpx + env(safe-area-inset-bottom)); }
 .detail-heading { padding: 10rpx 0 28rpx; border-bottom: 2rpx solid var(--sk-line-soft); }
+.detail-heading__labels { display: flex; align-items: center; gap: 10rpx; }
 .detail-heading__status, .detail-heading__title, .detail-section__title, .detail-line, .dish-line__name, .dish-line__amount, .charge-line, .timeline-label { display: block; }
 .detail-heading__status { color: #b65f2e; font-size: 22rpx; font-weight: 900; }
+.detail-heading__legacy { padding: 4rpx 10rpx; border-radius: 999rpx; background: #f6dfb7; color: #7b4433; font-size: 18rpx; font-weight: 900; }
 .detail-heading__title { margin-top: 8rpx; color: var(--sk-ink); font-size: 36rpx; font-weight: 950; }
 .detail-section { padding: 28rpx 0; border-bottom: 2rpx solid var(--sk-line-soft); }
 .detail-section__title { margin-bottom: 16rpx; color: var(--sk-ink); font-size: 27rpx; font-weight: 950; }

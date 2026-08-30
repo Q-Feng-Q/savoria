@@ -43,7 +43,10 @@
             <view class="order-row">
               <view class="order-row__main" data-id="{{item.id}}" bindtap="openDetail" aria-role="button" aria-label="查看{{item.familyName}}订单详情" hover-class="ui-button--pressed">
                 <view class="order-row__top">
-                  <text class="order-row__family">{{item.familyName}}</text>
+                  <view class="order-row__identity">
+                    <text class="order-row__family">{{item.familyName}}</text>
+                    <text wx:if="{{item.isLegacyOrder}}" class="order-row__legacy">历史订单</text>
+                  </view>
                   <text class="order-row__status">{{item.statusLabel}}</text>
                 </view>
                 <text class="order-row__meta">{{item.mealLabel}} · {{item.deliveryMode === 'delivery' ? '配送' : '自取'}} · {{item.itemCountText}}</text>

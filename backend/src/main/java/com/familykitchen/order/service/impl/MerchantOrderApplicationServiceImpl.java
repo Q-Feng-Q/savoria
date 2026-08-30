@@ -191,9 +191,13 @@ public class MerchantOrderApplicationServiceImpl implements MerchantOrderApplica
     if (current.status() == request.status()) return current.status();
     OrderStatus next = orderStateMachine.advance(current.status(), request.status(), request.reason());
     if (next == OrderStatus.DONE) {
-      wallet.capture(current.familyId(),current.orderId(),user.userId(),current.totalAmount(),
-          "order:"+current.orderId()+":complete");
-      replaceAndNotify(current, next, current.deliveryFee(), current.totalAmount(), current.cancelReason(), "订单已完成");
+      boolean legacyOrder = current.sourceCartId() == null;
+      if (!legacyOrder) {
+        wallet.capture(current.familyId(),current.orderId(),user.userId(),current.totalAmount(),
+            "order:"+current.orderId()+":complete");
+      }
+      replaceAndNotify(current, next, current.deliveryFee(), current.totalAmount(), current.cancelReason(),
+          legacyOrder ? "历史订单已完成" : "订单已完成");
       return next;
     }
     replaceAndNotify(current, next, current.deliveryFee(), current.totalAmount(), current.cancelReason(), statusTitle(next));
