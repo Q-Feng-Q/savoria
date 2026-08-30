@@ -108,7 +108,7 @@ public class DishApplicationServiceImpl implements DishApplicationService {
     requireCategory(user.merchantId(), request.categoryId());
     if(systemSettingService.dishReviewEnabled()){
       dishReviewService.submit(user.userId(),user.merchantId(),null,request);
-      return new DishView(null,request.categoryId(),request.name(),request.description(),request.imageUrl(),
+      return new DishView(null,request.categoryId(),null,null,request.name(),request.description(),request.imageUrl(),
           money(request.basePrice()),"PENDING_REVIEW", null, false, null, false);
     }
     // 菜品主信息、食材配方和制作步骤放在同一事务中创建，避免出现半成品数据。
@@ -402,9 +402,11 @@ public class DishApplicationServiceImpl implements DishApplicationService {
    */
   private static DishView toDishView(DishEntity entity) {
     return new DishView(
-        entity.getId(),
-        entity.getCategoryId(),
-        entity.getName(),
+      entity.getId(),
+      entity.getCategoryId(),
+      null,
+      null,
+      entity.getName(),
         entity.getDescription(),
         entity.getImageUrl(),
         money(entity.getBasePrice()),

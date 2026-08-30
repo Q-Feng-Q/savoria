@@ -19,6 +19,9 @@ class FamilyMenuMapperContractTest {
 
     assertTrue(xml.contains("from families f join dishes d on d.merchant_id = f.merchant_id"));
     assertTrue(xml.contains("left join family_menu_items fmi on fmi.family_id = f.id and fmi.dish_id = d.id"));
+    assertTrue(xml.contains("join dish_categories dc on dc.id = d.category_id and dc.merchant_id = d.merchant_id"));
+    assertTrue(xml.contains("dc.name as categoryname"));
+    assertTrue(xml.contains("dc.sort_order as categorysortorder"));
     assertTrue(xml.contains("d.merchant_id = #{merchantid}"));
     assertTrue(xml.contains("d.status = 'active'"));
     assertTrue(xml.contains("coalesce(fmi.final_price, d.base_price) as familyfinalprice"));

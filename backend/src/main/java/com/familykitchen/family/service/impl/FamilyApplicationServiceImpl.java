@@ -255,6 +255,8 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
       .map(item -> new DishView(
         item.dishId(),
         item.categoryId(),
+        item.categoryName(),
+        item.categorySortOrder(),
         item.dishName(),
         item.description(),
         item.imageUrl(),

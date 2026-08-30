@@ -123,18 +123,24 @@ class FamilyFeaturedDishResponseTest {
   void menuItemsCarryMerchantRecommendationStatusAndTimestampIntoDishView() {
     LocalDateTime featuredAt = LocalDateTime.of(2026, 8, 15, 12, 30);
     when(familyMapper.selectFamilyMenuItems(USER.merchantId(), USER.familyId())).thenReturn(List.of(
-      new FamilyMenuItemView(31L, 2L, "推荐菜", "简介", "/dish.png",
+      new FamilyMenuItemView(31L, 2L, "热菜", 20, "推荐菜", "简介", "/dish.png",
         new BigDecimal("18.00"), new BigDecimal("16.00"), true, 1,
         featuredAt, true),
-      new FamilyMenuItemView(32L, 2L, "已禁用菜", "简介", "/disabled.png",
-        new BigDecimal("20.00"), null, false, 2, null, false)));
+      new FamilyMenuItemView(33L, 3L, "汤羹", 30, "普通已启用菜", "简介", "/soup.png",
+        new BigDecimal("22.00"), null, true, 2, null, false),
+      new FamilyMenuItemView(32L, 2L, "热菜", 20, "已禁用菜", "简介", "/disabled.png",
+        new BigDecimal("20.00"), null, false, 3, null, false)));
 
     List<DishView> dishes = service.menuItems(USER, null, null);
 
-    assertEquals(1, dishes.size());
+    assertEquals(2, dishes.size());
     assertTrue(dishes.get(0).featured());
+    assertEquals(false, dishes.get(1).featured());
+    assertEquals("普通已启用菜", dishes.get(1).name());
     assertEquals(featuredAt, dishes.get(0).featuredAt());
     assertEquals(new BigDecimal("16.00"), dishes.get(0).price());
+    assertEquals("热菜", dishes.get(0).categoryName());
+    assertEquals(20, dishes.get(0).categorySortOrder());
   }
 
   private static FamilyHomeResponse.FeaturedDish dish(Long id) {

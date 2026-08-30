@@ -212,7 +212,7 @@ test('buildApiMenuScene merges menu items with shared cart counts', () => {
   assert.equal(scene.visibleMenuCards.length, 1);
   assert.equal(scene.visibleMenuCards[0].selectedByCurrentMemberCount, 2);
   assert.equal(scene.visibleMenuCards[0].cartLineId, 901);
-  assert.deepEqual(scene.visibleMenuCards[0].displayTags, ['分类 3', '经典家常']);
+  assert.deepEqual(scene.visibleMenuCards[0].displayTags, ['其他菜品', '经典家常']);
   assert.equal(scene.visibleMenuCards[0].priceText, '¥18.00');
   assert.equal(scene.visibleMenuCards[0].displayImageUrl, 'http://127.0.0.1:8080/uploads/images/tomato.png');
 });
@@ -228,6 +228,26 @@ test('buildApiMenuScene maps featured state without reordering the backend menu'
 
   assert.deepEqual(scene.menuCards.map((item) => item.id), [101, 100]);
   assert.deepEqual(scene.menuCards.map((item) => item.featured), [false, true]);
+});
+
+test('buildApiMenuScene exposes real categories and combines category selection with search', () => {
+  const menuItems = [
+    { dishId: 100, categoryId: 3, categoryName: '热菜', categorySortOrder: 20, name: '番茄牛腩', description: '慢火炖煮', price: 38, featured: true },
+    { dishId: 101, categoryId: 4, categoryName: '汤羹', categorySortOrder: 30, name: '山药排骨汤', description: '清润', price: 28, featured: false },
+    { dishId: 102, categoryId: 3, categoryName: '热菜', categorySortOrder: 20, name: '板栗烧鸡', description: '咸香', price: 36, featured: false }
+  ];
+
+  const all = buildApiMenuScene({ homeData, menuItems });
+  const hot = buildApiMenuScene({ homeData, menuItems, activeCategoryKey: '3' });
+  const searchedSoup = buildApiMenuScene({ homeData, menuItems, activeCategoryKey: '4', searchKeyword: '排骨' });
+
+  assert.deepEqual(all.categoryOptions.map((item) => [item.key, item.label]), [
+    ['all', '全部'], ['3', '热菜'], ['4', '汤羹']
+  ]);
+  assert.equal(hot.activeCategoryLabel, '热菜');
+  assert.deepEqual(hot.visibleMenuCards.map((item) => item.name), ['番茄牛腩', '板栗烧鸡']);
+  assert.deepEqual(searchedSoup.visibleMenuCards.map((item) => item.name), ['山药排骨汤']);
+  assert.deepEqual(hot.visibleMenuCards[0].displayTags, ['热菜', '慢火炖煮']);
 });
 
 test('buildApiDishDetailScene keeps ingredient and selected count info', () => {

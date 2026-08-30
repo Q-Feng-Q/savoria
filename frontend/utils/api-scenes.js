@@ -219,33 +219,49 @@ function buildApiHomeScene(homeData, { imageBaseUrl = '', windowWidth = 0 } = {}
   };
 }
 
-function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeyword = '', imageBaseUrl = '' }) {
+function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeyword = '', activeCategoryKey = 'all', imageBaseUrl = '' }) {
   const normalizedKeyword = String(searchKeyword || '').trim().toLowerCase();
   const cartItems = (cart && cart.items) || [];
-  const visibleItems = menuItems.filter((item) => {
-    if (!normalizedKeyword) return true;
-    return [item.name, item.description]
-      .filter(Boolean)
-      .some((text) => String(text).toLowerCase().includes(normalizedKeyword));
+  const categoryMap = new Map();
+  menuItems.forEach((item) => {
+    const key = item.categoryId === null || item.categoryId === undefined
+      ? 'uncategorized' : String(item.categoryId);
+    if (!categoryMap.has(key)) {
+      categoryMap.set(key, {
+        key,
+        label: displayText(item.categoryName, '其他菜品'),
+        sortOrder: item.categorySortOrder !== null && item.categorySortOrder !== undefined && item.categorySortOrder !== ''
+          && Number.isFinite(Number(item.categorySortOrder)) ? Number(item.categorySortOrder) : Number.MAX_SAFE_INTEGER
+      });
+    }
   });
+  const categories = Array.from(categoryMap.values())
+    .sort((left, right) => left.sortOrder - right.sortOrder || left.label.localeCompare(right.label, 'zh-CN'));
+  const requestedCategoryKey = String(activeCategoryKey || 'all');
+  const resolvedCategoryKey = requestedCategoryKey === 'all' || categoryMap.has(requestedCategoryKey)
+    ? requestedCategoryKey : 'all';
 
-  const menuCards = visibleItems.map((item, index) => {
+  const menuCards = menuItems.map((item, index) => {
     const cartItem = cartItems.find((candidate) => candidate.dishId === item.dishId);
     const selectedCount = Number((cartItem && cartItem.quantity) || 0);
     const myQuantity = Number((cartItem && cartItem.currentMemberQuantity) || 0);
+    const categoryKey = item.categoryId === null || item.categoryId === undefined
+      ? 'uncategorized' : String(item.categoryId);
+    const categoryLabel = displayText(item.categoryName, '其他菜品');
 
     return {
       id: item.dishId,
       name: item.name,
-      category: item.categoryId ? `分类 ${item.categoryId}` : '全部菜品',
-      badge: item.categoryId ? `分类 ${item.categoryId}` : '家常推荐',
+      categoryKey,
+      category: categoryLabel,
+      badge: categoryLabel,
       tasteText: item.description || '今日可点',
       soldText: selectedCount > 0 ? `餐篮已选 ${selectedCount} 份` : '还未加入',
       finalPriceText: formatCurrency(item.price),
       artClass: ['warm', 'soft', 'fresh'][index % 3],
       imageUrl: toImageUrl(imageBaseUrl, item.imageUrl),
       displayImageUrl: toImageUrl(imageBaseUrl, item.imageUrl) || '/assets/brand/dish-placeholder.png',
-      displayTags: [item.categoryId ? `分类 ${item.categoryId}` : '家常推荐', item.description || '今日可点'].slice(0, 2),
+      displayTags: [categoryLabel, item.description || '今日可点'].slice(0, 2),
       priceText: formatCurrency(item.price),
       description: item.description || '今日可点',
       featured: Boolean(item.featured),
@@ -255,6 +271,22 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
       cartLineId: cartItem ? cartItem.itemId : null
     };
   });
+  const visibleMenuCards = menuCards.filter((item) => {
+    if (resolvedCategoryKey !== 'all' && item.categoryKey !== resolvedCategoryKey) return false;
+    if (!normalizedKeyword) return true;
+    return [item.name, item.description]
+      .filter(Boolean)
+      .some((text) => String(text).toLowerCase().includes(normalizedKeyword));
+  });
+  const categoryOptions = [
+    { key: 'all', label: '全部', sortOrder: -1 },
+    ...categories
+  ].map((item) => ({
+    key: item.key,
+    label: item.label,
+    activeClass: item.key === resolvedCategoryKey ? 'active' : ''
+  }));
+  const activeCategory = categoryOptions.find((item) => item.key === resolvedCategoryKey);
 
   return {
     context: buildContext(homeData),
@@ -263,15 +295,15 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
     currentDate: formatDateText(homeData.serviceDate),
     currentMemberName: homeData.member.name,
     cartItemCount: Number((cart && cart.totalQuantity) || 0),
-    activeCategoryKey: 'all',
-    activeCategoryLabel: '全部菜品',
-    categoryOptions: [{ key: 'all', label: '全部', activeClass: 'active' }],
+    activeCategoryKey: resolvedCategoryKey,
+    activeCategoryLabel: resolvedCategoryKey === 'all' ? '全部菜品' : activeCategory.label,
+    categoryOptions,
     expectedMealTimeText: formatExpectedMealTime(cart && cart.expectedMealTime),
     menuCards,
-    visibleMenuCards: menuCards,
+    visibleMenuCards,
     searchKeyword,
-    resultSummaryText: `共 ${menuCards.length} 道`,
-    emptyStateText: normalizedKeyword ? '没有找到匹配菜品' : '当前还没有可点菜品'
+    resultSummaryText: `共 ${visibleMenuCards.length} 道`,
+    emptyStateText: normalizedKeyword ? '没有找到匹配菜品' : (resolvedCategoryKey === 'all' ? '当前还没有可点菜品' : '当前分类还没有可点菜品')
   };
 }
 

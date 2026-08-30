@@ -28,6 +28,17 @@ test('menu implements category rail and editorial dish list from concept 02', ()
   assert.match(dish, /background:\s*transparent/)
 })
 
+test('ordering menu category rail is interactive and labels the selected category', () => {
+  const wxml = read('pages/ordering/menu/index.wxml')
+  const source = read('pages/ordering/menu/index.js')
+
+  assert.match(wxml, /data-key="\{\{item\.key\}\}"/)
+  assert.match(wxml, /bindtap="selectCategory"/)
+  assert.match(wxml, /\{\{activeCategoryLabel\}\}/)
+  assert.doesNotMatch(wxml, /\{\{crew\.chefRecommendationLabel\}\}/)
+  assert.match(source, /selectCategory\(event\)/)
+})
+
 test('profile implements animal banner family summary and linear settings groups', () => {
   const wxml = read('pages/account/profile/index.wxml')
   const wxss = read('pages/account/profile/index.wxss')

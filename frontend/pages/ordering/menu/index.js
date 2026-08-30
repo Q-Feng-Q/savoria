@@ -5,7 +5,7 @@ const { createRequestId } = require('../../../utils/action-request');
 const { requireSession, showApiError } = require('../../../utils/page-api');
 
 Page({
-  data: { searchKeyword: '', categoryOptions: [], menuCards: [], visibleMenuCards: [], cartItemCount: 0,
+  data: { searchKeyword: '', activeCategoryKey: 'all', activeCategoryLabel: '全部菜品', categoryOptions: [], menuCards: [], visibleMenuCards: [], cartItemCount: 0,
     currentDate: '', currentMemberName: '', resultSummaryText: '', emptyStateText: '', context: null,
     mutationBusy: false, phase: 'loading', errorMessage: '' },
   onShow() { this.load(); },
@@ -28,11 +28,14 @@ Page({
     if (!this.sceneSource) return;
     const searchKeyword = Object.prototype.hasOwnProperty.call(options, 'searchKeyword')
       ? options.searchKeyword : this.data.searchKeyword;
-    this.setData({ ...buildApiMenuScene({ ...this.sceneSource, searchKeyword,
+    const activeCategoryKey = Object.prototype.hasOwnProperty.call(options, 'activeCategoryKey')
+      ? options.activeCategoryKey : this.data.activeCategoryKey;
+    this.setData({ ...buildApiMenuScene({ ...this.sceneSource, searchKeyword, activeCategoryKey,
       imageBaseUrl: this.sceneSource.runtime.baseUrl }), searchKeyword });
   },
   handleSearchInput(event) { this.refreshView({ searchKeyword: event.detail.value || '' }); },
   clearSearch() { this.refreshView({ searchKeyword: '' }); },
+  selectCategory(event) { this.refreshView({ activeCategoryKey: String(event.currentTarget.dataset.key || 'all') }); },
   noop() {},
   openDishFromRow(event) { wx.navigateTo({ url: `/pages/ordering/dish-detail/index?id=${event.detail.dish.id}` }); },
   async mutateDish(dish, quantity) {

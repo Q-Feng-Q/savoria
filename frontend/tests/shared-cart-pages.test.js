@@ -32,7 +32,7 @@ test('homepage role cards display dynamic crew names', () => {
   assert.match(home, /crew\.chefRecommendationLabel/);
   assert.match(home, /crew\.helperLabel/);
   assert.match(home, /crew\.tasterLabel/);
-  assert.match(menu, /crew\.chefRecommendationLabel/);
+  assert.match(menu, /activeCategoryLabel/);
   assert.match(menu, /crew\.helperLabel/);
   assert.match(profile, /crew\.tasterWelcomeLabel/);
   assert.doesNotMatch([home, menu, profile].join('\n'), /无主厨(?:今天|今日)推荐|无试吃员欢迎你/);

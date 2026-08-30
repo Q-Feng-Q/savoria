@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
  *
  * @param dishId 菜品标识
  * @param categoryId category标识
+ * @param categoryName 分类名称
+ * @param categorySortOrder 分类排序
  * @param dishName 菜品名称
  * @param description description
  * @param imageUrl imageUrl
@@ -21,6 +23,8 @@ import java.time.LocalDateTime;
 public record FamilyMenuItemView(
     Long dishId,
     Long categoryId,
+    String categoryName,
+    Integer categorySortOrder,
     String dishName,
     String description,
     String imageUrl,

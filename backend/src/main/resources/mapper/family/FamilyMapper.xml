@@ -160,6 +160,8 @@
   <select id="selectFamilyMenuItems" resultType="com.familykitchen.family.model.vo.FamilyMenuItemView">
     select d.id as dishId,
            d.category_id as categoryId,
+           dc.name as categoryName,
+           dc.sort_order as categorySortOrder,
            d.name as dishName,
            d.description,
            d.image_url as imageUrl,
@@ -171,6 +173,7 @@
            (d.featured_at is not null) as featured
     from families f
     join dishes d on d.merchant_id = f.merchant_id
+    join dish_categories dc on dc.id = d.category_id and dc.merchant_id = d.merchant_id
     left join family_menu_items fmi on fmi.family_id = f.id and fmi.dish_id = d.id
     where f.id = #{familyId}
       and d.merchant_id = #{merchantId}

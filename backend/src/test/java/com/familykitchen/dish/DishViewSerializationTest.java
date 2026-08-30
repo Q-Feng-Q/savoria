@@ -23,7 +23,7 @@ class DishViewSerializationTest {
   @Test
   void jacksonSerializesRecommendationFieldsAlongsideExistingDishFields() throws Exception {
     LocalDateTime featuredAt = LocalDateTime.of(2026, 8, 15, 9, 30);
-    DishView view = new DishView(8L, 2L, "番茄炒蛋", "家常菜", "/dish.png",
+    DishView view = new DishView(8L, 2L, "热菜", 20, "番茄炒蛋", "家常菜", "/dish.png",
         new BigDecimal("16.00"), "active", 4L, true, featuredAt, true);
     ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
@@ -31,6 +31,8 @@ class DishViewSerializationTest {
 
     assertEquals(8L, json.get("dishId").longValue());
     assertEquals("番茄炒蛋", json.get("name").textValue());
+    assertEquals("热菜", json.get("categoryName").textValue());
+    assertEquals(20, json.get("categorySortOrder").intValue());
     assertEquals("active", json.get("status").textValue());
     assertEquals(4L, json.get("sourceTemplateId").longValue());
     assertTrue(json.get("templateImported").booleanValue());
@@ -44,7 +46,7 @@ class DishViewSerializationTest {
         .map(component -> component.getName())
         .collect(Collectors.toSet());
     assertTrue(components.containsAll(Set.of(
-        "dishId", "categoryId", "name", "description", "imageUrl", "price", "status",
+        "dishId", "categoryId", "categoryName", "categorySortOrder", "name", "description", "imageUrl", "price", "status",
         "sourceTemplateId", "templateImported", "featuredAt", "featured")));
 
     Schema<?> schema = ModelConverters.getInstance().read(DishView.class).get("DishView");
