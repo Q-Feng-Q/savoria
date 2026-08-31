@@ -1,3 +1,6 @@
+const pageOperations = require('./delivery-page-operations.json')
+const serviceContracts = require('./delivery-service-contracts.json')
+
 const page = (domain, options = {}) => ({
   domain,
   async: false,
@@ -8,6 +11,13 @@ const page = (domain, options = {}) => ({
   operations: [],
   ...options
 })
+
+const withOperations = (pages) => Object.freeze(Object.fromEntries(
+  Object.entries(pages).map(([path, metadata]) => [path, Object.freeze({
+    ...metadata,
+    operations: Object.freeze(pageOperations[path] || [])
+  })])
+))
 
 module.exports = Object.freeze({
   version: 1,
@@ -22,11 +32,18 @@ module.exports = Object.freeze({
       '/api/notifications', '/api/files', '/api/public/system-settings'
     ]),
     exclusions: Object.freeze([
-      Object.freeze({ route: '/api/admin/**', reason: 'admin-web is outside this delivery audit' })
+      Object.freeze({ route: '/api/admin/**', reason: 'admin-web is outside this delivery audit' }),
+      Object.freeze({
+        route: '/api/merchant/members/{memberId}/wallet/**',
+        reason: 'retired personal-wallet compatibility endpoints are fenced and must not return to the mini program'
+      })
     ])
   }),
-  operations: Object.freeze({}),
-  pages: Object.freeze({
+  operations: Object.freeze(Object.fromEntries(serviceContracts.map((contract) => [
+    contract.key,
+    Object.freeze(contract)
+  ]))),
+  pages: withOperations({
     'pages/account/account-management/index': page('account', { async: true, list: true, refresh: true }),
     'pages/account/account-security/index': page('account', { async: true, form: true }),
     'pages/account/notifications/index': page('account', { async: true, list: true, refresh: true }),

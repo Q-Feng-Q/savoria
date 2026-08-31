@@ -1,0 +1,1216 @@
+[
+  {
+    "operation": "auth.adminLogin",
+    "pages": [
+      "shared/runtime/auth"
+    ],
+    "method": "POST",
+    "backendRoute": "/auth/admin/login",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "adminLogin"
+  },
+  {
+    "operation": "auth.logout",
+    "pages": [
+      "pages/auth/register/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/auth/logout",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "logout"
+  },
+  {
+    "operation": "auth.logoutAll",
+    "pages": [
+      "shared/runtime/auth"
+    ],
+    "method": "POST",
+    "backendRoute": "/auth/logout-all",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "logoutAll"
+  },
+  {
+    "operation": "auth.portalLogin",
+    "pages": [
+      "shared/runtime/auth"
+    ],
+    "method": "POST",
+    "backendRoute": "/auth/login",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "login"
+  },
+  {
+    "operation": "auth.register",
+    "pages": [
+      "pages/auth/register/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/auth/register",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "register"
+  },
+  {
+    "operation": "auth.resetPassword",
+    "pages": [
+      "shared/runtime/auth"
+    ],
+    "method": "POST",
+    "backendRoute": "/auth/password/reset",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "resetPassword"
+  },
+  {
+    "operation": "auth.sendPasswordResetCode",
+    "pages": [
+      "shared/runtime/auth"
+    ],
+    "method": "POST",
+    "backendRoute": "/auth/password/reset-code",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "sendResetCode"
+  },
+  {
+    "operation": "auth.userLogin",
+    "pages": [
+      "shared/runtime/auth"
+    ],
+    "method": "POST",
+    "backendRoute": "/auth/login",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "login"
+  },
+  {
+    "operation": "auth.wechatLogin",
+    "pages": [
+      "shared/runtime/auth"
+    ],
+    "method": "POST",
+    "backendRoute": "/auth/wechat/login",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "wechatLogin"
+  },
+  {
+    "operation": "cart.addItem",
+    "pages": [
+      "shared/runtime/cart"
+    ],
+    "method": "PUT",
+    "backendRoute": "/family/cart/items",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "mutateItem"
+  },
+  {
+    "operation": "cart.deleteItem",
+    "pages": [
+      "shared/runtime/cart"
+    ],
+    "method": "PUT",
+    "backendRoute": "/family/cart/items",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "mutateItem"
+  },
+  {
+    "operation": "cart.getCart",
+    "pages": [
+      "pages/ordering/menu/index",
+      "pages/ordering/cart/index",
+      "pages/ordering/dish-detail/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/cart",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "cart"
+  },
+  {
+    "operation": "cart.setItemQuantity",
+    "pages": [
+      "pages/ordering/menu/index",
+      "pages/ordering/dish-detail/index"
+    ],
+    "method": "PUT",
+    "backendRoute": "/family/cart/items",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "mutateItem"
+  },
+  {
+    "operation": "cart.updateExpectedMealTime",
+    "pages": [
+      "shared/runtime/cart"
+    ],
+    "method": "PUT",
+    "backendRoute": "/family/cart/expected-meal-time",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "updateExpectedMealTime"
+  },
+  {
+    "operation": "cart.updateItem",
+    "pages": [
+      "shared/runtime/cart"
+    ],
+    "method": "PUT",
+    "backendRoute": "/family/cart/items",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "mutateItem"
+  },
+  {
+    "operation": "cart.updateRemark",
+    "pages": [
+      "shared/runtime/cart"
+    ],
+    "method": "PUT",
+    "backendRoute": "/family/cart/remark",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "updateRemark"
+  },
+  {
+    "operation": "family.acceptInvitation",
+    "pages": [
+      "shared/runtime/family"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/invitations/{id}/accept",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "acceptInvitation"
+  },
+  {
+    "operation": "family.applyFamily",
+    "pages": [
+      "shared/runtime/family"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/apply",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "applyFamily"
+  },
+  {
+    "operation": "family.approveJoinApplication",
+    "pages": [
+      "shared/runtime/family"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/join-applications/{id}/approve",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "approveApplication"
+  },
+  {
+    "operation": "family.createAddress",
+    "pages": [
+      "pages/family/address-edit/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/addresses",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "createAddress"
+  },
+  {
+    "operation": "family.deleteAddress",
+    "pages": [
+      "shared/runtime/family"
+    ],
+    "method": "DELETE",
+    "backendRoute": "/family/addresses/{addressId}",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "deleteAddress"
+  },
+  {
+    "operation": "family.directInvite",
+    "pages": [
+      "shared/runtime/family"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/invitations/direct",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "directInvite"
+  },
+  {
+    "operation": "family.dissolveFamily",
+    "pages": [
+      "shared/runtime/family"
+    ],
+    "method": "DELETE",
+    "backendRoute": "/family/current",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "dissolveFamily"
+  },
+  {
+    "operation": "family.exitFamily",
+    "pages": [
+      "shared/runtime/family"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/exit",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "exitFamily"
+  },
+  {
+    "operation": "family.generateInvitation",
+    "pages": [
+      "shared/runtime/family"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/invite",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "generateInvitation"
+  },
+  {
+    "operation": "family.getAddresses",
+    "pages": [
+      "pages/family/family-management/index",
+      "pages/ordering/cart/index",
+      "pages/account/profile/index",
+      "pages/family/addresses/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/addresses",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "addresses"
+  },
+  {
+    "operation": "family.getDishDetail",
+    "pages": [
+      "pages/ordering/dish-detail/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/menu/{dishId}",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "dishDetail"
+  },
+  {
+    "operation": "family.getHome",
+    "pages": [
+      "pages/family/home/index",
+      "pages/account/profile/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/home",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "home"
+  },
+  {
+    "operation": "family.getInfo",
+    "pages": [
+      "pages/family/family-management/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/info",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "familyInfo"
+  },
+  {
+    "operation": "family.getJoinApplications",
+    "pages": [
+      "pages/family/family-management/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/join-applications",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "pendingApplications"
+  },
+  {
+    "operation": "family.getMenuItems",
+    "pages": [
+      "pages/ordering/menu/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/menu",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "menu"
+  },
+  {
+    "operation": "family.getMyInvitations",
+    "pages": [
+      "pages/family/family-management/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/invitations/me",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "myInvitations"
+  },
+  {
+    "operation": "family.getOnboarding",
+    "pages": [
+      "pages/family/family-start/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/onboarding",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "onboarding"
+  },
+  {
+    "operation": "family.getOwnerCandidates",
+    "pages": [
+      "pages/family/family-management/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/owner-candidates",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "ownerCandidates"
+  },
+  {
+    "operation": "family.getWallet",
+    "pages": [
+      "pages/account/profile/index",
+      "pages/family/wallet/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/wallet",
+    "controllerFqcn": "com.familykitchen.wallet.controller.FamilyWalletController",
+    "controllerMethod": "summary"
+  },
+  {
+    "operation": "family.getWalletLedgers",
+    "pages": [
+      "pages/account/profile/index",
+      "pages/family/wallet/index",
+      "pages/family/wallet-ledger/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/wallet/ledgers",
+    "controllerFqcn": "com.familykitchen.wallet.controller.FamilyWalletController",
+    "controllerMethod": "ledgers"
+  },
+  {
+    "operation": "family.joinFamily",
+    "pages": [
+      "shared/runtime/family"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/join",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "joinFamily"
+  },
+  {
+    "operation": "family.rejectInvitation",
+    "pages": [
+      "shared/runtime/family"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/invitations/{id}/reject",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "rejectInvitation"
+  },
+  {
+    "operation": "family.rejectJoinApplication",
+    "pages": [
+      "shared/runtime/family"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/join-applications/{id}/reject",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "rejectApplication"
+  },
+  {
+    "operation": "family.setDefaultAddress",
+    "pages": [
+      "shared/runtime/family"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/addresses/{addressId}/default",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "setDefaultAddress"
+  },
+  {
+    "operation": "family.transferOwner",
+    "pages": [
+      "pages/family/family-management/index"
+    ],
+    "method": "PUT",
+    "backendRoute": "/family/owner",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "transferOwner"
+  },
+  {
+    "operation": "family.updateAddress",
+    "pages": [
+      "pages/family/address-edit/index"
+    ],
+    "method": "PUT",
+    "backendRoute": "/family/addresses/{addressId}",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "updateAddress"
+  },
+  {
+    "operation": "family.updateInfo",
+    "pages": [
+      "pages/family/family-management/index"
+    ],
+    "method": "PUT",
+    "backendRoute": "/family/info",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "updateFamilyInfo"
+  },
+  {
+    "operation": "files.uploadImage",
+    "pages": [
+      "shared/runtime/files"
+    ],
+    "method": "POST",
+    "backendRoute": "/files/images",
+    "controllerFqcn": "com.familykitchen.file.controller.FileController",
+    "controllerMethod": "uploadImage"
+  },
+  {
+    "operation": "merchant.adjustFamilyBalance",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/families/{familyId}/wallet/adjust",
+    "controllerFqcn": "com.familykitchen.wallet.controller.MerchantFamilyWalletController",
+    "controllerMethod": "adjust"
+  },
+  {
+    "operation": "merchant.advanceOrderStatus",
+    "pages": [
+      "pages/merchant/merchant-orders/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/orders/{orderId}/status",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "advance"
+  },
+  {
+    "operation": "merchant.cancelOrder",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/orders/{orderId}/cancel",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "cancel"
+  },
+  {
+    "operation": "merchant.confirmOrder",
+    "pages": [
+      "pages/merchant/merchant-orders/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/orders/{orderId}/confirm",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "confirm"
+  },
+  {
+    "operation": "merchant.copyFamilyMenu",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/families/{familyId}/menu/copy",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyMenuController",
+    "controllerMethod": "copyMenu"
+  },
+  {
+    "operation": "merchant.createDish",
+    "pages": [
+      "pages/merchant/dish-edit/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/dishes",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "createDish"
+  },
+  {
+    "operation": "merchant.createDishCategory",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/dish-categories",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "createCategory"
+  },
+  {
+    "operation": "merchant.createIngredient",
+    "pages": [
+      "pages/merchant/ingredient-edit/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/ingredients",
+    "controllerFqcn": "com.familykitchen.dish.controller.IngredientDictionaryController",
+    "controllerMethod": "create"
+  },
+  {
+    "operation": "merchant.deleteDishCategory",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "DELETE",
+    "backendRoute": "/merchant/dish-categories/{categoryId}",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "deleteCategory"
+  },
+  {
+    "operation": "merchant.deleteIngredient",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "DELETE",
+    "backendRoute": "/merchant/ingredients/{ingredientId}",
+    "controllerFqcn": "com.familykitchen.dish.controller.IngredientDictionaryController",
+    "controllerMethod": "delete"
+  },
+  {
+    "operation": "merchant.getDishCategories",
+    "pages": [
+      "pages/merchant/merchant-dishes/index",
+      "pages/merchant/dish-edit/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/dish-categories",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "categories"
+  },
+  {
+    "operation": "merchant.getDishDetail",
+    "pages": [
+      "pages/merchant/dish-edit/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/dishes/{dishId}",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "dishDetail"
+  },
+  {
+    "operation": "merchant.getDishes",
+    "pages": [
+      "pages/merchant/merchant-dishes/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/dishes",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "dishes"
+  },
+  {
+    "operation": "merchant.getDishReviewDetail",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/dish-reviews/{reviewId}",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "reviewDetail"
+  },
+  {
+    "operation": "merchant.getDishReviews",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/dish-reviews",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "reviewHistory"
+  },
+  {
+    "operation": "merchant.getDishTemplateCategories",
+    "pages": [
+      "pages/merchant/dish-templates/index",
+      "pages/merchant/dish-template-change-edit/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/dish-template-categories",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateController",
+    "controllerMethod": "categories"
+  },
+  {
+    "operation": "merchant.getDishTemplateChangeDetail",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/dish-template-change-requests/{requestId}",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateChangeRequestController",
+    "controllerMethod": "detail"
+  },
+  {
+    "operation": "merchant.getDishTemplateChanges",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/dish-template-change-requests",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateChangeRequestController",
+    "controllerMethod": "page"
+  },
+  {
+    "operation": "merchant.getDishTemplateDetail",
+    "pages": [
+      "pages/merchant/dish-template-detail/index",
+      "pages/merchant/dish-template-change-edit/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/dish-templates/{templateId}",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateController",
+    "controllerMethod": "detail"
+  },
+  {
+    "operation": "merchant.getDishTemplates",
+    "pages": [
+      "pages/merchant/dish-templates/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/dish-templates",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateController",
+    "controllerMethod": "templates"
+  },
+  {
+    "operation": "merchant.getFamilies",
+    "pages": [
+      "pages/merchant/index",
+      "pages/merchant/merchant-orders/index",
+      "pages/merchant/family-menu/index",
+      "pages/merchant/purchase/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/families",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyController",
+    "controllerMethod": "list"
+  },
+  {
+    "operation": "merchant.getFamilyDetail",
+    "pages": [
+      "pages/merchant/merchant-family-detail/index",
+      "pages/merchant/merchant-order-detail/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/families/{familyId}",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyController",
+    "controllerMethod": "detail"
+  },
+  {
+    "operation": "merchant.getFamilyMenu",
+    "pages": [
+      "pages/merchant/index",
+      "pages/merchant/merchant-family-detail/index",
+      "pages/merchant/family-menu/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/families/{familyId}/menu",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyMenuController",
+    "controllerMethod": "menu"
+  },
+  {
+    "operation": "merchant.getFamilyWallet",
+    "pages": [
+      "pages/merchant/merchant-family-detail/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/families/{familyId}/wallet",
+    "controllerFqcn": "com.familykitchen.wallet.controller.MerchantFamilyWalletController",
+    "controllerMethod": "summary"
+  },
+  {
+    "operation": "merchant.getFamilyWalletLedgers",
+    "pages": [
+      "pages/family/wallet-ledger/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/families/{familyId}/wallet/ledgers",
+    "controllerFqcn": "com.familykitchen.wallet.controller.MerchantFamilyWalletController",
+    "controllerMethod": "ledgers"
+  },
+  {
+    "operation": "merchant.getIngredients",
+    "pages": [
+      "pages/merchant/merchant-dishes/index",
+      "pages/merchant/dish-edit/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/ingredients",
+    "controllerFqcn": "com.familykitchen.dish.controller.IngredientDictionaryController",
+    "controllerMethod": "list"
+  },
+  {
+    "operation": "merchant.getOrderDetail",
+    "pages": [
+      "pages/merchant/merchant-order-detail/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/orders/{orderId}",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "detail"
+  },
+  {
+    "operation": "merchant.getOrders",
+    "pages": [
+      "pages/merchant/index",
+      "pages/merchant/merchant-family-detail/index",
+      "pages/merchant/merchant-orders/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/orders",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "list"
+  },
+  {
+    "operation": "merchant.getProfile",
+    "pages": [
+      "pages/merchant/index",
+      "pages/merchant/merchant-profile-edit/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/profile",
+    "controllerFqcn": "com.familykitchen.merchant.controller.MerchantProfileController",
+    "controllerMethod": "profile"
+  },
+  {
+    "operation": "merchant.importAllDishTemplates",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/dish-templates/import-all",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateController",
+    "controllerMethod": "importAllTemplates"
+  },
+  {
+    "operation": "merchant.importDishTemplates",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/dish-templates/import",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateController",
+    "controllerMethod": "importTemplates"
+  },
+  {
+    "operation": "merchant.rejectOrder",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/orders/{orderId}/reject",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "reject"
+  },
+  {
+    "operation": "merchant.saveFamilyMenu",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "PUT",
+    "backendRoute": "/merchant/families/{familyId}/menu",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyMenuController",
+    "controllerMethod": "saveMenu"
+  },
+  {
+    "operation": "merchant.setDishFeatured",
+    "pages": [
+      "pages/merchant/merchant-dishes/index"
+    ],
+    "method": "PUT",
+    "backendRoute": "/merchant/dishes/{dishId}/featured",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "setFeaturedDish"
+  },
+  {
+    "operation": "merchant.setFeaturedDish",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "PUT",
+    "backendRoute": "/merchant/families/{familyId}/menu/featured",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyMenuController",
+    "controllerMethod": "setFeaturedDish"
+  },
+  {
+    "operation": "merchant.submitDishTemplateChange",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/dish-templates/{templateId}/change-requests",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateChangeRequestController",
+    "controllerMethod": "submit"
+  },
+  {
+    "operation": "merchant.submitImportedDishTemplateChange",
+    "pages": [
+      "pages/merchant/merchant-dishes/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/dishes/{dishId}/template-change-requests",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateChangeRequestController",
+    "controllerMethod": "submitFromImportedDish"
+  },
+  {
+    "operation": "merchant.updateCookingSteps",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "PUT",
+    "backendRoute": "/merchant/dishes/{dishId}/cooking-steps",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "updateCookingSteps"
+  },
+  {
+    "operation": "merchant.updateDeliveryFee",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/orders/{orderId}/delivery-fee",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "adjustDeliveryFee"
+  },
+  {
+    "operation": "merchant.updateDish",
+    "pages": [
+      "pages/merchant/dish-edit/index"
+    ],
+    "method": "PUT",
+    "backendRoute": "/merchant/dishes/{dishId}",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "updateDish"
+  },
+  {
+    "operation": "merchant.updateDishCategory",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "PUT",
+    "backendRoute": "/merchant/dish-categories/{categoryId}",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "updateCategory"
+  },
+  {
+    "operation": "merchant.updateDishStatus",
+    "pages": [
+      "pages/merchant/merchant-dishes/index"
+    ],
+    "method": "PUT",
+    "backendRoute": "/merchant/dishes/{dishId}/status",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "updateDishStatus"
+  },
+  {
+    "operation": "merchant.updateFamilyDeliveryPolicy",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "PUT",
+    "backendRoute": "/merchant/families/{familyId}/delivery-policy",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyController",
+    "controllerMethod": "updateDeliveryPolicy"
+  },
+  {
+    "operation": "merchant.updateFamilyProfile",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "PUT",
+    "backendRoute": "/merchant/families/{familyId}/profile",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyController",
+    "controllerMethod": "updateProfile"
+  },
+  {
+    "operation": "merchant.updateIngredient",
+    "pages": [
+      "pages/merchant/ingredient-edit/index"
+    ],
+    "method": "PUT",
+    "backendRoute": "/merchant/ingredients/{ingredientId}",
+    "controllerFqcn": "com.familykitchen.dish.controller.IngredientDictionaryController",
+    "controllerMethod": "update"
+  },
+  {
+    "operation": "merchant.updateProfile",
+    "pages": [
+      "pages/merchant/merchant-profile-edit/index"
+    ],
+    "method": "PUT",
+    "backendRoute": "/merchant/profile",
+    "controllerFqcn": "com.familykitchen.merchant.controller.MerchantProfileController",
+    "controllerMethod": "updateProfile"
+  },
+  {
+    "operation": "merchant.withdrawDishReview",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/dish-reviews/{reviewId}/withdraw",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "withdrawReview"
+  },
+  {
+    "operation": "merchant.withdrawDishTemplateChange",
+    "pages": [
+      "shared/runtime/merchant"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/dish-template-change-requests/{requestId}/withdraw",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateChangeRequestController",
+    "controllerMethod": "withdraw"
+  },
+  {
+    "operation": "notifications.getNotifications",
+    "pages": [
+      "pages/account/notifications/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/notifications",
+    "controllerFqcn": "com.familykitchen.notification.controller.NotificationController",
+    "controllerMethod": "list"
+  },
+  {
+    "operation": "notifications.markAllRead",
+    "pages": [
+      "shared/runtime/notifications"
+    ],
+    "method": "POST",
+    "backendRoute": "/notifications/read-all",
+    "controllerFqcn": "com.familykitchen.notification.controller.NotificationController",
+    "controllerMethod": "readAll"
+  },
+  {
+    "operation": "notifications.markRead",
+    "pages": [
+      "shared/runtime/notifications"
+    ],
+    "method": "POST",
+    "backendRoute": "/notifications/{notificationId}/read",
+    "controllerFqcn": "com.familykitchen.notification.controller.NotificationController",
+    "controllerMethod": "read"
+  },
+  {
+    "operation": "orders.cancelOrder",
+    "pages": [
+      "shared/runtime/orders"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/orders/{orderId}/cancel",
+    "controllerFqcn": "com.familykitchen.order.controller.FamilyOrderController",
+    "controllerMethod": "cancel"
+  },
+  {
+    "operation": "orders.getOrderDetail",
+    "pages": [
+      "pages/ordering/order-detail/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/orders/{orderId}",
+    "controllerFqcn": "com.familykitchen.order.controller.FamilyOrderController",
+    "controllerMethod": "detail"
+  },
+  {
+    "operation": "orders.listOrders",
+    "pages": [
+      "pages/ordering/orders/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/family/orders",
+    "controllerFqcn": "com.familykitchen.order.controller.FamilyOrderController",
+    "controllerMethod": "list"
+  },
+  {
+    "operation": "orders.submitOrder",
+    "pages": [
+      "pages/ordering/cart/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/family/orders",
+    "controllerFqcn": "com.familykitchen.order.controller.FamilyOrderController",
+    "controllerMethod": "submit"
+  },
+  {
+    "operation": "purchase.createTempItem",
+    "pages": [
+      "shared/runtime/purchase"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/purchases/temp-items",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "addTempItem"
+  },
+  {
+    "operation": "purchase.deleteTempItem",
+    "pages": [
+      "shared/runtime/purchase"
+    ],
+    "method": "DELETE",
+    "backendRoute": "/merchant/purchases/temp-items/{itemId}",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "deleteTempItem"
+  },
+  {
+    "operation": "purchase.getByFamily",
+    "pages": [
+      "shared/runtime/purchase"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/purchases/by-family",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "byFamily"
+  },
+  {
+    "operation": "purchase.getCopyText",
+    "pages": [
+      "shared/runtime/purchase"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/purchases/copy-text",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "copyText"
+  },
+  {
+    "operation": "purchase.getSummary",
+    "pages": [
+      "pages/merchant/index",
+      "pages/merchant/merchant-orders/index",
+      "pages/merchant/purchase/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/purchases/summary",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "summary"
+  },
+  {
+    "operation": "purchase.getTempItems",
+    "pages": [
+      "pages/merchant/purchase/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/merchant/purchases/temp-items",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "tempItems"
+  },
+  {
+    "operation": "purchase.toggleChecked",
+    "pages": [
+      "shared/runtime/purchase"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/purchases/items/{itemId}/checked",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "checked"
+  },
+  {
+    "operation": "system.getPublicSettings",
+    "pages": [
+      "pages/account/profile-edit/index",
+      "pages/account/account-security/index",
+      "pages/merchant/merchant-dishes/index",
+      "pages/merchant/dish-edit/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/public/system-settings",
+    "controllerFqcn": "com.familykitchen.system.controller.PublicSystemController",
+    "controllerMethod": "current"
+  },
+  {
+    "operation": "user.bindEmail",
+    "pages": [
+      "shared/runtime/user"
+    ],
+    "method": "PUT",
+    "backendRoute": "/users/me/email",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "bindEmail"
+  },
+  {
+    "operation": "user.bindWechat",
+    "pages": [
+      "shared/runtime/user"
+    ],
+    "method": "POST",
+    "backendRoute": "/users/me/wechat",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "bindWechat"
+  },
+  {
+    "operation": "user.cancelCancellation",
+    "pages": [
+      "shared/runtime/user"
+    ],
+    "method": "DELETE",
+    "backendRoute": "/users/me/cancellation",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "cancelCancellation"
+  },
+  {
+    "operation": "user.changePassword",
+    "pages": [
+      "shared/runtime/user"
+    ],
+    "method": "PUT",
+    "backendRoute": "/users/me/password",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "changePassword"
+  },
+  {
+    "operation": "user.changeUsername",
+    "pages": [
+      "shared/runtime/user"
+    ],
+    "method": "PUT",
+    "backendRoute": "/users/me/username",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "changeUsername"
+  },
+  {
+    "operation": "user.getContext",
+    "pages": [
+      "pages/auth/entry/index",
+      "pages/family/family-start/index",
+      "pages/family/family-management/index",
+      "pages/account/account-management/index",
+      "pages/account/profile/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/users/me/context",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "context"
+  },
+  {
+    "operation": "user.getProfile",
+    "pages": [
+      "pages/account/profile-edit/index",
+      "pages/account/account-security/index",
+      "pages/account/profile/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/users/me",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "profile"
+  },
+  {
+    "operation": "user.requestCancellation",
+    "pages": [
+      "shared/runtime/user"
+    ],
+    "method": "POST",
+    "backendRoute": "/users/me/cancellation",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "requestCancellation"
+  },
+  {
+    "operation": "user.sendEmailCode",
+    "pages": [
+      "shared/runtime/user"
+    ],
+    "method": "POST",
+    "backendRoute": "/users/me/email/code",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "sendEmailCode"
+  },
+  {
+    "operation": "user.unbindWechat",
+    "pages": [
+      "shared/runtime/user"
+    ],
+    "method": "DELETE",
+    "backendRoute": "/users/me/wechat",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "unbindWechat"
+  },
+  {
+    "operation": "user.updateProfile",
+    "pages": [
+      "shared/runtime/user"
+    ],
+    "method": "PUT",
+    "backendRoute": "/users/me",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "update"
+  }
+]

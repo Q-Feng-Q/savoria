@@ -1,0 +1,158 @@
+{
+  "pages/auth/entry/index": [
+    "user.getContext"
+  ],
+  "pages/auth/register/index": [
+    "auth.logout",
+    "auth.register"
+  ],
+  "pages/auth/password-recovery/index": [],
+  "pages/family/family-start/index": [
+    "family.getOnboarding",
+    "user.getContext"
+  ],
+  "pages/family/family-management/index": [
+    "family.getAddresses",
+    "family.getInfo",
+    "family.getJoinApplications",
+    "family.getMyInvitations",
+    "family.getOwnerCandidates",
+    "family.transferOwner",
+    "family.updateInfo",
+    "user.getContext"
+  ],
+  "pages/account/profile-edit/index": [
+    "system.getPublicSettings",
+    "user.getProfile"
+  ],
+  "pages/account/account-security/index": [
+    "system.getPublicSettings",
+    "user.getProfile"
+  ],
+  "pages/account/account-management/index": [
+    "user.getContext"
+  ],
+  "pages/family/home/index": [
+    "family.getHome"
+  ],
+  "pages/ordering/menu/index": [
+    "cart.getCart",
+    "cart.setItemQuantity",
+    "family.getMenuItems"
+  ],
+  "pages/ordering/cart/index": [
+    "cart.getCart",
+    "family.getAddresses",
+    "orders.submitOrder"
+  ],
+  "pages/ordering/orders/index": [
+    "orders.listOrders"
+  ],
+  "pages/account/profile/index": [
+    "family.getAddresses",
+    "family.getHome",
+    "family.getWallet",
+    "family.getWalletLedgers",
+    "user.getContext",
+    "user.getProfile"
+  ],
+  "pages/account/notifications/index": [
+    "notifications.getNotifications"
+  ],
+  "pages/family/addresses/index": [
+    "family.getAddresses"
+  ],
+  "pages/family/address-edit/index": [
+    "family.createAddress",
+    "family.updateAddress"
+  ],
+  "pages/family/wallet/index": [
+    "family.getWallet",
+    "family.getWalletLedgers"
+  ],
+  "pages/family/wallet-ledger/index": [
+    "family.getWalletLedgers",
+    "merchant.getFamilyWalletLedgers"
+  ],
+  "pages/merchant/index": [
+    "merchant.getFamilies",
+    "merchant.getFamilyMenu",
+    "merchant.getOrders",
+    "merchant.getProfile",
+    "purchase.getSummary"
+  ],
+  "pages/merchant/merchant-profile-edit/index": [
+    "merchant.getProfile",
+    "merchant.updateProfile"
+  ],
+  "pages/merchant/merchant-families/index": [],
+  "pages/merchant/merchant-family-detail/index": [
+    "merchant.getFamilyDetail",
+    "merchant.getFamilyMenu",
+    "merchant.getFamilyWallet",
+    "merchant.getOrders"
+  ],
+  "pages/merchant/merchant-orders/index": [
+    "merchant.advanceOrderStatus",
+    "merchant.confirmOrder",
+    "merchant.getFamilies",
+    "merchant.getOrders",
+    "purchase.getSummary"
+  ],
+  "pages/merchant/merchant-order-detail/index": [
+    "merchant.getFamilyDetail",
+    "merchant.getOrderDetail"
+  ],
+  "pages/merchant/merchant-dishes/index": [
+    "merchant.getDishCategories",
+    "merchant.getDishes",
+    "merchant.getIngredients",
+    "merchant.setDishFeatured",
+    "merchant.submitImportedDishTemplateChange",
+    "merchant.updateDishStatus",
+    "system.getPublicSettings"
+  ],
+  "pages/merchant/dish-reviews/index": [],
+  "pages/merchant/dish-templates/index": [
+    "merchant.getDishTemplateCategories",
+    "merchant.getDishTemplates"
+  ],
+  "pages/merchant/dish-template-detail/index": [
+    "merchant.getDishTemplateDetail"
+  ],
+  "pages/merchant/dish-template-change-edit/index": [
+    "merchant.getDishTemplateCategories",
+    "merchant.getDishTemplateDetail"
+  ],
+  "pages/merchant/dish-template-changes/index": [],
+  "pages/merchant/dish-template-change-detail/index": [],
+  "pages/merchant/family-menu/index": [
+    "merchant.getFamilies",
+    "merchant.getFamilyMenu"
+  ],
+  "pages/merchant/purchase/index": [
+    "merchant.getFamilies",
+    "purchase.getSummary",
+    "purchase.getTempItems"
+  ],
+  "pages/ordering/order-detail/index": [
+    "orders.getOrderDetail"
+  ],
+  "pages/ordering/dish-detail/index": [
+    "cart.getCart",
+    "cart.setItemQuantity",
+    "family.getDishDetail"
+  ],
+  "pages/merchant/dish-edit/index": [
+    "merchant.createDish",
+    "merchant.getDishCategories",
+    "merchant.getDishDetail",
+    "merchant.getIngredients",
+    "merchant.updateDish",
+    "system.getPublicSettings"
+  ],
+  "pages/merchant/ingredient-edit/index": [
+    "merchant.createIngredient",
+    "merchant.updateIngredient"
+  ]
+}

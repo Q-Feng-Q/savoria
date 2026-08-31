@@ -1,0 +1,2256 @@
+[
+  {
+    "key": "auth.adminLogin",
+    "service": "auth",
+    "function": "adminLogin",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/auth/admin/login",
+    "route": "/api/auth/admin/login",
+    "backendRoute": "/auth/admin/login",
+    "controllerClass": "AuthController",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "adminLogin",
+    "scope": "public",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "auth.logout",
+    "service": "auth",
+    "function": "logout",
+    "kind": "request",
+    "args": [],
+    "method": "POST",
+    "path": "/api/auth/logout",
+    "route": "/api/auth/logout",
+    "backendRoute": "/auth/logout",
+    "controllerClass": "AuthController",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "logout",
+    "scope": "public"
+  },
+  {
+    "key": "auth.logoutAll",
+    "service": "auth",
+    "function": "logoutAll",
+    "kind": "request",
+    "args": [],
+    "method": "POST",
+    "path": "/api/auth/logout-all",
+    "route": "/api/auth/logout-all",
+    "backendRoute": "/auth/logout-all",
+    "controllerClass": "AuthController",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "logoutAll",
+    "scope": "public"
+  },
+  {
+    "key": "auth.portalLogin",
+    "service": "auth",
+    "function": "portalLogin",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/auth/login",
+    "route": "/api/auth/login",
+    "backendRoute": "/auth/login",
+    "controllerClass": "AuthController",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "login",
+    "scope": "public",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "auth.register",
+    "service": "auth",
+    "function": "register",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/auth/register",
+    "route": "/api/auth/register",
+    "backendRoute": "/auth/register",
+    "controllerClass": "AuthController",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "register",
+    "scope": "public",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "auth.resetPassword",
+    "service": "auth",
+    "function": "resetPassword",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/auth/password/reset",
+    "route": "/api/auth/password/reset",
+    "backendRoute": "/auth/password/reset",
+    "controllerClass": "AuthController",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "resetPassword",
+    "scope": "public",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "auth.sendPasswordResetCode",
+    "service": "auth",
+    "function": "sendPasswordResetCode",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/auth/password/reset-code",
+    "route": "/api/auth/password/reset-code",
+    "backendRoute": "/auth/password/reset-code",
+    "controllerClass": "AuthController",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "sendResetCode",
+    "scope": "public",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "auth.userLogin",
+    "service": "auth",
+    "function": "userLogin",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/auth/login",
+    "route": "/api/auth/login",
+    "backendRoute": "/auth/login",
+    "controllerClass": "AuthController",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "login",
+    "scope": "public",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "auth.wechatLogin",
+    "service": "auth",
+    "function": "wechatLogin",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/auth/wechat/login",
+    "route": "/api/auth/wechat/login",
+    "backendRoute": "/auth/wechat/login",
+    "controllerClass": "AuthController",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "wechatLogin",
+    "scope": "public",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "cart.addItem",
+    "service": "cart",
+    "function": "addItem",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/family/cart/items",
+    "route": "/api/family/cart/items",
+    "backendRoute": "/family/cart/items",
+    "controllerClass": "CartController",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "mutateItem",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "cart.deleteItem",
+    "service": "cart",
+    "function": "deleteItem",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/family/cart/items",
+    "route": "/api/family/cart/items",
+    "backendRoute": "/family/cart/items",
+    "controllerClass": "CartController",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "mutateItem",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value",
+      "quantity": 0
+    }
+  },
+  {
+    "key": "cart.getCart",
+    "service": "cart",
+    "function": "getCart",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/family/cart",
+    "route": "/api/family/cart",
+    "backendRoute": "/family/cart",
+    "controllerClass": "CartController",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "cart",
+    "scope": "family"
+  },
+  {
+    "key": "cart.setItemQuantity",
+    "service": "cart",
+    "function": "setItemQuantity",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/family/cart/items",
+    "route": "/api/family/cart/items",
+    "backendRoute": "/family/cart/items",
+    "controllerClass": "CartController",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "mutateItem",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "cart.updateExpectedMealTime",
+    "service": "cart",
+    "function": "updateExpectedMealTime",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/family/cart/expected-meal-time",
+    "route": "/api/family/cart/expected-meal-time",
+    "backendRoute": "/family/cart/expected-meal-time",
+    "controllerClass": "CartController",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "updateExpectedMealTime",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "cart.updateItem",
+    "service": "cart",
+    "function": "updateItem",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/family/cart/items",
+    "route": "/api/family/cart/items",
+    "backendRoute": "/family/cart/items",
+    "controllerClass": "CartController",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "mutateItem",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "cart.updateRemark",
+    "service": "cart",
+    "function": "updateRemark",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/family/cart/remark",
+    "route": "/api/family/cart/remark",
+    "backendRoute": "/family/cart/remark",
+    "controllerClass": "CartController",
+    "controllerFqcn": "com.familykitchen.cart.controller.CartController",
+    "controllerMethod": "updateRemark",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "family.acceptInvitation",
+    "service": "family",
+    "function": "acceptInvitation",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "POST",
+    "path": "/api/family/invitations/901/accept",
+    "route": "/api/family/invitations/{id}/accept",
+    "backendRoute": "/family/invitations/{id}/accept",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "acceptInvitation",
+    "scope": "family"
+  },
+  {
+    "key": "family.applyFamily",
+    "service": "family",
+    "function": "applyFamily",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/family/apply",
+    "route": "/api/family/apply",
+    "backendRoute": "/family/apply",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "applyFamily",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "family.approveJoinApplication",
+    "service": "family",
+    "function": "approveJoinApplication",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "POST",
+    "path": "/api/family/join-applications/901/approve",
+    "route": "/api/family/join-applications/{id}/approve",
+    "backendRoute": "/family/join-applications/{id}/approve",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "approveApplication",
+    "scope": "family"
+  },
+  {
+    "key": "family.createAddress",
+    "service": "family",
+    "function": "createAddress",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/family/addresses",
+    "route": "/api/family/addresses",
+    "backendRoute": "/family/addresses",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "createAddress",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "family.deleteAddress",
+    "service": "family",
+    "function": "deleteAddress",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "DELETE",
+    "path": "/api/family/addresses/901",
+    "route": "/api/family/addresses/{addressId}",
+    "backendRoute": "/family/addresses/{addressId}",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "deleteAddress",
+    "scope": "family"
+  },
+  {
+    "key": "family.directInvite",
+    "service": "family",
+    "function": "directInvite",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/family/invitations/direct",
+    "route": "/api/family/invitations/direct",
+    "backendRoute": "/family/invitations/direct",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "directInvite",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "family.dissolveFamily",
+    "service": "family",
+    "function": "dissolveFamily",
+    "kind": "request",
+    "args": [],
+    "method": "DELETE",
+    "path": "/api/family/current",
+    "route": "/api/family/current",
+    "backendRoute": "/family/current",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "dissolveFamily",
+    "scope": "family"
+  },
+  {
+    "key": "family.exitFamily",
+    "service": "family",
+    "function": "exitFamily",
+    "kind": "request",
+    "args": [],
+    "method": "POST",
+    "path": "/api/family/exit",
+    "route": "/api/family/exit",
+    "backendRoute": "/family/exit",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "exitFamily",
+    "scope": "family"
+  },
+  {
+    "key": "family.generateInvitation",
+    "service": "family",
+    "function": "generateInvitation",
+    "kind": "request",
+    "args": [],
+    "method": "POST",
+    "path": "/api/family/invite",
+    "route": "/api/family/invite",
+    "backendRoute": "/family/invite",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "generateInvitation",
+    "scope": "family"
+  },
+  {
+    "key": "family.getAddresses",
+    "service": "family",
+    "function": "getAddresses",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/family/addresses",
+    "route": "/api/family/addresses",
+    "backendRoute": "/family/addresses",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "addresses",
+    "scope": "family"
+  },
+  {
+    "key": "family.getDishDetail",
+    "service": "family",
+    "function": "getDishDetail",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "GET",
+    "path": "/api/family/menu/901",
+    "route": "/api/family/menu/{dishId}",
+    "backendRoute": "/family/menu/{dishId}",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "dishDetail",
+    "scope": "family"
+  },
+  {
+    "key": "family.getHome",
+    "service": "family",
+    "function": "getHome",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/family/home",
+    "route": "/api/family/home",
+    "backendRoute": "/family/home",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "home",
+    "scope": "family"
+  },
+  {
+    "key": "family.getInfo",
+    "service": "family",
+    "function": "getInfo",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/family/info",
+    "route": "/api/family/info",
+    "backendRoute": "/family/info",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "familyInfo",
+    "scope": "family"
+  },
+  {
+    "key": "family.getJoinApplications",
+    "service": "family",
+    "function": "getJoinApplications",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/family/join-applications",
+    "route": "/api/family/join-applications",
+    "backendRoute": "/family/join-applications",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "pendingApplications",
+    "scope": "family"
+  },
+  {
+    "key": "family.getMenuItems",
+    "service": "family",
+    "function": "getMenuItems",
+    "kind": "request",
+    "args": [
+      "contract-params = {}"
+    ],
+    "method": "GET",
+    "path": "/api/family/menu?0=c&1=o&2=n&3=t&4=r&5=a&6=c&7=t&8=-&9=p&10=a&11=r&12=a&13=m&14=s&15=%20&16=%3D&17=%20&18=%7B&19=%7D",
+    "route": "/api/family/menu",
+    "backendRoute": "/family/menu",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "menu",
+    "scope": "family"
+  },
+  {
+    "key": "family.getMyInvitations",
+    "service": "family",
+    "function": "getMyInvitations",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/family/invitations/me",
+    "route": "/api/family/invitations/me",
+    "backendRoute": "/family/invitations/me",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "myInvitations",
+    "scope": "family"
+  },
+  {
+    "key": "family.getOnboarding",
+    "service": "family",
+    "function": "getOnboarding",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/family/onboarding",
+    "route": "/api/family/onboarding",
+    "backendRoute": "/family/onboarding",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "onboarding",
+    "scope": "family"
+  },
+  {
+    "key": "family.getOwnerCandidates",
+    "service": "family",
+    "function": "getOwnerCandidates",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/family/owner-candidates",
+    "route": "/api/family/owner-candidates",
+    "backendRoute": "/family/owner-candidates",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "ownerCandidates",
+    "scope": "family"
+  },
+  {
+    "key": "family.getWallet",
+    "service": "family",
+    "function": "getWallet",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/family/wallet",
+    "route": "/api/family/wallet",
+    "backendRoute": "/family/wallet",
+    "controllerClass": "FamilyWalletController",
+    "controllerFqcn": "com.familykitchen.wallet.controller.FamilyWalletController",
+    "controllerMethod": "summary",
+    "scope": "family"
+  },
+  {
+    "key": "family.getWalletLedgers",
+    "service": "family",
+    "function": "getWalletLedgers",
+    "kind": "request",
+    "args": [
+      "contract-params = {}"
+    ],
+    "method": "GET",
+    "path": "/api/family/wallet/ledgers?0=c&1=o&2=n&3=t&4=r&5=a&6=c&7=t&8=-&9=p&10=a&11=r&12=a&13=m&14=s&15=%20&16=%3D&17=%20&18=%7B&19=%7D",
+    "route": "/api/family/wallet/ledgers",
+    "backendRoute": "/family/wallet/ledgers",
+    "controllerClass": "FamilyWalletController",
+    "controllerFqcn": "com.familykitchen.wallet.controller.FamilyWalletController",
+    "controllerMethod": "ledgers",
+    "scope": "family"
+  },
+  {
+    "key": "family.joinFamily",
+    "service": "family",
+    "function": "joinFamily",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/family/join",
+    "route": "/api/family/join",
+    "backendRoute": "/family/join",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "joinFamily",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "family.rejectInvitation",
+    "service": "family",
+    "function": "rejectInvitation",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/family/invitations/901/reject",
+    "route": "/api/family/invitations/{id}/reject",
+    "backendRoute": "/family/invitations/{id}/reject",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "rejectInvitation",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "family.rejectJoinApplication",
+    "service": "family",
+    "function": "rejectJoinApplication",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/family/join-applications/901/reject",
+    "route": "/api/family/join-applications/{id}/reject",
+    "backendRoute": "/family/join-applications/{id}/reject",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "rejectApplication",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "family.setDefaultAddress",
+    "service": "family",
+    "function": "setDefaultAddress",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "POST",
+    "path": "/api/family/addresses/901/default",
+    "route": "/api/family/addresses/{addressId}/default",
+    "backendRoute": "/family/addresses/{addressId}/default",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "setDefaultAddress",
+    "scope": "family"
+  },
+  {
+    "key": "family.transferOwner",
+    "service": "family",
+    "function": "transferOwner",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/family/owner",
+    "route": "/api/family/owner",
+    "backendRoute": "/family/owner",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "transferOwner",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "family.updateAddress",
+    "service": "family",
+    "function": "updateAddress",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/family/addresses/901",
+    "route": "/api/family/addresses/{addressId}",
+    "backendRoute": "/family/addresses/{addressId}",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "updateAddress",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "family.updateInfo",
+    "service": "family",
+    "function": "updateInfo",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/family/info",
+    "route": "/api/family/info",
+    "backendRoute": "/family/info",
+    "controllerClass": "FamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.FamilyController",
+    "controllerMethod": "updateFamilyInfo",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "files.uploadImage",
+    "service": "files",
+    "function": "uploadImage",
+    "kind": "upload",
+    "args": [
+      "D:/contract/image.png"
+    ],
+    "method": "POST",
+    "path": "/api/files/images",
+    "route": "/api/files/images",
+    "backendRoute": "/files/images",
+    "controllerClass": "FileController",
+    "controllerFqcn": "com.familykitchen.file.controller.FileController",
+    "controllerMethod": "uploadImage",
+    "scope": "account"
+  },
+  {
+    "key": "merchant.adjustFamilyBalance",
+    "service": "merchant",
+    "function": "adjustFamilyBalance",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/families/901/wallet/adjust",
+    "route": "/api/merchant/families/{familyId}/wallet/adjust",
+    "backendRoute": "/merchant/families/{familyId}/wallet/adjust",
+    "controllerClass": "MerchantFamilyWalletController",
+    "controllerFqcn": "com.familykitchen.wallet.controller.MerchantFamilyWalletController",
+    "controllerMethod": "adjust",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.advanceOrderStatus",
+    "service": "merchant",
+    "function": "advanceOrderStatus",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/orders/901/status",
+    "route": "/api/merchant/orders/{orderId}/status",
+    "backendRoute": "/merchant/orders/{orderId}/status",
+    "controllerClass": "MerchantOrderController",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "advance",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.cancelOrder",
+    "service": "merchant",
+    "function": "cancelOrder",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/orders/901/cancel",
+    "route": "/api/merchant/orders/{orderId}/cancel",
+    "backendRoute": "/merchant/orders/{orderId}/cancel",
+    "controllerClass": "MerchantOrderController",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "cancel",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.confirmOrder",
+    "service": "merchant",
+    "function": "confirmOrder",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "POST",
+    "path": "/api/merchant/orders/901/confirm",
+    "route": "/api/merchant/orders/{orderId}/confirm",
+    "backendRoute": "/merchant/orders/{orderId}/confirm",
+    "controllerClass": "MerchantOrderController",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "confirm",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.copyFamilyMenu",
+    "service": "merchant",
+    "function": "copyFamilyMenu",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/families/901/menu/copy",
+    "route": "/api/merchant/families/{familyId}/menu/copy",
+    "backendRoute": "/merchant/families/{familyId}/menu/copy",
+    "controllerClass": "MerchantFamilyMenuController",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyMenuController",
+    "controllerMethod": "copyMenu",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.createDish",
+    "service": "merchant",
+    "function": "createDish",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/dishes",
+    "route": "/api/merchant/dishes",
+    "backendRoute": "/merchant/dishes",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "createDish",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.createDishCategory",
+    "service": "merchant",
+    "function": "createDishCategory",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/dish-categories",
+    "route": "/api/merchant/dish-categories",
+    "backendRoute": "/merchant/dish-categories",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "createCategory",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.createIngredient",
+    "service": "merchant",
+    "function": "createIngredient",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/ingredients",
+    "route": "/api/merchant/ingredients",
+    "backendRoute": "/merchant/ingredients",
+    "controllerClass": "IngredientDictionaryController",
+    "controllerFqcn": "com.familykitchen.dish.controller.IngredientDictionaryController",
+    "controllerMethod": "create",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.deleteDishCategory",
+    "service": "merchant",
+    "function": "deleteDishCategory",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "DELETE",
+    "path": "/api/merchant/dish-categories/901",
+    "route": "/api/merchant/dish-categories/{categoryId}",
+    "backendRoute": "/merchant/dish-categories/{categoryId}",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "deleteCategory",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.deleteIngredient",
+    "service": "merchant",
+    "function": "deleteIngredient",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "DELETE",
+    "path": "/api/merchant/ingredients/901",
+    "route": "/api/merchant/ingredients/{ingredientId}",
+    "backendRoute": "/merchant/ingredients/{ingredientId}",
+    "controllerClass": "IngredientDictionaryController",
+    "controllerFqcn": "com.familykitchen.dish.controller.IngredientDictionaryController",
+    "controllerMethod": "delete",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getDishCategories",
+    "service": "merchant",
+    "function": "getDishCategories",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/merchant/dish-categories",
+    "route": "/api/merchant/dish-categories",
+    "backendRoute": "/merchant/dish-categories",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "categories",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getDishDetail",
+    "service": "merchant",
+    "function": "getDishDetail",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "GET",
+    "path": "/api/merchant/dishes/901",
+    "route": "/api/merchant/dishes/{dishId}",
+    "backendRoute": "/merchant/dishes/{dishId}",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "dishDetail",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getDishes",
+    "service": "merchant",
+    "function": "getDishes",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/merchant/dishes",
+    "route": "/api/merchant/dishes",
+    "backendRoute": "/merchant/dishes",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "dishes",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getDishReviewDetail",
+    "service": "merchant",
+    "function": "getDishReviewDetail",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "GET",
+    "path": "/api/merchant/dish-reviews/901",
+    "route": "/api/merchant/dish-reviews/{reviewId}",
+    "backendRoute": "/merchant/dish-reviews/{reviewId}",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "reviewDetail",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getDishReviews",
+    "service": "merchant",
+    "function": "getDishReviews",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/merchant/dish-reviews",
+    "route": "/api/merchant/dish-reviews",
+    "backendRoute": "/merchant/dish-reviews",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "reviewHistory",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getDishTemplateCategories",
+    "service": "merchant",
+    "function": "getDishTemplateCategories",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/merchant/dish-template-categories",
+    "route": "/api/merchant/dish-template-categories",
+    "backendRoute": "/merchant/dish-template-categories",
+    "controllerClass": "DishTemplateController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateController",
+    "controllerMethod": "categories",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getDishTemplateChangeDetail",
+    "service": "merchant",
+    "function": "getDishTemplateChangeDetail",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "GET",
+    "path": "/api/merchant/dish-template-change-requests/901",
+    "route": "/api/merchant/dish-template-change-requests/{requestId}",
+    "backendRoute": "/merchant/dish-template-change-requests/{requestId}",
+    "controllerClass": "DishTemplateChangeRequestController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateChangeRequestController",
+    "controllerMethod": "detail",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getDishTemplateChanges",
+    "service": "merchant",
+    "function": "getDishTemplateChanges",
+    "kind": "request",
+    "args": [
+      "contract-query = {}"
+    ],
+    "method": "GET",
+    "path": "/api/merchant/dish-template-change-requests?0=c&1=o&2=n&3=t&4=r&5=a&6=c&7=t&8=-&9=q&10=u&11=e&12=r&13=y&14=%20&15=%3D&16=%20&17=%7B&18=%7D",
+    "route": "/api/merchant/dish-template-change-requests",
+    "backendRoute": "/merchant/dish-template-change-requests",
+    "controllerClass": "DishTemplateChangeRequestController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateChangeRequestController",
+    "controllerMethod": "page",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getDishTemplateDetail",
+    "service": "merchant",
+    "function": "getDishTemplateDetail",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "GET",
+    "path": "/api/merchant/dish-templates/901",
+    "route": "/api/merchant/dish-templates/{templateId}",
+    "backendRoute": "/merchant/dish-templates/{templateId}",
+    "controllerClass": "DishTemplateController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateController",
+    "controllerMethod": "detail",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getDishTemplates",
+    "service": "merchant",
+    "function": "getDishTemplates",
+    "kind": "request",
+    "args": [
+      "contract-query = {}"
+    ],
+    "method": "GET",
+    "path": "/api/merchant/dish-templates?0=c&1=o&2=n&3=t&4=r&5=a&6=c&7=t&8=-&9=q&10=u&11=e&12=r&13=y&14=%20&15=%3D&16=%20&17=%7B&18=%7D",
+    "route": "/api/merchant/dish-templates",
+    "backendRoute": "/merchant/dish-templates",
+    "controllerClass": "DishTemplateController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateController",
+    "controllerMethod": "templates",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getFamilies",
+    "service": "merchant",
+    "function": "getFamilies",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/merchant/families",
+    "route": "/api/merchant/families",
+    "backendRoute": "/merchant/families",
+    "controllerClass": "MerchantFamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyController",
+    "controllerMethod": "list",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getFamilyDetail",
+    "service": "merchant",
+    "function": "getFamilyDetail",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "GET",
+    "path": "/api/merchant/families/901",
+    "route": "/api/merchant/families/{familyId}",
+    "backendRoute": "/merchant/families/{familyId}",
+    "controllerClass": "MerchantFamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyController",
+    "controllerMethod": "detail",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getFamilyMenu",
+    "service": "merchant",
+    "function": "getFamilyMenu",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "GET",
+    "path": "/api/merchant/families/901/menu",
+    "route": "/api/merchant/families/{familyId}/menu",
+    "backendRoute": "/merchant/families/{familyId}/menu",
+    "controllerClass": "MerchantFamilyMenuController",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyMenuController",
+    "controllerMethod": "menu",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getFamilyWallet",
+    "service": "merchant",
+    "function": "getFamilyWallet",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "GET",
+    "path": "/api/merchant/families/901/wallet",
+    "route": "/api/merchant/families/{familyId}/wallet",
+    "backendRoute": "/merchant/families/{familyId}/wallet",
+    "controllerClass": "MerchantFamilyWalletController",
+    "controllerFqcn": "com.familykitchen.wallet.controller.MerchantFamilyWalletController",
+    "controllerMethod": "summary",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getFamilyWalletLedgers",
+    "service": "merchant",
+    "function": "getFamilyWalletLedgers",
+    "kind": "request",
+    "args": [
+      901,
+      "contract-params = {}"
+    ],
+    "method": "GET",
+    "path": "/api/merchant/families/901/wallet/ledgers?0=c&1=o&2=n&3=t&4=r&5=a&6=c&7=t&8=-&9=p&10=a&11=r&12=a&13=m&14=s&15=%20&16=%3D&17=%20&18=%7B&19=%7D",
+    "route": "/api/merchant/families/{familyId}/wallet/ledgers",
+    "backendRoute": "/merchant/families/{familyId}/wallet/ledgers",
+    "controllerClass": "MerchantFamilyWalletController",
+    "controllerFqcn": "com.familykitchen.wallet.controller.MerchantFamilyWalletController",
+    "controllerMethod": "ledgers",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getIngredients",
+    "service": "merchant",
+    "function": "getIngredients",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/merchant/ingredients",
+    "route": "/api/merchant/ingredients",
+    "backendRoute": "/merchant/ingredients",
+    "controllerClass": "IngredientDictionaryController",
+    "controllerFqcn": "com.familykitchen.dish.controller.IngredientDictionaryController",
+    "controllerMethod": "list",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getOrderDetail",
+    "service": "merchant",
+    "function": "getOrderDetail",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "GET",
+    "path": "/api/merchant/orders/901",
+    "route": "/api/merchant/orders/{orderId}",
+    "backendRoute": "/merchant/orders/{orderId}",
+    "controllerClass": "MerchantOrderController",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "detail",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getOrders",
+    "service": "merchant",
+    "function": "getOrders",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/merchant/orders",
+    "route": "/api/merchant/orders",
+    "backendRoute": "/merchant/orders",
+    "controllerClass": "MerchantOrderController",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "list",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.getProfile",
+    "service": "merchant",
+    "function": "getProfile",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/merchant/profile",
+    "route": "/api/merchant/profile",
+    "backendRoute": "/merchant/profile",
+    "controllerClass": "MerchantProfileController",
+    "controllerFqcn": "com.familykitchen.merchant.controller.MerchantProfileController",
+    "controllerMethod": "profile",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.importAllDishTemplates",
+    "service": "merchant",
+    "function": "importAllDishTemplates",
+    "kind": "request",
+    "args": [],
+    "method": "POST",
+    "path": "/api/merchant/dish-templates/import-all",
+    "route": "/api/merchant/dish-templates/import-all",
+    "backendRoute": "/merchant/dish-templates/import-all",
+    "controllerClass": "DishTemplateController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateController",
+    "controllerMethod": "importAllTemplates",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.importDishTemplates",
+    "service": "merchant",
+    "function": "importDishTemplates",
+    "kind": "request",
+    "args": [
+      [
+        901,
+        902
+      ]
+    ],
+    "method": "POST",
+    "path": "/api/merchant/dish-templates/import",
+    "route": "/api/merchant/dish-templates/import",
+    "backendRoute": "/merchant/dish-templates/import",
+    "controllerClass": "DishTemplateController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateController",
+    "controllerMethod": "importTemplates",
+    "scope": "merchant",
+    "data": {
+      "templateIds": [
+        901,
+        902
+      ]
+    }
+  },
+  {
+    "key": "merchant.rejectOrder",
+    "service": "merchant",
+    "function": "rejectOrder",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "POST",
+    "path": "/api/merchant/orders/901/reject",
+    "route": "/api/merchant/orders/{orderId}/reject",
+    "backendRoute": "/merchant/orders/{orderId}/reject",
+    "controllerClass": "MerchantOrderController",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "reject",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.saveFamilyMenu",
+    "service": "merchant",
+    "function": "saveFamilyMenu",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/merchant/families/901/menu",
+    "route": "/api/merchant/families/{familyId}/menu",
+    "backendRoute": "/merchant/families/{familyId}/menu",
+    "controllerClass": "MerchantFamilyMenuController",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyMenuController",
+    "controllerMethod": "saveMenu",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.setDishFeatured",
+    "service": "merchant",
+    "function": "setDishFeatured",
+    "kind": "request",
+    "args": [
+      901,
+      true
+    ],
+    "method": "PUT",
+    "path": "/api/merchant/dishes/901/featured",
+    "route": "/api/merchant/dishes/{dishId}/featured",
+    "backendRoute": "/merchant/dishes/{dishId}/featured",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "setFeaturedDish",
+    "scope": "merchant",
+    "data": {
+      "featured": true
+    }
+  },
+  {
+    "key": "merchant.setFeaturedDish",
+    "service": "merchant",
+    "function": "setFeaturedDish",
+    "kind": "request",
+    "args": [
+      901,
+      902
+    ],
+    "method": "PUT",
+    "path": "/api/merchant/families/901/menu/featured",
+    "route": "/api/merchant/families/{familyId}/menu/featured",
+    "backendRoute": "/merchant/families/{familyId}/menu/featured",
+    "controllerClass": "MerchantFamilyMenuController",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyMenuController",
+    "controllerMethod": "setFeaturedDish",
+    "scope": "merchant",
+    "data": {
+      "dishId": 902
+    }
+  },
+  {
+    "key": "merchant.submitDishTemplateChange",
+    "service": "merchant",
+    "function": "submitDishTemplateChange",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/dish-templates/901/change-requests",
+    "route": "/api/merchant/dish-templates/{templateId}/change-requests",
+    "backendRoute": "/merchant/dish-templates/{templateId}/change-requests",
+    "controllerClass": "DishTemplateChangeRequestController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateChangeRequestController",
+    "controllerMethod": "submit",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.submitImportedDishTemplateChange",
+    "service": "merchant",
+    "function": "submitImportedDishTemplateChange",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/dishes/901/template-change-requests",
+    "route": "/api/merchant/dishes/{dishId}/template-change-requests",
+    "backendRoute": "/merchant/dishes/{dishId}/template-change-requests",
+    "controllerClass": "DishTemplateChangeRequestController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateChangeRequestController",
+    "controllerMethod": "submitFromImportedDish",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.updateCookingSteps",
+    "service": "merchant",
+    "function": "updateCookingSteps",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/merchant/dishes/901/cooking-steps",
+    "route": "/api/merchant/dishes/{dishId}/cooking-steps",
+    "backendRoute": "/merchant/dishes/{dishId}/cooking-steps",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "updateCookingSteps",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.updateDeliveryFee",
+    "service": "merchant",
+    "function": "updateDeliveryFee",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/orders/901/delivery-fee",
+    "route": "/api/merchant/orders/{orderId}/delivery-fee",
+    "backendRoute": "/merchant/orders/{orderId}/delivery-fee",
+    "controllerClass": "MerchantOrderController",
+    "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
+    "controllerMethod": "adjustDeliveryFee",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.updateDish",
+    "service": "merchant",
+    "function": "updateDish",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/merchant/dishes/901",
+    "route": "/api/merchant/dishes/{dishId}",
+    "backendRoute": "/merchant/dishes/{dishId}",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "updateDish",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.updateDishCategory",
+    "service": "merchant",
+    "function": "updateDishCategory",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/merchant/dish-categories/901",
+    "route": "/api/merchant/dish-categories/{categoryId}",
+    "backendRoute": "/merchant/dish-categories/{categoryId}",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "updateCategory",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.updateDishStatus",
+    "service": "merchant",
+    "function": "updateDishStatus",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/merchant/dishes/901/status",
+    "route": "/api/merchant/dishes/{dishId}/status",
+    "backendRoute": "/merchant/dishes/{dishId}/status",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "updateDishStatus",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.updateFamilyDeliveryPolicy",
+    "service": "merchant",
+    "function": "updateFamilyDeliveryPolicy",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/merchant/families/901/delivery-policy",
+    "route": "/api/merchant/families/{familyId}/delivery-policy",
+    "backendRoute": "/merchant/families/{familyId}/delivery-policy",
+    "controllerClass": "MerchantFamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyController",
+    "controllerMethod": "updateDeliveryPolicy",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.updateFamilyProfile",
+    "service": "merchant",
+    "function": "updateFamilyProfile",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/merchant/families/901/profile",
+    "route": "/api/merchant/families/{familyId}/profile",
+    "backendRoute": "/merchant/families/{familyId}/profile",
+    "controllerClass": "MerchantFamilyController",
+    "controllerFqcn": "com.familykitchen.family.controller.MerchantFamilyController",
+    "controllerMethod": "updateProfile",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.updateIngredient",
+    "service": "merchant",
+    "function": "updateIngredient",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/merchant/ingredients/901",
+    "route": "/api/merchant/ingredients/{ingredientId}",
+    "backendRoute": "/merchant/ingredients/{ingredientId}",
+    "controllerClass": "IngredientDictionaryController",
+    "controllerFqcn": "com.familykitchen.dish.controller.IngredientDictionaryController",
+    "controllerMethod": "update",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.updateProfile",
+    "service": "merchant",
+    "function": "updateProfile",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/merchant/profile",
+    "route": "/api/merchant/profile",
+    "backendRoute": "/merchant/profile",
+    "controllerClass": "MerchantProfileController",
+    "controllerFqcn": "com.familykitchen.merchant.controller.MerchantProfileController",
+    "controllerMethod": "updateProfile",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.withdrawDishReview",
+    "service": "merchant",
+    "function": "withdrawDishReview",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "POST",
+    "path": "/api/merchant/dish-reviews/901/withdraw",
+    "route": "/api/merchant/dish-reviews/{reviewId}/withdraw",
+    "backendRoute": "/merchant/dish-reviews/{reviewId}/withdraw",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "withdrawReview",
+    "scope": "merchant"
+  },
+  {
+    "key": "merchant.withdrawDishTemplateChange",
+    "service": "merchant",
+    "function": "withdrawDishTemplateChange",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "POST",
+    "path": "/api/merchant/dish-template-change-requests/901/withdraw",
+    "route": "/api/merchant/dish-template-change-requests/{requestId}/withdraw",
+    "backendRoute": "/merchant/dish-template-change-requests/{requestId}/withdraw",
+    "controllerClass": "DishTemplateChangeRequestController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishTemplateChangeRequestController",
+    "controllerMethod": "withdraw",
+    "scope": "merchant"
+  },
+  {
+    "key": "notifications.getNotifications",
+    "service": "notifications",
+    "function": "getNotifications",
+    "kind": "request",
+    "args": [
+      "contract-params = {}"
+    ],
+    "method": "GET",
+    "path": "/api/notifications?0=c&1=o&2=n&3=t&4=r&5=a&6=c&7=t&8=-&9=p&10=a&11=r&12=a&13=m&14=s&15=%20&16=%3D&17=%20&18=%7B&19=%7D",
+    "route": "/api/notifications",
+    "backendRoute": "/notifications",
+    "controllerClass": "NotificationController",
+    "controllerFqcn": "com.familykitchen.notification.controller.NotificationController",
+    "controllerMethod": "list",
+    "scope": "account"
+  },
+  {
+    "key": "notifications.markAllRead",
+    "service": "notifications",
+    "function": "markAllRead",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/notifications/read-all",
+    "route": "/api/notifications/read-all",
+    "backendRoute": "/notifications/read-all",
+    "controllerClass": "NotificationController",
+    "controllerFqcn": "com.familykitchen.notification.controller.NotificationController",
+    "controllerMethod": "readAll",
+    "scope": "account",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "notifications.markRead",
+    "service": "notifications",
+    "function": "markRead",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "POST",
+    "path": "/api/notifications/901/read",
+    "route": "/api/notifications/{notificationId}/read",
+    "backendRoute": "/notifications/{notificationId}/read",
+    "controllerClass": "NotificationController",
+    "controllerFqcn": "com.familykitchen.notification.controller.NotificationController",
+    "controllerMethod": "read",
+    "scope": "account"
+  },
+  {
+    "key": "orders.cancelOrder",
+    "service": "orders",
+    "function": "cancelOrder",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/family/orders/901/cancel",
+    "route": "/api/family/orders/{orderId}/cancel",
+    "backendRoute": "/family/orders/{orderId}/cancel",
+    "controllerClass": "FamilyOrderController",
+    "controllerFqcn": "com.familykitchen.order.controller.FamilyOrderController",
+    "controllerMethod": "cancel",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "orders.getOrderDetail",
+    "service": "orders",
+    "function": "getOrderDetail",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "GET",
+    "path": "/api/family/orders/901",
+    "route": "/api/family/orders/{orderId}",
+    "backendRoute": "/family/orders/{orderId}",
+    "controllerClass": "FamilyOrderController",
+    "controllerFqcn": "com.familykitchen.order.controller.FamilyOrderController",
+    "controllerMethod": "detail",
+    "scope": "family"
+  },
+  {
+    "key": "orders.listOrders",
+    "service": "orders",
+    "function": "listOrders",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/family/orders",
+    "route": "/api/family/orders",
+    "backendRoute": "/family/orders",
+    "controllerClass": "FamilyOrderController",
+    "controllerFqcn": "com.familykitchen.order.controller.FamilyOrderController",
+    "controllerMethod": "list",
+    "scope": "family"
+  },
+  {
+    "key": "orders.submitOrder",
+    "service": "orders",
+    "function": "submitOrder",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/family/orders",
+    "route": "/api/family/orders",
+    "backendRoute": "/family/orders",
+    "controllerClass": "FamilyOrderController",
+    "controllerFqcn": "com.familykitchen.order.controller.FamilyOrderController",
+    "controllerMethod": "submit",
+    "scope": "family",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "purchase.createTempItem",
+    "service": "purchase",
+    "function": "createTempItem",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/purchases/temp-items",
+    "route": "/api/merchant/purchases/temp-items",
+    "backendRoute": "/merchant/purchases/temp-items",
+    "controllerClass": "PurchaseController",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "addTempItem",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "purchase.deleteTempItem",
+    "service": "purchase",
+    "function": "deleteTempItem",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "DELETE",
+    "path": "/api/merchant/purchases/temp-items/901",
+    "route": "/api/merchant/purchases/temp-items/{itemId}",
+    "backendRoute": "/merchant/purchases/temp-items/{itemId}",
+    "controllerClass": "PurchaseController",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "deleteTempItem",
+    "scope": "merchant"
+  },
+  {
+    "key": "purchase.getByFamily",
+    "service": "purchase",
+    "function": "getByFamily",
+    "kind": "request",
+    "args": [
+      "contract-params = {}"
+    ],
+    "method": "GET",
+    "path": "/api/merchant/purchases/by-family?0=c&1=o&2=n&3=t&4=r&5=a&6=c&7=t&8=-&9=p&10=a&11=r&12=a&13=m&14=s&15=%20&16=%3D&17=%20&18=%7B&19=%7D",
+    "route": "/api/merchant/purchases/by-family",
+    "backendRoute": "/merchant/purchases/by-family",
+    "controllerClass": "PurchaseController",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "byFamily",
+    "scope": "merchant"
+  },
+  {
+    "key": "purchase.getCopyText",
+    "service": "purchase",
+    "function": "getCopyText",
+    "kind": "request",
+    "args": [
+      "contract-params = {}"
+    ],
+    "method": "GET",
+    "path": "/api/merchant/purchases/copy-text?0=c&1=o&2=n&3=t&4=r&5=a&6=c&7=t&8=-&9=p&10=a&11=r&12=a&13=m&14=s&15=%20&16=%3D&17=%20&18=%7B&19=%7D",
+    "route": "/api/merchant/purchases/copy-text",
+    "backendRoute": "/merchant/purchases/copy-text",
+    "controllerClass": "PurchaseController",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "copyText",
+    "scope": "merchant"
+  },
+  {
+    "key": "purchase.getSummary",
+    "service": "purchase",
+    "function": "getSummary",
+    "kind": "request",
+    "args": [
+      "contract-params = {}"
+    ],
+    "method": "GET",
+    "path": "/api/merchant/purchases/summary?0=c&1=o&2=n&3=t&4=r&5=a&6=c&7=t&8=-&9=p&10=a&11=r&12=a&13=m&14=s&15=%20&16=%3D&17=%20&18=%7B&19=%7D",
+    "route": "/api/merchant/purchases/summary",
+    "backendRoute": "/merchant/purchases/summary",
+    "controllerClass": "PurchaseController",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "summary",
+    "scope": "merchant"
+  },
+  {
+    "key": "purchase.getTempItems",
+    "service": "purchase",
+    "function": "getTempItems",
+    "kind": "request",
+    "args": [
+      "contract-params = {}"
+    ],
+    "method": "GET",
+    "path": "/api/merchant/purchases/temp-items?0=c&1=o&2=n&3=t&4=r&5=a&6=c&7=t&8=-&9=p&10=a&11=r&12=a&13=m&14=s&15=%20&16=%3D&17=%20&18=%7B&19=%7D",
+    "route": "/api/merchant/purchases/temp-items",
+    "backendRoute": "/merchant/purchases/temp-items",
+    "controllerClass": "PurchaseController",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "tempItems",
+    "scope": "merchant"
+  },
+  {
+    "key": "purchase.toggleChecked",
+    "service": "purchase",
+    "function": "toggleChecked",
+    "kind": "request",
+    "args": [
+      901,
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/purchases/items/901/checked",
+    "route": "/api/merchant/purchases/items/{itemId}/checked",
+    "backendRoute": "/merchant/purchases/items/{itemId}/checked",
+    "controllerClass": "PurchaseController",
+    "controllerFqcn": "com.familykitchen.purchase.controller.PurchaseController",
+    "controllerMethod": "checked",
+    "scope": "merchant",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "system.getPublicSettings",
+    "service": "system",
+    "function": "getPublicSettings",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/public/system-settings",
+    "route": "/api/public/system-settings",
+    "backendRoute": "/public/system-settings",
+    "controllerClass": "PublicSystemController",
+    "controllerFqcn": "com.familykitchen.system.controller.PublicSystemController",
+    "controllerMethod": "current",
+    "scope": "public"
+  },
+  {
+    "key": "user.bindEmail",
+    "service": "user",
+    "function": "bindEmail",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/users/me/email",
+    "route": "/api/users/me/email",
+    "backendRoute": "/users/me/email",
+    "controllerClass": "UserController",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "bindEmail",
+    "scope": "account",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "user.bindWechat",
+    "service": "user",
+    "function": "bindWechat",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/users/me/wechat",
+    "route": "/api/users/me/wechat",
+    "backendRoute": "/users/me/wechat",
+    "controllerClass": "UserController",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "bindWechat",
+    "scope": "account",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "user.cancelCancellation",
+    "service": "user",
+    "function": "cancelCancellation",
+    "kind": "request",
+    "args": [],
+    "method": "DELETE",
+    "path": "/api/users/me/cancellation",
+    "route": "/api/users/me/cancellation",
+    "backendRoute": "/users/me/cancellation",
+    "controllerClass": "UserController",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "cancelCancellation",
+    "scope": "account"
+  },
+  {
+    "key": "user.changePassword",
+    "service": "user",
+    "function": "changePassword",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/users/me/password",
+    "route": "/api/users/me/password",
+    "backendRoute": "/users/me/password",
+    "controllerClass": "UserController",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "changePassword",
+    "scope": "account",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "user.changeUsername",
+    "service": "user",
+    "function": "changeUsername",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/users/me/username",
+    "route": "/api/users/me/username",
+    "backendRoute": "/users/me/username",
+    "controllerClass": "UserController",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "changeUsername",
+    "scope": "account",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "user.getContext",
+    "service": "user",
+    "function": "getContext",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/users/me/context",
+    "route": "/api/users/me/context",
+    "backendRoute": "/users/me/context",
+    "controllerClass": "UserController",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "context",
+    "scope": "account"
+  },
+  {
+    "key": "user.getProfile",
+    "service": "user",
+    "function": "getProfile",
+    "kind": "request",
+    "args": [],
+    "method": "GET",
+    "path": "/api/users/me",
+    "route": "/api/users/me",
+    "backendRoute": "/users/me",
+    "controllerClass": "UserController",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "profile",
+    "scope": "account"
+  },
+  {
+    "key": "user.requestCancellation",
+    "service": "user",
+    "function": "requestCancellation",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/users/me/cancellation",
+    "route": "/api/users/me/cancellation",
+    "backendRoute": "/users/me/cancellation",
+    "controllerClass": "UserController",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "requestCancellation",
+    "scope": "account",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "user.sendEmailCode",
+    "service": "user",
+    "function": "sendEmailCode",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/users/me/email/code",
+    "route": "/api/users/me/email/code",
+    "backendRoute": "/users/me/email/code",
+    "controllerClass": "UserController",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "sendEmailCode",
+    "scope": "account",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "user.unbindWechat",
+    "service": "user",
+    "function": "unbindWechat",
+    "kind": "request",
+    "args": [],
+    "method": "DELETE",
+    "path": "/api/users/me/wechat",
+    "route": "/api/users/me/wechat",
+    "backendRoute": "/users/me/wechat",
+    "controllerClass": "UserController",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "unbindWechat",
+    "scope": "account"
+  },
+  {
+    "key": "user.updateProfile",
+    "service": "user",
+    "function": "updateProfile",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "PUT",
+    "path": "/api/users/me",
+    "route": "/api/users/me",
+    "backendRoute": "/users/me",
+    "controllerClass": "UserController",
+    "controllerFqcn": "com.familykitchen.user.controller.UserController",
+    "controllerMethod": "update",
+    "scope": "account",
+    "data": {
+      "contractField": "contract-value"
+    }
+  }
+]

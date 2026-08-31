@@ -78,6 +78,21 @@ if (fs.existsSync(manifestPath)) {
     }
   })
 
+  test('page operation declarations match runtime service calls in source', () => {
+    for (const [page, metadata] of Object.entries(manifest.pages)) {
+      const source = fs.readFileSync(path.join(frontendRoot, `${page}.js`), 'utf8')
+      const discovered = new Set()
+      for (const match of source.matchAll(/runtime\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)/g)) {
+        discovered.add(`${match[1]}.${match[2]}`)
+      }
+      assert.deepEqual(
+        [...metadata.operations].sort(),
+        [...discovered].sort(),
+        `${page}: declared operations differ from runtime calls`
+      )
+    }
+  })
+
   test('backend mini program route boundary is explicit', () => {
     assert.ok(Array.isArray(manifest.backendRouteBoundary.includePrefixes))
     assert.ok(manifest.backendRouteBoundary.includePrefixes.includes('/api/family'))
