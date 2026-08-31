@@ -17,18 +17,37 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.flywaydb.core.Flyway;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.test.context.ActiveProfiles;
+import javax.sql.DataSource;
 
 /** Verifies that the mini-program API inventory and controller routes remain in sync. */
+@SpringBootTest(classes = MiniProgramEndpointContractTest.MvcContractConfiguration.class,
+    webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("test-mvc")
 class MiniProgramEndpointContractTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
+
+  @Autowired
+  private ApplicationContext applicationContext;
+
+  @Test
+  void contractSuiteRunsInsideTheDatasourceFreeMvcProfile() {
+    assertThatProfileIsActive(applicationContext.getEnvironment().getActiveProfiles());
+    assertTrue(applicationContext.getBeansOfType(DataSource.class).isEmpty());
+    assertTrue(applicationContext.getBeansOfType(Flyway.class).isEmpty());
+  }
 
   @Test
   void everyMiniProgramServiceOperationMapsToTheDeclaredControllerHandler() throws Exception {
@@ -137,6 +156,15 @@ class MiniProgramEndpointContractTest {
     if (values.length > 0) return values[0];
     return paths.length == 0 ? "" : paths[0];
   }
+
+  private static void assertThatProfileIsActive(String[] profiles) {
+    assertTrue(Arrays.asList(profiles).contains("test-mvc"));
+  }
+
+  /** Minimal datasource-free Spring configuration for the endpoint contract suite. */
+  @SpringBootConfiguration
+  @EnableAutoConfiguration
+  static class MvcContractConfiguration { }
 
   /**
    * One declared mini-program operation.

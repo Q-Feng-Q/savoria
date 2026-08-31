@@ -14,6 +14,7 @@ import com.familykitchen.common.error.ErrorCode;
 import com.familykitchen.common.security.CurrentUserContext;
 import com.familykitchen.common.security.CurrentUserProvider;
 import com.familykitchen.common.security.IdentityContextMapper;
+import com.familykitchen.common.security.IdentityContextRow;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,6 +63,33 @@ class MiniProgramResourceAuthorizationTest {
     verify(identities).findIdentity(7L);
     verify(identities, never()).findMerchantScopes(
         org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyLong());
+  }
+
+  @Test
+  void switchedIdentityUsesRealtimeTenantAndNeverTheOldTokenSnapshot() {
+    TokenService tokens = mock(TokenService.class);
+    IdentityContextMapper identities = mock(IdentityContextMapper.class);
+    SessionService sessions = mock(SessionService.class);
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeader("Authorization")).thenReturn("Bearer token");
+    when(tokens.parse("token")).thenReturn(new CurrentUserContext(
+        7L, 11L, 13L, 7L, "member", Set.of(), Set.of(), "s-1"));
+    IdentityContextRow current = new IdentityContextRow();
+    current.setUserId(7L);
+    current.setMerchantId(22L);
+    current.setFamilyId(24L);
+    current.setFamilyRole("ADMIN");
+    when(identities.findIdentity(7L)).thenReturn(current);
+    when(identities.findPlatformRoles(7L)).thenReturn(List.of());
+    when(identities.findMerchantScopes(7L, 22L)).thenReturn(List.of("MERCHANT_ADMIN"));
+
+    CurrentUserContext result = new CurrentUserProvider(tokens, identities, sessions).require(request);
+
+    assertThat(result.merchantId()).isEqualTo(22L);
+    assertThat(result.familyId()).isEqualTo(24L);
+    assertThat(result.roleTemplate()).isEqualTo("admin");
+    assertThat(result.merchantAdminScopes()).containsExactly("MERCHANT_ADMIN");
+    verify(identities, never()).findMerchantScopes(7L, 11L);
   }
 
   @ParameterizedTest(name = "{0}")
