@@ -2,6 +2,7 @@ const { createApiRuntime } = require('../../../utils/api-runtime');
 const { requireSession, showApiError } = require('../../../utils/page-api');
 const { decorateChangeRequest } = require('../../../utils/dish-template-change');
 const { mergeUniqueRows } = require('../../../utils/pagination');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 const FILTERS = [
   { value: '', label: '全部' }, { value: 'PENDING', label: '待审核' },
@@ -10,6 +11,7 @@ const FILTERS = [
 ];
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: { phase: 'loading', errorMessage: '', filters: FILTERS, status: '', keyword: '', rows: [], page: 1, pageSize: 20, total: 0, hasMore: false, loadingMore: false },
   onShow() { this.load(true); },
   onPullDownRefresh() { this.load(true).finally(() => wx.stopPullDownRefresh()); },
@@ -18,15 +20,20 @@ Page({
   search() { this.load(true); },
   chooseStatus(event) { this.setData({ status: event.currentTarget.dataset.value }); this.load(true); },
   async load(reset = false) {
-    if (!requireSession({ merchantOnly: true })) return;
+    const session = requireSession({ merchantOnly: true });
+    if (!session) return;
+    const loadToken = this.identityLoad.begin(session);
+    this._activeLoadToken = loadToken;
     const page = reset ? 1 : this.data.page;
-    this.setData({ ...(reset ? { phase: 'loading', errorMessage: '' } : {}) });
+    this.setData({ ...(reset ? { phase: 'loading', errorMessage: '', rows: [] } : {}) });
     try {
       const result = await createApiRuntime().merchant.getDishTemplateChanges({ status: this.data.status, keyword: this.data.keyword, page, pageSize: this.data.pageSize });
       const rows = (result.items || []).map(decorateChangeRequest);
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       const total = Number(result.total || 0);
       this.setData({ rows, page: result.page || page, total, hasMore: rows.length < total, phase: rows.length ? 'ready' : 'empty' });
     } catch (error) {
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData({ phase: 'error', errorMessage: error.message || '申请记录加载失败' });
     }
   },
@@ -34,8 +41,10 @@ Page({
     if (!this.data.hasMore || this.data.loadingMore) return;
     this.setData({ loadingMore: true });
     try {
+      const loadToken = this._activeLoadToken;
       const page = this.data.page + 1;
       const result = await createApiRuntime().merchant.getDishTemplateChanges({ status: this.data.status, keyword: this.data.keyword, page, pageSize: this.data.pageSize });
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       const next = (result.items || []).map(decorateChangeRequest);
       const rows = mergeUniqueRows(this.data.rows, next, (item) => item.requestId);
       this.setData({ rows, page, total: Number(result.total || this.data.total), hasMore: rows.length < Number(result.total || 0) });

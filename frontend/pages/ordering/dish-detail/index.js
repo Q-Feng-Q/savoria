@@ -3,20 +3,29 @@ const { buildApiDishDetailScene } = require('../../../utils/api-scenes');
 const { loadFamilyBundle } = require('../../../utils/family-api');
 const { createRequestId } = require('../../../utils/action-request');
 const { requireSession, showApiError } = require('../../../utils/page-api');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: { id: '', scene: null, mutationBusy: false },
   onLoad(query) { this.setData({ id: query.id || '' }); },
   onShow() { this.load(); },
   async load() {
-    if (!requireSession()) return;
+    const session = requireSession();
+    if (!session) return;
+    const loadToken = this.identityLoad.begin(session);
+    this.source = null;
+    this.setData({ scene: null });
     const runtime = createApiRuntime();
     try {
       const bundle = await loadFamilyBundle(runtime);
       const [dishDetail, cart] = await Promise.all([runtime.family.getDishDetail(this.data.id), runtime.cart.getCart()]);
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.source = { runtime, homeData: bundle.homeData, dishDetail, cart };
       this.setData({ scene: buildApiDishDetailScene({ ...this.source, imageBaseUrl: runtime.baseUrl }) });
-    } catch (error) { showApiError(error, '菜品详情加载失败'); }
+    } catch (error) {
+      if (this.identityLoad.isCurrent(loadToken)) showApiError(error, '菜品详情加载失败');
+    }
   },
   async addDish() {
     if (!requireSession() || this.data.mutationBusy || !this.source) return;

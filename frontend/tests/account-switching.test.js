@@ -68,6 +68,21 @@ test('network failure restores previously active account',async()=>{
  assert.equal(store.getToken(),'a');
 });
 
+test('late identity refresh never overwrites an account selected meanwhile',async()=>{
+ const store=createSessionStore({storage:storage()});
+ store.setSession({userId:1,username:'alice',accessToken:'a',familyId:10,activeMode:'family'});
+ store.setSession({userId:2,username:'bob',accessToken:'b',familyId:20,activeMode:'family'});
+ store.activateAccount(1,'family');
+ let resolveContext;
+ const context=new Promise(resolve=>{resolveContext=resolve;});
+ const pending=refreshAccountIdentity({userId:1},{sessionStore:store,loadContext:()=>context});
+ store.activateAccount(2,'family');
+ resolveContext({userId:1,familyId:10,familyRole:'OWNER',availableModes:['family'],permissionCodes:['FAMILY_ADMIN']});
+ await pending;
+ assert.equal(store.getSession().userId,2);
+ assert.equal(store.getToken(),'b');
+});
+
 test('expired target is marked for login without replacing current account',async()=>{
  const store=createSessionStore({storage:storage()});
  store.setSession({userId:1,username:'alice',accessToken:'a',familyId:10});

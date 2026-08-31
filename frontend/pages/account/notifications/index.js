@@ -1,6 +1,7 @@
 const { createApiRuntime, resolveNotificationScope } = require('../../../utils/api-runtime');
 const { requireSession, showApiError } = require('../../../utils/page-api');
 const { loadAllPages } = require('../../../utils/pagination');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 const CATEGORY_LABELS = {
   order: '订单',
@@ -40,6 +41,7 @@ function mapNotificationsPage(session, actorType, pageData) {
 }
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: {
     actorType: 'account',
     unreadCount: 0,
@@ -61,6 +63,8 @@ Page({
   async load() {
     const session = requireSession();
     if (!session) return;
+    const loadToken = this.identityLoad.begin(session);
+    this.setData({ unreadCount: 0, unreadItems: [], readItems: [], context: null });
 
     const runtime = createApiRuntime();
     const receiverScope = this.data.actorType === 'merchant'
@@ -74,8 +78,10 @@ Page({
         page,
         pageSize
       }), { pageSize: 100, keyOf: (item) => item.notificationId });
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData(mapNotificationsPage(session, this.data.actorType, { items }));
     } catch (error) {
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       showApiError(error, '通知加载失败');
     }
   },

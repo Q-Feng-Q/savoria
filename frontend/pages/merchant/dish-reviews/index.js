@@ -1,5 +1,6 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
 const { requireSession, showApiError } = require('../../../utils/page-api');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 const STATUS = { PENDING: '待审核', APPROVED: '已通过', REJECTED: '未通过', WITHDRAWN: '已撤回' };
 const TYPE = { CREATE: '新增菜品', UPDATE: '修改菜品', STATUS: '状态调整' };
@@ -15,16 +16,21 @@ function decorate(rows) {
 }
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: { phase: 'loading', rows: [], busyReviewMap: {}, errorMessage: '' },
   onShow() { this.load(); },
   onPullDownRefresh() { this.load().finally(() => wx.stopPullDownRefresh()); },
   async load() {
-    if (!requireSession({ merchantOnly: true })) return;
-    this.setData({ phase: 'loading', errorMessage: '' });
+    const session = requireSession({ merchantOnly: true });
+    if (!session) return;
+    const loadToken = this.identityLoad.begin(session);
+    this.setData({ phase: 'loading', errorMessage: '', rows: [] });
     try {
       const rows = decorate(await createApiRuntime().merchant.getDishReviews());
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData({ rows, phase: rows.length ? 'ready' : 'empty' });
     } catch (error) {
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData({ phase: 'error', errorMessage: error.message || '审核记录加载失败' });
     }
   },

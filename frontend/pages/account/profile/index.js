@@ -4,8 +4,10 @@ const { sessionStore } = require('../../../utils/session');
 const { isMerchantSession, requireSession, showApiError } = require('../../../utils/page-api');
 const { buildProfileMenuGroups } = require('../../../utils/profile-menu');
 const { switchAccountIdentity } = require('../../../utils/account-switching');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: {
     summaryCards: [],
     memberCards: [],
@@ -35,6 +37,9 @@ Page({
   async load() {
     const session = requireSession();
     if (!session) return;
+    const loadToken = this.identityLoad.begin(session);
+    this.setData({ context: null, accountProfile: null, identityContext: null,
+      summaryCards: [], memberCards: [], defaultAddress: null });
 
     const runtime = createApiRuntime();
     try {
@@ -42,9 +47,11 @@ Page({
         runtime.user.getProfile(),
         runtime.user.getContext()
       ]);
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       let homeData = null;
       try {
         homeData = await runtime.family.getHome();
+        if (!this.identityLoad.isCurrent(loadToken)) return;
       } catch (error) {
         if (identityContext.familyId) throw error;
       }
@@ -98,6 +105,7 @@ Page({
         runtime.family.getWallet().catch(() => null),
         runtime.family.getWalletLedgers().catch(() => [])
       ]);
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       const scene = buildApiProfileScene({
         homeData,
         addresses,
@@ -115,6 +123,7 @@ Page({
         menuGroups: buildProfileMenuGroups(effectiveIdentityContext)
       });
     } catch (error) {
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       showApiError(error, '个人页加载失败');
     }
   },

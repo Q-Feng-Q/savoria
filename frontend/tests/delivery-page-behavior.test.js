@@ -52,6 +52,27 @@ test('change request pagination deduplicates rows by request id', () => {
   assert.match(source, /mergeUniqueRows\(this\.data\.rows, next, \(item\) => item\.requestId\)/)
 })
 
+test('identity load tokens reject older requests and changed sessions', () => {
+  const { createIdentityLoadGuard } = require('../utils/identity-load')
+  let session = { userId: 1, activeMode: 'family', familyId: 10, accessToken: 'a' }
+  const guard = createIdentityLoadGuard(() => session)
+  const first = guard.begin(session)
+  const second = guard.begin(session)
+  assert.equal(guard.isCurrent(first), false)
+  assert.equal(guard.isCurrent(second), true)
+  session = { userId: 2, activeMode: 'family', familyId: 20, accessToken: 'b' }
+  assert.equal(guard.isCurrent(second), false)
+})
+
+test('every signed-in refresh page guards asynchronous results', () => {
+  for (const [page, metadata] of Object.entries(manifest.pages)) {
+    if (!metadata.refresh || metadata.tenantScope === 'public') continue
+    const source = readPageScript(page)
+    assert.match(source, /createIdentityLoadGuard|_loadGeneration|_listGeneration/,
+      `${page}: asynchronous result can overwrite another identity`)
+  }
+})
+
 test('every refresh-sensitive page reloads from onShow', () => {
   for (const [page, metadata] of Object.entries(manifest.pages)) {
     if (!metadata.refresh) continue

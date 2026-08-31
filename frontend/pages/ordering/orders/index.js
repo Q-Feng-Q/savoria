@@ -2,8 +2,10 @@ const { createApiRuntime } = require('../../../utils/api-runtime');
 const { buildApiOrdersScene } = require('../../../utils/api-scenes');
 const { loadFamilyBundle } = require('../../../utils/family-api');
 const { requireSession, showApiError } = require('../../../utils/page-api');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: {
     orders: [],
     context: null
@@ -16,6 +18,8 @@ Page({
   async load() {
     const session = requireSession();
     if (!session) return;
+    const loadToken = this.identityLoad.begin(session);
+    this.setData({ orders: [], context: null });
 
     const runtime = createApiRuntime();
     try {
@@ -25,8 +29,10 @@ Page({
         homeData: bundle.homeData,
         orders
       });
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData(scene);
     } catch (error) {
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       showApiError(error, '订单列表加载失败');
     }
   },

@@ -1,6 +1,7 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
 const { requireSession, showApiError, resolveApiErrorMessage } = require('../../../utils/page-api');
 const { decorateChangeRequest } = require('../../../utils/dish-template-change');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 const FIELD_META = [
   ['name', '菜品名称'], ['categoryId', '分类 ID'], ['description', '菜品简介'],
@@ -27,18 +28,24 @@ function decorateIngredients(rows) {
 }
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: { phase: 'loading', errorMessage: '', detail: null, comparison: [], baseIngredients: [], targetIngredients: [], withdrawing: false },
   onLoad(options) { this.requestId = Number(options.id); },
   onShow() { this.load(); },
   onPullDownRefresh() { this.load().finally(() => wx.stopPullDownRefresh()); },
   async load() {
-    if (!requireSession({ merchantOnly: true })) return;
-    this.setData({ phase: 'loading', errorMessage: '' });
+    const session = requireSession({ merchantOnly: true });
+    if (!session) return;
+    const loadToken = this.identityLoad.begin(session);
+    this.setData({ phase: 'loading', errorMessage: '', detail: null, comparison: [], baseIngredients: [], targetIngredients: [] });
     try {
       const result = await createApiRuntime().merchant.getDishTemplateChangeDetail(this.requestId);
       const detail = decorateChangeRequest(result);
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData({ detail, comparison: buildComparison(detail.baseSnapshot, detail.targetSnapshot), baseIngredients: decorateIngredients(detail.baseSnapshot.ingredients), targetIngredients: decorateIngredients(detail.targetSnapshot.ingredients), phase: 'ready' });
-    } catch (error) { this.setData({ phase: 'error', errorMessage: resolveApiErrorMessage(error, '申请详情加载失败') }); }
+    } catch (error) {
+      if (this.identityLoad.isCurrent(loadToken)) this.setData({ phase: 'error', errorMessage: resolveApiErrorMessage(error, '申请详情加载失败') });
+    }
   },
   retryLoad() { return this.load(); },
   async withdraw() {

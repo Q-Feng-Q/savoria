@@ -1,6 +1,7 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
 const { sessionStore } = require('../../../utils/session');
 const { refreshAccountIdentity, switchAccountIdentity } = require('../../../utils/account-switching');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 function decorate(accounts, current) {
   return accounts.map((item) => {
@@ -32,22 +33,27 @@ function navigateDestination(destination) {
 }
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: { accounts: [], switchingKey: '', currentUserId: '', syncError: '' },
   onShow() { this.refreshIdentity(); },
   async refreshIdentity() {
     const current = sessionStore.getSession();
     this.refresh();
     if (!current || current.requiresLogin || !current.accessToken) return;
+    const loadToken = this.identityLoad.begin(current);
     this.setData({ syncError: '' });
     try {
       await refreshAccountIdentity({ userId: current.userId }, {
         sessionStore,
         loadContext: () => createApiRuntime().user.getContext()
       });
+      if (!this.identityLoad.isCurrent(loadToken)) return;
     } catch (error) {
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData({ syncError: (error && error.message) || '身份权限同步失败，请稍后重试' });
       // 列表仍显示本地账号；具体失效原因在用户主动切换时提示。
     }
+    if (!this.identityLoad.isCurrent(loadToken)) return;
     this.refresh();
   },
   refresh() {

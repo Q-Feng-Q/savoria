@@ -3,24 +3,31 @@ const { buildApiCartScene } = require('../../../utils/api-scenes');
 const { loadFamilyBundle } = require('../../../utils/family-api');
 const { createRequestId } = require('../../../utils/action-request');
 const { requireSession, showApiError } = require('../../../utils/page-api');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: { deliveryOptions: [], addressOptions: [], addressIndex: 0, groupedItems: [], totals: {}, warningText: '',
     canSubmit: false, cart: {}, context: null, currentAddress: null, serviceDate: '', deliveryMode: 'PICKUP',
     addressId: null, expectedMealTimeOptions: [], expectedMealTimeIndex: 0, expandedDishIds: {}, mutationBusy: false,
     phase: 'loading', errorMessage: '' },
   onShow() { this.load(); },
   async load() {
-    if (!requireSession()) return;
+    const session = requireSession();
+    if (!session) return;
+    const loadToken = this.identityLoad.begin(session);
     const runtime = createApiRuntime();
-    this.setData({ phase: 'loading', errorMessage: '' });
+    this.source = null;
+    this.setData({ phase: 'loading', errorMessage: '', context: null, groupedItems: [], cart: {} });
     try {
       const bundle = await loadFamilyBundle(runtime);
       const [cart, addresses] = await Promise.all([runtime.cart.getCart(), runtime.family.getAddresses()]);
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.source = { runtime, homeData: bundle.homeData, cart, addresses };
       this.renderCart();
       this.setData({ phase: 'ready' });
     } catch (error) {
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData({ phase: 'error', errorMessage: error.message || '餐篮加载失败' });
       showApiError(error, '餐篮加载失败');
     }

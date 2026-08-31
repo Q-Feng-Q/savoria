@@ -63,6 +63,13 @@ function sessionFromContext(target, context, activeMode, modes) {
   };
 }
 
+function sameActiveIdentity(left, right) {
+  return Boolean(left && right)
+    && String(left.userId) === String(right.userId)
+    && String(left.activeMode || '') === String(right.activeMode || '')
+    && String(left.accessToken || '') === String(right.accessToken || '');
+}
+
 async function refreshAccountIdentity(selection, dependencies) {
   const { sessionStore } = dependencies;
   const previous = sessionStore.getSession();
@@ -71,14 +78,18 @@ async function refreshAccountIdentity(selection, dependencies) {
     throw switchError('该账号需要重新登录', { requiresLogin: true, username: target && target.username });
   }
   sessionStore.setSession(target, { save: false, touch: false });
+  const validating = sessionStore.getSession();
   try {
     const context = await dependencies.loadContext();
+    const current = sessionStore.getSession();
+    if (!sameActiveIdentity(current, validating)) return current;
     const modes = modesFromContext(context);
     const platformOnly = isPlatformOnlyContext(context, modes);
     if (platformOnly) throw switchError('平台管理员请前往 Web 管理后台登录', { platformAdmin: true });
     const activeMode = modes.includes(target.activeMode) ? target.activeMode : modes[0];
     return sessionStore.setSession(sessionFromContext(target, context, activeMode, modes));
   } catch (error) {
+    if (!sameActiveIdentity(sessionStore.getSession(), validating)) return sessionStore.getSession();
     if (previous) sessionStore.setSession(previous, { save: false, touch: false });
     else sessionStore.clearSession();
     throw error;

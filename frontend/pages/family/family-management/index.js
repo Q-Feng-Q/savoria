@@ -1,6 +1,7 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
 const { sessionStore } = require('../../../utils/session');
 const { requireSession, showApiError } = require('../../../utils/page-api');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 const {
   buildOwnerOptions,
   createProfileSnapshot,
@@ -36,9 +37,11 @@ function createFamilyManagementPage(dependencies = {}) {
   const store = dependencies.sessionStore || sessionStore;
   const reportError = dependencies.showApiError || showApiError;
   const askConfirm = dependencies.confirm || defaultConfirm;
-  const wxApi = dependencies.wxApi || (typeof wx === 'undefined' ? {} : wx);
+    const wxApi = dependencies.wxApi || (typeof wx === 'undefined' ? {} : wx);
+    const identityLoad = (dependencies.createIdentityLoadGuard || createIdentityLoadGuard)(() => store.getSession());
 
-  return {
+    return {
+      identityLoad,
     data: {
       loading: true,
       busy: false,
@@ -68,14 +71,17 @@ function createFamilyManagementPage(dependencies = {}) {
       return this.load();
     },
 
-    async load() {
-      const session = getSession();
-      if (!session) return;
-      this.setData({ loading: true, addressError: false });
-      try {
-        const runtime = createRuntime();
-        const context = await runtime.user.getContext();
-        const authoritativeSession = mergeIdentityContext(session, context);
+      async load() {
+        const session = getSession();
+        if (!session) return;
+        const loadToken = this.identityLoad.begin(session);
+        this.setData({ loading: true, addressError: false, info: null, applications: [], invitations: [],
+          defaultAddress: null, ownerOptions: [], selectedOwner: null });
+        try {
+          const runtime = createRuntime();
+          const context = await runtime.user.getContext();
+          if (!this.identityLoad.isCurrent(loadToken)) return;
+          const authoritativeSession = mergeIdentityContext(session, context);
         store.setSession(authoritativeSession);
         const familyRole = String(context.familyRole || authoritativeSession.familyRole || 'MEMBER').toUpperCase();
         const isOwner = familyRole === 'OWNER';
@@ -89,13 +95,14 @@ function createFamilyManagementPage(dependencies = {}) {
             .then((items) => ({ items: items || [], failed: false, error: null }))
             .catch((error) => ({ items: [], failed: true, error }))
           : Promise.resolve({ items: [], failed: false, error: null });
-        const [info, addressState, invitations, applications, candidateState] = await Promise.all([
+          const [info, addressState, invitations, applications, candidateState] = await Promise.all([
           runtime.family.getInfo(),
           addressRequest,
           runtime.family.getMyInvitations().catch(() => []),
           isAdmin ? runtime.family.getJoinApplications().catch(() => []) : Promise.resolve([]),
-          ownerCandidatesRequest
-        ]);
+            ownerCandidatesRequest
+          ]);
+          if (!this.identityLoad.isCurrent(loadToken)) return;
         let effectiveFamilyRole = familyRole;
         let effectiveIsOwner = isOwner;
         let effectiveIsAdmin = isAdmin;
@@ -126,7 +133,8 @@ function createFamilyManagementPage(dependencies = {}) {
           selectedOwner: null,
           ownerLabel: currentOwnerLabel(authoritativeSession)
         });
-      } catch (error) {
+        } catch (error) {
+          if (!this.identityLoad.isCurrent(loadToken)) return;
         if (isAuthorizationError(error)) {
           const closedSession = failClosedOwnerSession(store.getSession() || getSession() || {});
           store.setSession(closedSession);

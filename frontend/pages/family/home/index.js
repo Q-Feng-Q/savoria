@@ -1,6 +1,7 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
 const { buildApiHomeScene } = require('../../../utils/api-scenes');
 const { requireSession, showApiError } = require('../../../utils/page-api');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 const QUICK_ENTRY_ROUTES = {
   menu: '/pages/ordering/menu/index',
@@ -10,6 +11,7 @@ const QUICK_ENTRY_ROUTES = {
 };
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: {
     bannerIndex: 0,
     dashboardCards: [],
@@ -38,9 +40,10 @@ Page({
   async load() {
     const session = requireSession();
     if (!session) return;
+    const loadToken = this.identityLoad.begin(session);
 
     const runtime = createApiRuntime();
-    this.setData({ phase: 'loading', errorMessage: '' });
+    this.setData({ phase: 'loading', errorMessage: '', context: null });
     try {
       const homeData = await runtime.family.getHome();
       const windowInfo = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : {};
@@ -48,8 +51,10 @@ Page({
         imageBaseUrl: runtime.baseUrl,
         windowWidth: windowInfo.windowWidth
       });
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData({ ...scene, phase: 'ready' });
     } catch (error) {
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData({ phase: 'error', errorMessage: error.message || '首页加载失败' });
       showApiError(error, '首页加载失败');
     }

@@ -2,8 +2,10 @@ const { createApiRuntime } = require('../../../utils/api-runtime');
 const { buildApiWalletScene } = require('../../../utils/api-scenes');
 const { loadFamilyBundle } = require('../../../utils/family-api');
 const { requireSession, showApiError } = require('../../../utils/page-api');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: {
     balanceCards: [],
     latestTransactions: [],
@@ -17,6 +19,8 @@ Page({
   async load() {
     const session = requireSession();
     if (!session) return;
+    const loadToken = this.identityLoad.begin(session);
+    this.setData({ balanceCards: [], latestTransactions: [], context: null });
 
     const runtime = createApiRuntime();
     try {
@@ -29,8 +33,10 @@ Page({
         wallet,
         ledgers
       });
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData(scene);
     } catch (error) {
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       showApiError(error, '钱包加载失败');
     }
   },

@@ -2,8 +2,10 @@ const { createApiRuntime } = require('../../../utils/api-runtime');
 const { buildApiAddressBookScene } = require('../../../utils/api-scenes');
 const { loadFamilyBundle } = require('../../../utils/family-api');
 const { requireSession, showApiError } = require('../../../utils/page-api');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: {
     addresses: [],
     context: null
@@ -16,6 +18,8 @@ Page({
   async load() {
     const session = requireSession();
     if (!session) return;
+    const loadToken = this.identityLoad.begin(session);
+    this.setData({ addresses: [], context: null });
 
     const runtime = createApiRuntime();
     try {
@@ -24,9 +28,11 @@ Page({
       const scene = buildApiAddressBookScene({
         homeData: bundle.homeData,
         addresses
-      });
+          });
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData(scene);
     } catch (error) {
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       showApiError(error, '地址加载失败');
     }
   },

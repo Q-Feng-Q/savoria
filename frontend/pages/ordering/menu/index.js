@@ -3,23 +3,30 @@ const { buildApiMenuScene } = require('../../../utils/api-scenes');
 const { loadFamilyBundle } = require('../../../utils/family-api');
 const { createRequestId } = require('../../../utils/action-request');
 const { requireSession, showApiError } = require('../../../utils/page-api');
+const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 Page({
+  identityLoad: createIdentityLoadGuard(),
   data: { searchKeyword: '', activeCategoryKey: 'all', activeCategoryLabel: '全部菜品', categoryOptions: [], menuCards: [], visibleMenuCards: [], cartItemCount: 0,
     currentDate: '', currentMemberName: '', resultSummaryText: '', emptyStateText: '', context: null,
     mutationBusy: false, phase: 'loading', errorMessage: '' },
   onShow() { this.load(); },
   async load() {
-    if (!requireSession()) return;
+    const session = requireSession();
+    if (!session) return;
+    const loadToken = this.identityLoad.begin(session);
     const runtime = createApiRuntime();
-    this.setData({ phase: 'loading', errorMessage: '' });
+    this.sceneSource = null;
+    this.setData({ phase: 'loading', errorMessage: '', context: null, menuCards: [], visibleMenuCards: [] });
     try {
       const bundle = await loadFamilyBundle(runtime);
       const [menuItems, cart] = await Promise.all([runtime.family.getMenuItems(), runtime.cart.getCart()]);
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.sceneSource = { homeData: bundle.homeData, menuItems, cart, runtime };
       this.refreshView({ searchKeyword: this.data.searchKeyword || '' });
       this.setData({ phase: 'ready' });
     } catch (error) {
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData({ phase: 'error', errorMessage: error.message || '点菜页加载失败' });
       showApiError(error, '点菜页加载失败');
     }
