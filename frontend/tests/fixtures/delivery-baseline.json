@@ -1,0 +1,2540 @@
+{
+  "capturedAt": "2026-08-31",
+  "sourceCommit": "38bf3d2",
+  "frontend": [
+    {
+      "id": "personal center links to conventional profile and account security pages",
+      "status": "passed"
+    },
+    {
+      "id": "filtered mixed-meal rows do not claim the all-meals aggregate quantity",
+      "status": "passed"
+    },
+    {
+      "id": "purchase scene preserves its existing item and breakdown mapping",
+      "status": "passed"
+    },
+    {
+      "id": "purchase scene summarizes actual source statuses as estimated and confirmed",
+      "status": "passed"
+    },
+    {
+      "id": "purchase meal options come only from unique valid response source slots",
+      "status": "passed"
+    },
+    {
+      "id": "merchant order scenes label only orders without a shared cart source as legacy",
+      "status": "passed"
+    },
+    {
+      "id": "merchant orders prefer expected time and use truthful historical fallback",
+      "status": "passed"
+    },
+    {
+      "id": "merchant order filters expose exact backend status sets",
+      "status": "passed"
+    },
+    {
+      "id": "overview counts every active order before truncating the preview",
+      "status": "passed"
+    },
+    {
+      "id": "family menu responsive styles do not retain the removed featured controls",
+      "status": "passed"
+    },
+    {
+      "id": "merchant dish featured and status actions keep vertical order and touch targets on compact phones",
+      "status": "passed"
+    },
+    {
+      "id": "system dish import actions remain accessible and responsive across merchant sizes",
+      "status": "passed"
+    },
+    {
+      "id": "empty-state animal has no infinite decorative motion",
+      "status": "passed"
+    },
+    {
+      "id": "dish names and descriptions wrap instead of truncating business text",
+      "status": "passed"
+    },
+    {
+      "id": "compact overview hides the real decorative vignette and stacks support stats",
+      "status": "passed"
+    },
+    {
+      "id": "compact merchant rules never hide business or status imagery",
+      "status": "passed"
+    },
+    {
+      "id": "merchant fixed actions and navigation reserve safe area without shrinking controls",
+      "status": "passed"
+    },
+    {
+      "id": "all merchant root navigation mounts after the page content so its spacer stays last",
+      "status": "passed"
+    },
+    {
+      "id": "filtered single-meal rows keep their aggregate quantity",
+      "status": "passed"
+    },
+    {
+      "id": "purchase family count includes only source families visible in the selected meal",
+      "status": "passed"
+    },
+    {
+      "id": "merchant cancellation availability matches the backend state machine",
+      "status": "passed"
+    },
+    {
+      "id": "purchase rows use a stable composite key for duplicate ingredient names",
+      "status": "passed"
+    },
+    {
+      "id": "one account exposes family and merchant modes without duplicate records",
+      "status": "passed"
+    },
+    {
+      "id": "clearing current session does not erase saved account list unless requested",
+      "status": "passed"
+    },
+    {
+      "id": "switching and removing accounts updates the active session",
+      "status": "passed"
+    },
+    {
+      "id": "session store saves multiple accounts without duplicating the same user",
+      "status": "passed"
+    },
+    {
+      "id": "merchant workbench styles provide fixed safe-area navigation and 88rpx tap targets",
+      "status": "passed"
+    },
+    {
+      "id": "merchant workbench markup exposes exactly four accessible custom controls",
+      "status": "passed"
+    },
+    {
+      "id": "merchant workbench component suppresses duplicate redirects while one is in flight",
+      "status": "passed"
+    },
+    {
+      "id": "merchant workbench component redirects every known inactive destination only",
+      "status": "passed"
+    },
+    {
+      "id": "ingredient editor uses a real two-column workspace at wide and landscape sizes",
+      "status": "passed"
+    },
+    {
+      "id": "merchant workbench navigation is registered globally",
+      "status": "passed"
+    },
+    {
+      "id": "order detail keeps ready content and local busy state while mutation refresh is pending",
+      "status": "passed"
+    },
+    {
+      "id": "merchant mutation refreshes opt into silent loading on every affected page",
+      "status": "passed"
+    },
+    {
+      "id": "missing merchant family detail becomes a successful empty state without optional reads",
+      "status": "passed"
+    },
+    {
+      "id": "every merchant load is protected by the shared merchant session guard",
+      "status": "passed"
+    },
+    {
+      "id": "merchant mutations expose local busy guards instead of replacing page state",
+      "status": "passed"
+    },
+    {
+      "id": "detail and form pages handle missing identifiers or records intentionally",
+      "status": "passed"
+    },
+    {
+      "id": "merchant list pages distinguish a successful empty result from errors",
+      "status": "passed"
+    },
+    {
+      "id": "all ten merchant pages start loading and expose retryable page loading and error states",
+      "status": "passed"
+    },
+    {
+      "id": "list mutations lock only the affected merchant row",
+      "status": "passed"
+    },
+    {
+      "id": "merchant breakpoints cover compact, large phone, wide phone, and landscape",
+      "status": "passed"
+    },
+    {
+      "id": "shared merchant shell is fluid, phone bounded, and overflow safe",
+      "status": "passed"
+    },
+    {
+      "id": "fail closed merchant session removes stale merchant authority",
+      "status": "passed"
+    },
+    {
+      "id": "family menu no longer exposes the legacy per-family featured-dish control",
+      "status": "passed"
+    },
+    {
+      "id": "family menu exposes explicit family source copy and guarded row editing",
+      "status": "passed"
+    },
+    {
+      "id": "merchant family detail keeps core state separate from optional ledger menu and order regions",
+      "status": "passed"
+    },
+    {
+      "id": "merchant families is a restrained root workbench with linear status rows and routes",
+      "status": "passed"
+    },
+    {
+      "id": "preparing cancellation blocks a blank reason and submits a nonblank reason",
+      "status": "passed"
+    },
+    {
+      "id": "merchant reject uses the bodyless endpoint while cancellation keeps its reason",
+      "status": "passed"
+    },
+    {
+      "id": "purchase loads temp items independently and filters selected meals with global rows",
+      "status": "passed"
+    },
+    {
+      "id": "ingredient editor exposes references, guarded delete and empty-safe editor",
+      "status": "passed"
+    },
+    {
+      "id": "family menu scene and editable draft preserve a valid zero family price",
+      "status": "passed"
+    },
+    {
+      "id": "dish editor uses divided sections, guarded state, upload and safe save action",
+      "status": "passed"
+    },
+    {
+      "id": "ingredient save snapshots mode and does not wipe work started after the request",
+      "status": "passed"
+    },
+    {
+      "id": "dish editor onShow preserves a dirty form and refreshes only ingredients",
+      "status": "passed"
+    },
+    {
+      "id": "ingredient save and delete operations are mutually exclusive",
+      "status": "passed"
+    },
+    {
+      "id": "dish editor busy guard blocks deferred-save mutations",
+      "status": "passed"
+    },
+    {
+      "id": "catalog mutation messages follow API outcomes rather than cached settings",
+      "status": "passed"
+    },
+    {
+      "id": "dish payload validation accepts zero price and rejects invalid nested values",
+      "status": "passed"
+    },
+    {
+      "id": "catalog settings failures are isolated from core page data",
+      "status": "passed"
+    },
+    {
+      "id": "merchant dish non-silent initial load failure still enters the page error state",
+      "status": "passed"
+    },
+    {
+      "id": "deleting the currently edited ingredient clears its internal editor state",
+      "status": "passed"
+    },
+    {
+      "id": "activating an identity updates active session and recent account ordering",
+      "status": "passed"
+    },
+    {
+      "id": "failed family menu row saves restore the authoritative draft before retry",
+      "status": "passed"
+    },
+    {
+      "id": "family detail renders core before deferred optional sections settle",
+      "status": "passed"
+    },
+    {
+      "id": "merchant access errors include http and business forbidden codes",
+      "status": "passed"
+    },
+    {
+      "id": "merchant profile validates name and field limits",
+      "status": "passed"
+    },
+    {
+      "id": "merchant profile snapshot trims the editable whitelist",
+      "status": "passed"
+    },
+    {
+      "id": "merchant workbench exposes merchant-only profile editing entry",
+      "status": "passed"
+    },
+    {
+      "id": "merchant profile edit page is registered and uses custom responsive controls",
+      "status": "passed"
+    },
+    {
+      "id": "403 remains fail closed even when refresh returns stale merchant mode",
+      "status": "passed"
+    },
+    {
+      "id": "cancel is custom navigation and duplicate save is guarded",
+      "status": "passed"
+    },
+    {
+      "id": "successful save locks save and cancel until the scheduled return runs",
+      "status": "passed"
+    },
+    {
+      "id": "family menu resolves a stale query id before every read and mutation",
+      "status": "passed"
+    },
+    {
+      "id": "ordinary load failure keeps form closed until retry succeeds",
+      "status": "passed"
+    },
+    {
+      "id": "merchant-only pages explain denial and redirect to account management",
+      "status": "passed"
+    },
+    {
+      "id": "merchant order list and detail expose the legacy order marker",
+      "status": "passed"
+    },
+    {
+      "id": "family detail optional regions distinguish loading from ready-empty",
+      "status": "passed"
+    },
+    {
+      "id": "family detail core load and delivery mutation finish while optional reads remain pending",
+      "status": "passed"
+    },
+    {
+      "id": "merchant orders applies and clears a valid family query filter",
+      "status": "passed"
+    },
+    {
+      "id": "merchant orders honors a valid family query and offers a custom clear filter",
+      "status": "passed"
+    },
+    {
+      "id": "family detail rejects non-finite and non-positive family-wallet adjustments before API calls",
+      "status": "passed"
+    },
+    {
+      "id": "family detail scene preserves zero menu price and chooses the explicit default address",
+      "status": "passed"
+    },
+    {
+      "id": "legacy merchant role without a merchant identity is not an authorized merchant session",
+      "status": "passed"
+    },
+    {
+      "id": "merchant status silent refresh failure also preserves the ready dish list",
+      "status": "passed"
+    },
+    {
+      "id": "invalid identity cannot be activated and expired account remains visible",
+      "status": "passed"
+    },
+    {
+      "id": "every migrated button root has custom semantics and press feedback",
+      "status": "passed"
+    },
+    {
+      "id": "ordering and profile surfaces share the redesigned hierarchy",
+      "status": "passed"
+    },
+    {
+      "id": "family home uses a cartoon story hero and task-led service dock",
+      "status": "passed"
+    },
+    {
+      "id": "fresh warm cartoon visual system exposes semantic design tokens",
+      "status": "passed"
+    },
+    {
+      "id": "finish mutation clears transient flags and exposes success feedback",
+      "status": "passed"
+    },
+    {
+      "id": "mutation failure keeps data and stores local error",
+      "status": "passed"
+    },
+    {
+      "id": "local mutation keeps ready content visible",
+      "status": "passed"
+    },
+    {
+      "id": "cart main rows show totals and reveal member attribution only in details",
+      "status": "passed"
+    },
+    {
+      "id": "shared cart mutations are absolute, versioned and refresh stale carts",
+      "status": "passed"
+    },
+    {
+      "id": "dish row keeps the 38rpx stepper in a non-overlapping bottom action row",
+      "status": "passed"
+    },
+    {
+      "id": "dish detail separates labels from values and documents family wallet settlement",
+      "status": "passed"
+    },
+    {
+      "id": "homepage role cards display dynamic crew names",
+      "status": "passed"
+    },
+    {
+      "id": "menu shows expected meal time and uses 38rpx visual stepper buttons",
+      "status": "passed"
+    },
+    {
+      "id": "ordering pages remove meal slots and native buttons",
+      "status": "passed"
+    },
+    {
+      "id": "missing explicit modes retain legacy compatibility inference",
+      "status": "passed"
+    },
+    {
+      "id": "explicit backend modes override legacy id inference",
+      "status": "passed"
+    },
+    {
+      "id": "session store clears persisted data",
+      "status": "passed"
+    },
+    {
+      "id": "session store persists and returns access token and actor data",
+      "status": "passed"
+    },
+    {
+      "id": "shared rows use the warm paper interaction language",
+      "status": "passed"
+    },
+    {
+      "id": "the modular warm animal scene set is available",
+      "status": "passed"
+    },
+    {
+      "id": "local assets are never referenced from WXSS",
+      "status": "passed"
+    },
+    {
+      "id": "all 37 registered pages use the new warm kitchen view shell",
+      "status": "passed"
+    },
+    {
+      "id": "global WXSS avoids selectors unsupported by the WeChat compiler",
+      "status": "passed"
+    },
+    {
+      "id": "WXML does not combine conditional fallbacks and loops on one node",
+      "status": "passed"
+    },
+    {
+      "id": "profile pages expose precomputed avatar initials",
+      "status": "passed"
+    },
+    {
+      "id": "profile templates do not call JavaScript methods inside WXML expressions",
+      "status": "passed"
+    },
+    {
+      "id": "animal assets are never loaded from WXSS",
+      "status": "passed"
+    },
+    {
+      "id": "shared brand and account surfaces use the mascot trio",
+      "status": "passed"
+    },
+    {
+      "id": "ordering menu exposes a lightweight chef recommendation label",
+      "status": "passed"
+    },
+    {
+      "id": "home recommendations use a detail-enabled swiper with indicators and a bounded next-card peek",
+      "status": "passed"
+    },
+    {
+      "id": "merchant featured update uses the dedicated endpoint and exact payload",
+      "status": "passed"
+    },
+    {
+      "id": "home hero uses the generated warm animal kitchen artwork",
+      "status": "passed"
+    },
+    {
+      "id": "form pages expose guarded submit feedback",
+      "status": "passed"
+    },
+    {
+      "id": "list pages expose an empty state",
+      "status": "passed"
+    },
+    {
+      "id": "async pages expose loading error and retry state affordances",
+      "status": "passed"
+    },
+    {
+      "id": "global shell prevents horizontal overflow and reserves fixed actions",
+      "status": "passed"
+    },
+    {
+      "id": "new responsive system covers compact large landscape and safe areas",
+      "status": "passed"
+    },
+    {
+      "id": "anchor and merchant pages expose their approved visual roles",
+      "status": "passed"
+    },
+    {
+      "id": "all global visual components are rebuilt with warm component roots",
+      "status": "passed"
+    },
+    {
+      "id": "app removes old visual imports and loads the new foundation",
+      "status": "passed"
+    },
+    {
+      "id": "warm animal theme exposes the new semantic palette",
+      "status": "passed"
+    },
+    {
+      "id": "merchant status update uses the dedicated endpoint and exact payload",
+      "status": "passed"
+    },
+    {
+      "id": "merchant, purchase and file services target stable merchant endpoints",
+      "status": "passed"
+    },
+    {
+      "id": "orders and notifications services target stable order endpoints",
+      "status": "passed"
+    },
+    {
+      "id": "ordinary family member sees family services but not management workspaces",
+      "status": "passed"
+    },
+    {
+      "id": "joint family and merchant owner sees family and merchant actions",
+      "status": "passed"
+    },
+    {
+      "id": "an explicit empty permission list blocks stale legacy merchant grants",
+      "status": "passed"
+    },
+    {
+      "id": "explicit permission codes drive merchant and family admin actions",
+      "status": "passed"
+    },
+    {
+      "id": "profile recovers realtime family membership when the legacy context response is stale",
+      "status": "passed"
+    },
+    {
+      "id": "optional address and wallet failures do not hide an existing family",
+      "status": "passed"
+    },
+    {
+      "id": "profile membership rendering does not depend on the ordering meal-slot bundle",
+      "status": "passed"
+    },
+    {
+      "id": "component WXSS avoids forbidden tag and attribute selectors",
+      "status": "passed"
+    },
+    {
+      "id": "mini program directly targets backend while transport strips the api prefix",
+      "status": "passed"
+    },
+    {
+      "id": "platform admin notice is a confirm-only modal",
+      "status": "passed"
+    },
+    {
+      "id": "unified portal never retries the admin endpoint after unauthorized login",
+      "status": "passed"
+    },
+    {
+      "id": "every relative module imported by a mini-program page resolves to a source file",
+      "status": "passed"
+    },
+    {
+      "id": "shared cart controls expose semantics and disabled states",
+      "status": "passed"
+    },
+    {
+      "id": "shared cart has compact phone and landscape fallbacks",
+      "status": "passed"
+    },
+    {
+      "id": "family and merchant detail markup keeps member attribution collapsed",
+      "status": "passed"
+    },
+    {
+      "id": "order list uses expected time and aggregate dishes while detail maps member snapshots",
+      "status": "passed"
+    },
+    {
+      "id": "merchant custom tap controls expose semantics and press feedback",
+      "status": "passed"
+    },
+    {
+      "id": "production WXSS contains no native button tag selectors",
+      "status": "passed"
+    },
+    {
+      "id": "unified portal does not mask non-authentication failures",
+      "status": "passed"
+    },
+    {
+      "id": "production WXML contains no native WeChat buttons",
+      "status": "passed"
+    },
+    {
+      "id": "proxy has a start script and development files stay outside the upload package",
+      "status": "passed"
+    },
+    {
+      "id": "togglePurchaseCheck flips an item state",
+      "status": "passed"
+    },
+    {
+      "id": "user service matches the unified identity endpoints",
+      "status": "passed"
+    },
+    {
+      "id": "family and cart services target stable family endpoints",
+      "status": "passed"
+    },
+    {
+      "id": "merchant profile service uses the self-service profile endpoints",
+      "status": "passed"
+    },
+    {
+      "id": "public system settings endpoint is available before login",
+      "status": "passed"
+    },
+    {
+      "id": "auth service calls login endpoints and unwraps data",
+      "status": "passed"
+    },
+    {
+      "id": "toImageUrl preserves absolute urls and prefixes relative urls",
+      "status": "passed"
+    },
+    {
+      "id": "shared responsive layer covers every non-tab form workflow",
+      "status": "passed"
+    },
+    {
+      "id": "merchant workspace keeps a compact operational focus and vignette strip",
+      "status": "passed"
+    },
+    {
+      "id": "decorates purchase items with persisted checked state",
+      "status": "passed"
+    },
+    {
+      "id": "bottom action bar includes safe area spacing and full width sizing",
+      "status": "passed"
+    },
+    {
+      "id": "visual system contains a dedicated compact phone fallback",
+      "status": "passed"
+    },
+    {
+      "id": "global shell protects safe areas and prevents horizontal overflow",
+      "status": "passed"
+    },
+    {
+      "id": "auth service posts registration to latest backend endpoint",
+      "status": "passed"
+    },
+    {
+      "id": "mini program owns the public registration channel",
+      "status": "passed"
+    },
+    {
+      "id": "query builder never serializes null-like values for numeric API parameters",
+      "status": "passed"
+    },
+    {
+      "id": "filters purchase list by meal type",
+      "status": "passed"
+    },
+    {
+      "id": "builds a merged purchase list with meal breakdowns and excludes no-purchase items",
+      "status": "passed"
+    },
+    {
+      "id": "addTemporaryPurchaseItem appends valid manual item",
+      "status": "passed"
+    },
+    {
+      "id": "core grids allow content to shrink without horizontal overflow",
+      "status": "passed"
+    },
+    {
+      "id": "merchant featured silent refresh failure preserves the ready filtered list and releases its row lock",
+      "status": "passed"
+    },
+    {
+      "id": "merchant featured failure retains rows and releases only the affected row",
+      "status": "passed"
+    },
+    {
+      "id": "merchant featured success silently refreshes full-list count without losing filters",
+      "status": "passed"
+    },
+    {
+      "id": "brand scene renders local animal mascots through image instead of WXSS url",
+      "status": "passed"
+    },
+    {
+      "id": "family ordering journey reuses shared rows and action bars",
+      "status": "passed"
+    },
+    {
+      "id": "family portal uses warm animal composition without dashboard card soup",
+      "status": "passed"
+    },
+    {
+      "id": "shared mini program UI components are globally registered",
+      "status": "passed"
+    },
+    {
+      "id": "warm animal brand assets are available to production pages",
+      "status": "passed"
+    },
+    {
+      "id": "all configured mini program pages exist",
+      "status": "passed"
+    },
+    {
+      "id": "user-visible mini program chrome uses 食光知味",
+      "status": "passed"
+    },
+    {
+      "id": "mini program exposes recovery, family lifecycle and merchant review pages",
+      "status": "passed"
+    },
+    {
+      "id": "account recovery and family exit use backend endpoints",
+      "status": "passed"
+    },
+    {
+      "id": "app config exposes separate home and menu pages in the main tab flow",
+      "status": "passed"
+    },
+    {
+      "id": "api client throws normalized errors for non-zero backend code",
+      "status": "passed"
+    },
+    {
+      "id": "buildAuthHeaders supports existing mini program demo actor sessions",
+      "status": "passed"
+    },
+    {
+      "id": "api client attaches stable backend identity headers from session",
+      "status": "passed"
+    },
+    {
+      "id": "api client attaches token and returns backend data payload",
+      "status": "passed"
+    },
+    {
+      "id": "mapOrderStatusLabel falls back gracefully",
+      "status": "passed"
+    },
+    {
+      "id": "address scenes normalize backend address fields",
+      "status": "passed"
+    },
+    {
+      "id": "wallet and profile scenes keep backend fields usable by pages",
+      "status": "passed"
+    },
+    {
+      "id": "mini proxy has an explicit development start command",
+      "status": "passed"
+    },
+    {
+      "id": "page state also renders its local animal art through image markup",
+      "status": "passed"
+    },
+    {
+      "id": "dish categories are predefined and keep existing custom categories compatible",
+      "status": "passed"
+    },
+    {
+      "id": "unknown category falls back to other category index",
+      "status": "passed"
+    },
+    {
+      "id": "merchant service exposes the complete template change request workflow",
+      "status": "passed"
+    },
+    {
+      "id": "pickRandomDish returns a deterministic dish with injected random source",
+      "status": "passed"
+    },
+    {
+      "id": "buildDishSections groups filtered dishes by visible category order",
+      "status": "passed"
+    },
+    {
+      "id": "buildDishList decorates selected dish state for the active meal",
+      "status": "passed"
+    },
+    {
+      "id": "buildDishList filters by category and ingredient keyword",
+      "status": "passed"
+    },
+    {
+      "id": "dirty form enables and clears native leave alert",
+      "status": "passed"
+    },
+    {
+      "id": "proxy forwards method, rewritten path, body and upstream response",
+      "status": "passed"
+    },
+    {
+      "id": "rewriteProxyPath removes only the leading /api prefix and keeps the query",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiNotificationsScene splits unread and read notifications",
+      "status": "passed"
+    },
+    {
+      "id": "merchant family menu keeps page and row mutations behind scoped busy guards",
+      "status": "passed"
+    },
+    {
+      "id": "custom controls keep an 88rpx minimum touch target and are never scaled down",
+      "status": "passed"
+    },
+    {
+      "id": "bottom action bar and quantity stepper use custom controls with guards",
+      "status": "passed"
+    },
+    {
+      "id": "action button renders a custom accessible control with loading copy",
+      "status": "passed"
+    },
+    {
+      "id": "every registered page receives the concept 02 page shell",
+      "status": "passed"
+    },
+    {
+      "id": "profile implements animal banner family summary and linear settings groups",
+      "status": "passed"
+    },
+    {
+      "id": "ordering menu category rail is interactive and labels the selected category",
+      "status": "passed"
+    },
+    {
+      "id": "menu implements category rail and editorial dish list from concept 02",
+      "status": "passed"
+    },
+    {
+      "id": "family home implements concept 02 poster hierarchy",
+      "status": "passed"
+    },
+    {
+      "id": "cart rejects disabled delivery controls after native button removal",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiOrdersScene and detail scene map uppercase statuses",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiCartScene groups cart items and keeps address selection state",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiMerchantDishesScene derives featured labels and disabled state from the full list",
+      "status": "passed"
+    },
+    {
+      "id": "network failure restores previously active account",
+      "status": "passed"
+    },
+    {
+      "id": "identity refresh discovers merchant-only access even when stale cache selected family",
+      "status": "passed"
+    },
+    {
+      "id": "realtime context can reveal a newly approved merchant identity",
+      "status": "passed"
+    },
+    {
+      "id": "same account can switch from merchant identity back to family identity",
+      "status": "passed"
+    },
+    {
+      "id": "switch validates target context before activating merchant identity",
+      "status": "passed"
+    },
+    {
+      "id": "notification center marks the same account aggregation as read",
+      "status": "passed"
+    },
+    {
+      "id": "normal and unbound users use the account notification scope",
+      "status": "passed"
+    },
+    {
+      "id": "reauthentication can prefill the selected username",
+      "status": "passed"
+    },
+    {
+      "id": "expired target is marked for login without replacing current account",
+      "status": "passed"
+    },
+    {
+      "id": "account page refreshes live identities without validating a stale selected mode",
+      "status": "passed"
+    },
+    {
+      "id": "profile merchant entry switches identity before opening the workbench",
+      "status": "passed"
+    },
+    {
+      "id": "profile and merchant hero both expose a visible account identity switch",
+      "status": "passed"
+    },
+    {
+      "id": "profile switch entry opens account management instead of clearing the session",
+      "status": "passed"
+    },
+    {
+      "id": "login and account controls fill their tracks without native button sizing",
+      "status": "passed"
+    },
+    {
+      "id": "profile refresh persists explicit backend modes and permission codes",
+      "status": "passed"
+    },
+    {
+      "id": "account page exposes current user id and identity synchronization failures without clearing local accounts",
+      "status": "passed"
+    },
+    {
+      "id": "mini account management supports switch add and remove",
+      "status": "passed"
+    },
+    {
+      "id": "account security honors platform switches and supports password and bindings",
+      "status": "passed"
+    },
+    {
+      "id": "account cards expose separate family and merchant identity actions",
+      "status": "passed"
+    },
+    {
+      "id": "template snapshot keeps every backend field and validates required data",
+      "status": "passed"
+    },
+    {
+      "id": "platform-only administrator is rejected from mini program",
+      "status": "passed"
+    },
+    {
+      "id": "identity refresh persists explicit permission codes from the backend",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiMerchantDishesScene maps and orders featured dishes with timestamp and id fallbacks",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiMerchantDishesScene marks only imported template dishes as syncable",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiDishDetailScene hides internal category ids behind readable copy",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiDishDetailScene keeps ingredient and selected count info",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiMenuScene exposes real categories and combines category selection with search",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiMenuScene maps featured state without reordering the backend menu",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiMenuScene merges menu items with shared cart counts",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiHomeScene reduces the multi-item peek margin on 320px phones",
+      "status": "passed"
+    },
+    {
+      "id": "explicit backend modes take precedence over legacy role inference",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiHomeScene treats an explicit empty featured dish array as empty",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiHomeScene prefers the featured dish array and enables multi-item swiper behavior",
+      "status": "passed"
+    },
+    {
+      "id": "buildCrewRoleLabels formats names once and keeps blank fallbacks readable",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiHomeScene maps backend crew names without leaking null text",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiHomeScene maps home response to homepage view model",
+      "status": "passed"
+    },
+    {
+      "id": "createApiRuntime gives file uploads the current token and stable identity headers",
+      "status": "passed"
+    },
+    {
+      "id": "createApiRuntime wires services to app base url and session headers",
+      "status": "passed"
+    },
+    {
+      "id": "resolveNotificationScope follows role template",
+      "status": "passed"
+    },
+    {
+      "id": "isApiSession only enables live mode for api sessions",
+      "status": "passed"
+    },
+    {
+      "id": "buildApiHomeScene falls back to the old single featured dish without carousel motion",
+      "status": "passed"
+    },
+    {
+      "id": "change request decoration exposes readable status and stale state",
+      "status": "passed"
+    },
+    {
+      "id": "mini program registers submit, list and detail pages with discoverable entries",
+      "status": "passed"
+    },
+    {
+      "id": "template selection ignores imported items and caps selection at 100",
+      "status": "passed"
+    },
+    {
+      "id": "profile name is authoritative and keeps a no-family merchant workbench usable",
+      "status": "passed"
+    },
+    {
+      "id": "purchase rejection keeps merchant overview ready with family and order summaries",
+      "status": "passed"
+    },
+    {
+      "id": "merchant overview source isolates region failures with allSettled and retries",
+      "status": "passed"
+    },
+    {
+      "id": "merchant overview registers reusable state and action components",
+      "status": "passed"
+    },
+    {
+      "id": "merchant overview exposes the approved restrained workbench structure",
+      "status": "passed"
+    },
+    {
+      "id": "buildMealStatusList adds active class, status text and people text",
+      "status": "passed"
+    },
+    {
+      "id": "mini login has one permission-driven entry without account type controls",
+      "status": "passed"
+    },
+    {
+      "id": "merchant login requires merchant context and sends platform admins to web",
+      "status": "passed"
+    },
+    {
+      "id": "ordinary profile failure degrades locally when family overview is usable",
+      "status": "passed"
+    },
+    {
+      "id": "family login keeps an unbound user signed in and routes to personal center",
+      "status": "passed"
+    },
+    {
+      "id": "explicit permission codes take precedence over legacy merchant fields",
+      "status": "passed"
+    },
+    {
+      "id": "login authentication failure has a specific fallback message",
+      "status": "passed"
+    },
+    {
+      "id": "login authentication failure keeps the backend credential message",
+      "status": "passed"
+    },
+    {
+      "id": "profile portrait remains visible for both bound and unbound accounts",
+      "status": "passed"
+    },
+    {
+      "id": "home poster keeps its copy in normal flow above a separately layered scene",
+      "status": "passed"
+    },
+    {
+      "id": "buildFeaturedDishes ranks on-sale dishes by sold count then selected count",
+      "status": "passed"
+    },
+    {
+      "id": "buildHomeSummary counts available dishes, today orders, and current meal state",
+      "status": "passed"
+    },
+    {
+      "id": "profile identity switch uses a compact custom tap target instead of a native button",
+      "status": "passed"
+    },
+    {
+      "id": "portal login chooses destination only from returned permissions",
+      "status": "passed"
+    },
+    {
+      "id": "replacement navigation rows retain button semantics and press feedback",
+      "status": "passed"
+    },
+    {
+      "id": "all successfully empty overview regions show the page empty state",
+      "status": "passed"
+    },
+    {
+      "id": "stale authentication failures do not resolve or redirect after a newer load wins",
+      "status": "passed"
+    },
+    {
+      "id": "merchant dish page rejects new featured requests for inactive rows and a full catalog",
+      "status": "passed"
+    },
+    {
+      "id": "merchant dish row lock prevents duplicate featured taps and status overlap",
+      "status": "passed"
+    },
+    {
+      "id": "merchant dish featured action is accessible, precedes status, and uses the shared row lock",
+      "status": "passed"
+    },
+    {
+      "id": "merchant dish toggle uses only the dedicated status endpoint",
+      "status": "passed"
+    },
+    {
+      "id": "merchant dish list does not retain an obsolete full-update payload builder",
+      "status": "passed"
+    },
+    {
+      "id": "merchant dish search matches canonical active and inactive status values",
+      "status": "passed"
+    },
+    {
+      "id": "merchant dishes is a searchable root workbench with guarded linear rows",
+      "status": "passed"
+    },
+    {
+      "id": "merchant fulfillment controls expose accessible 88rpx touch targets",
+      "status": "passed"
+    },
+    {
+      "id": "family failure is explicit and keeps menu unavailable until family retry succeeds",
+      "status": "passed"
+    },
+    {
+      "id": "purchase validates and creates a temporary item with the exact payload and derived meal id",
+      "status": "passed"
+    },
+    {
+      "id": "purchase remains usable when an optional per-family request fails",
+      "status": "passed"
+    },
+    {
+      "id": "purchase retains real temporary checkout items and binds checked/delete mutations",
+      "status": "passed"
+    },
+    {
+      "id": "purchase derives meal choices from the all-day response and renders truthful source quantities",
+      "status": "passed"
+    },
+    {
+      "id": "merchant order detail is a secondary page with plain sections, state handling and guarded actions",
+      "status": "passed"
+    },
+    {
+      "id": "merchant orders is a root workbench with explicit backend filters, grouped rows and purchase entry",
+      "status": "passed"
+    },
+    {
+      "id": "merchant overview uses the approved navigation modes and routes",
+      "status": "passed"
+    },
+    {
+      "id": "partial and retry authentication failures use centralized resolution",
+      "status": "passed"
+    },
+    {
+      "id": "stale full loads and regional retries cannot overwrite a newer generation",
+      "status": "passed"
+    },
+    {
+      "id": "purchase copy includes visible temporary items for all-day and selected-meal views",
+      "status": "passed"
+    },
+    {
+      "id": "production WXSS does not use universal selectors",
+      "status": "passed"
+    },
+    {
+      "id": "full-width navigation rows do not use the native WeChat button box",
+      "status": "passed"
+    },
+    {
+      "id": "merchant family detail adjusts one family wallet without member recharge controls",
+      "status": "passed"
+    },
+    {
+      "id": "family bundle no longer fetches or requires meal slots",
+      "status": "passed"
+    },
+    {
+      "id": "login and registration actions share one responsive row",
+      "status": "passed"
+    },
+    {
+      "id": "shows cooking steps to merchants",
+      "status": "passed"
+    },
+    {
+      "id": "hides cooking steps from normal users",
+      "status": "passed"
+    },
+    {
+      "id": "successful imports clear row checkmarks before attempting refresh",
+      "status": "passed"
+    },
+    {
+      "id": "reset refresh owns the pagination lock and ignores an older load-more result",
+      "status": "passed"
+    },
+    {
+      "id": "page reach-bottom delegates to guarded template load more",
+      "status": "passed"
+    },
+    {
+      "id": "silent template refresh replaces page one without hiding the current list",
+      "status": "passed"
+    },
+    {
+      "id": "time choices come only from server minimum and remain on server date",
+      "status": "passed"
+    },
+    {
+      "id": "template market appends every backend page and stops when total is reached",
+      "status": "passed"
+    },
+    {
+      "id": "merchant dish management exposes an accessible custom system library entry",
+      "status": "passed"
+    },
+    {
+      "id": "failed import all preserves selection and rows while releasing its own lock",
+      "status": "passed"
+    },
+    {
+      "id": "selection and import all locks are bidirectional including the confirmation race",
+      "status": "passed"
+    },
+    {
+      "id": "confirmed import all reports imported and skipped counts then refreshes",
+      "status": "passed"
+    },
+    {
+      "id": "import all requires confirmation and cancellation sends no request",
+      "status": "passed"
+    },
+    {
+      "id": "mini program registers template market and detail pages",
+      "status": "passed"
+    },
+    {
+      "id": "merchant service calls real template endpoints",
+      "status": "passed"
+    },
+    {
+      "id": "template selection toggles one item without retaining imported item",
+      "status": "passed"
+    },
+    {
+      "id": "template market renders a custom import-all action and mutually disabled import controls",
+      "status": "passed"
+    },
+    {
+      "id": "family and merchant wallet services use family-wallet routes",
+      "status": "passed"
+    },
+    {
+      "id": "cart scene exposes aggregate quantity and collapsed member selections",
+      "status": "passed"
+    },
+    {
+      "id": "loadFamilyBundle accepts a home response without meal slots",
+      "status": "passed"
+    },
+    {
+      "id": "family wallet pages use shared wallet endpoints and language",
+      "status": "passed"
+    },
+    {
+      "id": "order submission sends only shared-cart checkout fields",
+      "status": "passed"
+    },
+    {
+      "id": "shared cart uses one parameterless cart and versioned absolute mutations",
+      "status": "passed"
+    },
+    {
+      "id": "family start page uses a private merchant invitation or joint merchant creation without exposing merchant list",
+      "status": "passed"
+    },
+    {
+      "id": "mini program registers a dedicated family start page",
+      "status": "passed"
+    },
+    {
+      "id": "owner transfer session downgrade is fail closed and authority merge is complete",
+      "status": "passed"
+    },
+    {
+      "id": "default address and current owner label reuse existing local data",
+      "status": "passed"
+    },
+    {
+      "id": "candidate labels use privacy-safe suffixes and stable sequence fallback",
+      "status": "passed"
+    },
+    {
+      "id": "loadFamilyBundle uses home directly without legacy meal slot reads",
+      "status": "passed"
+    },
+    {
+      "id": "profile snapshot and validation normalize only editable fields",
+      "status": "passed"
+    },
+    {
+      "id": "successful transfer refreshes family info without restoring owner controls",
+      "status": "passed"
+    },
+    {
+      "id": "context refresh failure remains fail closed after successful transfer",
+      "status": "passed"
+    },
+    {
+      "id": "transfer confirmation and busy lock prevent invalid duplicate requests",
+      "status": "passed"
+    },
+    {
+      "id": "double save sends one request and refresh failure keeps submitted view",
+      "status": "passed"
+    },
+    {
+      "id": "page-level authorization failure clears stale owner privileges",
+      "status": "passed"
+    },
+    {
+      "id": "owner candidate failure is distinct from an empty list and authorization failure closes controls",
+      "status": "passed"
+    },
+    {
+      "id": "address failure degrades only address block",
+      "status": "passed"
+    },
+    {
+      "id": "template uses picker and custom controls without owner id input",
+      "status": "passed"
+    },
+    {
+      "id": "family service exposes profile and owner endpoints with exact payload",
+      "status": "passed"
+    },
+    {
+      "id": "profile page uses class-only selectors accepted by the WeChat component compiler",
+      "status": "passed"
+    }
+  ],
+  "backend": [
+    {
+      "id": "com.familykitchen.admin.AdminFamilyServiceTest::platformMenuUsesTheSelectedFamilyMerchantContext",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyInfoApplicationServiceTest::readsOnlyEditableAndReadonlyBusinessFieldsFromCurrentFamily",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyInfoApplicationServiceTest::adminCanUpdateFamilyProfile",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyInfoApplicationServiceTest::memberCannotUpdateFamilyProfile",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyInfoApplicationServiceTest::ownerUpdateTrimsNameAndStoresBlankNoteAsNull",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyMemberCartCleanupConcurrencyMySqlTest::com.familykitchen.family.FamilyMemberCartCleanupConcurrencyMySqlTest",
+      "status": "skipped"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyMemberCartCleanupTest::familyCleanupLocksCartRowsBeforeDeletingAndVersioning",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyMemberCartCleanupTest::removesOneMemberAndRecomputesTheSharedAggregateOnce",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyMemberCartCleanupTest::noSelectionLeavesVersionAndSubmittedSnapshotsUntouched",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyMemberExitCleanupFlowTest::dissolutionCleansWholeCartBeforeLockingAllMemberships",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyMemberExitCleanupFlowTest::voluntaryExitCleansCartBeforeLockingAndEndingMembership",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyOnboardingServiceTest::returnsOnlyCurrentUsersOnboardingState",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyOwnerTransferConcurrencyMySqlTest::com.familykitchen.family.FamilyOwnerTransferConcurrencyMySqlTest",
+      "status": "skipped"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyOwnerTransferServiceTest::invalidOrStaleCandidateRollsBackBeforeRoleUpdates",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyOwnerTransferServiceTest::ownerReadsPrivacySafeCandidatesInMapperOrder",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyOwnerTransferServiceTest::adminCannotReadCandidatesOrTransferOwnership",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyOwnerTransferServiceTest::transferLocksFamilyAndRevalidatesEveryInvariant",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.MerchantFamilyControllerRouteTest::merchantFamilyRouteDoesNotDuplicateTheGatewayApiPrefix",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.merchant.MerchantProfileMySqlTest::com.familykitchen.merchant.MerchantProfileMySqlTest",
+      "status": "skipped"
+    },
+    {
+      "id": "com.familykitchen.merchant.MerchantProfileMapperContractTest::selectAndUpdateRequireActiveMerchantAdminRelation",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.merchant.MerchantProfileControllerContractTest::routesAndEditableFieldsAreExact",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.merchant.MerchantDefaultDataInitializerTest::copiesCategoriesBeforeIngredientsForMerchant",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.merchant.MerchantDefaultDataInitializerTest::copiesCatalogFromTheRealSystemMerchantInsteadOfDefaultTables",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.FamilyKitchenApplicationMigrationBootstrapTest::explicitMigrationModeForcesOneShotBootstrap",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyHomeExpectedTimeContractTest::newFlowsUseExpectedMealTimeWithoutCreatingOrFetchingMealSlots",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.MerchantFamilyFeaturedDishServiceTest::rejectsForeignFamilyBeforeDishEligibilityCheck",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.MerchantFamilyControllerRouteTest::merchantDishFeaturedRequestRejectsMissingOrNullBoolean",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.MerchantFamilyControllerRouteTest::merchantDishFeaturedRoutePassesExactRealtimeContext",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.MerchantFamilyControllerRouteTest::merchantDishFeaturedRouteRejectsMissingPermissionOrMerchantIdentityBeforeService",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.MerchantFamilyControllerRouteTest::featuredRouteRejectsMissingPermissionOrMerchantIdentity",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.MerchantFamilyControllerRouteTest::oldFamilyFeaturedRouteIsDeprecated",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.MerchantFamilyControllerRouteTest::featuredRoutePassesExactRealtimeMerchantContextAndDish",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.MerchantFamilyFeaturedDishServiceTest::oldEndpointValidatesFamilyThenAdaptsToMerchantWideRecommendation",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyHomeCrewTest::fallsBackToAdministratorThenExplicitEmptyLabels",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyHomeCrewTest::mapsMerchantResponsibleOwnerAndOrdinaryMemberToCrew",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyFeaturedDishResponseTest::homeReturnsOneToFiveRecommendationsAndKeepsFirstCompatibilityField{int}[5]",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.MerchantFeaturedDishServiceTest::sharedLockAlwaysLocksMerchantBeforeOwnedDish",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.MerchantFeaturedDishServiceTest::duplicateRecommendationKeepsTimestampAndDoesNotTouchCountOrMenus",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.MerchantFeaturedDishConcurrencyMySqlTest::com.familykitchen.dish.MerchantFeaturedDishConcurrencyMySqlTest",
+      "status": "skipped"
+    },
+    {
+      "id": "com.familykitchen.dish.DishViewSerializationTest::jacksonSerializesRecommendationFieldsAlongsideExistingDishFields",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishViewSerializationTest::reflectionAndOpenApiExposeBothRecommendationFieldsWithoutDroppingExistingFields",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateSnapshotValidatorTest::acceptsAndNormalizesACompleteVersionOneSnapshot",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.MerchantFeaturedDishServiceTest::sharedLockReportsForeignOrMissingDishAsNotFound",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateSnapshotValidatorTest::rejectsDuplicateIngredientsAndInvalidCalculationQuantity",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateSnapshotValidatorTest::rejectsOversizedSnapshotUsingUtf8ByteLength",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateSnapshotValidatorTest::rejectsUnknownFieldsAndUnsupportedSchemaVersions",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateSnapshotValidatorTest::rejectsMissingFieldsAndNonLocalImages",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateServiceTest::importAllReturnsEmptyWithoutCallingIdListQueries",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateServiceTest::importCopiesSelectedTemplateCategoryDishIngredientAndDictionary",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateServiceTest::importAllSkipsConcurrentDuplicateWithoutWritingIngredients",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateSnapshotValidatorTest::rejectsInvalidMoneyTagsAndSortOrder",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.merchant.MerchantProfileServiceTest::updateTrimsFieldsAndConvertsBlankOptionalValuesToNull",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.MerchantFeaturedDishServiceTest::rejectsInactiveDishBeforeCountOrWrites",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.MerchantFeaturedDishServiceTest::recommendsActiveDishAndEnablesItForEveryActiveFamily",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyFeaturedDishResponseTest::homeReturnsOneToFiveRecommendationsAndKeepsFirstCompatibilityField{int}[4]",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyFeaturedDishResponseTest::homeReturnsOneToFiveRecommendationsAndKeepsFirstCompatibilityField{int}[3]",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyFeaturedDishResponseTest::homeReturnsOneToFiveRecommendationsAndKeepsFirstCompatibilityField{int}[2]",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyFeaturedDishResponseTest::homeReturnsOneToFiveRecommendationsAndKeepsFirstCompatibilityField{int}[1]",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyFeaturedDishResponseTest::homeUsesFixedQueryCountWithoutPerRecommendationLookup",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyFeaturedDishResponseTest::menuItemsCarryMerchantRecommendationStatusAndTimestampIntoDishView",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.MerchantFeaturedDishServiceTest::rejectsSixthFeaturedDishWithoutWriting",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyFeaturedDishResponseTest::homeReturnsEmptyListAndNullCompatibilityFieldWhenThereIsNoValidDish",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyFamilyControllerContractTest::familyInfoRoutesAndUpdateWhitelistAreExact",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyFamilyControllerContractTest::ownerRoutesAndJsonContractsAreExact",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyFamilyControllerContractTest::ownerCandidateSqlAndFamilyInfoDocumentationDoNotExposeUnsupportedFields",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.DocumentationCoverageTest::requiredDeclarationsHaveCompleteDocumentation",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.DocumentationCoverageTest::exceptionTagsAcceptOnlyExactSimpleOrQualifiedNames",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.MerchantFeaturedDishServiceTest::duplicateCancellationSucceedsWithoutCountingOrTouchingMenus",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.family.FamilyFeaturedDishResponseTest::homeUsesOneFallbackDishWhenNoMerchantRecommendationExists",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.merchant.MerchantProfileServiceTest::readsOnlyProfileBoundToCurrentUserAndMerchant",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.merchant.MerchantProfileServiceTest::missingMerchantOrRevokedRelationIsRejected",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.migration.ApplicationInstanceLeaseServiceTest::startupRegistrationIsAnEarlyTransactionalRunner",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletAccountTest::rejectsInsufficientOrOverReleaseAndInvalidPrecision",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletAccountTest::freezeReleaseCaptureRefundAndManualAdjustmentsPreserveBalances",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletAccountInitializerTest::existingAccountIsNotInsertedAgain",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletAccountInitializerTest::missingAccountUsesIdempotentInsert",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletAccountInitializerTest::ensureCommitsBeforeTheCallerLocksTheWallet",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.user.UserContextRealtimeIdentityTest::returnsRealtimeFamilyWhenLegacyProfileLookupIsStale",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletConcurrencyMySqlTest::com.familykitchen.wallet.FamilyWalletConcurrencyMySqlTest",
+      "status": "skipped"
+    },
+    {
+      "id": "com.familykitchen.user.UserContextPermissionContractTest::platformOnlyIdentityHasNoMiniProgramMode",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.user.UserContextPermissionContractTest::familyMemberGetsFamilyModeAndMembershipPermission",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.user.UserContextPermissionContractTest::unknownRolesDoNotGrantAdminOrMerchantAccess",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.user.UserContextPermissionContractTest::unboundOrdinaryUserCanEnterFamilyOnboardingWithoutGrantedPermissions",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.user.UserContextPermissionContractTest::merchantOnlyUserGetsMerchantMode",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.user.UserContextPermissionContractTest::combinedIdentityUsesStableModeAndPermissionOrdering",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.system.SystemBindingSettingServiceTest::masksConfiguredSmtpPasswordForPlatformAdministrator",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.user.UserContextPermissionContractTest::familyOwnerGetsOrderedMemberAndAdminPermissions",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.system.SystemBindingSettingServiceTest::exposesBindingSwitchesPubliclyWithoutSmtpCredentials",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletControllerContractTest::familyAndMerchantRoutesExposeSummaryLedgerAndAdjustment",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletServiceTest::getKeepsNotFoundWhenAnActiveFamilyCouldNotBeInitialized",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.WalletAccountTest::freezeRejectsInsufficientBalance",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.WalletAccountTest::freezeReleaseAndSettleKeepBalanceConsistent",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.PersonalWalletCutoverGuardTest::blocksOnlyWhenAnActiveFamilyMemberStillHasPersonalMoney",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.MerchantWalletApplicationServiceTest::foreignMemberLedgerIsBlockedBeforeWalletQuery",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.MerchantWalletApplicationServiceTest::authorizedPersonalAdjustmentReturnsExplicitUpgradeErrorWithoutMutation",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.MerchantWalletApplicationServiceTest::foreignMemberAdjustmentIsBlockedBeforeWalletReadOrMutation",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletInitializationSqlContractTest::insertIsIdempotentZeroValuedAndLimitedToActiveFamilies",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.MerchantFamilyWalletServiceTest::creditUsesPathFamilyAndRequestId",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletServiceTest::newFreezeLocksWalletAndCreatesHoldAndLedger",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletServiceTest::manualAdjustmentPayloadDistinguishesNullFromLiteralNullAndNormalizesWhitespace",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletServiceTest::releaseRejectsMoreThanOrderHoldEvenWhenWalletHasOtherFrozenMoney",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletServiceTest::getInitializesAndReloadsAMissingAccount",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletServiceTest::existingHoldOperationsLockHoldBeforeWalletAndPreventOverRefund",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.FamilyWalletServiceTest::getReturnsExistingAccountWithoutInitializing",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.MerchantFamilyWalletServiceTest::wrongMerchantAndUnsupportedTypesAreRejected",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateServiceTest::detailReturnsEveryFieldNeededToBuildACompleteChangeSnapshot",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.system.PlatformSecretCipherTest::rejectsTamperedCiphertext",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.purchase.PurchaseApplicationServiceTest::copyTextFiltersDemandRowsBeforeAggregatingSelectedMealQuantity",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.FamilyOrderControllerContractTest::submitRequestUsesVersionedSharedCartFieldsOnly",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.FamilyOrderControllerContractTest::merchantStateChangesNeverRewriteSubmittedItemSnapshots",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.FamilyOrderControllerContractTest::stableUpgradeErrorExistsForRetiredPayloads",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.FamilyOrderApplicationServiceTest::snapshotsSelectionsFreezesFamilyWalletAndSubmitsExactCartVersion",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.notification.NotificationAccountAccessTest::accountScopeWorksWithoutFamily",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.notification.NotificationAccountAccessTest::accountScopeMergesUserAndFamilyNotifications",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.FamilyOrderControllerContractTest::submittedOrdersCannotBeUpdated",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.notification.NotificationAccountAccessTest::readAcceptsOwnedFamilyNotificationForNormalUser",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.notification.FamilyNotificationEventContractTest::familyWorkflowsWriteUserScopedNotifications",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.migration.TransactionAdvisorOrderingContractTest::transactionAdvisorRunsBeforeBarrierAdvisor",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.migration.FamilyWalletBusinessTransactionBarrierAspectTest::retiredCompatibilityBuildCannotResumeWritesAfterFinalize",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.migration.FamilyWalletBusinessTransactionBarrierAspectTest::blocksScheduledOrHttpWriterInsideTheSameDatabaseTransaction",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.migration.FamilyWalletBusinessTransactionBarrierAspectTest::explicitReadOnlyTransactionRemainsAvailable",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.migration.ApplicationInstanceLeaseServiceTest::continuesHeartbeatWhileMaintenanceBlocksBusinessWrites",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.notification.FamilyNotificationEventContractTest::newOrderNotificationIncludesExpectedMealTime",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.system.PlatformSecretCipherTest::encryptsAndDecryptsSmtpPasswordWithoutStoringPlaintext",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.FamilyOrderControllerContractTest::everyRetiredWriteFieldIsRejectedBeforeBinding",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.FamilyWalletOrderLifecycleMySqlTest::com.familykitchen.order.FamilyWalletOrderLifecycleMySqlTest",
+      "status": "skipped"
+    },
+    {
+      "id": "com.familykitchen.purchase.PurchaseApplicationServiceTest::tempItemsQueriesAllMerchantRowsWithoutNullableFamilySentinel",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.purchase.PurchaseApplicationServiceTest::summarySortsSourcesByExpectedMealTimeBeforeLegacyMealSlotFallback",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.OrderSubmissionServiceTest::createsOneAggregateItemAndPreservesMemberAttribution",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.OrderSubmissionServiceTest::pickupDoesNotChargeDeliveryFee",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.OrderSubmissionServiceTest::rejectsAggregateQuantityThatDoesNotEqualSelections",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.OrderStateMachineTest::merchantCanMoveOrderThroughPreparationToDone",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.FamilyOrderSubmissionMySqlTest::com.familykitchen.order.FamilyOrderSubmissionMySqlTest",
+      "status": "skipped"
+    },
+    {
+      "id": "com.familykitchen.order.OrderStateMachineTest::deliveryFeeCanOnlyBeAdjustedBeforeMerchantConfirmation",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.OrderStateMachineTest::familyCanCancelBeforePreparingOnly",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.OrderListDetailProjectionContractTest::listSkipsSelectionQueriesWhileDetailLoadsImmutableSnapshots",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.FamilyWalletOrderLifecycleTest::rejectReleasesTheFamilyHold",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.FamilyWalletOrderLifecycleTest::completingOrderCapturesTheFamilyHold",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.FamilyWalletOrderLifecycleTest::completingLegacyOrderDoesNotCaptureTheFamilyWallet",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.FamilyWalletOrderLifecycleTest::deliveryFeeIncreaseAppendsFreezeAndDecreaseReleases",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.order.OrderStateMachineTest::merchantCancelPreparingRequiresReason",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.WalletOrderLockingContractTest::orderMutationServicesUseOnlyLockedWalletSelectorsAndAreTransactional",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateServiceTest::importSkipsTemplateAlreadyOwnedByMerchant",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateServiceTest::selectedImportKeepsValidationAndDeduplicationBoundaries",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.common.idempotency.CommandIdempotencyServiceTest::executesClaimOnceAndPersistsResult",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.common.security.IdentityContextMapperContractTest::identityLookupRequiresActiveFamilyAndMerchantParents",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateChangeMapperContractTest::approvedReplacementUsesVersionGuardAndNeverUpdatesMerchantDishes",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateChangeMapperContractTest::requestAndTemplateLocksAreExplicitAndTenantSafe",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateChangeMigrationMySqlTest::com.familykitchen.database.DishTemplateChangeMigrationMySqlTest",
+      "status": "skipped"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateChangeMigrationTest::migrationUsesPendingGeneratedColumnAndRequiredIndexes",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateChangeMigrationTest::migrationIsDocumentedUtf8AndHasNoPhysicalForeignKeys",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateChangeMigrationTest::migrationAddsTemplateVersionAndCompleteReviewTable",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateImageAssetTest::everyTemplateHasReadableLocalJpegAndAttribution",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateMapperContractTest::mapperContainsTenantScopedQueryAndImportStatements",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateMigrationTest::everyTemplateCarriesImageAttributionAndNoCookingSteps",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateMigrationTest::migrationContainsIndependentTemplateTablesWithoutPhysicalForeignKeys",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateMigrationTest::merchantDishTableDeclaresTemplateOriginAndDeduplicationIndex",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateMigrationTest::migrationSeedsExactlyNineCategoriesAndOneHundredNinetyEightTemplates",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.DishTemplateRegionalExpansionTest::migrationAddsFortyTwoRegionalDishesWithIngredientsAndLocalImages",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletDdlExecutorSafetyTest::rejectsFamilyIndexThatExistsOnTheWrongColumn",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletDdlExecutorSafetyTest::rejectsDrainProofOwnedByAnotherBatchBeforeInspectingDdlInventory",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationRunnerTest::executeRenewsBetweenIndependentFamiliesAndDoesNotMarkPartialRunComplete",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationRunnerTest::everyContinuationRequiresBatchAndQuiescedModesRequireEpochBeforeLease",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationRunnerTest::barrierPreflightEpochCannotBeSuppliedWithoutItsBatch",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationRunnerTest::safetyValidationPrecedesAnyPersistentWrite",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationRecoveryMySqlTest::com.familykitchen.database.FamilyCartWalletMigrationRecoveryMySqlTest",
+      "status": "skipped"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationMySqlTest::com.familykitchen.database.FamilyCartWalletMigrationMySqlTest",
+      "status": "skipped"
+    },
+    {
+      "id": "com.familykitchen.common.idempotency.CommandIdempotencyServiceTest::sameKeyWithDifferentPayloadConflicts",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationContractTest::remainsAdditiveAndPreservesLegacyAndFinalizationStructures",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationContractTest::additiveGuardRejectsDataChangesAndSelectBasedCopiesButAllowsTimestampClauses",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationContractTest::makesRetiredLegacyColumnsNullableAndAddsCartAndOrderCompatibilityFields",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationContractTest::createsDurableNormalizedCommandIdempotency",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationContractTest::createsCheckedFamilyWalletLedgerAndOrderHoldTables",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationContractTest::createsDurableMigrationAndDeploymentCoordinationMetadata",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletDdlExecutorSafetyTest::rejectsGeneratedColumnWithOnlySuperficiallyMatchingTokens",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationContractTest::createsPerMemberSelectionTablesWithPositiveQuantities",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.common.idempotency.CommandIdempotencyServiceTest::replaysCommittedResultWithoutRunningAction",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.common.error.GlobalExceptionHandlerValidationMessageTest::invalidEnumListsAcceptedValues",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.common.error.GlobalExceptionHandlerValidationMessageTest::mapperBindingFailureReturnsReadableFrontendMessage",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.auth.PasswordLengthValidationTest::rejectsPasswordShorterThanSixCharactersAtEveryPasswordCreationEntry",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.auth.PasswordCodecTest::encodedPasswordCanBeVerified",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.auth.AdminAuthApplicationServiceTest::loginRejectsWrongPassword",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.auth.AdminAuthApplicationServiceTest::loginReturnsAccessTokenForEnabledAdmin",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.ApplicationContextTest::contextLoads",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.admin.JointFamilyMerchantApprovalTest::jointCreateModeCreatesMerchantFamilyAndBothOwnerRelations",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.auth.PasswordLengthValidationTest::acceptsSixCharacterPasswordAtEveryPasswordCreationEntry",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.admin.AdminUserServiceTest::reportsMissingOrAlreadyDeletedUser",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.admin.AdminUserServiceTest::refusesToDeleteCurrentAdministrator",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.admin.AdminUserMapperContractTest::userDirectoryExcludesSafelyDeletedAccounts",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.admin.AdminMerchantDefaultDataTest::initializesDefaultCatalogAfterMerchantIsCreated",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.admin.AdminFamilyServiceTest::removingMemberCleansCartBeforeLockingAndEndingRelation",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.admin.AdminFamilyServiceTest::listsEveryFamilyOptionAcrossMerchants",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.admin.AdminFamilyServiceTest::deletingFamilyDisablesItToPreserveBusinessHistory",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.admin.AdminUserServiceTest::safelyDeletesUserAndRevokesSessions",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationRunnerTest::rejectsNonPositiveIdentifiersAndUnknownActualDatabaseBeforeLease",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.auth.TokenServiceTest::issueAndParseRoundTrip",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.cart.CartApplicationServiceTest::getCreatesOneEmptyCartUnderTheFamilyLock",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.common.error.GlobalExceptionHandlerValidationMessageTest::missingQueryParameterNamesTheRequiredParameter",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.common.error.GlobalExceptionHandlerValidationMessageTest::emptyRequestBodyReturnsAnActionableMessage",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.common.error.GlobalExceptionHandlerValidationMessageTest::beanValidationListsReadableFieldErrors",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.common.error.GlobalExceptionHandlerValidationMessageTest::typeMismatchNamesFieldAndExpectedType",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.common.error.GlobalExceptionHandlerTypeMismatchTest::typeMismatchIsHandledAsValidationErrorInsteadOfUnhandledSystemError",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.cart.SharedCartConcurrencyMySqlTest::com.familykitchen.cart.SharedCartConcurrencyMySqlTest",
+      "status": "skipped"
+    },
+    {
+      "id": "com.familykitchen.cart.CartApplicationServiceTest::returnsAggregateDishWithCurrentMemberAndAllAttributions",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.cart.ExpectedMealTimePolicyTest::exactQuarterStillRequiresFifteenMinuteLead",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.cart.ExpectedMealTimePolicyTest::rejectsYesterdayTomorrowPastAndNonQuarterHour",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.cart.ExpectedMealTimePolicyTest::roundsFourteenOhEightToFourteenThirty",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.cart.CartApplicationServiceTest::rejectsStaleVersionBeforeAnyCartWrite",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.cart.CartApplicationServiceTest::zeroRemovesOnlyCurrentMemberAndPreservesOtherSelections",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.cart.CartApplicationServiceTest::setsAbsoluteMemberQuantityAndRecomputesAggregate",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.cart.CartApplicationServiceTest::durableReplayReturnsTheOriginalResponseSnapshotWithoutReapplying",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.cart.ExpectedMealTimePolicyTest::reportsBookingEndedWhenNoTodaySlotRemains",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationRunnerTest::nonOffModeRejectsAWebApplicationContextBeforeDatabaseAccess",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationRunnerTest::defaultOffDoesNotTouchServiceOrLease",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationRunnerTest::preflightIsPersistentlyOwnedAndAlwaysReleased",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishReviewFeaturedStatusTest::fullDishUpdateClearsFeaturedInSameInactiveStatement",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishReviewFeaturedStatusTest::existingDishApprovalStopsWhenLockedDishNoLongerExists",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishReviewFeaturedStatusTest::existingDishApprovalLocksAndRevalidatesBeforeApplyingInactiveSnapshot",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishReviewFeaturedStatusTest::newActiveDishApprovalEnablesDishForEveryActiveMerchantFamily",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishReviewFeaturedStatusTest::newDishApprovalDoesNotTakeDishMutationLock",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishApplicationServiceUpdateTest::fullUpdateNormalizesWhitespaceAndCaseBeforeInactiveWrite",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeControllerRouteTest::merchantControllerExposesFourStableRoutes",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishApplicationServiceUpdateTest::fullUpdateRejectsInvalidNonBlankStatusWithoutWriting",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishApplicationServiceUpdateTest::pendingReviewCreationDoesNotEnableFamilyMenusBeforeApproval",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishApplicationServiceUpdateTest::activeStatusUpdateUsesMerchantThenDishLockBeforeWrite",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishApplicationServiceUpdateTest::activeDishCreationEnablesDishForEveryActiveMerchantFamily",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishApplicationServiceUpdateTest::statusUpdateWithoutReviewTouchesOnlyOwnedStatusColumn",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishApplicationServiceUpdateTest::statusUpdateWithReviewSubmitsFullSnapshotWithoutDirectMutation",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishApplicationServiceUpdateTest::updateWithoutReviewReplacesIngredientsAndCookingStepsInOneServiceCall",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishApplicationServiceUpdateTest::dishListExposesImportedTemplateSource",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishApplicationServiceUpdateTest::inactiveDishCreationDoesNotEnableFamilyMenus",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeControllerRouteTest::adminControllerExposesFourStableRoutes",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeRequestServiceTest::merchantWithoutBackendAccessCannotSubmit",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateControllerRouteTest::importAllRejectsMissingPermissionAndMissingMerchantId",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateControllerRouteTest::importAllPassesTheExactAuthorizedMerchantContext",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateControllerRouteTest::importAllRouteHasNoBodyOrExternalMerchantParameter",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeRequestServiceTest::submitFromImportedDishRejectsUnavailableSourceTemplate",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeRequestServiceTest::withdrawUsesMerchantScopedLockAndOnlyAcceptsPending",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeRequestServiceTest::staleApprovalKeepsPendingAndCreatesNoNotification",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeControllerRouteTest::bothControllersDeclareBearerSecurityAndEveryRouteHasOperationDocumentation",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeRequestServiceTest::submitFromImportedDishRejectsManualDishBeforeReadingTemplate",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeRequestServiceTest::approveLocksInOrderReplacesTemplateAndCreatesMerchantNotification",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeRequestServiceTest::submitRejectsDuplicatePendingRequestWithConflict",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeRequestServiceTest::submitFromImportedDishRejectsMissingOwnedDishWithClearMessage",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeRequestServiceTest::submitFromImportedDishRejectsEmptyIngredientsBeforeReadingTemplate",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeRequestServiceTest::submitLocksTemplateAndCategoryAndCapturesBothSnapshots",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeRequestServiceTest::submitFromImportedDishUsesMerchantFieldsAndPreservesTemplateOwnedFields",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateChangeRequestServiceTest::rejectLocksOnlyApplicationAndCreatesOneResultNotification",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.dish.DishTemplateServiceTest::importAllProcessesExactlyOneHundredNinetyEightTemplatesAndCopiesIngredients",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.MerchantFeaturedDishMigrationMySqlTest::com.familykitchen.database.MerchantFeaturedDishMigrationMySqlTest",
+      "status": "skipped"
+    },
+    {
+      "id": "com.familykitchen.database.MerchantFeaturedDishMigrationContractTest::migrationEnablesEveryActiveFamilyWithoutOverwritingExistingMenuCustomization",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyFeaturedDishMapperContractTest::homeExposesUpToFiveActiveMerchantRecommendationsThenOffersDeterministicFallback",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationServiceSafetyTest::verifyRejectsPendingFamilyBeforeReadingZeroTotals",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationServiceSafetyTest::quiesceReportsCommittedBarrierPhaseResult",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationServiceSafetyTest::familyExecutorRejectsStaleOwnerBeforeAnySourceRead",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationServiceSafetyTest::finalizeRunsExactDdlStepsInOrderUnderSameOwnerProof",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationServiceSafetyTest::emptyDatabaseCanVerifyWithoutInventingAFamily",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyFeaturedDishMapperContractTest::compatibilityQueryReturnsRecommendationBeforeFallback",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationServiceSafetyTest::executePhaseRejectsDrainedBatchUntilBarrierPreflightCommits",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationSafetyContractTest::compatibilityInstanceLeaseIsExplicitlyOptIn",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationSafetyContractTest::mapperContainsAtomicRunnerLeaseAndProofGuards",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationSafetyContractTest::finalizationUsesExactResumableFamilyKeyContract",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationSafetyContractTest::preflightAndCartQueriesExposeEveryInvalidSourceInsteadOfInnerJoinOmission",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationRunnerTest::staleOwnerFailureStillReleasesOnlyItsToken",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationRunnerTest::quiesceAllocatesItsEpochAndRejectsAConfiguredOne",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyCartWalletMigrationSafetyContractTest::barrierPreflightAndPerFamilyConservationArePersistedExactly",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.MerchantFeaturedDishMigrationContractTest::merchantDishMapperSelectsAndDeterministicallySortsFeaturedMetadata",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyFeaturedDishMapperContractTest::compatibilityQueryUsesFallbackOnlyWhenThereIsNoRecommendation",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyWalletBusinessWriteBarrierFilterTest::blocksMutatingRequestAndAllowsSafeRead",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.MerchantFeaturedDishMigrationContractTest::migrationAddsMerchantFeaturedTimestampAndDeterministicTopFiveBackfill",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.MerchantFeaturedDishMigrationContractTest::modelsExposeFeaturedTimestampAndDerivedFlag",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.MapperInsertStatementContractTest::everyDeclaredMapperMethodHasAnExecutableStatement",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.MapperInsertStatementContractTest::coreAggregateInsertsHaveExplicitMapperStatements",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.LogicalReferenceValidationTest::createDishRejectsCategoryOutsideCurrentMerchant",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.LogicalReferenceValidationTest::addCartItemRejectsMealSlotOutsideCurrentFamily",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyMenuMapperContractTest::familyMenuStartsFromActiveMerchantDishesAndDefaultsMissingConfiguration",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.LogicalReferenceValidationTest::saveFamilyMenuRejectsDishOutsideCurrentMerchant",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FreshDatabaseMigrationTest::migrationsAreFreshOrderedAndContainNoPhysicalForeignKeys",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FreshDatabaseMigrationTest::everyTableAndColumnHasChineseDatabaseDocumentation",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FreshDatabaseMigrationTest::everyExistingFamilyReceivesMissingDefaultMealSlotsWithoutOverwritingExistingRows",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FreshDatabaseMigrationTest::everyIndexOnlyReferencesColumnsDeclaredInItsTable",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FreshDatabaseMigrationTest::migrationsUseUnifiedUserColumnsAndRequiredInitialData",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FamilyWalletPermanentFenceSqlContractTest::familyReadyStateRemainsAWriteBarrierForCompatibilityBuilds",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.database.FreshDatabaseMigrationTest::everySeedRecordUsesAnIndependentSqlLineAndAdminPasswordIsUsable",
+      "status": "passed"
+    },
+    {
+      "id": "com.familykitchen.wallet.WalletOrderLockingContractTest::retiredPersonalWalletMapperExposesNoMoneyMutationStatements",
+      "status": "passed"
+    }
+  ]
+}
