@@ -37,7 +37,10 @@
 - `backend/src/test/java/com/familykitchen/testsupport/TestDatabaseUrlGuard.java` — pure pre-connect allowlist for H2 memory and the current disposable container.
 - `backend/src/test/java/com/familykitchen/testsupport/TestDatabaseEnvironmentPostProcessor.java` — invokes the guard before datasource/Flyway beans initialize.
 - `backend/src/test/java/com/familykitchen/testsupport/SafeTestFlyway.java` — guarded factory for tests that configure Flyway directly.
+- `backend/src/test/java/com/familykitchen/testsupport/SafeTestDatabaseProperties.java` — guarded `@DynamicPropertySource` registration for the currently owned container.
 - `backend/src/test/resources/META-INF/spring.factories` — registers the test-only environment post-processor.
+- `backend/src/test/resources/application-test-h2.yml` — safe H2 default for Spring tests.
+- `backend/src/test/resources/application-test-container.yml` — safe pre-container placeholder overridden only by guarded suppliers.
 - `frontend/scripts/summarize-delivery-audit.js` — derives verification totals and open gates from machine-readable reports.
 - `docs/superpowers/audits/2026-08-31-responsive-matrix.json` — 37 pages × 4 viewports × 2 safe-area values with stress-data evidence.
 - `docs/superpowers/audits/2026-08-31-mini-program-delivery-findings.md` — checked audit record with finding, failing test, root cause, fix, and verification evidence.
@@ -254,11 +257,23 @@ git commit -m "fix: keep mini program data complete and fresh"
 - Create: `backend/src/test/java/com/familykitchen/testsupport/TestDatabaseUrlGuard.java`
 - Create: `backend/src/test/java/com/familykitchen/testsupport/TestDatabaseEnvironmentPostProcessor.java`
 - Create: `backend/src/test/java/com/familykitchen/testsupport/SafeTestFlyway.java`
+- Create: `backend/src/test/java/com/familykitchen/testsupport/SafeTestDatabaseProperties.java`
 - Create: `backend/src/test/resources/META-INF/spring.factories`
+- Create: `backend/src/test/resources/application-test-h2.yml`
+- Create: `backend/src/test/resources/application-test-container.yml`
+- Modify: `backend/src/test/java/com/familykitchen/ApplicationContextTest.java`
+- Modify: `backend/src/test/java/com/familykitchen/cart/SharedCartConcurrencyMySqlTest.java`
 - Modify: `backend/src/test/java/com/familykitchen/database/DishTemplateChangeMigrationMySqlTest.java`
 - Modify: `backend/src/test/java/com/familykitchen/database/FamilyCartWalletMigrationMySqlTest.java`
 - Modify: `backend/src/test/java/com/familykitchen/database/FamilyCartWalletMigrationRecoveryMySqlTest.java`
 - Modify: `backend/src/test/java/com/familykitchen/database/MerchantFeaturedDishMigrationMySqlTest.java`
+- Modify: `backend/src/test/java/com/familykitchen/dish/MerchantFeaturedDishConcurrencyMySqlTest.java`
+- Modify: `backend/src/test/java/com/familykitchen/family/FamilyMemberCartCleanupConcurrencyMySqlTest.java`
+- Modify: `backend/src/test/java/com/familykitchen/family/FamilyOwnerTransferConcurrencyMySqlTest.java`
+- Modify: `backend/src/test/java/com/familykitchen/merchant/MerchantProfileMySqlTest.java`
+- Modify: `backend/src/test/java/com/familykitchen/order/FamilyOrderSubmissionMySqlTest.java`
+- Modify: `backend/src/test/java/com/familykitchen/order/FamilyWalletOrderLifecycleMySqlTest.java`
+- Modify: `backend/src/test/java/com/familykitchen/wallet/FamilyWalletConcurrencyMySqlTest.java`
 - Modify as proven: relevant `backend/src/main/java/com/familykitchen/**/service/impl/*.java`
 - Modify as proven: relevant `backend/src/main/resources/mapper/**/*.xml`
 - Test: existing family, merchant, cart, wallet, and order tests.
@@ -280,11 +295,11 @@ Expected: FAIL only where a service trusts an unvalidated resource ID or stale c
 
 - [ ] **Step 3: Add a pre-connect database isolation guard**
 
-Implement `TestDatabaseUrlGuard.requireSafe(url, profile, containerUrl, username)` as a pure function. Permit only `jdbc:h2:mem:` or the exact JDBC URL exposed by the currently owned Testcontainers instance, with a randomized database name prefixed `family_kitchen_test_`, the dedicated `test-container` profile, and container-provided credentials. Reject blank/unknown profiles, fixed MySQL hosts, the application database name, and any URL merely containing the word `test`.
+Implement `TestDatabaseUrlGuard.requireSafeH2(url, profile)` and `requireOwnedContainer(container, url, username, password)` as pure functions. The H2 path permits only `jdbc:h2:mem:` under `test-h2` or the safe placeholder used before a container override. The container path requires active `test-container`, a running `MySQLContainer` object owned by the current test JVM, exact equality with that object's JDBC URL and credentials, and host/port equality with its mapped endpoint. Reject blank/unknown profiles, fixed MySQL hosts, the application database name, and any URL accepted merely because it contains `test`; existing fixed container database names are allowed only when all container-ownership checks pass.
 
-Register `TestDatabaseEnvironmentPostProcessor` in test resources so it validates `spring.datasource.url` before datasource or Flyway beans initialize. Add a negative unit test that supplies the business JDBC URL and proves rejection occurs without constructing a DataSource. MVC contract tests remain `@WebMvcTest` and therefore never create a datasource.
+Add `application-test-h2.yml` and `application-test-container.yml` with H2-memory safe defaults, then mark `ApplicationContextTest` as `test-h2` and every listed Spring Testcontainers test as `test-container`. Register `TestDatabaseEnvironmentPostProcessor` in test resources so, before datasource/Flyway initialization, it requires one of those profiles and verifies the effective pre-override URL is H2 memory; a system/environment attempt to inject the business JDBC URL fails at this stage. Add a negative unit test proving the business URL is rejected before any DataSource is constructed. MVC contract tests remain `@WebMvcTest` and therefore never create a datasource.
 
-Replace direct `Flyway.configure()` calls in the four named migration tests with `SafeTestFlyway.configure(container)`, which invokes the same guard before returning a Flyway fluent configuration. Other Testcontainers Spring tests register only the exact live container URL through `@DynamicPropertySource`; the isolation contract source-scans those registrations and rejects fixed external URLs.
+Replace direct `Flyway.configure()` calls in the four named migration tests with `SafeTestFlyway.configure(container)`, which invokes the owned-container guard before returning a Flyway fluent configuration. Replace every listed Spring Testcontainers `@DynamicPropertySource` body with `SafeTestDatabaseProperties.register(registry, container)`; its suppliers invoke the owned-container guard at value-resolution time, after the container has started and before the DataSource uses the URL. The isolation contract source-scans the listed tests and rejects raw datasource registration or fixed external URLs.
 
 - [ ] **Step 4: Apply minimal authorization fixes**
 
@@ -292,16 +307,16 @@ Resolve resources through merchant/family-scoped mapper methods before reads or 
 
 - [ ] **Step 5: Run domain and full backend tests**
 
-Run the two new tests, then:
+Run the two new tests, the H2 application context test, one Spring container test, and one direct-Flyway container test, then:
 
 `D:\develop\apache-maven-3.9.9\bin\mvn.cmd test`
 
-Expected: at least 285 tests plus new tests, 0 failures; skips explicitly listed. If critical cart/wallet/order MySQL tests remain skipped, mark the environment gate open in the verification document.
+Expected: the complete Maven suite proves MVC slices, H2 Spring context, Spring Testcontainers, and direct Flyway tests are compatible with the guard; at least 285 tests plus new tests, 0 failures; skips explicitly listed. If Docker is unavailable and container tests skip, static guard/unit coverage may pass but the critical cart/wallet/order MySQL release gate remains open.
 
 - [ ] **Step 6: Commit**
 
 ```powershell
-git add backend/src/test/java/com/familykitchen/contract backend/src/test/java/com/familykitchen/database backend/src/test/java/com/familykitchen/testsupport backend/src/test/resources/META-INF backend/src/main/java backend/src/main/resources/mapper
+git add backend/src/test/java/com/familykitchen backend/src/test/resources/META-INF backend/src/test/resources/application-test-h2.yml backend/src/test/resources/application-test-container.yml backend/src/main/java backend/src/main/resources/mapper
 git add -f docs/superpowers/audits/2026-08-31-mini-program-delivery-findings.md
 git commit -m "fix: enforce mini program resource boundaries"
 ```
