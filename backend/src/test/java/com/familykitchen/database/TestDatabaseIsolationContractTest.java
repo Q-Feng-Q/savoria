@@ -133,11 +133,9 @@ class TestDatabaseIsolationContractTest {
           org.junit.jupiter.api.Assertions.assertTrue(
               source.contains("SafeTestFlyway.configure(MYSQL_OWNER)"), relative);
         }
-        if (source.contains("DriverManager." + "getConnection")) {
-          org.junit.jupiter.api.Assertions.assertTrue(source.contains(
-              "DriverManager." + "getConnection(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())"),
-              relative);
-        }
+        org.junit.jupiter.api.Assertions.assertFalse(
+            source.contains("DriverManager." + "getConnection"),
+            relative + ": use SafeTestJdbc.open(MYSQL_OWNER)");
       }
     }
     org.junit.jupiter.api.Assertions.assertFalse(mysqlTests.isEmpty(),
@@ -147,8 +145,7 @@ class TestDatabaseIsolationContractTest {
   @Test
   void rawJdbcEntrypointsAcrossTheTestTreeCannotBypassOwnedContainers() throws Exception {
     String rawJdbcCall = "DriverManager." + "getConnection";
-    String ownedJdbcCall = "DriverManager." + "getConnection(MYSQL.getJdbcUrl(), MYSQL.getUsername(), "
-        + "MYSQL.getPassword())";
+    String safeJdbcPath = "com/familykitchen/testsupport/SafeTestJdbc.java";
     List<String> mysqlUrlAllowlist = List.of(
         "com/familykitchen/database/TestContainerFinalPropertyGuardTest.java",
         "com/familykitchen/database/TestDatabaseIsolationContractTest.java",
@@ -162,10 +159,12 @@ class TestDatabaseIsolationContractTest {
               relative + ": literal MySQL URLs are allowed only in negative guard tests");
         }
         if (source.contains(rawJdbcCall)) {
-          org.junit.jupiter.api.Assertions.assertTrue(relative.endsWith("MySqlTest.java"),
-              relative + ": raw JDBC is allowed only in owned MySQL integration tests");
-          org.junit.jupiter.api.Assertions.assertTrue(source.contains("MYSQL_OWNER"), relative);
-          org.junit.jupiter.api.Assertions.assertTrue(source.contains(ownedJdbcCall), relative);
+          org.junit.jupiter.api.Assertions.assertEquals(safeJdbcPath, relative,
+              relative + ": direct DriverManager access must go through SafeTestJdbc");
+          org.junit.jupiter.api.Assertions.assertTrue(
+              source.contains("TestDatabaseUrlGuard.requireOwnedContainer"), relative);
+          org.junit.jupiter.api.Assertions.assertTrue(
+              source.contains("TestDatabaseOwnership.require(ownership)"), relative);
         }
       }
     }

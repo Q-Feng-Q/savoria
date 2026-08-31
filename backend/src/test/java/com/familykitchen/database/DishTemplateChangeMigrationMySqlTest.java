@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.familykitchen.testsupport.SafeTestFlyway;
 import java.sql.Connection;
-import java.sql.DriverManager;
+import com.familykitchen.testsupport.SafeTestJdbc;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -64,7 +64,7 @@ class DishTemplateChangeMigrationMySqlTest {
   }
 
   private static Connection open() throws SQLException {
-    return DriverManager.getConnection(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword());
+    return SafeTestJdbc.open(MYSQL_OWNER);
   }
 
   private static String insertSql(long merchantId, long templateId, String status) {

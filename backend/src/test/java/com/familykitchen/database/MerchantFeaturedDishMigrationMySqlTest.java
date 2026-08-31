@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.familykitchen.testsupport.SafeTestFlyway;
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.DriverManager;
+import com.familykitchen.testsupport.SafeTestJdbc;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -127,7 +127,7 @@ class MerchantFeaturedDishMigrationMySqlTest {
   }
 
   private static Connection open() throws SQLException {
-    return DriverManager.getConnection(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword());
+    return SafeTestJdbc.open(MYSQL_OWNER);
   }
 
   private static Object singleValue(Statement statement, String sql) throws SQLException {
