@@ -41,6 +41,7 @@
 - `backend/src/test/resources/META-INF/spring.factories` — registers the test-only environment post-processor.
 - `backend/src/test/resources/application-test-h2.yml` — safe H2 default for Spring tests.
 - `backend/src/test/resources/application-test-container.yml` — safe pre-container placeholder overridden only by guarded suppliers.
+- `backend/src/test/resources/application-test-mvc.yml` — disables datasource/Flyway for MVC slice tests.
 - `frontend/scripts/summarize-delivery-audit.js` — derives verification totals and open gates from machine-readable reports.
 - `docs/superpowers/audits/2026-08-31-responsive-matrix.json` — 37 pages × 4 viewports × 2 safe-area values with stress-data evidence.
 - `docs/superpowers/audits/2026-08-31-mini-program-delivery-findings.md` — checked audit record with finding, failing test, root cause, fix, and verification evidence.
@@ -175,7 +176,7 @@ Create JSON entries with `operation`, `pages`, `method`, `route`, `controllerCla
 
 - [ ] **Step 4: Write and run the failing Spring route test**
 
-Use an MVC slice (`@WebMvcTest` plus mocked application services) so this test cannot create a datasource. Normalize `RequestMappingHandlerMapping` routes and assert every JSON method/route pair exists exactly once and maps to the specified controller class/method. Parameterized MockMvc executes `validRequest` for every operation, not a representative subset. It also executes every operation's invalid requests and asserts their exact status, application error code/envelope, and forbidden internal text. Dynamic IDs cover a legal value, malformed value, and missing path shape where applicable; authorization failure and parameter-binding failure are separate cases.
+Use an MVC slice (`@WebMvcTest`, `@ActiveProfiles("test-mvc")`, plus mocked application services) so this test cannot create a datasource. `application-test-mvc.yml` disables datasource and Flyway auto-configuration; the test guard accepts `test-mvc` only when neither a datasource URL nor Flyway configuration is present. Normalize `RequestMappingHandlerMapping` routes and assert every JSON method/route pair exists exactly once and maps to the specified controller class/method. Parameterized MockMvc executes `validRequest` for every operation, not a representative subset. It also executes every operation's invalid requests and asserts their exact status, application error code/envelope, and forbidden internal text. Dynamic IDs cover a legal value, malformed value, and missing path shape where applicable; authorization failure and parameter-binding failure are separate cases.
 
 Reverse-compare all Spring handlers inside the manifest's mini-program route boundary against the JSON contract. Unregistered handlers fail unless they appear in the explicit exclusion list with a reason; `/api/admin/**` remains outside scope.
 
@@ -261,6 +262,7 @@ git commit -m "fix: keep mini program data complete and fresh"
 - Create: `backend/src/test/resources/META-INF/spring.factories`
 - Create: `backend/src/test/resources/application-test-h2.yml`
 - Create: `backend/src/test/resources/application-test-container.yml`
+- Create: `backend/src/test/resources/application-test-mvc.yml`
 - Modify: `backend/src/test/java/com/familykitchen/ApplicationContextTest.java`
 - Modify: `backend/src/test/java/com/familykitchen/cart/SharedCartConcurrencyMySqlTest.java`
 - Modify: `backend/src/test/java/com/familykitchen/database/DishTemplateChangeMigrationMySqlTest.java`
@@ -297,7 +299,7 @@ Expected: FAIL only where a service trusts an unvalidated resource ID or stale c
 
 Implement `TestDatabaseUrlGuard.requireSafeH2(url, profile)` and `requireOwnedContainer(container, url, username, password)` as pure functions. The H2 path permits only `jdbc:h2:mem:` under `test-h2` or the safe placeholder used before a container override. The container path requires active `test-container`, a running `MySQLContainer` object owned by the current test JVM, exact equality with that object's JDBC URL and credentials, and host/port equality with its mapped endpoint. Reject blank/unknown profiles, fixed MySQL hosts, the application database name, and any URL accepted merely because it contains `test`; existing fixed container database names are allowed only when all container-ownership checks pass.
 
-Add `application-test-h2.yml` and `application-test-container.yml` with H2-memory safe defaults, then mark `ApplicationContextTest` as `test-h2` and every listed Spring Testcontainers test as `test-container`. Register `TestDatabaseEnvironmentPostProcessor` in test resources so, before datasource/Flyway initialization, it requires one of those profiles and verifies the effective pre-override URL is H2 memory; a system/environment attempt to inject the business JDBC URL fails at this stage. Add a negative unit test proving the business URL is rejected before any DataSource is constructed. MVC contract tests remain `@WebMvcTest` and therefore never create a datasource.
+Add `application-test-h2.yml` and `application-test-container.yml` with H2-memory safe defaults, then mark `ApplicationContextTest` as `test-h2` and every listed Spring Testcontainers test as `test-container`. Add `application-test-mvc.yml` with datasource/Flyway auto-configuration disabled and mark `MiniProgramEndpointContractTest` as `test-mvc`. Register `TestDatabaseEnvironmentPostProcessor` in test resources so, before datasource/Flyway initialization, it accepts: `test-h2`/`test-container` only with an H2-memory pre-override URL; or `test-mvc` only with no datasource URL/Flyway configuration. A system/environment attempt to inject the business JDBC URL fails at this stage. Add negative unit tests proving the business URL is rejected for every profile before any DataSource is constructed.
 
 Replace direct `Flyway.configure()` calls in the four named migration tests with `SafeTestFlyway.configure(container)`, which invokes the owned-container guard before returning a Flyway fluent configuration. Replace every listed Spring Testcontainers `@DynamicPropertySource` body with `SafeTestDatabaseProperties.register(registry, container)`; its suppliers invoke the owned-container guard at value-resolution time, after the container has started and before the DataSource uses the URL. The isolation contract source-scans the listed tests and rejects raw datasource registration or fixed external URLs.
 
@@ -307,7 +309,7 @@ Resolve resources through merchant/family-scoped mapper methods before reads or 
 
 - [ ] **Step 5: Run domain and full backend tests**
 
-Run the two new tests, the H2 application context test, one Spring container test, and one direct-Flyway container test, then:
+Run the two new tests, `MiniProgramEndpointContractTest` under `test-mvc`, the H2 application context test, one Spring container test, and one direct-Flyway container test, then:
 
 `D:\develop\apache-maven-3.9.9\bin\mvn.cmd test`
 
@@ -316,7 +318,7 @@ Expected: the complete Maven suite proves MVC slices, H2 Spring context, Spring 
 - [ ] **Step 6: Commit**
 
 ```powershell
-git add backend/src/test/java/com/familykitchen backend/src/test/resources/META-INF backend/src/test/resources/application-test-h2.yml backend/src/test/resources/application-test-container.yml backend/src/main/java backend/src/main/resources/mapper
+git add backend/src/test/java/com/familykitchen backend/src/test/resources/META-INF backend/src/test/resources/application-test-h2.yml backend/src/test/resources/application-test-container.yml backend/src/test/resources/application-test-mvc.yml backend/src/main/java backend/src/main/resources/mapper
 git add -f docs/superpowers/audits/2026-08-31-mini-program-delivery-findings.md
 git commit -m "fix: enforce mini program resource boundaries"
 ```
