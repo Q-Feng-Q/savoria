@@ -45,6 +45,19 @@ test('bottom action bar includes safe area spacing and full width sizing', () =>
   const source = read('components/bottom-action-bar/index.wxss')
   assert.match(source, /safe-area-inset-bottom/)
   assert.match(source, /box-sizing:\s*border-box/)
+  assert.match(source, /max-width:\s*720px/)
+  assert.match(source, /left:\s*50%/)
+  assert.match(source, /transform:\s*translateX\(-50%\)/)
+})
+
+test('dish detail action bar avoids home indicators and stays bounded on large screens', () => {
+  const source = read('pages/ordering/dish-detail/index.wxss')
+  const markup = read('pages/ordering/dish-detail/index.wxml')
+  assert.match(source, /\.dish-page\s*\{[^}]*padding-bottom:\s*calc\([^}]*safe-area-inset-bottom/s)
+  assert.match(source, /\.detail-action-bar\s*\{[^}]*bottom:\s*calc\([^}]*safe-area-inset-bottom/s)
+  assert.match(source, /\.detail-action-bar\s*\{[^}]*max-width:\s*720px/s)
+  assert.match(source, /\.detail-action-copy\s*\{[^}]*min-width:\s*0/s)
+  assert.match(markup, /class="detail-action-copy"/)
 })
 
 test('merchant workspace keeps a compact operational focus and vignette strip', () => {

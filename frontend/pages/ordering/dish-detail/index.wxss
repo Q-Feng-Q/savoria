@@ -1,6 +1,6 @@
 .dish-page {
   padding-top: 0;
-  padding-bottom: 174rpx;
+  padding-bottom: calc(174rpx + env(safe-area-inset-bottom));
 }
 
 .detail-hero {
@@ -247,9 +247,11 @@
 
 .detail-action-bar {
   position: fixed;
-  left: 20rpx;
-  right: 20rpx;
-  bottom: 22rpx;
+  left: 50%;
+  right: auto;
+  bottom: calc(18rpx + env(safe-area-inset-bottom));
+  width: calc(100% - 40rpx);
+  max-width: 720px;
   z-index: 20;
   display: flex;
   align-items: center;
@@ -260,6 +262,12 @@
   background: rgba(255, 255, 252, 0.98);
   color: #261c14;
   box-shadow: 0 24rpx 56rpx rgba(62, 39, 23, 0.16);
+  box-sizing: border-box;
+  transform: translateX(-50%);
+}
+
+.detail-action-copy {
+  min-width: 0;
 }
 
 .action-label,

@@ -77,7 +77,7 @@
   </block>
 
   <view class="detail-action-bar">
-    <view>
+    <view class="detail-action-copy">
       <text class="action-label">加入共享餐篮</text>
       <text class="action-sub">保留成员选择明细，提交后由家庭钱包统一冻结并扣款。</text>
     </view>
