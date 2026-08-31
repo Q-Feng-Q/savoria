@@ -12,6 +12,7 @@ import com.familykitchen.order.model.dto.SubmitOrderRequest;
 import com.familykitchen.order.model.enums.DeliveryMode;
 import com.familykitchen.order.model.vo.OrderView;
 import com.familykitchen.order.service.FamilyOrderApplicationService;
+import com.familykitchen.testsupport.SafeTestDatabaseProperties;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,12 +29,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /** Exercises immutable order submission, replay and same-cart races on disposable MySQL 8. */
 @Testcontainers(disabledWithoutDocker = true)
+@ActiveProfiles("test-container")
 @SpringBootTest(properties = {
     "family-kitchen.instance.lease-enabled=false", "family-kitchen.migration.mode=OFF",
     "spring.mail.host=localhost", "spring.mail.username=test", "spring.mail.password=test",
@@ -47,10 +50,7 @@ class FamilyOrderSubmissionMySqlTest {
       .withDatabaseName("family_order_submission").withUsername("order_test")
       .withPassword("order_test");
   @DynamicPropertySource static void datasource(DynamicPropertyRegistry registry){
-    registry.add("spring.datasource.url",MYSQL::getJdbcUrl);
-    registry.add("spring.datasource.username",MYSQL::getUsername);
-    registry.add("spring.datasource.password",MYSQL::getPassword);
-    registry.add("spring.datasource.driver-class-name",MYSQL::getDriverClassName);
+    SafeTestDatabaseProperties.register(registry, MYSQL);
   }
 
   @Autowired FamilyOrderApplicationService orders;

@@ -5,13 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.familykitchen.testsupport.SafeTestFlyway;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationVersion;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -35,15 +35,13 @@ class FamilyCartWalletMigrationMySqlTest {
 
   @BeforeAll
   static void migrateThroughV10ThenV11() throws Exception {
-    Flyway.configure()
-        .dataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())
+    SafeTestFlyway.configure(MYSQL)
         .locations("classpath:db/migration")
         .target(MigrationVersion.fromVersion("10"))
         .load()
         .migrate();
     seedAndSnapshotLegacyRows();
-    Flyway.configure()
-        .dataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())
+    SafeTestFlyway.configure(MYSQL)
         .locations("classpath:db/migration")
         .load()
         .migrate();

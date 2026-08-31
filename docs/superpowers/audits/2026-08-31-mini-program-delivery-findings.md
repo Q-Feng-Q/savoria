@@ -10,6 +10,11 @@
 | MP-004 | P1 | 通知与家庭钱包流水 | 通知或流水超过 100 条 | `delivery-page-behavior.test.js` / `notifications and wallet ledger load every backend page` | 页面固定请求第 1 页、100 条，后续数据静默丢失 | `frontend/utils/pagination.js`、通知页、家庭钱包流水页 | 相关 35 项与全量前端 484 项测试通过 | FIXED |
 | MP-005 | P2 | 商户修改申请列表 | 翻页期间后台新增或调整记录，后一页与已加载页重叠 | `delivery-page-behavior.test.js` / `change request pagination deduplicates rows by request id` | 直接拼接分页结果，没有按申请 ID 去重 | 商户修改申请列表、分页工具 | 相关 35 项与全量前端 484 项测试通过 | FIXED |
 | MP-006 | P1 | 账号/身份切换 | 账号 A 的请求较慢，切换到账号 B 后 A 的响应才返回 | `delivery-page-behavior.test.js`、`account-switching.test.js` | 16 个登录后刷新页面缺少请求代次与身份校验，旧响应可覆盖新页面；身份同步本身也会覆盖用户后来选择的账号 | `frontend/utils/identity-load.js`、`account-switching.js` 及账号、家庭、点菜、订单、商户审核相关页面 | 身份相邻域 45 项与全量前端 487 项测试通过 | FIXED |
+| MP-007 | P1 | 测试数据库隔离 | 运行 Spring/MySQL 或直接 Flyway 测试时，测试配置被环境变量/默认配置覆盖，或测试代码直接接受任意 JDBC URL | `TestDatabaseIsolationContractTest` | 测试缺少强制显式 profile、启动前 URL 白名单及对 Testcontainers 实例所有权/凭据的绑定校验，直接 Flyway 测试也可绕过统一入口 | `test-h2`/`test-mvc`/`test-container` profiles、`TestDatabaseEnvironmentPostProcessor`、`TestDatabaseUrlGuard`、`SafeTestDatabaseProperties`、`SafeTestFlyway` 及所有 MySQL 测试适配 | 隔离、Context、Endpoint、授权及相邻域共 54 项通过；Spring container 与 direct Flyway 代表测试因 Docker 不可用各明确跳过 | FIXED |
+
+## 资源授权审查证据
+
+资源授权矩阵 9/9 通过。商户订单锁定查询与商户家庭资料更新均以认证上下文中的 `merchantId` 和目标资源 ID 联合作用域调用，Mapper SQL 同时约束 `merchant_id` 与资源 ID；本轮未发现真实越权缺陷，因此未虚构授权 finding。
 
 ## 状态说明
 

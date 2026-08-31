@@ -3,6 +3,7 @@ package com.familykitchen.merchant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.familykitchen.merchant.mapper.MerchantProfileMapper;
+import com.familykitchen.testsupport.SafeTestDatabaseProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +11,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /** 真实 MySQL 下商户资料更新的负责人关系与商户状态约束测试。 */
 @Testcontainers(disabledWithoutDocker = true)
+@ActiveProfiles("test-container")
 @SpringBootTest(properties = {
     "spring.mail.host=localhost",
     "spring.mail.username=test",
@@ -39,10 +42,7 @@ class MerchantProfileMySqlTest {
 
   @DynamicPropertySource
   static void mysqlProperties(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
-    registry.add("spring.datasource.username", MYSQL::getUsername);
-    registry.add("spring.datasource.password", MYSQL::getPassword);
-    registry.add("spring.datasource.driver-class-name", MYSQL::getDriverClassName);
+    SafeTestDatabaseProperties.register(registry, MYSQL);
   }
 
   @Autowired private MerchantProfileMapper mapper;

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.familykitchen.testsupport.SafeTestFlyway;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -13,7 +14,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationVersion;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -33,15 +33,13 @@ class MerchantFeaturedDishMigrationMySqlTest {
 
   @BeforeAll
   static void migrateAroundLegacyFixture() throws Exception {
-    Flyway.configure()
-        .dataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())
+    SafeTestFlyway.configure(MYSQL)
         .locations("classpath:db/migration")
         .target(MigrationVersion.fromVersion("9"))
         .load()
         .migrate();
     seedLegacyData();
-    Flyway.configure()
-        .dataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())
+    SafeTestFlyway.configure(MYSQL)
         .locations("classpath:db/migration")
         .load()
         .migrate();

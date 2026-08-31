@@ -8,6 +8,7 @@ import com.familykitchen.common.error.BusinessException;
 import com.familykitchen.common.security.CurrentUserContext;
 import com.familykitchen.dish.model.dto.DishStatusRequest;
 import com.familykitchen.dish.service.DishApplicationService;
+import com.familykitchen.testsupport.SafeTestDatabaseProperties;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,12 +25,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /** Real-MySQL concurrency checks for merchant-wide recommendation invariants. */
 @Testcontainers(disabledWithoutDocker = true)
+@ActiveProfiles("test-container")
 @SpringBootTest(properties = {
     "spring.mail.host=localhost",
     "spring.mail.username=test",
@@ -55,10 +58,7 @@ class MerchantFeaturedDishConcurrencyMySqlTest {
 
   @DynamicPropertySource
   static void mysqlProperties(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
-    registry.add("spring.datasource.username", MYSQL::getUsername);
-    registry.add("spring.datasource.password", MYSQL::getPassword);
-    registry.add("spring.datasource.driver-class-name", MYSQL::getDriverClassName);
+    SafeTestDatabaseProperties.register(registry, MYSQL);
   }
 
   @Autowired private DishApplicationService dishes;

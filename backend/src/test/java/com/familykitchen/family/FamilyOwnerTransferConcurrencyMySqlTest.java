@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.familykitchen.common.security.CurrentUserContext;
 import com.familykitchen.family.service.FamilyMemberApplicationService;
+import com.familykitchen.testsupport.SafeTestDatabaseProperties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -20,12 +21,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /** 真实 MySQL 下的负责人并发移交不变量测试。 */
 @Testcontainers(disabledWithoutDocker = true)
+@ActiveProfiles("test-container")
 @SpringBootTest(properties = {
     "spring.mail.host=localhost",
     "spring.mail.username=test",
@@ -53,10 +56,7 @@ class FamilyOwnerTransferConcurrencyMySqlTest {
 
   @DynamicPropertySource
   static void mysqlProperties(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
-    registry.add("spring.datasource.username", MYSQL::getUsername);
-    registry.add("spring.datasource.password", MYSQL::getPassword);
-    registry.add("spring.datasource.driver-class-name", MYSQL::getDriverClassName);
+    SafeTestDatabaseProperties.register(registry, MYSQL);
   }
 
   @Autowired private FamilyMemberApplicationService families;

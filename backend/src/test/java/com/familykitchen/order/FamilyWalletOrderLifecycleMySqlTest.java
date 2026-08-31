@@ -8,6 +8,7 @@ import com.familykitchen.common.security.CurrentUserContext;
 import com.familykitchen.order.service.FamilyOrderApplicationService;
 import com.familykitchen.order.service.MerchantOrderApplicationService;
 import com.familykitchen.wallet.service.FamilyWalletService;
+import com.familykitchen.testsupport.SafeTestDatabaseProperties;
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -22,12 +23,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /** Exercises order/hold/account lock ordering on a disposable MySQL database. */
 @Testcontainers(disabledWithoutDocker = true)
+@ActiveProfiles("test-container")
 @SpringBootTest(properties = {
     "family-kitchen.instance.lease-enabled=false", "family-kitchen.migration.mode=OFF",
     "spring.mail.host=localhost", "spring.mail.username=test", "spring.mail.password=test",
@@ -42,10 +45,7 @@ class FamilyWalletOrderLifecycleMySqlTest {
       .withPassword("lifecycle_test");
 
   @DynamicPropertySource static void datasource(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
-    registry.add("spring.datasource.username", MYSQL::getUsername);
-    registry.add("spring.datasource.password", MYSQL::getPassword);
-    registry.add("spring.datasource.driver-class-name", MYSQL::getDriverClassName);
+    SafeTestDatabaseProperties.register(registry, MYSQL);
   }
 
   @Autowired MerchantOrderApplicationService merchantOrders;

@@ -7,6 +7,7 @@ import com.familykitchen.cart.mapper.CartMapper;
 import com.familykitchen.cart.model.entity.CartItemEntity;
 import com.familykitchen.cart.model.entity.CartItemSelectionEntity;
 import com.familykitchen.cart.service.ActiveCartMemberCleanupService;
+import com.familykitchen.testsupport.SafeTestDatabaseProperties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -21,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.MySQLContainer;
@@ -29,6 +31,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 /** Verifies exit-versus-order-snapshot serialization on disposable MySQL 8. */
 @Testcontainers(disabledWithoutDocker = true)
+@ActiveProfiles("test-container")
 @SpringBootTest(properties = {
     "family-kitchen.instance.lease-enabled=false", "family-kitchen.migration.mode=OFF",
     "spring.mail.host=localhost", "spring.mail.username=test", "spring.mail.password=test",
@@ -46,10 +49,7 @@ class FamilyMemberCartCleanupConcurrencyMySqlTest {
 
   @DynamicPropertySource
   static void datasource(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
-    registry.add("spring.datasource.username", MYSQL::getUsername);
-    registry.add("spring.datasource.password", MYSQL::getPassword);
-    registry.add("spring.datasource.driver-class-name", MYSQL::getDriverClassName);
+    SafeTestDatabaseProperties.register(registry, MYSQL);
   }
 
   @Autowired

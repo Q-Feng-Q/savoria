@@ -5,6 +5,7 @@ import com.familykitchen.user.mapper.UserRoleMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Spring Boot 容器装配测试。
@@ -28,6 +29,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
     ,"family-kitchen.account-cancellation.cron=-"
     ,"family-kitchen.instance.lease-enabled=false"
 })
+@ActiveProfiles("test-h2")
 class ApplicationContextTest {
 
   @MockBean

@@ -7,6 +7,7 @@ import com.familykitchen.common.idempotency.CommandIdempotencyService;
 import com.familykitchen.common.idempotency.CommandIdempotencyMapper;
 import com.familykitchen.common.error.BusinessException;
 import com.familykitchen.wallet.service.FamilyWalletService;
+import com.familykitchen.testsupport.SafeTestDatabaseProperties;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,12 +27,14 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /** Real MySQL row-lock, terminal-transition, and persistent replay races. */
 @Testcontainers(disabledWithoutDocker = true)
+@ActiveProfiles("test-container")
 @SpringBootTest(properties={"family-kitchen.instance.lease-enabled=false","family-kitchen.migration.mode=OFF",
     "spring.mail.host=localhost","spring.mail.username=test","spring.mail.password=test",
     "family-kitchen.wechat.app-id=test","family-kitchen.wechat.app-secret=test",
@@ -40,7 +43,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class FamilyWalletConcurrencyMySqlTest {
   @Container static final MySQLContainer<?> MYSQL=new MySQLContainer<>("mysql:8.0.36")
       .withDatabaseName("family_wallet_concurrency").withUsername("wallet_test").withPassword("wallet_test");
-  @DynamicPropertySource static void datasource(DynamicPropertyRegistry r){r.add("spring.datasource.url",MYSQL::getJdbcUrl);r.add("spring.datasource.username",MYSQL::getUsername);r.add("spring.datasource.password",MYSQL::getPassword);r.add("spring.datasource.driver-class-name",MYSQL::getDriverClassName);}
+  @DynamicPropertySource static void datasource(DynamicPropertyRegistry r){SafeTestDatabaseProperties.register(r, MYSQL);}
   @Autowired FamilyWalletService wallets;@Autowired CommandIdempotencyService commands;@Autowired JdbcTemplate jdbc;
   @Autowired CommandIdempotencyMapper commandMapper;@Autowired PlatformTransactionManager transactionManager;
   /** Exceptions observed by the latest race. */

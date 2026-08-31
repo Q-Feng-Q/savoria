@@ -11,6 +11,8 @@ import com.familykitchen.migration.FamilyCartWalletMigrationRunner;
 import com.familykitchen.migration.FamilyCartWalletMigrationService;
 import com.familykitchen.migration.FamilyWalletMigrationBarrierService;
 import com.familykitchen.migration.FamilyWalletMigrationLeaseService;
+import com.familykitchen.testsupport.SafeTestDatabaseProperties;
+import com.familykitchen.testsupport.SafeTestFlyway;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -35,12 +37,14 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /** Real MySQL recovery and concurrency tests; skipped honestly when Docker is unavailable. */
 @Testcontainers(disabledWithoutDocker = true)
+@ActiveProfiles("test-container")
 @SpringBootTest(classes = FamilyCartWalletMigrationRecoveryMySqlTest.TestApp.class,
     properties = {"spring.flyway.enabled=false", "family-kitchen.migration.mode=OFF",
         "family-kitchen.instance.lease-enabled=false"})
@@ -50,9 +54,7 @@ class FamilyCartWalletMigrationRecoveryMySqlTest {
       .withDatabaseName("runner_family_wallet_disposable").withUsername("runner_test").withPassword("runner_test");
 
   @DynamicPropertySource static void datasource(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
-    registry.add("spring.datasource.username", MYSQL::getUsername);
-    registry.add("spring.datasource.password", MYSQL::getPassword);
+    SafeTestDatabaseProperties.register(registry, MYSQL);
   }
 
   @Autowired JdbcTemplate jdbc;
@@ -60,7 +62,7 @@ class FamilyCartWalletMigrationRecoveryMySqlTest {
   @Autowired FamilyWalletMigrationLeaseService leases;
 
   @BeforeEach void resetDatabase() {
-    Flyway flyway = Flyway.configure().dataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())
+    Flyway flyway = SafeTestFlyway.configure(MYSQL)
         .locations("classpath:db/migration").cleanDisabled(false).load();
     flyway.clean(); flyway.migrate(); seedTwoFamilies();
   }

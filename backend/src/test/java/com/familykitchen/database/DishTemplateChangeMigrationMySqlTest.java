@@ -3,12 +3,12 @@ package com.familykitchen.database;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.familykitchen.testsupport.SafeTestFlyway;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.MySQLContainer;
@@ -27,8 +27,7 @@ class DishTemplateChangeMigrationMySqlTest {
 
   @BeforeAll
   static void migrate() {
-    Flyway.configure()
-        .dataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())
+    SafeTestFlyway.configure(MYSQL)
         .locations("classpath:db/migration")
         .load()
         .migrate();

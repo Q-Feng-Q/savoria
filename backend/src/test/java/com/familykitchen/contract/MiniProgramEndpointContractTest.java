@@ -22,7 +22,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.test.context.ActiveProfiles;
 
+/** Verifies that the mini-program API inventory and controller routes remain in sync. */
+@ActiveProfiles("test-mvc")
 class MiniProgramEndpointContractTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -135,6 +138,16 @@ class MiniProgramEndpointContractTest {
     return paths.length == 0 ? "" : paths[0];
   }
 
+  /**
+   * One declared mini-program operation.
+   *
+   * @param operation stable operation key
+   * @param pages owning mini-program pages or runtimes
+   * @param method HTTP method
+   * @param backendRoute backend route
+   * @param controllerFqcn controller class name
+   * @param controllerMethod controller method name
+   */
   record EndpointContract(
       String operation,
       List<String> pages,
