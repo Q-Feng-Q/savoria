@@ -10,6 +10,7 @@ import com.familykitchen.testsupport.TestDatabaseOwnership;
 import com.familykitchen.testsupport.TestDatabaseUrlGuard;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.MySQLContainer;
@@ -106,36 +107,63 @@ class TestDatabaseIsolationContractTest {
 
   @Test
   void everyMysqlIntegrationTestUsesTheOwnedContainerAdapters() throws Exception {
-    List<String> springTests = List.of(
-        "cart/SharedCartConcurrencyMySqlTest.java",
-        "database/FamilyCartWalletMigrationRecoveryMySqlTest.java",
-        "dish/MerchantFeaturedDishConcurrencyMySqlTest.java",
-        "family/FamilyMemberCartCleanupConcurrencyMySqlTest.java",
-        "family/FamilyOwnerTransferConcurrencyMySqlTest.java",
-        "merchant/MerchantProfileMySqlTest.java",
-        "order/FamilyOrderSubmissionMySqlTest.java",
-        "order/FamilyWalletOrderLifecycleMySqlTest.java",
-        "wallet/FamilyWalletConcurrencyMySqlTest.java");
-    for (String relative : springTests) {
-      String source = Files.readString(testSource(relative));
-      org.junit.jupiter.api.Assertions.assertTrue(source.contains("@ActiveProfiles(\"test-container\")"), relative);
-      org.junit.jupiter.api.Assertions.assertTrue(source.contains("SafeTestDatabaseProperties.register"), relative);
-      org.junit.jupiter.api.Assertions.assertFalse(source.contains("spring.datasource.url\""), relative);
+    List<Path> mysqlTests = new ArrayList<>();
+    try (var files = Files.walk(testJavaRoot())) {
+      for (Path file : files.filter(path -> path.toString().endsWith("MySqlTest.java")).toList()) {
+        String source = Files.readString(file);
+        if (!source.contains("new MySQLContainer")) {
+          continue;
+        }
+        mysqlTests.add(file);
+        String relative = testJavaRoot().relativize(file).toString();
+        org.junit.jupiter.api.Assertions.assertTrue(source.contains("MYSQL_OWNER"), relative);
+        org.junit.jupiter.api.Assertions.assertTrue(
+            source.contains("TestDatabaseOwnership.register(MYSQL)"), relative);
+        org.junit.jupiter.api.Assertions.assertFalse(source.contains("jdbc:mysql:"), relative);
+        org.junit.jupiter.api.Assertions.assertFalse(
+            source.contains("registry.add(\"spring.datasource.url\""), relative);
+        org.junit.jupiter.api.Assertions.assertFalse(source.contains("Flyway.configure()"), relative);
+
+        if (source.contains("@SpringBootTest")) {
+          org.junit.jupiter.api.Assertions.assertTrue(
+              source.contains("@ActiveProfiles(\"test-container\")"), relative);
+          org.junit.jupiter.api.Assertions.assertTrue(
+              source.contains("SafeTestDatabaseProperties.register"), relative);
+        }
+        if (source.contains(".migrate()")) {
+          org.junit.jupiter.api.Assertions.assertTrue(
+              source.contains("SafeTestFlyway.configure(MYSQL_OWNER)"), relative);
+        }
+        if (source.contains("DriverManager.getConnection")) {
+          org.junit.jupiter.api.Assertions.assertTrue(source.contains(
+              "DriverManager.getConnection(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())"),
+              relative);
+        }
+      }
     }
-    for (String relative : List.of(
-        "database/DishTemplateChangeMigrationMySqlTest.java",
-        "database/FamilyCartWalletMigrationMySqlTest.java",
-        "database/FamilyCartWalletMigrationRecoveryMySqlTest.java",
-        "database/MerchantFeaturedDishMigrationMySqlTest.java")) {
-      String source = Files.readString(testSource(relative));
-      org.junit.jupiter.api.Assertions.assertTrue(source.contains("SafeTestFlyway.configure"), relative);
-      org.junit.jupiter.api.Assertions.assertFalse(source.contains("Flyway.configure()"), relative);
-    }
+    org.junit.jupiter.api.Assertions.assertFalse(mysqlTests.isEmpty(),
+        "MySQL test discovery unexpectedly found no integration tests");
   }
 
-  private static Path testSource(String relative) {
+  @Test
+  void finalPropertyGuardIsLoadedAsTestAutoConfiguration() throws Exception {
+    Path imports = testResourcesRoot().resolve(
+        "META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports");
+    org.junit.jupiter.api.Assertions.assertTrue(Files.exists(imports));
+    org.junit.jupiter.api.Assertions.assertTrue(Files.readString(imports).contains(
+        "com.familykitchen.testsupport.TestDatabaseGuardAutoConfiguration"));
+  }
+
+  private static Path backendRoot() {
     Path cwd = Path.of(System.getProperty("user.dir"));
-    Path backend = Files.isDirectory(cwd.resolve("src/test/java")) ? cwd : cwd.resolve("backend");
-    return backend.resolve("src/test/java/com/familykitchen").resolve(relative);
+    return Files.isDirectory(cwd.resolve("src/test/java")) ? cwd : cwd.resolve("backend");
+  }
+
+  private static Path testJavaRoot() {
+    return backendRoot().resolve("src/test/java");
+  }
+
+  private static Path testResourcesRoot() {
+    return backendRoot().resolve("src/test/resources");
   }
 }

@@ -19,10 +19,10 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -162,7 +162,7 @@ class MiniProgramEndpointContractTest {
   }
 
   /** Minimal datasource-free Spring configuration for the endpoint contract suite. */
-  @SpringBootConfiguration
+  @Configuration(proxyBeanMethods = false)
   @EnableAutoConfiguration
   static class MvcContractConfiguration { }
 

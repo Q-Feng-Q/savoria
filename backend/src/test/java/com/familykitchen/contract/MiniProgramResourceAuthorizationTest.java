@@ -106,7 +106,7 @@ class MiniProgramResourceAuthorizationTest {
 
   @ParameterizedTest(name = "{0} [{1}/{2}]")
   @MethodSource("serviceBoundaryCases")
-  void serviceBoundariesRejectForgedIdsBeforeMutation(
+  void serviceBoundariesEnforceAuthenticatedTenantAndPreventRejectedWrites(
       String resource, String role, String scope, Executable scenario) throws Throwable {
     scenario.execute();
   }

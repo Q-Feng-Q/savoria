@@ -13,12 +13,12 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 /** Exercises the datasource-free MVC profile through a real Spring bootstrap. */
@@ -72,7 +72,7 @@ class TestMvcProfileBootstrapTest {
   }
 
   /** Minimal configuration used to prove database auto-configuration stays disabled. */
-  @SpringBootConfiguration
+  @Configuration(proxyBeanMethods = false)
   @EnableAutoConfiguration
   static class MvcProbeConfiguration {
 
