@@ -25,6 +25,23 @@ test('paged collection loader requests every page, preserves order and deduplica
   assert.deepEqual(result.map(({ id }) => id), [1, 2, 3, 4])
 })
 
+test('paged collection loader continues past a fully duplicated page while total is incomplete', async () => {
+  const { loadAllPages } = require('../utils/pagination')
+  const requestedPages = []
+  const result = await loadAllPages(async ({ page, pageSize }) => {
+    requestedPages.push(page)
+    const pages = {
+      1: [{ id: 1 }, { id: 2 }],
+      2: [{ id: 1 }, { id: 2 }],
+      3: [{ id: 3 }, { id: 4 }]
+    }
+    return { items: pages[page] || [], total: 4, page, pageSize }
+  }, { pageSize: 2, keyOf: (item) => item.id })
+
+  assert.deepEqual(requestedPages, [1, 2, 3])
+  assert.deepEqual(result.map(({ id }) => id), [1, 2, 3, 4])
+})
+
 test('paged collection loader also supports list-only responses', async () => {
   const { loadAllPages } = require('../utils/pagination')
   const requestedPages = []

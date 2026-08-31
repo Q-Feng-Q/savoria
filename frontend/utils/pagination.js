@@ -8,8 +8,10 @@ async function loadAllPages(fetchPage, options = {}) {
   const keyOf = options.keyOf || ((item) => item && item.id)
   const itemsOf = options.itemsOf || defaultItems
   const maxPages = Math.max(1, Number(options.maxPages) || 1000)
+  const maxStagnantPages = Math.max(1, Number(options.maxStagnantPages) || 3)
   const rows = []
   const seen = new Set()
+  let stagnantPages = 0
 
   for (let page = 1; page <= maxPages; page += 1) {
     const pageData = await fetchPage({ page, pageSize })
@@ -25,7 +27,14 @@ async function loadAllPages(fetchPage, options = {}) {
     })
 
     const total = Number(pageData && !Array.isArray(pageData) ? pageData.total : NaN)
-    if (Number.isFinite(total) && rows.length >= total) return rows
+    if (Number.isFinite(total)) {
+      if (rows.length >= total) return rows
+      stagnantPages = added === 0 ? stagnantPages + 1 : 0
+      if (pageRows.length === 0 || stagnantPages >= maxStagnantPages) {
+        throw new Error(`分页数据不完整：期望 ${total} 条，实际加载 ${rows.length} 条`)
+      }
+      continue
+    }
     if (pageRows.length < pageSize || pageRows.length === 0 || added === 0) return rows
   }
 

@@ -1,7 +1,7 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
 const { sessionStore } = require('../../../utils/session');
 const { requireSession, showApiError } = require('../../../utils/page-api');
-const { createIdentityLoadGuard } = require('../../../utils/identity-load');
+const { createIdentityLoadGuard, identityKey } = require('../../../utils/identity-load');
 const {
   buildOwnerOptions,
   createProfileSnapshot,
@@ -39,6 +39,7 @@ function createFamilyManagementPage(dependencies = {}) {
   const askConfirm = dependencies.confirm || defaultConfirm;
     const wxApi = dependencies.wxApi || (typeof wx === 'undefined' ? {} : wx);
     const identityLoad = (dependencies.createIdentityLoadGuard || createIdentityLoadGuard)(() => store.getSession());
+    const isCurrentIdentity = (token) => Boolean(token) && identityKey(store.getSession()) === token;
 
     return {
       identityLoad,
@@ -237,10 +238,12 @@ function createFamilyManagementPage(dependencies = {}) {
         confirmColor: '#b7473d'
       });
       if (!confirmed || this.data.transferBusy || !this.data.isOwner) return;
+      const mutationIdentity = identityKey(store.getSession() || getSession());
       this.setData({ transferBusy: true });
       try {
         const runtime = createRuntime();
         await runtime.family.transferOwner({ targetMemberId: target.memberId });
+        if (!isCurrentIdentity(mutationIdentity)) return;
         const closedSession = failClosedOwnerSession(store.getSession() || getSession() || {});
         store.setSession(closedSession);
         this.setData({
@@ -254,19 +257,25 @@ function createFamilyManagementPage(dependencies = {}) {
         });
         try {
           const context = await runtime.user.getContext();
+          if (!isCurrentIdentity(mutationIdentity)) return;
           store.setSession(failClosedOwnerSession(mergeIdentityContext(closedSession, context)));
         } catch (refreshError) {
-          if (wxApi.showToast) wxApi.showToast({ title: '已完成移交，请重新进入页面', icon: 'none' });
+          if (isCurrentIdentity(mutationIdentity) && wxApi.showToast) {
+            wxApi.showToast({ title: '已完成移交，请重新进入页面', icon: 'none' });
+          }
         }
         try {
           const refreshed = await runtime.family.getInfo();
+          if (!isCurrentIdentity(mutationIdentity)) return;
           this.setData({
             info: refreshed,
             profileSnapshot: createProfileSnapshot(refreshed),
             profileDraft: createProfileSnapshot(refreshed)
           });
         } catch (refreshError) {
-          if (wxApi.showToast) wxApi.showToast({ title: '已完成移交，家庭资料刷新失败', icon: 'none' });
+          if (isCurrentIdentity(mutationIdentity) && wxApi.showToast) {
+            wxApi.showToast({ title: '已完成移交，家庭资料刷新失败', icon: 'none' });
+          }
         }
       } catch (error) {
         reportError(error, '负责人移交失败');
@@ -359,10 +368,11 @@ function createFamilyManagementPage(dependencies = {}) {
         confirmText: '确认退出',
         confirmColor: '#b7473d'
       })) return;
+      const mutationIdentity = identityKey(store.getSession() || getSession());
       this.setData({ busy: true });
       try {
         await createRuntime().family.exitFamily();
-        await this.finishFamilyChange('已退出家庭');
+        await this.finishFamilyChange('已退出家庭', mutationIdentity);
       } catch (error) {
         reportError(error, '退出家庭失败');
       } finally {
@@ -378,10 +388,11 @@ function createFamilyManagementPage(dependencies = {}) {
         confirmText: '确认解散',
         confirmColor: '#b7473d'
       })) return;
+      const mutationIdentity = identityKey(store.getSession() || getSession());
       this.setData({ busy: true });
       try {
         await createRuntime().family.dissolveFamily();
-        await this.finishFamilyChange('家庭已解散');
+        await this.finishFamilyChange('家庭已解散', mutationIdentity);
       } catch (error) {
         reportError(error, '解散家庭失败');
       } finally {
@@ -389,10 +400,12 @@ function createFamilyManagementPage(dependencies = {}) {
       }
     },
 
-    async finishFamilyChange(message) {
+    async finishFamilyChange(message, mutationIdentity) {
+      if (!isCurrentIdentity(mutationIdentity)) return false;
       const session = store.getSession();
+      let completedIdentity = mutationIdentity;
       if (session) {
-        store.setSession({
+        const completedSession = store.setSession({
           ...session,
           familyId: null,
           memberId: null,
@@ -400,11 +413,15 @@ function createFamilyManagementPage(dependencies = {}) {
           activeMode: 'family',
           roleTemplate: 'user'
         });
+        completedIdentity = identityKey(completedSession);
       }
       if (wxApi.showToast) wxApi.showToast({ title: message, icon: 'success' });
       setTimeout(() => {
-        if (wxApi.reLaunch) wxApi.reLaunch({ url: '/pages/family/family-start/index' });
+        if (isCurrentIdentity(completedIdentity) && wxApi.reLaunch) {
+          wxApi.reLaunch({ url: '/pages/family/family-start/index' });
+        }
       }, 400);
+      return true;
     }
   };
 }

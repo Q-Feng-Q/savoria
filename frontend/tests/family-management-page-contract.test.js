@@ -19,6 +19,8 @@ function harness(overrides = {}) {
     permissionCodes: ['FAMILY_MEMBER', 'FAMILY_ADMIN'],
     availableModes: ['family']
   };
+  let currentSession = { ...session };
+  const relaunches = [];
   let transferCalls = 0;
   let updateCalls = 0;
   const runtime = {
@@ -34,6 +36,8 @@ function harness(overrides = {}) {
       getAddresses: async () => [{ addressId: 1, defaultAddress: true, contactName: '林女士', contactPhone: '13800000000', addressText: '春风路 1 号' }],
       getOwnerCandidates: async () => [{ memberId: 11, displayName: '阿禾', phoneSuffix: '2318' }],
       transferOwner: async () => { transferCalls += 1; },
+      exitFamily: async () => {},
+      dissolveFamily: async () => {},
       getMyInvitations: async () => [],
       getJoinApplications: async () => []
     }
@@ -42,18 +46,29 @@ function harness(overrides = {}) {
   Object.assign(runtime.family, overrides.family || {});
   const definition = pageModule.createFamilyManagementPage({
     createRuntime: () => runtime,
-    requireSession: () => session,
-    sessionStore: { getSession: () => session, setSession: (value) => { stored.push(value); return value; } },
+    requireSession: () => currentSession,
+    sessionStore: {
+      getSession: () => currentSession,
+      setSession: (value) => { currentSession = value; stored.push(value); return value; }
+    },
     showApiError: () => {},
     confirm: overrides.confirm || (async () => true),
-    wxApi: { showToast() {}, navigateTo() {}, reLaunch() {}, setClipboardData() {} }
+    wxApi: { showToast() {}, navigateTo() {}, reLaunch(options) { relaunches.push(options); }, setClipboardData() {} }
   });
   const page = {
     ...definition,
     data: JSON.parse(JSON.stringify(definition.data)),
     setData(patch) { this.data = { ...this.data, ...patch }; }
   };
-  return { page, runtime, stored, calls: () => ({ transferCalls, updateCalls }) };
+  return {
+    page,
+    runtime,
+    stored,
+    relaunches,
+    setActiveSession(value) { currentSession = value; },
+    getActiveSession() { return currentSession; },
+    calls: () => ({ transferCalls, updateCalls })
+  };
 }
 
 test('template uses picker and custom controls without owner id input', () => {
@@ -260,4 +275,58 @@ test('successful transfer refreshes family info without restoring owner controls
   assert.equal(page.data.isOwner, false);
   assert.equal(page.data.isAdmin, false);
   assert.equal(stored.at(-1).familyRole, 'MEMBER');
+});
+
+test('late owner transfer completion never rewrites a newly selected account', async () => {
+  let releaseTransfer;
+  let markStarted;
+  const pending = new Promise((resolve) => { releaseTransfer = resolve; });
+  const started = new Promise((resolve) => { markStarted = resolve; });
+  const active = harness({
+    family: { transferOwner: async () => { markStarted(); await pending; } }
+  });
+  await active.page.load();
+  active.page.setData({ selectedOwner: active.page.data.ownerOptions[0] });
+
+  const request = active.page.transferOwner();
+  await started;
+  const accountB = {
+    userId: 9, accessToken: 'account-b', activeMode: 'family', familyId: 20,
+    memberId: 90, familyRole: 'OWNER', roleTemplate: 'owner',
+    permissionCodes: ['FAMILY_MEMBER', 'FAMILY_ADMIN'], availableModes: ['family']
+  };
+  active.setActiveSession(accountB);
+  releaseTransfer();
+  await request;
+
+  assert.deepEqual(active.getActiveSession(), accountB);
+  assert.equal(active.page.data.isOwner, true);
+});
+
+test('late exit and dissolve completion never clear a newly selected account', async () => {
+  for (const operation of ['exitFamily', 'dissolveFamily']) {
+    let releaseMutation;
+    let markStarted;
+    const pending = new Promise((resolve) => { releaseMutation = resolve; });
+    const started = new Promise((resolve) => { markStarted = resolve; });
+    const active = harness({
+      family: { [operation]: async () => { markStarted(); await pending; } }
+    });
+    await active.page.load();
+    active.page.setData({ isOwner: operation === 'dissolveFamily' });
+
+    const request = active.page[operation]();
+    await started;
+    const accountB = {
+      userId: 9, accessToken: 'account-b', activeMode: 'family', familyId: 20,
+      memberId: 90, familyRole: 'OWNER', roleTemplate: 'owner',
+      permissionCodes: ['FAMILY_MEMBER', 'FAMILY_ADMIN'], availableModes: ['family']
+    };
+    active.setActiveSession(accountB);
+    releaseMutation();
+    await request;
+
+    assert.deepEqual(active.getActiveSession(), accountB, operation);
+    assert.equal(active.relaunches.length, 0, operation);
+  }
 });
