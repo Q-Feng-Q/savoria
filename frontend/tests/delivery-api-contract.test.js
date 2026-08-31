@@ -65,6 +65,18 @@ if (fs.existsSync(contractsPath)) {
     }
   })
 
+  test('query contracts use named parameters instead of string character indexes', () => {
+    for (const key of [
+      'family.getMenuItems', 'family.getWalletLedgers', 'merchant.getDishTemplates',
+      'merchant.getDishTemplateChanges', 'merchant.getFamilyWalletLedgers',
+      'notifications.getNotifications', 'purchase.getSummary'
+    ]) {
+      const contract = contractByKey[key]
+      assert.match(contract.path, /[?&]page=2(?:&|$)/, key)
+      assert.doesNotMatch(contract.path, /[?&]0=/, key)
+    }
+  })
+
   for (const contract of contracts) {
     test(`service contract ${contract.key}`, async () => {
       const captured = []

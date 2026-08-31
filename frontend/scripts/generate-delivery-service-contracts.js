@@ -70,7 +70,7 @@ const parameterNames = (fn) => {
   const parenthesized = source.match(/^[^(]*\(([^)]*)\)/)
   const singleArrow = source.match(/^(?:async\s+)?([a-zA-Z_$][\w$]*)\s*=>/)
   const raw = parenthesized ? parenthesized[1] : (singleArrow ? singleArrow[1] : '')
-  return raw.split(',').map((name) => name.trim()).filter(Boolean)
+  return raw.split(',').map((name) => name.split('=')[0].trim()).filter(Boolean)
 }
 
 const argumentFor = (name, index) => {
