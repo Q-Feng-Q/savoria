@@ -111,11 +111,10 @@ class TestDatabaseIsolationContractTest {
     try (var files = Files.walk(testJavaRoot())) {
       for (Path file : files.filter(path -> path.toString().endsWith("MySqlTest.java")).toList()) {
         String source = Files.readString(file);
-        if (!source.contains("new MySQLContainer")) {
-          continue;
-        }
         mysqlTests.add(file);
         String relative = testJavaRoot().relativize(file).toString();
+        org.junit.jupiter.api.Assertions.assertTrue(source.contains("new MySQLContainer"),
+            relative + ": every MySQL test must use an owned Testcontainer");
         org.junit.jupiter.api.Assertions.assertTrue(source.contains("MYSQL_OWNER"), relative);
         org.junit.jupiter.api.Assertions.assertTrue(
             source.contains("TestDatabaseOwnership.register(MYSQL)"), relative);
@@ -134,15 +133,42 @@ class TestDatabaseIsolationContractTest {
           org.junit.jupiter.api.Assertions.assertTrue(
               source.contains("SafeTestFlyway.configure(MYSQL_OWNER)"), relative);
         }
-        if (source.contains("DriverManager.getConnection")) {
+        if (source.contains("DriverManager." + "getConnection")) {
           org.junit.jupiter.api.Assertions.assertTrue(source.contains(
-              "DriverManager.getConnection(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())"),
+              "DriverManager." + "getConnection(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())"),
               relative);
         }
       }
     }
     org.junit.jupiter.api.Assertions.assertFalse(mysqlTests.isEmpty(),
         "MySQL test discovery unexpectedly found no integration tests");
+  }
+
+  @Test
+  void rawJdbcEntrypointsAcrossTheTestTreeCannotBypassOwnedContainers() throws Exception {
+    String rawJdbcCall = "DriverManager." + "getConnection";
+    String ownedJdbcCall = "DriverManager." + "getConnection(MYSQL.getJdbcUrl(), MYSQL.getUsername(), "
+        + "MYSQL.getPassword())";
+    List<String> mysqlUrlAllowlist = List.of(
+        "com/familykitchen/database/TestContainerFinalPropertyGuardTest.java",
+        "com/familykitchen/database/TestDatabaseIsolationContractTest.java",
+        "com/familykitchen/database/TestMvcProfileBootstrapTest.java");
+    try (var files = Files.walk(testJavaRoot())) {
+      for (Path file : files.filter(path -> path.toString().endsWith(".java")).toList()) {
+        String source = Files.readString(file);
+        String relative = testJavaRoot().relativize(file).toString().replace('\\', '/');
+        if (source.contains("jdbc:mysql:")) {
+          org.junit.jupiter.api.Assertions.assertTrue(mysqlUrlAllowlist.contains(relative),
+              relative + ": literal MySQL URLs are allowed only in negative guard tests");
+        }
+        if (source.contains(rawJdbcCall)) {
+          org.junit.jupiter.api.Assertions.assertTrue(relative.endsWith("MySqlTest.java"),
+              relative + ": raw JDBC is allowed only in owned MySQL integration tests");
+          org.junit.jupiter.api.Assertions.assertTrue(source.contains("MYSQL_OWNER"), relative);
+          org.junit.jupiter.api.Assertions.assertTrue(source.contains(ownedJdbcCall), relative);
+        }
+      }
+    }
   }
 
   @Test
