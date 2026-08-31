@@ -28,7 +28,8 @@ function decorateIngredients(rows) {
 
 Page({
   data: { phase: 'loading', errorMessage: '', detail: null, comparison: [], baseIngredients: [], targetIngredients: [], withdrawing: false },
-  onLoad(options) { this.requestId = Number(options.id); this.load(); },
+  onLoad(options) { this.requestId = Number(options.id); },
+  onShow() { this.load(); },
   onPullDownRefresh() { this.load().finally(() => wx.stopPullDownRefresh()); },
   async load() {
     if (!requireSession({ merchantOnly: true })) return;

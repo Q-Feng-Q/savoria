@@ -10,7 +10,7 @@ const FILTERS = [
 
 Page({
   data: { phase: 'loading', errorMessage: '', filters: FILTERS, status: '', keyword: '', rows: [], page: 1, pageSize: 20, total: 0, hasMore: false, loadingMore: false },
-  onLoad() { this.load(true); },
+  onShow() { this.load(true); },
   onPullDownRefresh() { this.load(true).finally(() => wx.stopPullDownRefresh()); },
   onReachBottom() { this.loadMore(); },
   inputKeyword(event) { this.setData({ keyword: event.detail.value }); },

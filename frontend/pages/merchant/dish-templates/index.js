@@ -21,7 +21,7 @@ Page({
     loadingMore: false, refreshing: false, hasMore: true, importing: false, importingAll: false
   },
   selection: createDishTemplateSelection(),
-  onLoad() { this.load({ reset: true }); },
+  onShow() { this.load({ reset: true }); },
   onReachBottom() { return this.loadMore(); },
   onPullDownRefresh() { this.load({ reset: true }).finally(() => wx.stopPullDownRefresh()); },
   async load({ reset = false, silent = false } = {}) {
