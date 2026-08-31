@@ -8,18 +8,23 @@ Page({
   identityLoad: createIdentityLoadGuard(),
   data: {
     addresses: [],
-    context: null
+    context: null,
+    phase: 'loading',
+    errorMessage: '',
+    busyAddressMap: {}
   },
 
   onShow() {
     this.load();
   },
 
-  async load() {
+  retryLoad() { return this.load(); },
+
+  async load({ silent = false } = {}) {
     const session = requireSession();
     if (!session) return;
     const loadToken = this.identityLoad.begin(session);
-    this.setData({ addresses: [], context: null });
+    if (!silent) this.setData({ phase: 'loading', errorMessage: '', addresses: [], context: null });
 
     const runtime = createApiRuntime();
     try {
@@ -30,9 +35,10 @@ Page({
         addresses
           });
       if (!this.identityLoad.isCurrent(loadToken)) return;
-      this.setData(scene);
+      this.setData({ ...scene, phase: 'ready', errorMessage: '' });
     } catch (error) {
       if (!this.identityLoad.isCurrent(loadToken)) return;
+      if (!silent) this.setData({ phase: 'error', errorMessage: (error && error.message) || '地址加载失败' });
       showApiError(error, '地址加载失败');
     }
   },
@@ -46,11 +52,14 @@ Page({
   },
 
   async setDefault(event) {
+    const id = event.currentTarget.dataset.id;
+    if (!id || this.data.busyAddressMap[id]) return;
+    this.setData({ [`busyAddressMap.${id}`]: true });
     try {
-      await createApiRuntime().family.setDefaultAddress(event.currentTarget.dataset.id);
-      await this.load();
+      await createApiRuntime().family.setDefaultAddress(id);
+      await this.load({ silent: true });
     } catch (error) {
       showApiError(error, '设置默认地址失败');
-    }
+    } finally { this.setData({ [`busyAddressMap.${id}`]: false }); }
   }
 });

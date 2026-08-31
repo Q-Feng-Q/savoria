@@ -1,4 +1,6 @@
-<view class="warm-page warm-state-host page addresses-page" wx:if="{{context}}">
+<view class="warm-page warm-state-host page addresses-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="地址簿" description="{{errorMessage || '正在读取配送地址'}}" illustration="home" bind:retry="retryLoad" />
+  <view wx:if="{{phase === 'ready'}}">
   <view class="hero">
     <text class="eyebrow">配送地址</text>
     <text class="title">地址簿</text>
@@ -17,11 +19,12 @@
         </view>
         <text class="address-text">{{item.address}}</text>
         <view class="address-actions">
-          <view wx:if="{{!item.isDefault}}" class="ui-button button secondary small-button" data-id="{{item.id}}" bindtap="setDefault" aria-role="button" aria-label="设为默认" hover-class="ui-button--pressed" hover-stay-time="80">设为默认</view>
+          <view wx:if="{{!item.isDefault}}" class="ui-button button secondary small-button {{busyAddressMap[item.id] ? 'is-disabled' : ''}}" data-id="{{item.id}}" bindtap="setDefault" aria-role="button" aria-label="设为默认" aria-disabled="{{busyAddressMap[item.id]}}" aria-busy="{{busyAddressMap[item.id]}}" hover-class="ui-button--pressed" hover-stay-time="80">{{busyAddressMap[item.id] ? '设置中…' : '设为默认'}}</view>
           <view class="ui-button button secondary small-button" data-id="{{item.id}}" bindtap="editAddress" aria-role="button" aria-label="编辑" hover-class="ui-button--pressed" hover-stay-time="80">编辑</view>
         </view>
       </view>
     </block>
+  </view>
   </view>
 </view>
 

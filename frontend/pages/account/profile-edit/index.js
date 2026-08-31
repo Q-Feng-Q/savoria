@@ -8,14 +8,18 @@ function firstCharacter(value) {
 Page({
   data: {
     loading: true,
+    phase: 'loading',
+    errorMessage: '',
     saving: false,
     mobileBindingEnabled: true,
     avatarInitial: '用',
     form: { nickname: '', avatarUrl: '', mobile: '' }
   },
   onLoad() { this.load(); },
+  retryLoad() { return this.load(); },
   async load() {
     if (!requireSession()) return;
+    this.setData({ loading: true, phase: 'loading', errorMessage: '' });
     try {
       const runtime = createApiRuntime();
       const [profile, settings] = await Promise.all([
@@ -25,11 +29,13 @@ Page({
       const nickname = profile.nickname || '';
       this.setData({
         loading: false,
+        phase: 'ready',
         mobileBindingEnabled: settings.mobileBindingEnabled !== false,
         avatarInitial: firstCharacter(nickname || profile.username),
         form: { nickname, avatarUrl: profile.avatarUrl || '', mobile: profile.mobile || '' }
       });
     } catch (error) {
+      this.setData({ loading: false, phase: 'error', errorMessage: (error && error.message) || '资料加载失败' });
       showApiError(error, '资料加载失败');
     }
   },
@@ -41,6 +47,7 @@ Page({
     this.setData(patch);
   },
   async save() {
+    if (this.data.saving) return;
     if (!this.data.form.nickname.trim()) {
       wx.showToast({ title: '请填写昵称', icon: 'none' });
       return;

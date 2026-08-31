@@ -1,4 +1,6 @@
 <view class="warm-page template-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="模板菜市场" description="{{errorMessage || '正在准备家常菜'}}" illustration="cart" bind:retry="retryLoad" />
+  <view wx:if="{{phase === 'ready'}}">
   <view class="template-head">
     <view class="template-head-copy">
       <text class="eyebrow">商户菜品库</text>
@@ -27,8 +29,7 @@
     <view class="page-select" bindtap="selectCurrentPage" aria-role="button" aria-label="全选本页模板" hover-class="ui-button--pressed">全选本页</view>
   </view>
 
-  <page-state wx:if="{{loading}}" phase="loading" title="正在准备家常菜" description="请稍候" />
-  <page-state wx:elif="{{!items.length}}" phase="empty" title="没有找到模板菜" description="换个分类或关键词试试。" illustration="cart" />
+  <page-state wx:if="{{!items.length}}" phase="empty" title="没有找到模板菜" description="换个分类或关键词试试。" illustration="cart" />
   <view wx:else class="template-list">
     <view wx:for="{{items}}" wx:key="templateId" class="template-row {{item.imported ? 'template-row--imported' : ''}}">
       <image class="template-image" src="{{item.imageUrl}}" mode="aspectFill" data-id="{{item.templateId}}" bindtap="openDetail" />
@@ -47,5 +48,6 @@
   <view class="selection-bar">
     <view class="selection-copy"><text class="selection-count">已选 {{selectedIds.length}}</text><text class="selection-clear" bindtap="clearSelection">清空</text></view>
     <view class="import-action {{!selectedIds.length || importing || importingAll ? 'import-action--disabled' : ''}}" bindtap="importSelected" aria-role="button" aria-label="导入所选菜品模板" aria-disabled="{{!selectedIds.length || importing || importingAll}}" aria-busy="{{importing || importingAll}}" hover-class="ui-button--pressed">{{importing || importingAll ? '请稍候' : '导入菜品'}}</view>
+  </view>
   </view>
 </view>

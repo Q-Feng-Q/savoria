@@ -1,4 +1,6 @@
-<view class="warm-page warm-state-host page wallet-ledger-page" wx:if="{{context}}">
+<view class="warm-page warm-state-host page wallet-ledger-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="家庭钱包流水" description="{{errorMessage || '正在读取余额变动记录'}}" illustration="wallet" bind:retry="retryLoad" />
+  <view wx:if="{{phase === 'ready'}}">
   <view class="hero">
     <text class="eyebrow">家庭钱包</text>
     <text class="title">家庭钱包流水</text>
@@ -22,5 +24,6 @@
         <text class="ledger-time">{{item.createdAt}}</text>
       </view>
     </block>
+  </view>
   </view>
 </view>

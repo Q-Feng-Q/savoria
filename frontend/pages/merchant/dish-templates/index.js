@@ -18,18 +18,20 @@ Page({
   data: {
     categories: [{ categoryId: '', name: '全部' }], categoryId: '', keyword: '', imported: '',
     items: [], page: 1, pageSize: 20, total: 0, selectedIds: [], loading: true,
-    loadingMore: false, refreshing: false, hasMore: true, importing: false, importingAll: false
+    loadingMore: false, refreshing: false, hasMore: true, importing: false, importingAll: false,
+    phase: 'loading', errorMessage: ''
   },
   selection: createDishTemplateSelection(),
   onShow() { this.load({ reset: true }); },
   onReachBottom() { return this.loadMore(); },
   onPullDownRefresh() { this.load({ reset: true }).finally(() => wx.stopPullDownRefresh()); },
+  retryLoad() { return this.load({ reset: true }); },
   async load({ reset = false, silent = false } = {}) {
     if (!requireSession({ merchantOnly: true })) return;
     const generation = (this._listGeneration || 0) + 1;
     this._listGeneration = generation;
     const page = reset ? 1 : this.data.page;
-    this.setData({ refreshing: true, loadingMore: false, ...(!silent ? { loading: true } : {}) });
+    this.setData({ refreshing: true, loadingMore: false, ...(!silent ? { loading: true, phase: 'loading', errorMessage: '' } : {}) });
     try {
       const runtime = createApiRuntime();
       const [categoryRows, result] = await Promise.all([
@@ -49,11 +51,14 @@ Page({
         total,
         hasMore: items.length < total,
         refreshing: false,
-        loading: false
+        loading: false,
+        phase: 'ready',
+        errorMessage: ''
       });
     } catch (error) {
       if (generation !== this._listGeneration) return;
-      this.setData({ refreshing: false, loadingMore: false, ...(!silent ? { loading: false } : {}) });
+      this.setData({ refreshing: false, loadingMore: false,
+        ...(!silent ? { loading: false, phase: 'error', errorMessage: (error && error.message) || '模板菜品加载失败' } : {}) });
       showApiError(error, '模板菜品加载失败');
     }
   },

@@ -9,18 +9,22 @@ Page({
   data: {
     balanceCards: [],
     latestTransactions: [],
-    context: null
+    context: null,
+    phase: 'loading',
+    errorMessage: ''
   },
 
   onShow() {
     this.load();
   },
 
+  retryLoad() { return this.load(); },
+
   async load() {
     const session = requireSession();
     if (!session) return;
     const loadToken = this.identityLoad.begin(session);
-    this.setData({ balanceCards: [], latestTransactions: [], context: null });
+    this.setData({ phase: 'loading', errorMessage: '', balanceCards: [], latestTransactions: [], context: null });
 
     const runtime = createApiRuntime();
     try {
@@ -34,9 +38,10 @@ Page({
         ledgers
       });
       if (!this.identityLoad.isCurrent(loadToken)) return;
-      this.setData(scene);
+      this.setData({ ...scene, phase: 'ready', errorMessage: '' });
     } catch (error) {
       if (!this.identityLoad.isCurrent(loadToken)) return;
+      this.setData({ phase: 'error', errorMessage: (error && error.message) || '钱包加载失败' });
       showApiError(error, '钱包加载失败');
     }
   },

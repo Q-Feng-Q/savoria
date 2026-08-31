@@ -1,4 +1,6 @@
-<view class="warm-page warm-state-host page wallet-page" wx:if="{{context}}">
+<view class="warm-page warm-state-host page wallet-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="家庭钱包" description="{{errorMessage || '正在同步家庭余额'}}" illustration="wallet" bind:retry="retryLoad" />
+  <view wx:if="{{phase === 'ready'}}">
   <view class="hero wallet-hero">
     <text class="eyebrow">家庭钱包</text>
     <text class="title">{{context.family.name}}</text>
@@ -37,6 +39,7 @@
         <text class="tx-time">{{item.createdAt}}</text>
       </view>
     </block>
+  </view>
   </view>
 </view>
 

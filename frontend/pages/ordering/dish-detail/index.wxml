@@ -1,4 +1,6 @@
-<view class="warm-page warm-state-host page dish-page" wx:if="{{scene}}">
+<view class="warm-page warm-state-host page dish-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="菜品详情" description="{{errorMessage || '正在读取菜品资料'}}" illustration="search" bind:retry="retryLoad" />
+  <view wx:if="{{phase === 'ready'}}">
   <view class="detail-hero">
     <view class="detail-plate">
       <image class="detail-dish-image" src="{{scene.dish.imageUrl}}" mode="aspectFill" />
@@ -80,6 +82,7 @@
       <text class="action-sub">保留成员选择明细，提交后由家庭钱包统一冻结并扣款。</text>
     </view>
     <view class="ui-button button detail-submit {{mutationBusy ? 'is-disabled' : ''}}" bindtap="addDish" aria-role="button" aria-disabled="{{mutationBusy}}" aria-label="加入" hover-class="ui-button--pressed" hover-stay-time="80">{{mutationBusy ? '处理中' : '加入'}}</view>
+  </view>
   </view>
 </view>
 

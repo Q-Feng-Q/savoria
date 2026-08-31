@@ -7,24 +7,33 @@ const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 Page({
   identityLoad: createIdentityLoadGuard(),
-  data: { id: '', scene: null, mutationBusy: false },
-  onLoad(query) { this.setData({ id: query.id || '' }); },
+  data: { id: '', scene: null, mutationBusy: false, phase: 'loading', errorMessage: '' },
+  onLoad(query) { this.setData({ id: (query && query.id) || '' }); },
   onShow() { this.load(); },
+  retryLoad() { return this.load(); },
   async load() {
     const session = requireSession();
     if (!session) return;
+    if (!this.data.id) {
+      this.setData({ phase: 'error', errorMessage: '缺少菜品编号', scene: null });
+      return;
+    }
     const loadToken = this.identityLoad.begin(session);
     this.source = null;
-    this.setData({ scene: null });
+    this.setData({ phase: 'loading', errorMessage: '', scene: null });
     const runtime = createApiRuntime();
     try {
       const bundle = await loadFamilyBundle(runtime);
       const [dishDetail, cart] = await Promise.all([runtime.family.getDishDetail(this.data.id), runtime.cart.getCart()]);
       if (!this.identityLoad.isCurrent(loadToken)) return;
+      if (!dishDetail) throw new Error('菜品不存在或已下架');
       this.source = { runtime, homeData: bundle.homeData, dishDetail, cart };
-      this.setData({ scene: buildApiDishDetailScene({ ...this.source, imageBaseUrl: runtime.baseUrl }) });
+      this.setData({ scene: buildApiDishDetailScene({ ...this.source, imageBaseUrl: runtime.baseUrl }), phase: 'ready', errorMessage: '' });
     } catch (error) {
-      if (this.identityLoad.isCurrent(loadToken)) showApiError(error, '菜品详情加载失败');
+      if (this.identityLoad.isCurrent(loadToken)) {
+        this.setData({ phase: 'error', errorMessage: (error && error.message) || '菜品详情加载失败' });
+        showApiError(error, '菜品详情加载失败');
+      }
     }
   },
   async addDish() {

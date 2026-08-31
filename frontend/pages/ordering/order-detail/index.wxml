@@ -1,4 +1,6 @@
-<view class="warm-page warm-state-host order-detail" wx:if="{{scene}}">
+<view class="warm-page warm-state-host order-detail">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="订单详情" description="{{errorMessage || '正在读取订单进度'}}" illustration="orders" bind:retry="retryLoad" />
+  <view wx:if="{{phase === 'ready'}}">
   <view class="detail-head"><text class="detail-head__status">{{scene.order.statusLabel}}</text><text class="detail-head__title">{{scene.order.familyName}}</text><text class="detail-head__note">预计 {{scene.order.mealLabel}} · {{scene.order.deliveryMode === 'delivery' ? '配送' : '自取'}}</text></view>
   <view class="detail-section"><view class="section-line"><text>当前进度</text><text>{{scene.order.orderNo}}</text></view><status-timeline items="{{scene.timeline}}" activeIndex="{{scene.timeline.length - 1}}" /></view>
   <view class="detail-section"><view class="section-line"><text>菜品汇总</text><text>{{scene.items.length}} 项</text></view>
@@ -9,5 +11,6 @@
     </view>
   </view>
   <view class="detail-section"><view class="section-line"><text>订单信息</text><text>{{scene.order.submitterName}}提交</text></view><text class="detail-copy">本单备注：{{scene.order.note || '无'}}</text><text wx:if="{{scene.order.addressSnapshot}}" class="detail-copy">{{scene.order.addressSnapshot.contactName}} · {{scene.order.addressSnapshot.address}}</text></view>
-  <bottom-action-bar wx:if="{{scene.canCancel}}" summary="{{scene.order.statusLabel}}" primaryText="取消订单" bind:primary="cancelOrder" />
+  <bottom-action-bar wx:if="{{scene.canCancel}}" summary="{{scene.order.statusLabel}}" primaryText="{{mutationBusy ? '取消中…' : '取消订单'}}" disabled="{{mutationBusy}}" bind:primary="cancelOrder" />
+  </view>
 </view>

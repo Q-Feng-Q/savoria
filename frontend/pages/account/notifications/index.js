@@ -47,7 +47,11 @@ Page({
     unreadCount: 0,
     unreadItems: [],
     readItems: [],
-    context: null
+    context: null,
+    phase: 'loading',
+    errorMessage: '',
+    busyReadMap: {},
+    markingAllRead: false
   },
 
   onLoad(query) {
@@ -60,11 +64,13 @@ Page({
     this.load();
   },
 
-  async load() {
+  retryLoad() { return this.load(); },
+
+  async load({ silent = false } = {}) {
     const session = requireSession();
     if (!session) return;
     const loadToken = this.identityLoad.begin(session);
-    this.setData({ unreadCount: 0, unreadItems: [], readItems: [], context: null });
+    if (!silent) this.setData({ phase: 'loading', errorMessage: '', unreadCount: 0, unreadItems: [], readItems: [], context: null });
 
     const runtime = createApiRuntime();
     const receiverScope = this.data.actorType === 'merchant'
@@ -79,31 +85,37 @@ Page({
         pageSize
       }), { pageSize: 100, keyOf: (item) => item.notificationId });
       if (!this.identityLoad.isCurrent(loadToken)) return;
-      this.setData(mapNotificationsPage(session, this.data.actorType, { items }));
+      this.setData({ ...mapNotificationsPage(session, this.data.actorType, { items }), phase: 'ready', errorMessage: '' });
     } catch (error) {
       if (!this.identityLoad.isCurrent(loadToken)) return;
+      if (!silent) this.setData({ phase: 'error', errorMessage: (error && error.message) || '通知加载失败' });
       showApiError(error, '通知加载失败');
     }
   },
 
   async markRead(event) {
+    const id = event.currentTarget.dataset.id;
+    if (!id || this.data.busyReadMap[id]) return;
+    this.setData({ [`busyReadMap.${id}`]: true });
     try {
-      await createApiRuntime().notifications.markRead(event.currentTarget.dataset.id);
-      await this.load();
+      await createApiRuntime().notifications.markRead(id);
+      await this.load({ silent: true });
     } catch (error) {
       showApiError(error, '标记已读失败');
-    }
+    } finally { this.setData({ [`busyReadMap.${id}`]: false }); }
   },
 
   async markAllRead() {
+    if (this.data.markingAllRead || !this.data.unreadCount) return;
+    this.setData({ markingAllRead: true });
     try {
       const notifications=createApiRuntime().notifications;
       if(this.data.actorType==='merchant')await notifications.markAllRead({receiverScope:'merchant'});
       else await notifications.markAllRead({receiverScope:'account'});
-      await this.load();
+      await this.load({ silent: true });
     } catch (error) {
       showApiError(error, '操作失败');
-    }
+    } finally { this.setData({ markingAllRead: false }); }
   }
 });
 

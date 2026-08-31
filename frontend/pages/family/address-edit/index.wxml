@@ -1,4 +1,6 @@
 <view class="warm-page warm-page--form warm-state-host warm-submit-state page address-edit-page">
+  <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="地址信息" description="{{errorMessage || '正在读取地址信息'}}" bind:retry="retryLoad" />
+  <view wx:if="{{phase === 'ready'}}">
   <view class="hero">
     <text class="eyebrow">地址信息</text>
     <text class="title">{{id ? '编辑地址' : '新增地址'}}</text>
@@ -8,15 +10,15 @@
   <view class="panel form-panel">
     <view class="field">
       <text class="label">联系人</text>
-      <input value="{{form.contactName}}" data-field="contactName" bindinput="bindField" placeholder="例如：陈梅" />
+      <input value="{{form.contactName}}" data-field="contactName" bindinput="bindField" placeholder="例如：陈梅" disabled="{{saving}}" />
     </view>
     <view class="field">
       <text class="label">联系电话</text>
-      <input value="{{form.phone}}" data-field="phone" bindinput="bindField" placeholder="填写收餐手机号" />
+      <input value="{{form.phone}}" data-field="phone" bindinput="bindField" placeholder="填写收餐手机号" disabled="{{saving}}" />
     </view>
     <view class="field">
       <text class="label">详细地址</text>
-      <textarea value="{{form.address}}" data-field="address" bindinput="bindField" placeholder="例如：星河路 18 号 2 栋 502" />
+      <textarea value="{{form.address}}" data-field="address" bindinput="bindField" placeholder="例如：星河路 18 号 2 栋 502" disabled="{{saving}}" />
     </view>
     <view class="default-row" bindtap="toggleDefault">
       <view class="default-check {{form.isDefault ? 'checked' : ''}}"></view>
@@ -24,6 +26,7 @@
     </view>
   </view>
 
-  <view class="ui-button button save-button" bindtap="save" aria-role="button" aria-label="保存地址" hover-class="ui-button--pressed" hover-stay-time="80">保存地址</view>
+  <view class="ui-button button save-button {{saving ? 'is-disabled' : ''}}" bindtap="save" aria-role="button" aria-label="保存地址" aria-disabled="{{saving}}" aria-busy="{{saving}}" hover-class="ui-button--pressed" hover-stay-time="80">{{saving ? '保存中…' : '保存地址'}}</view>
+  </view>
 </view>
 

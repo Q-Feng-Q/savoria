@@ -11,6 +11,7 @@
 | MP-005 | P2 | 商户修改申请列表 | 翻页期间后台新增或调整记录，后一页与已加载页重叠 | `delivery-page-behavior.test.js` / `change request pagination deduplicates rows by request id` | 直接拼接分页结果，没有按申请 ID 去重 | 商户修改申请列表、分页工具 | 相关 35 项与全量前端 484 项测试通过 | FIXED |
 | MP-006 | P1 | 账号/身份切换 | 账号 A 的请求较慢，切换到账号 B 后 A 的响应才返回 | `delivery-page-behavior.test.js`、`account-switching.test.js` | 16 个登录后刷新页面缺少请求代次与身份校验，旧响应可覆盖新页面；身份同步本身也会覆盖用户后来选择的账号 | `frontend/utils/identity-load.js`、`account-switching.js` 及账号、家庭、点菜、订单、商户审核相关页面 | 身份相邻域 45 项与全量前端 487 项测试通过 | FIXED |
 | MP-007 | P1 | 测试数据库隔离 | 运行 Spring/MySQL 或直接 Flyway 测试时，测试配置被环境变量、默认配置或后置动态属性覆盖，或测试代码直接接受任意 JDBC URL | `TestDatabaseIsolationContractTest`、`TestMvcProfileBootstrapTest`、`TestContainerFinalPropertyGuardTest` | 测试缺少强制显式 profile、最终属性合并后的 URL 白名单、当前 JVM 容器所有权令牌及业务库名拒绝，直接 Flyway 测试也可绕过统一入口 | `test-h2`/`test-mvc`/`test-container` profiles、启动前与 Bean 创建前双重数据库安全闸、`TestDatabaseOwnership`、`TestDatabaseUrlGuard`、`SafeTestDatabaseProperties`、`SafeTestFlyway` 及自动发现的所有 MySQL 测试适配 | 8 项纯隔离契约、2 项真实 Spring `test-mvc` 启动测试和 1 项后置属性覆盖阻断测试通过；Spring container 与 direct Flyway 代表测试因 Docker 不可用各明确跳过，MySQL 运行时门禁仍开放 | GATED |
+| MP-008 | P1 | 页面状态与重复提交 | 通知、资料、地址、钱包、订单或系统菜品模板接口失败；详情页缺少 ID；用户连续点击保存、取消、设默认、已读或导入 | `delivery-page-state-hardening.test.js` | 多个页面仅弹 Toast 后保持 `context/detail = null`，形成空白屏；部分写操作没有本地 busy guard；模板列表加载失败被误显示成“没有找到模板菜” | 11 个高风险页面的 JS/WXML：通知、资料编辑、地址列表/编辑、钱包/流水、订单列表/详情、菜品详情、模板列表/详情 | 定向状态契约 3/3、相邻模板/分页/WXML 29/29、全量小程序 490/490 | FIXED |
 
 ## 资源授权审查证据
 

@@ -4,6 +4,9 @@ const { requireSession, showApiError } = require('../../../utils/page-api');
 Page({
   data: {
     id: '',
+    phase: 'loading',
+    errorMessage: '',
+    saving: false,
     form: {
       contactName: '',
       phone: '',
@@ -20,14 +23,18 @@ Page({
     this.load();
   },
 
+  retryLoad() { return this.load(); },
+
   async load() {
     const session = requireSession();
     if (!session) return;
+    this.setData({ phase: 'loading', errorMessage: '' });
 
     try {
       const addresses = await createApiRuntime().family.getAddresses();
       const current = (addresses || []).find((item) => Number(item.addressId) === Number(this.data.id));
       this.setData({
+        phase: 'ready',
         form: current ? {
           contactName: current.contactName || '',
           phone: current.contactPhone || '',
@@ -41,6 +48,7 @@ Page({
         }
       });
     } catch (error) {
+      this.setData({ phase: 'error', errorMessage: (error && error.message) || '地址信息加载失败' });
       showApiError(error, '地址信息加载失败');
     }
   },
@@ -55,6 +63,7 @@ Page({
   },
 
   async save() {
+    if (this.data.saving) return;
     const form = this.data.form;
     if (!String(form.contactName || '').trim() || !String(form.phone || '').trim() || !String(form.address || '').trim()) {
       wx.showToast({ title: '请把地址信息填写完整', icon: 'none' });
@@ -68,6 +77,7 @@ Page({
       defaultAddress: Boolean(form.isDefault)
     };
 
+    this.setData({ saving: true });
     try {
       const runtime = createApiRuntime();
       if (this.data.id) {
@@ -78,6 +88,6 @@ Page({
       wx.navigateBack();
     } catch (error) {
       showApiError(error, '保存地址失败');
-    }
+    } finally { this.setData({ saving: false }); }
   }
 });
