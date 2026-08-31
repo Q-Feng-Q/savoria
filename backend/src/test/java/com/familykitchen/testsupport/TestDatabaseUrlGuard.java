@@ -28,14 +28,15 @@ public final class TestDatabaseUrlGuard {
   /**
    * Requires datasource coordinates to match a running test-owned container.
    *
-   * @param container container owned by the current test JVM
+   * @param ownership registration for a container owned by the current test JVM
    * @param url resolved datasource URL
    * @param username resolved datasource user
    * @param password resolved datasource password
    * @param profile active test profile
    */
-  public static void requireOwnedContainer(MySQLContainer<?> container, String url,
+  public static void requireOwnedContainer(TestDatabaseOwnership.Registration ownership, String url,
       String username, String password, String profile) {
+    MySQLContainer<?> container = TestDatabaseOwnership.require(ownership);
     if (!"test-container".equals(profile)) {
       throw unsafe("container datasource requires test-container", profile, url);
     }
@@ -52,6 +53,10 @@ public final class TestDatabaseUrlGuard {
       endpoint = URI.create(normalized(url).substring("jdbc:".length()));
     } catch (RuntimeException error) {
       throw unsafe("invalid container JDBC URL", profile, url);
+    }
+    String databaseName = endpoint.getPath() == null ? "" : endpoint.getPath().replaceFirst("^/", "");
+    if ("family_kitchen".equalsIgnoreCase(databaseName)) {
+      throw unsafe("business database name is forbidden", profile, url);
     }
     if (!Objects.equals(endpoint.getHost(), container.getHost())
         || endpoint.getPort() != container.getMappedPort(3306)) {

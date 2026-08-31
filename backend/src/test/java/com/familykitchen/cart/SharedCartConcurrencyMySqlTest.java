@@ -53,10 +53,12 @@ class SharedCartConcurrencyMySqlTest {
       .withDatabaseName("shared_cart_concurrency")
       .withUsername("cart_test")
       .withPassword("cart_test");
+  static final com.familykitchen.testsupport.TestDatabaseOwnership.Registration MYSQL_OWNER =
+      com.familykitchen.testsupport.TestDatabaseOwnership.register(MYSQL);
 
   @DynamicPropertySource
   static void datasource(DynamicPropertyRegistry registry) {
-    SafeTestDatabaseProperties.register(registry, MYSQL);
+    SafeTestDatabaseProperties.register(registry, MYSQL_OWNER);
   }
 
   @Autowired

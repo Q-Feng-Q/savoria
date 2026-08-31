@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -73,6 +74,17 @@ class MiniProgramResourceAuthorizationTest {
         .contains(normalizeWhitespace(snippet)));
     forbiddenSnippets.forEach(snippet -> assertThat(source).as(matrixName)
         .doesNotContain(normalizeWhitespace(snippet)));
+  }
+
+  @ParameterizedTest(name = "{0} [{1}/{2}]")
+  @MethodSource("serviceBoundaryCases")
+  void serviceBoundariesRejectForgedIdsBeforeMutation(
+      String resource, String role, String scope, Executable scenario) throws Throwable {
+    scenario.execute();
+  }
+
+  static Stream<Arguments> serviceBoundaryCases() {
+    return MiniProgramServiceAuthorizationCases.cases();
   }
 
   static Stream<Arguments> resourceBoundaryContracts() {

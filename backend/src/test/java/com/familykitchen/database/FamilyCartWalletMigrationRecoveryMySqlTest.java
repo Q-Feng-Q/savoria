@@ -52,9 +52,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class FamilyCartWalletMigrationRecoveryMySqlTest {
   @Container static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0.36")
       .withDatabaseName("runner_family_wallet_disposable").withUsername("runner_test").withPassword("runner_test");
+  static final com.familykitchen.testsupport.TestDatabaseOwnership.Registration MYSQL_OWNER =
+      com.familykitchen.testsupport.TestDatabaseOwnership.register(MYSQL);
 
   @DynamicPropertySource static void datasource(DynamicPropertyRegistry registry) {
-    SafeTestDatabaseProperties.register(registry, MYSQL);
+    SafeTestDatabaseProperties.register(registry, MYSQL_OWNER);
   }
 
   @Autowired JdbcTemplate jdbc;
@@ -62,7 +64,7 @@ class FamilyCartWalletMigrationRecoveryMySqlTest {
   @Autowired FamilyWalletMigrationLeaseService leases;
 
   @BeforeEach void resetDatabase() {
-    Flyway flyway = SafeTestFlyway.configure(MYSQL)
+    Flyway flyway = SafeTestFlyway.configure(MYSQL_OWNER)
         .locations("classpath:db/migration").cleanDisabled(false).load();
     flyway.clean(); flyway.migrate(); seedTwoFamilies();
   }

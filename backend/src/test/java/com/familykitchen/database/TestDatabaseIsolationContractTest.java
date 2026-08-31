@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.familykitchen.testsupport.TestDatabaseEnvironmentPostProcessor;
+import com.familykitchen.testsupport.TestDatabaseOwnership;
 import com.familykitchen.testsupport.TestDatabaseUrlGuard;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,15 +54,54 @@ class TestDatabaseIsolationContractTest {
     when(container.getPassword()).thenReturn("secret");
     when(container.getHost()).thenReturn("127.0.0.1");
     when(container.getMappedPort(3306)).thenReturn(49152);
+    TestDatabaseOwnership.Registration ownership = TestDatabaseOwnership.register(container);
 
     assertDoesNotThrow(() -> TestDatabaseUrlGuard.requireOwnedContainer(
-        container, "jdbc:mysql://127.0.0.1:49152/kitchen_test", "tester", "secret",
+        ownership, "jdbc:mysql://127.0.0.1:49152/kitchen_test", "tester", "secret",
         "test-container"));
     assertThrows(IllegalStateException.class, () -> TestDatabaseUrlGuard.requireOwnedContainer(
-        container, BUSINESS_URL, "tester", "secret", "test-container"));
+        ownership, BUSINESS_URL, "tester", "secret", "test-container"));
     assertThrows(IllegalStateException.class, () -> TestDatabaseUrlGuard.requireOwnedContainer(
-        container, "jdbc:mysql://127.0.0.1:49152/kitchen_test", "tester", "secret",
+        ownership, "jdbc:mysql://127.0.0.1:49152/kitchen_test", "tester", "secret",
         "test-h2"));
+  }
+
+  @Test
+  void containerNamedLikeBusinessDatabaseIsRejectedEvenWhenCoordinatesMatch() {
+    MySQLContainer<?> container = mock(MySQLContainer.class);
+    when(container.isRunning()).thenReturn(true);
+    when(container.getJdbcUrl()).thenReturn("jdbc:mysql://127.0.0.1:49152/family_kitchen");
+    when(container.getUsername()).thenReturn("tester");
+    when(container.getPassword()).thenReturn("secret");
+    when(container.getHost()).thenReturn("127.0.0.1");
+    when(container.getMappedPort(3306)).thenReturn(49152);
+    TestDatabaseOwnership.Registration ownership = TestDatabaseOwnership.register(container);
+
+    assertThrows(IllegalStateException.class, () -> TestDatabaseUrlGuard.requireOwnedContainer(
+        ownership, "jdbc:mysql://127.0.0.1:49152/family_kitchen", "tester", "secret",
+        "test-container"));
+  }
+
+  @Test
+  void runningButUnregisteredContainerCannotClaimCurrentJvmOwnership() {
+    MySQLContainer<?> container = mock(MySQLContainer.class);
+    when(container.isRunning()).thenReturn(true);
+    when(container.getJdbcUrl()).thenReturn("jdbc:mysql://127.0.0.1:49152/kitchen_test");
+    when(container.getUsername()).thenReturn("tester");
+    when(container.getPassword()).thenReturn("secret");
+    when(container.getHost()).thenReturn("127.0.0.1");
+    when(container.getMappedPort(3306)).thenReturn(49152);
+
+    assertThrows(IllegalStateException.class, () -> TestDatabaseUrlGuard.requireOwnedContainer(
+        null, "jdbc:mysql://127.0.0.1:49152/kitchen_test", "tester", "secret",
+        "test-container"));
+  }
+
+  @Test
+  void mvcExclusionsMustMatchBothAutoConfigurationClassesExactly() {
+    assertThrows(IllegalStateException.class, () -> TestDatabaseEnvironmentPostProcessor.validate(
+        "test-mvc", "", TestDatabaseEnvironmentPostProcessor.MVC_EXCLUSIONS.replace(
+            "DataSourceAutoConfiguration", "DataSourceAutoConfigurationSuffix")));
   }
 
   @Test
@@ -85,6 +125,7 @@ class TestDatabaseIsolationContractTest {
     for (String relative : List.of(
         "database/DishTemplateChangeMigrationMySqlTest.java",
         "database/FamilyCartWalletMigrationMySqlTest.java",
+        "database/FamilyCartWalletMigrationRecoveryMySqlTest.java",
         "database/MerchantFeaturedDishMigrationMySqlTest.java")) {
       String source = Files.readString(testSource(relative));
       org.junit.jupiter.api.Assertions.assertTrue(source.contains("SafeTestFlyway.configure"), relative);

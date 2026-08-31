@@ -24,10 +24,12 @@ class DishTemplateChangeMigrationMySqlTest {
       .withDatabaseName("family_kitchen_migration_test")
       .withUsername("kitchen_test")
       .withPassword("kitchen_test");
+  private static final com.familykitchen.testsupport.TestDatabaseOwnership.Registration MYSQL_OWNER =
+      com.familykitchen.testsupport.TestDatabaseOwnership.register(MYSQL);
 
   @BeforeAll
   static void migrate() {
-    SafeTestFlyway.configure(MYSQL)
+    SafeTestFlyway.configure(MYSQL_OWNER)
         .locations("classpath:db/migration")
         .load()
         .migrate();

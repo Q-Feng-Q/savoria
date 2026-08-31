@@ -53,10 +53,12 @@ class FamilyOwnerTransferConcurrencyMySqlTest {
       .withDatabaseName("family_owner_transfer")
       .withUsername("kitchen_test")
       .withPassword("kitchen_test");
+  private static final com.familykitchen.testsupport.TestDatabaseOwnership.Registration MYSQL_OWNER =
+      com.familykitchen.testsupport.TestDatabaseOwnership.register(MYSQL);
 
   @DynamicPropertySource
   static void mysqlProperties(DynamicPropertyRegistry registry) {
-    SafeTestDatabaseProperties.register(registry, MYSQL);
+    SafeTestDatabaseProperties.register(registry, MYSQL_OWNER);
   }
 
   @Autowired private FamilyMemberApplicationService families;

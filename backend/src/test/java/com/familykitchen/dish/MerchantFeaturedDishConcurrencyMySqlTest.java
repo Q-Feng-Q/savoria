@@ -55,10 +55,12 @@ class MerchantFeaturedDishConcurrencyMySqlTest {
       .withDatabaseName("family_kitchen_featured_concurrency")
       .withUsername("kitchen_test")
       .withPassword("kitchen_test");
+  private static final com.familykitchen.testsupport.TestDatabaseOwnership.Registration MYSQL_OWNER =
+      com.familykitchen.testsupport.TestDatabaseOwnership.register(MYSQL);
 
   @DynamicPropertySource
   static void mysqlProperties(DynamicPropertyRegistry registry) {
-    SafeTestDatabaseProperties.register(registry, MYSQL);
+    SafeTestDatabaseProperties.register(registry, MYSQL_OWNER);
   }
 
   @Autowired private DishApplicationService dishes;

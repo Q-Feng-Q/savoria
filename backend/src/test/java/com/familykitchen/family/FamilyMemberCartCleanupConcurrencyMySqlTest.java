@@ -46,10 +46,12 @@ class FamilyMemberCartCleanupConcurrencyMySqlTest {
       .withDatabaseName("member_cart_cleanup")
       .withUsername("cleanup_test")
       .withPassword("cleanup_test");
+  static final com.familykitchen.testsupport.TestDatabaseOwnership.Registration MYSQL_OWNER =
+      com.familykitchen.testsupport.TestDatabaseOwnership.register(MYSQL);
 
   @DynamicPropertySource
   static void datasource(DynamicPropertyRegistry registry) {
-    SafeTestDatabaseProperties.register(registry, MYSQL);
+    SafeTestDatabaseProperties.register(registry, MYSQL_OWNER);
   }
 
   @Autowired

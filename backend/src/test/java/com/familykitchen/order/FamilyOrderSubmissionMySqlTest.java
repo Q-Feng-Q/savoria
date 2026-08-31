@@ -49,8 +49,10 @@ class FamilyOrderSubmissionMySqlTest {
   @Container static final MySQLContainer<?> MYSQL=new MySQLContainer<>("mysql:8.0.36")
       .withDatabaseName("family_order_submission").withUsername("order_test")
       .withPassword("order_test");
+  static final com.familykitchen.testsupport.TestDatabaseOwnership.Registration MYSQL_OWNER =
+      com.familykitchen.testsupport.TestDatabaseOwnership.register(MYSQL);
   @DynamicPropertySource static void datasource(DynamicPropertyRegistry registry){
-    SafeTestDatabaseProperties.register(registry, MYSQL);
+    SafeTestDatabaseProperties.register(registry, MYSQL_OWNER);
   }
 
   @Autowired FamilyOrderApplicationService orders;

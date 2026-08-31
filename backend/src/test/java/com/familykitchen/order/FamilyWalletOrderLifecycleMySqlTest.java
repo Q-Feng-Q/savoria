@@ -43,9 +43,11 @@ class FamilyWalletOrderLifecycleMySqlTest {
   @Container static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0.36")
       .withDatabaseName("family_order_lifecycle").withUsername("lifecycle_test")
       .withPassword("lifecycle_test");
+  static final com.familykitchen.testsupport.TestDatabaseOwnership.Registration MYSQL_OWNER =
+      com.familykitchen.testsupport.TestDatabaseOwnership.register(MYSQL);
 
   @DynamicPropertySource static void datasource(DynamicPropertyRegistry registry) {
-    SafeTestDatabaseProperties.register(registry, MYSQL);
+    SafeTestDatabaseProperties.register(registry, MYSQL_OWNER);
   }
 
   @Autowired MerchantOrderApplicationService merchantOrders;

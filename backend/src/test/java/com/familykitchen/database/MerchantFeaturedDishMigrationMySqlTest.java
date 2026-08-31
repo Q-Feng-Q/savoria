@@ -30,16 +30,18 @@ class MerchantFeaturedDishMigrationMySqlTest {
       .withDatabaseName("family_kitchen_featured_test")
       .withUsername("kitchen_test")
       .withPassword("kitchen_test");
+  private static final com.familykitchen.testsupport.TestDatabaseOwnership.Registration MYSQL_OWNER =
+      com.familykitchen.testsupport.TestDatabaseOwnership.register(MYSQL);
 
   @BeforeAll
   static void migrateAroundLegacyFixture() throws Exception {
-    SafeTestFlyway.configure(MYSQL)
+    SafeTestFlyway.configure(MYSQL_OWNER)
         .locations("classpath:db/migration")
         .target(MigrationVersion.fromVersion("9"))
         .load()
         .migrate();
     seedLegacyData();
-    SafeTestFlyway.configure(MYSQL)
+    SafeTestFlyway.configure(MYSQL_OWNER)
         .locations("classpath:db/migration")
         .load()
         .migrate();

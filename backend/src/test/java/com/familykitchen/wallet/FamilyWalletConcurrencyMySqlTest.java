@@ -43,7 +43,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class FamilyWalletConcurrencyMySqlTest {
   @Container static final MySQLContainer<?> MYSQL=new MySQLContainer<>("mysql:8.0.36")
       .withDatabaseName("family_wallet_concurrency").withUsername("wallet_test").withPassword("wallet_test");
-  @DynamicPropertySource static void datasource(DynamicPropertyRegistry r){SafeTestDatabaseProperties.register(r, MYSQL);}
+  static final com.familykitchen.testsupport.TestDatabaseOwnership.Registration MYSQL_OWNER =
+      com.familykitchen.testsupport.TestDatabaseOwnership.register(MYSQL);
+  @DynamicPropertySource static void datasource(DynamicPropertyRegistry r){SafeTestDatabaseProperties.register(r, MYSQL_OWNER);}
   @Autowired FamilyWalletService wallets;@Autowired CommandIdempotencyService commands;@Autowired JdbcTemplate jdbc;
   @Autowired CommandIdempotencyMapper commandMapper;@Autowired PlatformTransactionManager transactionManager;
   /** Exceptions observed by the latest race. */

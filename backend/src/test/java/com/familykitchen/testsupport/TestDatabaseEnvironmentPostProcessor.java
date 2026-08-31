@@ -1,6 +1,8 @@
 package com.familykitchen.testsupport;
 
 import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.Ordered;
@@ -41,10 +43,15 @@ public final class TestDatabaseEnvironmentPostProcessor
     }
     if ("test-mvc".equals(profile)) {
       String value = url == null ? "" : url.trim();
-      String excluded = exclusions == null ? "" : exclusions;
+      Set<String> excluded = Arrays.stream(exclusions == null ? new String[0] : exclusions.split(","))
+          .map(String::trim)
+          .filter(valueToCheck -> !valueToCheck.isEmpty())
+          .collect(Collectors.toSet());
       if (!value.isEmpty()
-          || !excluded.contains("DataSourceAutoConfiguration")
-          || !excluded.contains("FlywayAutoConfiguration")) {
+          || !excluded.contains(
+              "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration")
+          || !excluded.contains(
+              "org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration")) {
         throw new IllegalStateException(
             "Unsafe test database configuration: test-mvc must disable datasource and Flyway");
       }

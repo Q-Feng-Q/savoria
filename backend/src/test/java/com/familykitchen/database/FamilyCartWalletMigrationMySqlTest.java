@@ -28,6 +28,8 @@ class FamilyCartWalletMigrationMySqlTest {
       .withDatabaseName("family_cart_wallet_v11_test")
       .withUsername("kitchen_test")
       .withPassword("kitchen_test");
+  private static final com.familykitchen.testsupport.TestDatabaseOwnership.Registration MYSQL_OWNER =
+      com.familykitchen.testsupport.TestDatabaseOwnership.register(MYSQL);
 
   private static BigDecimal availableBefore;
   private static BigDecimal frozenBefore;
@@ -35,13 +37,13 @@ class FamilyCartWalletMigrationMySqlTest {
 
   @BeforeAll
   static void migrateThroughV10ThenV11() throws Exception {
-    SafeTestFlyway.configure(MYSQL)
+    SafeTestFlyway.configure(MYSQL_OWNER)
         .locations("classpath:db/migration")
         .target(MigrationVersion.fromVersion("10"))
         .load()
         .migrate();
     seedAndSnapshotLegacyRows();
-    SafeTestFlyway.configure(MYSQL)
+    SafeTestFlyway.configure(MYSQL_OWNER)
         .locations("classpath:db/migration")
         .load()
         .migrate();
