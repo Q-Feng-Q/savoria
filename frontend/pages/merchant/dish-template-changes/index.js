@@ -1,6 +1,7 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
 const { requireSession, showApiError } = require('../../../utils/page-api');
 const { decorateChangeRequest } = require('../../../utils/dish-template-change');
+const { mergeUniqueRows } = require('../../../utils/pagination');
 
 const FILTERS = [
   { value: '', label: '全部' }, { value: 'PENDING', label: '待审核' },
@@ -36,7 +37,7 @@ Page({
       const page = this.data.page + 1;
       const result = await createApiRuntime().merchant.getDishTemplateChanges({ status: this.data.status, keyword: this.data.keyword, page, pageSize: this.data.pageSize });
       const next = (result.items || []).map(decorateChangeRequest);
-      const rows = [...this.data.rows, ...next];
+      const rows = mergeUniqueRows(this.data.rows, next, (item) => item.requestId);
       this.setData({ rows, page, total: Number(result.total || this.data.total), hasMore: rows.length < Number(result.total || 0) });
     } catch (error) { showApiError(error, '更多申请加载失败'); }
     finally { this.setData({ loadingMore: false }); }

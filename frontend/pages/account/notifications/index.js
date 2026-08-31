@@ -1,5 +1,6 @@
 const { createApiRuntime, resolveNotificationScope } = require('../../../utils/api-runtime');
 const { requireSession, showApiError } = require('../../../utils/page-api');
+const { loadAllPages } = require('../../../utils/pagination');
 
 const CATEGORY_LABELS = {
   order: '订单',
@@ -67,13 +68,13 @@ Page({
       : resolveNotificationScope(session);
 
     try {
-      const pageData = await runtime.notifications.getNotifications({
+      const items = await loadAllPages(({ page, pageSize }) => runtime.notifications.getNotifications({
         receiverScope,
         readStatus: 'all',
-        page: 1,
-        pageSize: 100
-      });
-      this.setData(mapNotificationsPage(session, this.data.actorType, pageData));
+        page,
+        pageSize
+      }), { pageSize: 100, keyOf: (item) => item.notificationId });
+      this.setData(mapNotificationsPage(session, this.data.actorType, { items }));
     } catch (error) {
       showApiError(error, '通知加载失败');
     }
