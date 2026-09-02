@@ -1,0 +1,23 @@
+{
+  "sourceRevision": "f7a91c2db0ce9b6a41eaf06e5ce64cbde5a831ed",
+  "normalizationVersion": 1,
+  "tokenizerVersion": 1,
+  "similarityThreshold": 0.82,
+  "categoryMappings": {
+    "主食": 4,
+    "凉拌": 2,
+    "卤菜": 1,
+    "早餐": 5,
+    "汤": 3,
+    "炒菜": 1,
+    "炖菜": 1,
+    "炸品": 8,
+    "烤类": 8,
+    "烫菜": 7,
+    "煮锅": 1,
+    "砂锅菜": 1,
+    "蒸菜": 1,
+    "配料": 10,
+    "饮品": 9
+  }
+}

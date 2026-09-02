@@ -30,7 +30,18 @@ class RecipeSyncMainTest {
   void rejectsCheckoutAtUnexpectedRevision(@TempDir Path tempDir) throws Exception {
     Path configDir = Files.createDirectories(tempDir.resolve("config"));
     Files.writeString(configDir.resolve("source-sync.json"),
-        "{\"sourceRevision\":\"0000000000000000000000000000000000000000\"}",
+        """
+        {
+          "sourceRevision":"0000000000000000000000000000000000000000",
+          "normalizationVersion":1,
+          "tokenizerVersion":1,
+          "similarityThreshold":0.82,
+          "categoryMappings":{
+            "主食":4,"凉拌":2,"卤菜":1,"早餐":5,"汤":3,"炒菜":1,"炖菜":1,
+            "炸品":8,"烤类":8,"烫菜":7,"煮锅":1,"砂锅菜":1,"蒸菜":1,"配料":10,"饮品":9
+          }
+        }
+        """,
         StandardCharsets.UTF_8);
 
     IllegalStateException error = assertThrows(IllegalStateException.class,
