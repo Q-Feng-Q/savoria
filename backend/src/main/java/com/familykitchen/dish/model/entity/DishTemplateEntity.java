@@ -1,6 +1,7 @@
 package com.familykitchen.dish.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,6 +19,7 @@ public class DishTemplateEntity {
   /** 模板分类ID。 */
   private Long categoryId;
   /** 模板分类名称。 */
+  @TableField(exist = false)
   private String categoryName;
   /** 名称。 */
   private String name;
@@ -37,6 +39,26 @@ public class DishTemplateEntity {
   private String tasteTags;
   /** 推荐餐次JSON。 */
   private String mealTags;
+  /** 模板类型：DISH 成品菜、COMPONENT 配料组件。 */
+  private String templateType;
+  /** 来源类型：COOK_LIKE_HOC、LOCAL_EXTENSION。 */
+  private String sourceType;
+  /** 主来源文件稳定键。 */
+  private String sourceKey;
+  /** 来源菜谱页面。 */
+  private String sourceUrl;
+  /** 来源仓库固定提交。 */
+  private String sourceRevision;
+  /** 来源原始分类。 */
+  private String sourceCategory;
+  /** 来源份数或批次说明。 */
+  private String sourceYieldText;
+  /** 数据完整状态。 */
+  private String dataStatus;
+  /** 采购用量是否就绪。 */
+  private Boolean procurementReady;
+  /** 图片权利状态。 */
+  private String imageRightsStatus;
   /** 排序值。 */
   private Integer sortOrder;
   /** 是否启用。 */
@@ -44,9 +66,14 @@ public class DishTemplateEntity {
   /** 模板并发版本号，模板信息或食材变化时递增。 */
   private Long version;
   /** 当前商户是否已导入。 */
+  @TableField(exist = false)
   private Boolean imported;
   /** 食材数量。 */
+  @TableField(exist = false)
   private Integer ingredientCount;
+  /** 是否缺少制作步骤。 */
+  @TableField(exist = false)
+  private Boolean missingSteps;
   /**
    * 获取数据库主键。
    * @return 数据库主键
@@ -178,6 +205,126 @@ public class DishTemplateEntity {
    */
   public void setMealTags(String mealTags) { this.mealTags = mealTags; }
   /**
+   * 获取模板类型。
+   *
+   * @return 模板类型
+   */
+  public String getTemplateType() { return templateType; }
+  /**
+   * 设置模板类型。
+   *
+   * @param templateType 模板类型
+   */
+  public void setTemplateType(String templateType) { this.templateType = templateType; }
+  /**
+   * 获取来源类型。
+   *
+   * @return 来源类型
+   */
+  public String getSourceType() { return sourceType; }
+  /**
+   * 设置来源类型。
+   *
+   * @param sourceType 来源类型
+   */
+  public void setSourceType(String sourceType) { this.sourceType = sourceType; }
+  /**
+   * 获取主来源文件稳定键。
+   *
+   * @return 主来源文件稳定键
+   */
+  public String getSourceKey() { return sourceKey; }
+  /**
+   * 设置主来源文件稳定键。
+   *
+   * @param sourceKey 主来源文件稳定键
+   */
+  public void setSourceKey(String sourceKey) { this.sourceKey = sourceKey; }
+  /**
+   * 获取来源菜谱页面。
+   *
+   * @return 来源菜谱页面
+   */
+  public String getSourceUrl() { return sourceUrl; }
+  /**
+   * 设置来源菜谱页面。
+   *
+   * @param sourceUrl 来源菜谱页面
+   */
+  public void setSourceUrl(String sourceUrl) { this.sourceUrl = sourceUrl; }
+  /**
+   * 获取来源仓库固定提交。
+   *
+   * @return 来源仓库固定提交
+   */
+  public String getSourceRevision() { return sourceRevision; }
+  /**
+   * 设置来源仓库固定提交。
+   *
+   * @param sourceRevision 来源仓库固定提交
+   */
+  public void setSourceRevision(String sourceRevision) { this.sourceRevision = sourceRevision; }
+  /**
+   * 获取来源原始分类。
+   *
+   * @return 来源原始分类
+   */
+  public String getSourceCategory() { return sourceCategory; }
+  /**
+   * 设置来源原始分类。
+   *
+   * @param sourceCategory 来源原始分类
+   */
+  public void setSourceCategory(String sourceCategory) { this.sourceCategory = sourceCategory; }
+  /**
+   * 获取来源份数或批次说明。
+   *
+   * @return 来源份数或批次说明
+   */
+  public String getSourceYieldText() { return sourceYieldText; }
+  /**
+   * 设置来源份数或批次说明。
+   *
+   * @param sourceYieldText 来源份数或批次说明
+   */
+  public void setSourceYieldText(String sourceYieldText) { this.sourceYieldText = sourceYieldText; }
+  /**
+   * 获取数据完整状态。
+   *
+   * @return 数据完整状态
+   */
+  public String getDataStatus() { return dataStatus; }
+  /**
+   * 设置数据完整状态。
+   *
+   * @param dataStatus 数据完整状态
+   */
+  public void setDataStatus(String dataStatus) { this.dataStatus = dataStatus; }
+  /**
+   * 获取采购用量是否就绪。
+   *
+   * @return 采购用量是否就绪
+   */
+  public Boolean getProcurementReady() { return procurementReady; }
+  /**
+   * 设置采购用量是否就绪。
+   *
+   * @param procurementReady 采购用量是否就绪
+   */
+  public void setProcurementReady(Boolean procurementReady) { this.procurementReady = procurementReady; }
+  /**
+   * 获取图片权利状态。
+   *
+   * @return 图片权利状态
+   */
+  public String getImageRightsStatus() { return imageRightsStatus; }
+  /**
+   * 设置图片权利状态。
+   *
+   * @param imageRightsStatus 图片权利状态
+   */
+  public void setImageRightsStatus(String imageRightsStatus) { this.imageRightsStatus = imageRightsStatus; }
+  /**
    * 获取排序值。
    * @return 排序值
    */
@@ -227,4 +374,16 @@ public class DishTemplateEntity {
    * @param ingredientCount 食材数量
    */
   public void setIngredientCount(Integer ingredientCount) { this.ingredientCount = ingredientCount; }
+  /**
+   * 获取是否缺少制作步骤。
+   *
+   * @return 是否缺少制作步骤
+   */
+  public Boolean getMissingSteps() { return missingSteps; }
+  /**
+   * 设置是否缺少制作步骤。
+   *
+   * @param missingSteps 是否缺少制作步骤
+   */
+  public void setMissingSteps(Boolean missingSteps) { this.missingSteps = missingSteps; }
 }

@@ -3,8 +3,12 @@ package com.familykitchen.dish.mapper;
 import com.familykitchen.dish.model.entity.DishCategoryEntity;
 import com.familykitchen.dish.model.entity.DishEntity;
 import com.familykitchen.dish.model.entity.DishTemplateCategoryEntity;
+import com.familykitchen.dish.model.entity.DishTemplateCookingStepEntity;
 import com.familykitchen.dish.model.entity.DishTemplateEntity;
+import com.familykitchen.dish.model.entity.DishTemplateImageAssetEntity;
 import com.familykitchen.dish.model.entity.DishTemplateIngredientEntity;
+import com.familykitchen.dish.model.entity.DishTemplateNameAliasEntity;
+import com.familykitchen.dish.model.entity.DishTemplateSourceRecordEntity;
 import com.familykitchen.dish.model.entity.IngredientDictionaryEntity;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
@@ -49,6 +53,11 @@ public interface DishTemplateMapper {
    */
   DishTemplateEntity selectTemplate(@Param("merchantId") Long merchantId, @Param("templateId") Long templateId);
   /**
+   * 查询平台管理端可见的全部模板，不应用商户市场资格过滤。
+   * @return 包含待完善模板和组件的模板列表
+   */
+  List<DishTemplateEntity> selectAdminTemplates();
+  /**
    * 锁定并读取平台模板，供提交与审核事务使用。
    * @param templateId 模板 ID
    * @return 被锁定模板，不存在时为空
@@ -66,6 +75,30 @@ public interface DishTemplateMapper {
    * @return 食材明细
    */
   List<DishTemplateIngredientEntity> selectTemplateIngredients(@Param("templateId") Long templateId);
+  /**
+   * 查询模板制作步骤。
+   * @param templateId 模板ID
+   * @return 按步骤序号排序的模板制作步骤
+   */
+  List<DishTemplateCookingStepEntity> selectTemplateCookingSteps(@Param("templateId") Long templateId);
+  /**
+   * 查询模板来源记录。
+   * @param templateId 模板ID
+   * @return 模板来源记录
+   */
+  List<DishTemplateSourceRecordEntity> selectTemplateSourceRecords(@Param("templateId") Long templateId);
+  /**
+   * 查询模板名称别名。
+   * @param templateId 模板ID
+   * @return 模板名称别名
+   */
+  List<DishTemplateNameAliasEntity> selectTemplateNameAliases(@Param("templateId") Long templateId);
+  /**
+   * 查询模板内部图片审核资产。
+   * @param templateId 模板ID
+   * @return 内部图片审核资产
+   */
+  List<DishTemplateImageAssetEntity> selectTemplateImageAssets(@Param("templateId") Long templateId);
   /**
    * 批量查询启用模板。
    * @param templateIds 模板 ID 列表
@@ -144,4 +177,52 @@ public interface DishTemplateMapper {
    * @return 新增行数
    */
   int insertTemplateIngredient(DishTemplateIngredientEntity ingredient);
+  /**
+   * 删除模板的全部制作步骤。
+   * @param templateId 模板ID
+   * @return 删除步骤数
+   */
+  int deleteTemplateCookingSteps(@Param("templateId") Long templateId);
+  /**
+   * 新增模板制作步骤。
+   * @param step 模板制作步骤
+   * @return 新增行数
+   */
+  int insertTemplateCookingStep(DishTemplateCookingStepEntity step);
+  /**
+   * 新增模板来源记录。
+   * @param record 来源记录
+   * @return 新增行数
+   */
+  int insertTemplateSourceRecord(DishTemplateSourceRecordEntity record);
+  /**
+   * 删除模板全部来源记录。
+   * @param templateId 模板ID
+   * @return 删除来源记录数
+   */
+  int deleteTemplateSourceRecords(@Param("templateId") Long templateId);
+  /**
+   * 新增模板名称别名。
+   * @param alias 名称别名
+   * @return 新增行数
+   */
+  int insertTemplateNameAlias(DishTemplateNameAliasEntity alias);
+  /**
+   * 删除模板全部名称别名。
+   * @param templateId 模板ID
+   * @return 删除别名数
+   */
+  int deleteTemplateNameAliases(@Param("templateId") Long templateId);
+  /**
+   * 新增内部图片审核资产。
+   * @param asset 内部图片资产
+   * @return 新增行数
+   */
+  int insertTemplateImageAsset(DishTemplateImageAssetEntity asset);
+  /**
+   * 更新内部图片审核资产状态和审核字段。
+   * @param asset 内部图片资产
+   * @return 更新行数
+   */
+  int updateTemplateImageAsset(DishTemplateImageAssetEntity asset);
 }

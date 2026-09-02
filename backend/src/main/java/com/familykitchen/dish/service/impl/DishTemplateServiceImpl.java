@@ -84,8 +84,11 @@ public class DishTemplateServiceImpl implements DishTemplateService {
         template.getCategoryName(), template.getName(), template.getDescription(), template.getImageUrl(),
         template.getImageSourceUrl(), template.getImageAuthor(), template.getImageLicense(),
         template.getReferencePrice(), parseTags(template.getTasteTags()), parseTags(template.getMealTags()),
+        template.getSourceCategory(), template.getTemplateType(), template.getDataStatus(),
+        Boolean.TRUE.equals(template.getProcurementReady()), template.getImageRightsStatus(),
         template.getSortOrder(), Boolean.TRUE.equals(template.getEnabled()), template.getVersion(),
-        Boolean.TRUE.equals(template.getImported()), templateMapper.selectTemplateIngredients(templateId));
+        Boolean.TRUE.equals(template.getImported()), templateMapper.selectTemplateIngredients(templateId),
+        templateMapper.selectTemplateCookingSteps(templateId));
   }
 
   /** {@inheritDoc} */
@@ -186,7 +189,10 @@ public class DishTemplateServiceImpl implements DishTemplateService {
   private DishTemplateView toView(DishTemplateEntity item) {
     return new DishTemplateView(item.getId(), item.getTemplateCode(), item.getCategoryId(), item.getCategoryName(),
         item.getName(), item.getDescription(), item.getImageUrl(), item.getReferencePrice(),
-        parseTags(item.getTasteTags()), parseTags(item.getMealTags()), item.getIngredientCount(),
+        parseTags(item.getTasteTags()), parseTags(item.getMealTags()), item.getSourceCategory(),
+        item.getTemplateType(), item.getDataStatus(), Boolean.TRUE.equals(item.getProcurementReady()),
+        item.getImageRightsStatus(), Boolean.TRUE.equals(item.getMissingSteps()), item.getVersion(),
+        item.getIngredientCount(),
         Boolean.TRUE.equals(item.getImported()));
   }
 
