@@ -16,34 +16,41 @@ class DishTemplateMigrationTest {
       "src/main/resources/db/migration/V4__init_dish_template_market.sql");
 
   @Test
-  void migrationContainsIndependentTemplateTablesWithoutPhysicalForeignKeys() throws Exception {
+  void migrationContainsCompleteTemplateSchemaWithoutPhysicalForeignKeys() throws Exception {
     String sql = Files.readString(MIGRATION, StandardCharsets.UTF_8);
     String lowerSql = sql.toLowerCase();
     assertTrue(sql.contains("CREATE TABLE dish_template_categories"));
     assertTrue(sql.contains("CREATE TABLE dish_templates"));
     assertTrue(sql.contains("CREATE TABLE dish_template_ingredients"));
+    assertTrue(sql.contains("CREATE TABLE dish_template_source_records"));
+    assertTrue(sql.contains("CREATE TABLE dish_template_name_aliases"));
+    assertTrue(sql.contains("CREATE TABLE dish_template_cooking_steps"));
+    assertTrue(sql.contains("CREATE TABLE dish_template_image_assets"));
+    assertTrue(sql.contains("ALTER TABLE dish_cooking_steps"));
     assertFalse(lowerSql.contains("foreign key"));
     assertFalse(lowerSql.contains(" references "));
   }
 
   @Test
-  void migrationSeedsExactlyNineCategoriesAndOneHundredNinetyEightTemplates() throws Exception {
+  void migrationSeedsTenCategoriesAndTwoHundredFortyLegacyTemplates() throws Exception {
     String sql = Files.readString(MIGRATION, StandardCharsets.UTF_8);
-    assertEquals(9, countLines(sql, "INSERT INTO dish_template_categories "));
-    assertEquals(198, countLines(sql, "INSERT INTO dish_templates "));
-    assertTrue(countLines(sql, "INSERT INTO dish_template_ingredients ") >= 198);
-    assertEquals(198, countLines(sql, "-- TEMPLATE "));
+    assertEquals(10, countLines(sql, "INSERT INTO dish_template_categories "));
+    assertEquals(240, countLines(sql, "INSERT INTO dish_templates "));
+    assertTrue(countLines(sql, "INSERT INTO dish_template_ingredients ") >= 282);
+    assertEquals(240, countLines(sql, "-- TEMPLATE "));
+    assertTrue(sql.contains("'豆角焖面'"));
+    assertTrue(sql.contains("'广式煲仔饭'"));
+    assertTrue(sql.contains("'COMPONENT','配料组件'"));
   }
 
   @Test
-  void everyTemplateCarriesImageAttributionAndNoCookingSteps() throws Exception {
+  void templatePriceAndPublicImageFieldsAreNullable() throws Exception {
     String sql = Files.readString(MIGRATION, StandardCharsets.UTF_8);
-    for (String line : sql.lines().map(String::trim).toList()) {
-      if (!line.startsWith("INSERT INTO dish_templates ")) continue;
-      assertTrue(line.contains("image_source_url,image_author,image_license"));
-      assertTrue(line.contains("/images/dish-templates/"));
-    }
-    assertFalse(sql.contains("INSERT INTO dish_cooking_steps"));
+    assertTrue(sql.contains("image_url varchar(500) NULL"));
+    assertTrue(sql.contains("image_source_url varchar(1000) NULL"));
+    assertTrue(sql.contains("image_author varchar(255) NULL"));
+    assertTrue(sql.contains("image_license varchar(255) NULL"));
+    assertTrue(sql.contains("reference_price decimal(10,2) NULL"));
   }
 
   @Test

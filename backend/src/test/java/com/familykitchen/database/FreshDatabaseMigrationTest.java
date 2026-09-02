@@ -37,8 +37,6 @@ class FreshDatabaseMigrationTest {
         "V2__init_menu_order_wallet_and_purchase.sql",
         "V3__init_system_notification_and_defaults.sql",
         "V4__init_dish_template_market.sql",
-        "V5__expand_regional_dish_templates.sql",
-        "V6__finalize_regional_dish_template_images.sql",
         "V7__backfill_default_family_meal_slots.sql",
         "V8__add_dish_template_change_review.sql",
         "V9__add_family_featured_dish.sql",

@@ -1,6 +1,6 @@
 {
   "schemaVersion" : 1,
-  "sourceMigrations" : [ "V4__init_dish_template_market.sql", "V5__expand_regional_dish_templates.sql", "V6__finalize_regional_dish_template_images.sql" ],
+  "sourceMigrations" : [ "V4__init_dish_template_market.sql" ],
   "templates" : [ {
     "id" : 1,
     "templateCode" : "DISH_001",

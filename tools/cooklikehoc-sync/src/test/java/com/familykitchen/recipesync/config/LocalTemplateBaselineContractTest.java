@@ -6,18 +6,16 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/** Locks the versioned JSON baseline to the migrations that will be consolidated. */
+/** Locks the versioned JSON baseline to the consolidated V4 migration. */
 class LocalTemplateBaselineContractTest {
 
   private final Path repositoryRoot = Path.of("../..").toAbsolutePath().normalize();
-  private final List<Path> legacyMigrations = List.of(
-      repositoryRoot.resolve("backend/src/main/resources/db/migration/V4__init_dish_template_market.sql"),
-      repositoryRoot.resolve("backend/src/main/resources/db/migration/V5__expand_regional_dish_templates.sql"),
-      repositoryRoot.resolve("backend/src/main/resources/db/migration/V6__finalize_regional_dish_template_images.sql"));
+  private final List<Path> consolidatedMigrations = List.of(
+      repositoryRoot.resolve("backend/src/main/resources/db/migration/V4__init_dish_template_market.sql"));
 
   @Test
-  void baselineMatchesAllPreConsolidationTemplateAndIngredientRows() {
-    LocalTemplateBaseline expected = LegacyMigrationBaselineExtractor.extract(legacyMigrations);
+  void baselineMatchesAllConsolidatedTemplateAndIngredientRows() {
+    LocalTemplateBaseline expected = LegacyMigrationBaselineExtractor.extract(consolidatedMigrations);
     LocalTemplateBaseline actual = LocalTemplateBaseline.load(
         Path.of("config/local-template-baseline.json").toAbsolutePath());
 

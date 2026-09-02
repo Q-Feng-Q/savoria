@@ -15,7 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** One-time reader that proves the committed baseline preserves V4, V5 and V6. */
+/** Reads legacy-style template rows to prove the committed baseline matches consolidated V4 data. */
 public final class LegacyMigrationBaselineExtractor {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

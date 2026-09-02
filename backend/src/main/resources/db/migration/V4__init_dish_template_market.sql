@@ -19,20 +19,36 @@ CREATE TABLE dish_templates (
   template_code varchar(40) NOT NULL COMMENT '稳定模板编码',
   category_id bigint NOT NULL COMMENT '平台模板分类ID',
   name varchar(100) NOT NULL COMMENT '模板菜品名称',
-  description varchar(255) NOT NULL COMMENT '模板菜品简介',
-  image_url varchar(500) NOT NULL COMMENT '本地图片访问地址',
-  image_source_url varchar(1000) NOT NULL COMMENT '原始图片来源页面',
-  image_author varchar(255) NOT NULL COMMENT '图片作者或来源平台',
-  image_license varchar(255) NOT NULL COMMENT '图片授权类型',
-  reference_price decimal(10,2) NOT NULL COMMENT '家庭私厨参考价',
+  description varchar(255) NULL COMMENT '模板菜品简介',
+  image_url varchar(500) NULL COMMENT '已审核发布的公共图片地址',
+  image_source_url varchar(1000) NULL COMMENT '已声明授权图片的来源页面',
+  image_author varchar(255) NULL COMMENT '已声明授权图片的作者或来源平台',
+  image_license varchar(255) NULL COMMENT '已声明授权图片的许可证',
+  reference_price decimal(10,2) NULL COMMENT '家庭私厨参考价',
   taste_tags json NOT NULL COMMENT '口味标签JSON',
   meal_tags json NOT NULL COMMENT '推荐餐次JSON',
+  template_type varchar(20) NOT NULL DEFAULT 'DISH' COMMENT '模板类型：DISH成品菜、COMPONENT配料组件',
+  source_type varchar(30) NOT NULL DEFAULT 'LOCAL_EXTENSION' COMMENT '来源类型：COOK_LIKE_HOC、LOCAL_EXTENSION',
+  source_key varchar(500) NULL COMMENT '主来源文件的稳定规范化键',
+  source_url varchar(1000) NULL COMMENT '来源菜谱页面地址',
+  source_revision varchar(64) NULL COMMENT '来源仓库固定提交版本',
+  source_category varchar(100) NULL COMMENT '来源仓库原始分类',
+  source_yield_text varchar(255) NULL COMMENT '来源份数或批次说明原文',
+  data_status varchar(30) NOT NULL DEFAULT 'READY' COMMENT '数据状态：READY、NEEDS_PURCHASE_DATA、NEEDS_PRICE、NEEDS_BOTH',
+  procurement_ready tinyint(1) NOT NULL DEFAULT 1 COMMENT '采购用量是否完成家庭化校验',
+  image_rights_status varchar(20) NOT NULL DEFAULT 'DECLARED' COMMENT '图片权利状态：DECLARED、UNDECLARED、NONE',
   sort_order int NOT NULL DEFAULT 0 COMMENT '分类内排序值',
   enabled tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否可导入',
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  CONSTRAINT chk_dish_template_type CHECK (template_type IN ('DISH','COMPONENT')),
+  CONSTRAINT chk_dish_template_source_type CHECK (source_type IN ('COOK_LIKE_HOC','LOCAL_EXTENSION')),
+  CONSTRAINT chk_dish_template_data_status CHECK (data_status IN ('READY','NEEDS_PURCHASE_DATA','NEEDS_PRICE','NEEDS_BOTH')),
+  CONSTRAINT chk_template_image_rights CHECK ((image_rights_status IN ('UNDECLARED','NONE') AND image_url IS NULL) OR (image_rights_status='DECLARED' AND image_url IS NOT NULL AND image_source_url IS NOT NULL AND image_author IS NOT NULL AND image_license IS NOT NULL)),
   UNIQUE KEY uk_dish_templates_code (template_code),
+  UNIQUE KEY uk_dish_templates_source_key (source_key),
   KEY idx_dish_templates_category_enabled_sort (category_id,enabled,sort_order),
+  KEY idx_dish_templates_market (template_type,data_status,procurement_ready,enabled),
   KEY idx_dish_templates_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板表';
 
@@ -41,12 +57,101 @@ CREATE TABLE dish_template_ingredients (
   template_id bigint NOT NULL COMMENT '平台菜品模板ID',
   ingredient_name varchar(100) NOT NULL COMMENT '食材名称',
   ingredient_category varchar(50) NOT NULL COMMENT '食材分类',
-  quantity decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT '默认计算数量',
-  unit varchar(20) NOT NULL COMMENT '计量单位',
-  calc_type varchar(20) NOT NULL COMMENT '计算方式：FIXED/PER_PERSON/NO_PURCHASE',
+  quantity decimal(10,2) NULL COMMENT '经家庭化校验的采购数量',
+  unit varchar(20) NULL COMMENT '经家庭化校验的计量单位',
+  calc_type varchar(20) NULL COMMENT '计算方式：FIXED、PER_PERSON',
+  source_text varchar(1000) NULL COMMENT '归一化后的来源原料行',
+  source_quantity_text varchar(255) NULL COMMENT '来源批量用量原文',
+  quantity_status varchar(30) NOT NULL DEFAULT 'VERIFIED' COMMENT '数量状态：VERIFIED、SOURCE_BATCH、MISSING、NOT_APPLICABLE',
+  component_template_id bigint NULL COMMENT '引用配料组件模板的逻辑ID',
+  source_line_key varchar(500) NULL COMMENT '来源文件和原料行组成的稳定键',
+  component_occurrence_key varchar(500) NULL COMMENT '组件在当前菜谱中的引用出现键',
+  component_multiplier decimal(12,4) NULL COMMENT '经验证的组件引用倍数',
   sort_order int NOT NULL DEFAULT 0 COMMENT '显示顺序',
+  CONSTRAINT chk_template_ingredient_quantity_state CHECK ((quantity_status='VERIFIED' AND quantity>0 AND unit IS NOT NULL AND CHAR_LENGTH(TRIM(unit))>0 AND calc_type IN ('FIXED','PER_PERSON')) OR (quantity_status IN ('SOURCE_BATCH','MISSING') AND quantity IS NULL AND unit IS NULL AND calc_type IS NULL) OR (quantity_status='NOT_APPLICABLE' AND quantity IS NULL AND unit IS NULL AND calc_type IS NULL)),
+  UNIQUE KEY uk_dish_template_ingredients_source_line (source_line_key),
   KEY idx_dish_template_ingredients_template_sort (template_id,sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板食材明细表';
+
+CREATE TABLE dish_template_source_records (
+  id bigint PRIMARY KEY AUTO_INCREMENT COMMENT '模板来源记录ID',
+  template_id bigint NOT NULL COMMENT '平台菜品模板逻辑ID',
+  source_key varchar(500) NOT NULL COMMENT '来源文件稳定规范化键',
+  source_title varchar(255) NOT NULL COMMENT '来源菜谱标题',
+  source_category varchar(100) NOT NULL COMMENT '来源仓库原始分类',
+  source_path varchar(1000) NOT NULL COMMENT '来源仓库相对路径',
+  source_url varchar(1000) NOT NULL COMMENT '来源菜谱页面地址',
+  source_revision varchar(64) NOT NULL COMMENT '来源仓库固定提交版本',
+  record_type varchar(30) NOT NULL COMMENT '记录类型：PRIMARY、SOURCE_ALIAS、PATH_RENAME',
+  alias_reason varchar(500) NULL COMMENT '来源别名或路径重命名原因',
+  content_sha256 char(64) NOT NULL COMMENT '规范化Markdown内容SHA-256',
+  created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  CONSTRAINT chk_dish_template_source_record_type CHECK (record_type IN ('PRIMARY','SOURCE_ALIAS','PATH_RENAME')),
+  UNIQUE KEY uk_dish_template_source_records_key (source_key),
+  KEY idx_dish_template_source_records_template (template_id,record_type,id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板来源记录表';
+
+CREATE TABLE dish_template_name_aliases (
+  id bigint PRIMARY KEY AUTO_INCREMENT COMMENT '模板名称别名ID',
+  template_id bigint NOT NULL COMMENT '平台菜品模板逻辑ID',
+  alias_name varchar(255) NOT NULL COMMENT '模板名称别名',
+  normalized_alias_name varchar(255) NOT NULL COMMENT '规范化后的全局唯一别名',
+  alias_type varchar(30) NOT NULL COMMENT '别名类型：LOCAL_PREVIOUS_NAME、SOURCE_TITLE_VARIANT、MANUAL',
+  created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  CONSTRAINT chk_dish_template_name_alias_type CHECK (alias_type IN ('LOCAL_PREVIOUS_NAME','SOURCE_TITLE_VARIANT','MANUAL')),
+  UNIQUE KEY uk_dish_template_name_aliases_normalized (normalized_alias_name),
+  KEY idx_dish_template_name_aliases_template (template_id,id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板名称别名表';
+
+CREATE TABLE dish_template_cooking_steps (
+  id bigint PRIMARY KEY AUTO_INCREMENT COMMENT '模板制作步骤ID',
+  template_id bigint NOT NULL COMMENT '平台菜品模板逻辑ID',
+  step_no int NOT NULL COMMENT '步骤序号',
+  title varchar(100) NULL COMMENT '步骤标题',
+  content text NOT NULL COMMENT '归纳后的完整制作操作',
+  source_text varchar(1000) NULL COMMENT '简短来源定位和事实摘要',
+  duration_seconds int NULL COMMENT '可可靠识别的持续秒数',
+  temperature_text varchar(100) NULL COMMENT '可可靠识别的温度说明',
+  heat_level varchar(50) NULL COMMENT '可可靠识别的火候说明',
+  component_template_id bigint NULL COMMENT '当前步骤使用的配料组件逻辑ID',
+  UNIQUE KEY uk_dish_template_cooking_steps_template_step (template_id,step_no),
+  KEY idx_dish_template_cooking_steps_component (component_template_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板制作步骤表';
+
+CREATE TABLE dish_template_image_assets (
+  id bigint PRIMARY KEY AUTO_INCREMENT COMMENT '模板内部图片资产ID',
+  template_id bigint NOT NULL COMMENT '平台菜品模板逻辑ID',
+  source_record_id bigint NOT NULL COMMENT '模板来源记录逻辑ID',
+  internal_storage_key varchar(500) NOT NULL COMMENT '服务端内部私有存储键',
+  content_sha256 char(64) NOT NULL COMMENT '图片内容SHA-256',
+  mime_type varchar(100) NOT NULL COMMENT '图片MIME类型',
+  file_size bigint NOT NULL COMMENT '图片字节数',
+  source_image_path varchar(1000) NOT NULL COMMENT '来源仓库图片相对路径',
+  source_url varchar(1000) NOT NULL COMMENT '来源菜谱页面地址',
+  source_revision varchar(64) NOT NULL COMMENT '来源仓库固定提交版本',
+  asset_status varchar(30) NOT NULL DEFAULT 'INTERNAL_REVIEW' COMMENT '资产状态：INTERNAL_REVIEW、PUBLISHED、REJECTED',
+  public_image_url varchar(500) NULL COMMENT '审核发布后的公共图片地址',
+  image_author varchar(255) NULL COMMENT '审核确认的图片作者',
+  image_license varchar(255) NULL COMMENT '审核确认的图片许可证',
+  reviewed_by bigint NULL COMMENT '审核平台管理员用户ID',
+  reviewed_at datetime NULL COMMENT '审核时间',
+  rejection_reason varchar(500) NULL COMMENT '拒绝原因',
+  created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  CONSTRAINT chk_dish_template_image_asset_status CHECK (asset_status IN ('INTERNAL_REVIEW','PUBLISHED','REJECTED')),
+  CONSTRAINT chk_template_image_asset_rejection CHECK ((asset_status='REJECTED' AND rejection_reason IS NOT NULL AND CHAR_LENGTH(TRIM(rejection_reason))>0) OR (asset_status<>'REJECTED' AND rejection_reason IS NULL)),
+  UNIQUE KEY uk_dish_template_image_assets_source (template_id,source_revision,source_image_path,content_sha256),
+  UNIQUE KEY uk_dish_template_image_assets_storage (internal_storage_key),
+  KEY idx_dish_template_image_assets_status (asset_status,id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板内部图片审核资产表';
+
+ALTER TABLE dish_cooking_steps
+  ADD COLUMN duration_seconds int NULL COMMENT '制作持续秒数' AFTER content,
+  ADD COLUMN temperature_text varchar(100) NULL COMMENT '制作温度说明' AFTER duration_seconds,
+  ADD COLUMN heat_level varchar(50) NULL COMMENT '制作火候说明' AFTER temperature_text,
+  ADD COLUMN source_template_step_id bigint NULL COMMENT '来源平台模板步骤逻辑ID' AFTER heat_level,
+  ADD COLUMN component_template_id bigint NULL COMMENT '来源配料组件模板逻辑ID' AFTER source_template_step_id,
+  ADD COLUMN source_note varchar(1000) NULL COMMENT '来源步骤简短追踪说明' AFTER component_template_id;
 
 INSERT INTO dish_template_categories (id,code,name,sort_order,enabled) VALUES (1,'HOME_HOT','家常热菜',10,1);
 INSERT INTO dish_template_categories (id,code,name,sort_order,enabled) VALUES (2,'COLD','清爽凉菜',20,1);
@@ -57,6 +162,7 @@ INSERT INTO dish_template_categories (id,code,name,sort_order,enabled) VALUES (6
 INSERT INTO dish_template_categories (id,code,name,sort_order,enabled) VALUES (7,'HEALTHY','健康轻食',70,1);
 INSERT INTO dish_template_categories (id,code,name,sort_order,enabled) VALUES (8,'SNACK','特色小吃',80,1);
 INSERT INTO dish_template_categories (id,code,name,sort_order,enabled) VALUES (9,'DESSERT','甜品饮品',90,1);
+INSERT INTO dish_template_categories (id,code,name,sort_order,enabled) VALUES (10,'COMPONENT','配料组件',100,1);
 
 -- TEMPLATE DISH_001 红烧肉
 INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (1,'DISH_001',1,'红烧肉','红烧肉，经典家常做法，食材易采购，适合午餐或晚餐。','/images/dish-templates/dish-001.jpg','https://commons.wikimedia.org/wiki/File%3A%E7%B4%85%E7%87%92%E8%82%89_Braised_pork_in_brown_sauce.jpg','FotoosVanRobin Photostream','CC BY 2.0',24.00,'["醇香"]','["LUNCH","DINNER"]',1,1);
@@ -731,3 +837,237 @@ INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_ca
 -- TEMPLATE DISH_198 冰糖雪梨
 INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (198,'DISH_198',9,'冰糖雪梨','冰糖雪梨，甜润适口，适合作为餐后甜品。','/images/dish-templates/dish-198.jpg','https://www.flickr.com/photos/40394481@N03/9677644805','zoe.wang','BY 2.0',13.00,'["酸甜"]','["LUNCH","DINNER"]',198,1);
 INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (198,'雪梨','蔬菜及其他',200.00,'g','FIXED',1);
+
+-- 已折叠的地方特色菜模板基线（原 V5）。
+-- TEMPLATE DISH_199 豆角焖面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (199,'DISH_199',4,'豆角焖面','豆角焖面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-199.jpg','https://commons.wikimedia.org/wiki/File:Misua_noodle_making_Taiwan.jpg','MaxChu from (optional)','CC BY-SA 2.0',24.00,'["咸香"]','["LUNCH","DINNER"]',199,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (199,'鲜面条','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (199,'四季豆','蔬菜及其他',250.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (199,'五花肉','肉禽水产',150.00,'g','FIXED',3);
+-- TEMPLATE DISH_200 武汉热干面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (200,'DISH_200',4,'武汉热干面','武汉热干面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-200.jpg','https://commons.wikimedia.org/wiki/File:%E7%83%AD%E5%B9%B2%E9%9D%A2.jpg','Nature42','CC0',16.00,'["麻香"]','["LUNCH","DINNER"]',200,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (200,'碱水面','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (200,'芝麻酱','调味料',50.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (200,'酸豆角','蔬菜及其他',50.00,'g','FIXED',3);
+-- TEMPLATE DISH_201 四川担担面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (201,'DISH_201',4,'四川担担面','四川担担面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-201.jpg','https://commons.wikimedia.org/wiki/File:Dandannoodles.jpg','Alpha from Melbourne, Australia','CC BY-SA 2.0',20.00,'["麻辣"]','["LUNCH","DINNER"]',201,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (201,'细面条','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (201,'猪肉末','肉禽水产',120.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (201,'花生碎','蔬菜及其他',30.00,'g','FIXED',3);
+-- TEMPLATE DISH_202 重庆小面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (202,'DISH_202',4,'重庆小面','重庆小面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-202.jpg','https://commons.wikimedia.org/wiki/File:%E8%B1%8C%E6%9D%82%E9%9D%A2.jpg','木下^ 俱欢颜*','CC BY-SA 3.0',18.00,'["麻辣"]','["LUNCH","DINNER"]',202,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (202,'碱水面','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (202,'青菜','蔬菜及其他',100.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (202,'辣椒油','调味料',30.00,'ml','FIXED',3);
+-- TEMPLATE DISH_203 陕西油泼面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (203,'DISH_203',4,'陕西油泼面','陕西油泼面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-203.jpg','https://commons.wikimedia.org/wiki/File:Misua_noodle_making_Taiwan.jpg','MaxChu from (optional)','CC BY-SA 2.0',20.00,'["香辣"]','["LUNCH","DINNER"]',203,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (203,'宽面条','粮油主食',350.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (203,'豆芽','蔬菜及其他',120.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (203,'辣椒面','调味料',20.00,'g','FIXED',3);
+-- TEMPLATE DISH_204 山西刀削面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (204,'DISH_204',4,'山西刀削面','山西刀削面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-204.jpg','https://commons.wikimedia.org/wiki/File:%E5%88%80%E5%89%8A%E9%BA%BA.jpg','Takkitakitaki','CC BY-SA 3.0',22.00,'["醇香"]','["LUNCH","DINNER"]',204,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (204,'刀削面','粮油主食',350.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (204,'猪肉臊子','肉禽水产',150.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (204,'番茄','蔬菜及其他',150.00,'g','FIXED',3);
+-- TEMPLATE DISH_205 河南烩面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (205,'DISH_205',4,'河南烩面','河南烩面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-205.jpg','https://commons.wikimedia.org/wiki/File:Hui_mien.jpg','Kruuth','CC BY-SA 3.0',26.00,'["浓香"]','["LUNCH","DINNER"]',205,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (205,'烩面片','粮油主食',350.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (205,'羊肉','肉禽水产',180.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (205,'海带丝','蔬菜及其他',80.00,'g','FIXED',3);
+-- TEMPLATE DISH_206 岐山臊子面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (206,'DISH_206',4,'岐山臊子面','岐山臊子面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-206.jpg','https://commons.wikimedia.org/wiki/File:%E5%B2%90%E5%B1%B1%E8%87%8A%E5%AD%90%E9%9D%A2.jpg','Walter Grassroot','CC BY-SA 4.0',22.00,'["酸香"]','["LUNCH","DINNER"]',206,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (206,'细面条','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (206,'猪肉丁','肉禽水产',120.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (206,'胡萝卜','蔬菜及其他',80.00,'g','FIXED',3);
+-- TEMPLATE DISH_207 宜宾燃面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (207,'DISH_207',4,'宜宾燃面','宜宾燃面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-207.jpg','https://commons.wikimedia.org/wiki/File:Ranmian_with_minced_pork_at_Beijing_Yibin_Hostel_(20210401111955).jpg','N509FZ','CC BY-SA 4.0',20.00,'["香辣"]','["LUNCH","DINNER"]',207,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (207,'细面条','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (207,'芽菜','蔬菜及其他',80.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (207,'花生碎','蔬菜及其他',30.00,'g','FIXED',3);
+-- TEMPLATE DISH_208 延吉冷面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (208,'DISH_208',4,'延吉冷面','延吉冷面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-208.jpg','https://commons.wikimedia.org/wiki/File:%E5%BB%B6%E5%90%89_%E5%90%B4%E6%B0%8F%E5%8C%85%E9%A5%AD%E4%B9%8B%E5%90%B4%E6%B0%8F%E6%8B%8C%E5%86%B7%E9%9D%A2.jpg','Liuxingy','CC BY-SA 4.0',22.00,'["酸甜"]','["LUNCH","DINNER"]',208,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (208,'冷面','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (208,'牛肉','肉禽水产',100.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (208,'黄瓜','蔬菜及其他',100.00,'g','FIXED',3);
+-- TEMPLATE DISH_209 桂林米粉
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (209,'DISH_209',4,'桂林米粉','桂林米粉，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-209.jpg','https://commons.wikimedia.org/wiki/File:%E6%A1%82%E6%9E%97%E7%B1%B3%E7%B2%89.JPG','奔流沙','CC BY-SA 3.0',20.00,'["卤香"]','["LUNCH","DINNER"]',209,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (209,'米粉','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (209,'卤牛肉','肉禽水产',120.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (209,'酸豆角','蔬菜及其他',50.00,'g','FIXED',3);
+-- TEMPLATE DISH_210 柳州螺蛳粉
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (210,'DISH_210',4,'柳州螺蛳粉','柳州螺蛳粉，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-210.jpg','https://commons.wikimedia.org/wiki/File:Luosifen.jpg','Yi DENG','CC BY-SA 3.0',24.00,'["酸辣"]','["LUNCH","DINNER"]',210,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (210,'干米粉','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (210,'酸笋','蔬菜及其他',100.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (210,'腐竹','蔬菜及其他',60.00,'g','FIXED',3);
+-- TEMPLATE DISH_211 云南过桥米线
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (211,'DISH_211',4,'云南过桥米线','云南过桥米线，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-211.jpg','https://commons.wikimedia.org/wiki/File:%E8%BF%87%E6%A1%A5%E7%B1%B3%E7%BA%BF-%E4%BA%91%E5%8D%97%E6%98%86%E6%98%8E_03.jpg','tak.wing','CC BY-SA 2.0',28.00,'["鲜香"]','["LUNCH","DINNER"]',211,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (211,'米线','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (211,'鸡胸肉','肉禽水产',120.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (211,'菌菇','蔬菜及其他',100.00,'g','FIXED',3);
+-- TEMPLATE DISH_212 广东云吞面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (212,'DISH_212',4,'广东云吞面','广东云吞面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-212.jpg','https://commons.wikimedia.org/wiki/File:Wonton_Noodle_-_Kaiping_-_20181028.jpg','DragonSamYU','CC BY-SA 4.0',24.00,'["鲜香"]','["LUNCH","DINNER"]',212,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (212,'竹升面','粮油主食',250.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (212,'鲜虾云吞','粮油主食',8.00,'个','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (212,'青菜','蔬菜及其他',100.00,'g','FIXED',3);
+-- TEMPLATE DISH_213 新疆大盘鸡
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (213,'DISH_213',1,'新疆大盘鸡','新疆大盘鸡，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-213.jpg','https://commons.wikimedia.org/wiki/File:%E5%B0%8F%E5%90%83%E8%A1%97%E5%A4%A7%E7%9B%98%E9%B8%A1.jpg','别管我是谁','CC BY-SA 4.0',38.00,'["香辣"]','["LUNCH","DINNER"]',213,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (213,'鸡肉','肉禽水产',700.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (213,'土豆','蔬菜及其他',300.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (213,'宽面条','粮油主食',250.00,'g','FIXED',3);
+-- TEMPLATE DISH_214 徐州地锅鸡
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (214,'DISH_214',1,'徐州地锅鸡','徐州地锅鸡，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-214.jpg','https://commons.wikimedia.org/wiki/File:HK_%E4%B8%8A%E7%92%B0_Sheung_Wan_%E6%80%A5%E5%BA%87%E5%88%A9%E8%A1%97_Clevely_Street_%E9%8B%BF%E6%99%B6%E9%A4%A8_SC_Cuisine_Chinese_Seafood_Restaurant_food_%E4%B9%B3%E8%B1%AC%E5%85%A8%E9%AB%94_baby_Suckling_pig_meat_full_dish_siu_yuk_October_2025_N13P_03.jpg','SCGlao PABA DAZFAM','CC0',36.00,'["酱香"]','["LUNCH","DINNER"]',214,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (214,'鸡肉','肉禽水产',700.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (214,'面粉','粮油主食',250.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (214,'青椒','蔬菜及其他',120.00,'g','FIXED',3);
+-- TEMPLATE DISH_215 小鸡炖蘑菇
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (215,'DISH_215',1,'小鸡炖蘑菇','小鸡炖蘑菇，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-215.jpg','https://commons.wikimedia.org/wiki/File:Lamb_and_Carrot_Dumplings_-_Original_Taste_-_Alpha.jpg','avlxyz','CC BY-SA 2.0',34.00,'["浓香"]','["LUNCH","DINNER"]',215,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (215,'鸡肉','肉禽水产',600.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (215,'榛蘑','菌菇',150.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (215,'粉条','粮油主食',100.00,'g','FIXED',3);
+-- TEMPLATE DISH_216 猪肉炖粉条
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (216,'DISH_216',1,'猪肉炖粉条','猪肉炖粉条，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-216.jpg','https://commons.wikimedia.org/wiki/File:HK_%E4%B8%8A%E7%92%B0_Sheung_Wan_%E6%80%A5%E5%BA%87%E5%88%A9%E8%A1%97_Clevely_Street_%E9%8B%BF%E6%99%B6%E9%A4%A8_SC_Cuisine_Chinese_Seafood_Restaurant_food_%E4%B9%B3%E8%B1%AC%E5%85%A8%E9%AB%94_baby_Suckling_pig_meat_full_dish_siu_yuk_October_2025_N13P_03.jpg','SCGlao PABA DAZFAM','CC0',32.00,'["醇香"]','["LUNCH","DINNER"]',216,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (216,'五花肉','肉禽水产',400.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (216,'粉条','粮油主食',180.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (216,'大白菜','蔬菜及其他',250.00,'g','FIXED',3);
+-- TEMPLATE DISH_217 东北锅包肉
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (217,'DISH_217',1,'东北锅包肉','东北锅包肉，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-217.jpg','https://commons.wikimedia.org/wiki/File:%E4%B8%9C%E5%8C%97%E9%94%85%E5%8C%85%E8%82%89.jpg','Zuppy21','CC BY-SA 4.0',34.00,'["酸甜"]','["LUNCH","DINNER"]',217,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (217,'猪里脊','肉禽水产',400.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (217,'土豆淀粉','调味料',120.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (217,'胡萝卜','蔬菜及其他',60.00,'g','FIXED',3);
+-- TEMPLATE DISH_218 东北溜肉段
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (218,'DISH_218',1,'东北溜肉段','东北溜肉段，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-218.jpg','https://commons.wikimedia.org/wiki/File:HK_%E4%B8%8A%E7%92%B0_Sheung_Wan_%E6%80%A5%E5%BA%87%E5%88%A9%E8%A1%97_Clevely_Street_%E9%8B%BF%E6%99%B6%E9%A4%A8_SC_Cuisine_Chinese_Seafood_Restaurant_food_%E4%B9%B3%E8%B1%AC%E5%85%A8%E9%AB%94_baby_Suckling_pig_meat_full_dish_siu_yuk_October_2025_N13P_03.jpg','SCGlao PABA DAZFAM','CC0',32.00,'["咸香"]','["LUNCH","DINNER"]',218,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (218,'猪里脊','肉禽水产',400.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (218,'青椒','蔬菜及其他',100.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (218,'土豆淀粉','调味料',100.00,'g','FIXED',3);
+-- TEMPLATE DISH_219 客家酿豆腐
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (219,'DISH_219',1,'客家酿豆腐','客家酿豆腐，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-219.jpg','https://commons.wikimedia.org/wiki/File:Yong_tau_foo_zz.jpg','Chensiyuan','CC BY-SA 3.0',30.00,'["鲜香"]','["LUNCH","DINNER"]',219,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (219,'北豆腐','豆制品',500.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (219,'猪肉末','肉禽水产',200.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (219,'香菇','菌菇',60.00,'g','FIXED',3);
+-- TEMPLATE DISH_220 杭州东坡肉
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (220,'DISH_220',1,'杭州东坡肉','杭州东坡肉，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-220.jpg','https://commons.wikimedia.org/wiki/File:Dongpo_pork_by_superturtle.jpg','superturtle','CC BY 2.0',38.00,'["醇香"]','["LUNCH","DINNER"]',220,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (220,'五花肉','肉禽水产',600.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (220,'黄酒','调味料',150.00,'ml','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (220,'小葱','调味料',30.00,'g','FIXED',3);
+-- TEMPLATE DISH_221 重庆毛血旺
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (221,'DISH_221',1,'重庆毛血旺','重庆毛血旺，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-221.jpg','https://commons.wikimedia.org/wiki/File:Mao_Xuewang_1.jpg','Alpha','CC BY-SA 2.0',40.00,'["麻辣"]','["LUNCH","DINNER"]',221,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (221,'鸭血','肉禽水产',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (221,'毛肚','肉禽水产',200.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (221,'黄豆芽','蔬菜及其他',200.00,'g','FIXED',3);
+-- TEMPLATE DISH_222 北京鱼头泡饼
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (222,'DISH_222',1,'北京鱼头泡饼','北京鱼头泡饼，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-222.jpg','https://commons.wikimedia.org/wiki/File:HK_%E4%B8%8A%E7%92%B0_Sheung_Wan_%E6%80%A5%E5%BA%87%E5%88%A9%E8%A1%97_Clevely_Street_%E9%8B%BF%E6%99%B6%E9%A4%A8_SC_Cuisine_Chinese_Seafood_Restaurant_food_%E4%B9%B3%E8%B1%AC%E5%85%A8%E9%AB%94_baby_Suckling_pig_meat_full_dish_siu_yuk_October_2025_N13P_03.jpg','SCGlao PABA DAZFAM','CC0',42.00,'["酱香"]','["LUNCH","DINNER"]',222,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (222,'胖头鱼头','肉禽水产',1.00,'个','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (222,'烙饼','粮油主食',300.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (222,'五花肉','肉禽水产',100.00,'g','FIXED',3);
+-- TEMPLATE DISH_223 济南把子肉
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (223,'DISH_223',1,'济南把子肉','济南把子肉，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-223.jpg','https://commons.wikimedia.org/wiki/File:%E6%B5%8E%E5%8D%97%E6%8A%8A%E5%AD%90%E8%82%89%E5%92%8C%E8%82%89%E4%B8%B8%E5%AD%90.jpg','Suginami','CC BY-SA 4.0',32.00,'["酱香"]','["LUNCH","DINNER"]',223,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (223,'五花肉','肉禽水产',500.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (223,'鸡蛋','蛋奶',4.00,'个','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (223,'豆腐干','豆制品',150.00,'g','FIXED',3);
+-- TEMPLATE DISH_224 山东九转大肠
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (224,'DISH_224',1,'山东九转大肠','山东九转大肠，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-224.jpg','https://commons.wikimedia.org/wiki/File:HK_%E4%B8%8A%E7%92%B0_Sheung_Wan_%E6%80%A5%E5%BA%87%E5%88%A9%E8%A1%97_Clevely_Street_%E9%8B%BF%E6%99%B6%E9%A4%A8_SC_Cuisine_Chinese_Seafood_Restaurant_food_%E4%B9%B3%E8%B1%AC%E5%85%A8%E9%AB%94_baby_Suckling_pig_meat_full_dish_siu_yuk_October_2025_N13P_03.jpg','SCGlao PABA DAZFAM','CC0',38.00,'["酸甜"]','["LUNCH","DINNER"]',224,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (224,'猪大肠','肉禽水产',600.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (224,'香菜','蔬菜及其他',30.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (224,'米醋','调味料',30.00,'ml','FIXED',3);
+-- TEMPLATE DISH_225 苏州松鼠桂鱼
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (225,'DISH_225',1,'苏州松鼠桂鱼','苏州松鼠桂鱼，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-225.jpg','https://commons.wikimedia.org/wiki/File:%E6%9D%BE%E9%BC%A0%E9%B3%9C%E9%B1%BC.jpg','dejur','CC BY-SA 3.0',48.00,'["酸甜"]','["LUNCH","DINNER"]',225,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (225,'桂鱼','肉禽水产',1.00,'条','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (225,'番茄酱','调味料',80.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (225,'青豆','蔬菜及其他',50.00,'g','FIXED',3);
+-- TEMPLATE DISH_226 杭州龙井虾仁
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (226,'DISH_226',1,'杭州龙井虾仁','杭州龙井虾仁，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-226.jpg','https://commons.wikimedia.org/wiki/File:Longjing_prawns_in_Hangzhou_Restaurant_2015-07.JPG','猫猫的日记本','CC BY-SA 4.0',42.00,'["清鲜"]','["LUNCH","DINNER"]',226,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (226,'河虾仁','肉禽水产',400.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (226,'龙井茶叶','调味料',10.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (226,'鸡蛋清','蛋奶',1.00,'个','FIXED',3);
+-- TEMPLATE DISH_227 杭州西湖醋鱼
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (227,'DISH_227',1,'杭州西湖醋鱼','杭州西湖醋鱼，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-227.jpg','https://commons.wikimedia.org/wiki/File:Lou_wai_lou_fish.JPG','Wikimedia Commons contributor','Public domain',44.00,'["酸甜"]','["LUNCH","DINNER"]',227,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (227,'草鱼','肉禽水产',1.00,'条','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (227,'米醋','调味料',60.00,'ml','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (227,'姜','调味料',20.00,'g','FIXED',3);
+-- TEMPLATE DISH_228 南京盐水鸭
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (228,'DISH_228',1,'南京盐水鸭','南京盐水鸭，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-228.jpg','https://commons.wikimedia.org/wiki/File:Nanjing_salted_duck.JPG','NNU10.24100114','CC BY-SA 3.0',38.00,'["咸鲜"]','["LUNCH","DINNER"]',228,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (228,'鸭肉','肉禽水产',1.00,'只','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (228,'粗盐','调味料',80.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (228,'花椒','调味料',10.00,'g','FIXED',3);
+-- TEMPLATE DISH_229 潮汕卤鹅
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (229,'DISH_229',1,'潮汕卤鹅','潮汕卤鹅，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-229.jpg','https://commons.wikimedia.org/wiki/File:%E6%BD%AE%E6%B1%95%E9%9D%9E%E9%81%97%E5%8D%A4%E9%B9%85.jpg','0754Hombee','CC BY-SA 4.0',46.00,'["卤香"]','["LUNCH","DINNER"]',229,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (229,'鹅肉','肉禽水产',800.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (229,'南姜','调味料',50.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (229,'卤料包','调味料',1.00,'包','FIXED',3);
+-- TEMPLATE DISH_230 广式煲仔饭
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (230,'DISH_230',4,'广式煲仔饭','广式煲仔饭，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-230.jpg','https://commons.wikimedia.org/wiki/File:Claypot_Chicken_Rice%2C_Singapore.JPG','Banej','CC BY-SA 3.0',30.00,'["锅香"]','["LUNCH","DINNER"]',230,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (230,'大米','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (230,'广式腊肠','肉禽水产',150.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (230,'青菜','蔬菜及其他',120.00,'g','FIXED',3);
+-- TEMPLATE DISH_231 海南鸡饭
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (231,'DISH_231',4,'海南鸡饭','海南鸡饭，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-231.jpg','https://commons.wikimedia.org/wiki/File:Hainanese_Chicken_Rice.jpg','No machine-readable author provided. Terence assumed (based on copyright claims).','CC BY 2.5',30.00,'["鲜香"]','["LUNCH","DINNER"]',231,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (231,'鸡腿肉','肉禽水产',400.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (231,'香米','粮油主食',300.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (231,'黄瓜','蔬菜及其他',100.00,'g','FIXED',3);
+-- TEMPLATE DISH_232 福建沙茶面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (232,'DISH_232',4,'福建沙茶面','福建沙茶面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-232.jpg','https://commons.wikimedia.org/wiki/File:Misua_noodle_making_Taiwan.jpg','MaxChu from (optional)','CC BY-SA 2.0',26.00,'["沙茶香"]','["LUNCH","DINNER"]',232,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (232,'油面','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (232,'鲜虾','肉禽水产',150.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (232,'沙茶酱','调味料',50.00,'g','FIXED',3);
+-- TEMPLATE DISH_233 莆田卤面
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (233,'DISH_233',4,'莆田卤面','莆田卤面，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-233.jpg','https://commons.wikimedia.org/wiki/File:Misua_noodle_making_Taiwan.jpg','MaxChu from (optional)','CC BY-SA 2.0',28.00,'["鲜香"]','["LUNCH","DINNER"]',233,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (233,'手工面','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (233,'五花肉','肉禽水产',120.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (233,'蛏子','肉禽水产',150.00,'g','FIXED',3);
+-- TEMPLATE DISH_234 台湾卤肉饭
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (234,'DISH_234',4,'台湾卤肉饭','台湾卤肉饭，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-234.jpg','https://commons.wikimedia.org/wiki/File:Braised_pork_rice_in_Taichung.jpg','Mori Chan from 台中市 (Taichung)','CC BY 2.0',26.00,'["卤香"]','["LUNCH","DINNER"]',234,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (234,'大米','粮油主食',300.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (234,'五花肉','肉禽水产',250.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (234,'鸡蛋','蛋奶',2.00,'个','FIXED',3);
+-- TEMPLATE DISH_235 广东肠粉
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (235,'DISH_235',5,'广东肠粉','广东肠粉，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-235.jpg','https://commons.wikimedia.org/wiki/File:%E8%8C%82%E5%90%8D%E7%9A%84%E9%A6%99%E6%B2%B9%E6%8D%9E%E7%B2%89%E7%9A%AE.jpg','WU Zhitong','CC BY-SA 4.0',18.00,'["鲜香"]','["LUNCH","DINNER"]',235,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (235,'肠粉专用粉','粮油主食',200.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (235,'猪肉末','肉禽水产',100.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (235,'鸡蛋','蛋奶',2.00,'个','FIXED',3);
+-- TEMPLATE DISH_236 宁波汤圆
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (236,'DISH_236',9,'宁波汤圆','宁波汤圆，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-236.jpg','https://commons.wikimedia.org/wiki/File:Tangyuan_Production_displayed_in_Ningbo_Museum.jpg','Siyuwj','CC BY-SA 3.0',16.00,'["香甜"]','["LUNCH","DINNER"]',236,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (236,'糯米粉','粮油主食',250.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (236,'黑芝麻','蔬菜及其他',80.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (236,'猪油','调味料',30.00,'g','FIXED',3);
+-- TEMPLATE DISH_237 厦门海蛎煎
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (237,'DISH_237',8,'厦门海蛎煎','厦门海蛎煎，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-237.jpg','https://commons.wikimedia.org/wiki/File:HK_%E4%B8%8A%E7%92%B0_Sheung_Wan_%E6%80%A5%E5%BA%87%E5%88%A9%E8%A1%97_Clevely_Street_%E9%8B%BF%E6%99%B6%E9%A4%A8_SC_Cuisine_Chinese_Seafood_Restaurant_food_%E4%B9%B3%E8%B1%AC%E5%85%A8%E9%AB%94_baby_Suckling_pig_meat_full_dish_siu_yuk_October_2025_N13P_03.jpg','SCGlao PABA DAZFAM','CC0',26.00,'["鲜香"]','["LUNCH","DINNER"]',237,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (237,'海蛎','肉禽水产',250.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (237,'鸡蛋','蛋奶',3.00,'个','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (237,'地瓜粉','粮油主食',80.00,'g','FIXED',3);
+-- TEMPLATE DISH_238 泉州姜母鸭
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (238,'DISH_238',1,'泉州姜母鸭','泉州姜母鸭，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-238.jpg','https://commons.wikimedia.org/wiki/File:HK_%E4%B8%8A%E7%92%B0_Sheung_Wan_%E6%80%A5%E5%BA%87%E5%88%A9%E8%A1%97_Clevely_Street_%E9%8B%BF%E6%99%B6%E9%A4%A8_SC_Cuisine_Chinese_Seafood_Restaurant_food_%E4%B9%B3%E8%B1%AC%E5%85%A8%E9%AB%94_baby_Suckling_pig_meat_full_dish_siu_yuk_October_2025_N13P_03.jpg','SCGlao PABA DAZFAM','CC0',42.00,'["姜香"]','["LUNCH","DINNER"]',238,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (238,'番鸭','肉禽水产',800.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (238,'老姜','调味料',150.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (238,'麻油','调味料',60.00,'ml','FIXED',3);
+-- TEMPLATE DISH_239 山东博山酥锅
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (239,'DISH_239',1,'山东博山酥锅','山东博山酥锅，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-239.jpg','https://commons.wikimedia.org/wiki/File:HK_%E4%B8%8A%E7%92%B0_Sheung_Wan_%E6%80%A5%E5%BA%87%E5%88%A9%E8%A1%97_Clevely_Street_%E9%8B%BF%E6%99%B6%E9%A4%A8_SC_Cuisine_Chinese_Seafood_Restaurant_food_%E4%B9%B3%E8%B1%AC%E5%85%A8%E9%AB%94_baby_Suckling_pig_meat_full_dish_siu_yuk_October_2025_N13P_03.jpg','SCGlao PABA DAZFAM','CC0',36.00,'["醇香"]','["LUNCH","DINNER"]',239,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (239,'猪蹄','肉禽水产',400.00,'g','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (239,'海带','蔬菜及其他',200.00,'g','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (239,'莲藕','蔬菜及其他',200.00,'g','FIXED',3);
+-- TEMPLATE DISH_240 赛螃蟹
+INSERT INTO dish_templates (id,template_code,category_id,name,description,image_url,image_source_url,image_author,image_license,reference_price,taste_tags,meal_tags,sort_order,enabled) VALUES (240,'DISH_240',1,'赛螃蟹','赛螃蟹，地方特色风味，适合家庭午餐或晚餐搭配。','/images/dish-templates/dish-240.jpg','https://commons.wikimedia.org/wiki/File:Cheese_pizza_with_imitation_crab.jpg','jeffreyw','CC BY 2.0',24.00,'["鲜香"]','["LUNCH","DINNER"]',240,1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (240,'鸡蛋','蛋奶',5.00,'个','FIXED',1);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (240,'咸蛋黄','蛋奶',2.00,'个','FIXED',2);
+INSERT INTO dish_template_ingredients (template_id,ingredient_name,ingredient_category,quantity,unit,calc_type,sort_order) VALUES (240,'姜','调味料',20.00,'g','FIXED',3);
+
+-- 已折叠的地域模板图片授权修正（原 V6）。
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/10559879@N00/504366900',image_author='avlxyz',image_license='BY-SA' WHERE id=199 AND template_code='DISH_199';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/9751325@N02/8661289994',image_author='kudumomo',image_license='BY' WHERE id=203 AND template_code='DISH_203';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/87117631@N00/17919269439',image_author='Gary Soup',image_license='BY' WHERE id=209 AND template_code='DISH_209';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/10559879@N00/2403231552',image_author='avlxyz',image_license='BY-SA' WHERE id=214 AND template_code='DISH_214';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/10559879@N00/2300203732',image_author='avlxyz',image_license='BY-SA' WHERE id=215 AND template_code='DISH_215';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/30760976@N04/36618285890',image_author='anokarina',image_license='BY-SA' WHERE id=216 AND template_code='DISH_216';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/47038415@N00/223729056',image_author='Augapfel',image_license='BY' WHERE id=218 AND template_code='DISH_218';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/10559879@N00/2704734055',image_author='avlxyz',image_license='BY-SA' WHERE id=222 AND template_code='DISH_222';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/10559879@N00/4956296651',image_author='avlxyz',image_license='BY-SA' WHERE id=224 AND template_code='DISH_224';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/10559879@N00/2705558736',image_author='avlxyz',image_license='BY-SA' WHERE id=227 AND template_code='DISH_227';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/10559879@N00/2144889517',image_author='avlxyz',image_license='BY-SA' WHERE id=232 AND template_code='DISH_232';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/10559879@N00/2921569108',image_author='avlxyz',image_license='BY-SA' WHERE id=233 AND template_code='DISH_233';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/33993074@N00/3144578977',image_author='joyosity',image_license='BY' WHERE id=236 AND template_code='DISH_236';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/10559879@N00/3011561831',image_author='avlxyz',image_license='BY-SA' WHERE id=237 AND template_code='DISH_237';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/35034346243@N01/3548645229',image_author='stu_spivack',image_license='BY-SA' WHERE id=238 AND template_code='DISH_238';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/35034346243@N01/9336352485',image_author='stu_spivack',image_license='BY-SA' WHERE id=240 AND template_code='DISH_240';
+UPDATE dish_templates SET image_source_url='https://www.flickr.com/photos/71834709@N00/8546361421',image_author='Colin ZHU',image_license='BY-SA 2.0' WHERE id=239 AND template_code='DISH_239';
+
+-- BEGIN GENERATED COOKLIKEHOC DATA
+-- END GENERATED COOKLIKEHOC DATA
