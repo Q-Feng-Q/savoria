@@ -12,6 +12,8 @@ public class DishTemplateCookingStepEntity {
   /** 数据库主键。 */
   @TableId(value = "id", type = IdType.AUTO)
   private Long id;
+  /** 跨快照保持稳定的步骤项键。 */
+  private String itemKey;
   /** 所属模板ID。 */
   private Long templateId;
   /** 连续步骤序号。 */
@@ -48,6 +50,16 @@ public class DishTemplateCookingStepEntity {
    * @param id 数据库主键
    */
   public void setId(Long id) { this.id = id; }
+  /**
+   * 获取稳定步骤项键。
+   * @return 稳定步骤项键
+   */
+  public String getItemKey() { return itemKey; }
+  /**
+   * 设置稳定步骤项键。
+   * @param itemKey 稳定步骤项键
+   */
+  public void setItemKey(String itemKey) { this.itemKey = itemKey; }
   /**
    * 获取所属模板ID。
    *

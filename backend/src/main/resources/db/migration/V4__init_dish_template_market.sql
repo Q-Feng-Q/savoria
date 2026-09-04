@@ -105,6 +105,7 @@ CREATE TABLE dish_template_name_aliases (
 
 CREATE TABLE dish_template_cooking_steps (
   id bigint PRIMARY KEY AUTO_INCREMENT COMMENT '模板制作步骤ID',
+  item_key varchar(500) NULL COMMENT '跨完整快照保持稳定的步骤项键',
   template_id bigint NOT NULL COMMENT '平台菜品模板逻辑ID',
   step_no int NOT NULL COMMENT '步骤序号',
   title varchar(100) NULL COMMENT '步骤标题',
@@ -114,6 +115,7 @@ CREATE TABLE dish_template_cooking_steps (
   temperature_text varchar(100) NULL COMMENT '可可靠识别的温度说明',
   heat_level varchar(50) NULL COMMENT '可可靠识别的火候说明',
   component_template_id bigint NULL COMMENT '当前步骤使用的配料组件逻辑ID',
+  UNIQUE KEY uk_dish_template_cooking_steps_item_key (item_key),
   UNIQUE KEY uk_dish_template_cooking_steps_template_step (template_id,step_no),
   KEY idx_dish_template_cooking_steps_component (component_template_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板制作步骤表';
