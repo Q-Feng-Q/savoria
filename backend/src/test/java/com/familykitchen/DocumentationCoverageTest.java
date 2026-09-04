@@ -118,6 +118,56 @@ class DocumentationCoverageTest {
     assertFalse(exactTypeName("java.io.IOException", "IOException", "MyIOException"));
   }
 
+  @Test
+  void recipeTemplateApiAndDatabaseContractsArePublished() throws Exception {
+    String api = Files.readString(PROJECT_ROOT.getParent().resolve("docs/api-spec.md"), StandardCharsets.UTF_8);
+    String frontend = Files.readString(PROJECT_ROOT.getParent().resolve("docs/frontend-api-guide.md"),
+        StandardCharsets.UTF_8);
+    String database = Files.readString(PROJECT_ROOT.getParent().resolve("docs/database-design.md"),
+        StandardCharsets.UTF_8);
+
+    for (String route : List.of(
+        "GET /api/merchant/dish-template-categories",
+        "GET /api/merchant/dish-templates",
+        "GET /api/merchant/dish-templates/{templateId}",
+        "POST /api/merchant/dish-templates/import",
+        "POST /api/merchant/dishes/{dishId}/template-change-requests",
+        "POST /api/merchant/dish-templates/{templateId}/change-requests",
+        "GET /api/admin/dish-templates",
+        "PUT /api/admin/dish-templates/{templateId}",
+        "GET /api/admin/dish-template-assets/{assetId}/preview",
+        "POST /api/admin/dish-templates/{templateId}/image-promotion",
+        "POST /api/admin/dish-template-change-requests/{requestId}/approve")) {
+      assertTrue(api.contains(route), () -> "API文档缺少路由：" + route);
+    }
+    for (String term : List.of("schemaVersion", "quantityStatus", "SOURCE_BATCH", "MISSING",
+        "NOT_APPLICABLE", "cookingSteps", "referencePrice", "可为 null", "pageSize",
+        "最大 100", "PENDING", "APPROVED", "REJECTED", "WITHDRAWN", "409", "422")) {
+      assertTrue(api.contains(term), () -> "API文档缺少契约：" + term);
+    }
+    for (String rule : List.of("imageUrl", "imageSourceUrl", "imageAuthor", "imageLicense",
+        "不能出现在 v2 快照", "仅平台管理员", "INTERNAL_REVIEW", "PUBLISHED", "REJECTED",
+        "不能把内部文件路径返回给客户端")) {
+      assertTrue(api.contains(rule), () -> "API文档缺少图片安全规则：" + rule);
+    }
+    for (String table : List.of("dish_templates", "dish_template_ingredients",
+        "dish_template_cooking_steps", "dish_template_source_records",
+        "dish_template_image_assets", "dish_template_change_requests")) {
+      assertTrue(database.contains(table), () -> "数据库文档缺少表：" + table);
+    }
+    assertTrue(frontend.contains("制作步骤会随导入复制"));
+    assertTrue(frontend.contains("schemaVersion: 2"));
+    assertTrue(frontend.contains("不能提交图片、来源、类型或派生状态字段"));
+    String templateController = Files.readString(PROJECT_ROOT.resolve(
+        "src/main/java/com/familykitchen/dish/controller/DishTemplateController.java"),
+        StandardCharsets.UTF_8);
+    String changeController = Files.readString(PROJECT_ROOT.resolve(
+        "src/main/java/com/familykitchen/dish/controller/DishTemplateChangeRequestController.java"),
+        StandardCharsets.UTF_8);
+    assertTrue(templateController.contains("返回完整食材和按序制作步骤"));
+    assertTrue(changeController.contains("菜品、食材和制作步骤生成第二版快照"));
+  }
+
   /** 执行逐声明文档规则并记录全部缺口。 */
   private static final class CoverageScanner extends TreePathScanner<Void, Void> {
     private final DocTrees docTrees;
