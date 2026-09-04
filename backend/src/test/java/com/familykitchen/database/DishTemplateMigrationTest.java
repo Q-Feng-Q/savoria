@@ -32,10 +32,12 @@ class DishTemplateMigrationTest {
   }
 
   @Test
-  void migrationSeedsTenCategoriesAndTwoHundredFortyLegacyTemplates() throws Exception {
+  void migrationSeedsLegacyCatalogAndCompleteCookLikeHocCatalog() throws Exception {
     String sql = Files.readString(MIGRATION, StandardCharsets.UTF_8);
     assertEquals(10, countLines(sql, "INSERT INTO dish_template_categories "));
-    assertEquals(240, countLines(sql, "INSERT INTO dish_templates "));
+    assertEquals(549, countLines(sql, "INSERT INTO dish_templates "));
+    String generatedSql = sql.substring(sql.indexOf("-- BEGIN GENERATED COOKLIKEHOC DATA"));
+    assertEquals(309, countLines(generatedSql, "INSERT INTO dish_templates "));
     assertTrue(countLines(sql, "INSERT INTO dish_template_ingredients ") >= 282);
     assertEquals(240, countLines(sql, "-- TEMPLATE "));
     assertTrue(sql.contains("'豆角焖面'"));

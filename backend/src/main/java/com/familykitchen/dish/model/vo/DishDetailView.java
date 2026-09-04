@@ -54,11 +54,19 @@ public record DishDetailView(
    * @param stepNo stepNo
    * @param title title
    * @param content content
+   * @param durationSeconds 制作持续秒数；未知时为空
+   * @param temperatureText 温度说明；未知时为空
+   * @param heatLevel 火候说明；未知时为空
+   * @param componentTemplateId 当前步骤引用的配料组件模板ID；未引用时为空
    */
   public record CookingStepView(
       int stepNo,
       String title,
-      String content
+      String content,
+      Integer durationSeconds,
+      String temperatureText,
+      String heatLevel,
+      Long componentTemplateId
   ) {
   }
 }

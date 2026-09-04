@@ -20,7 +20,10 @@ public final class RecipeSyncMain {
     new SourceRevisionVerifier().verify(config.sourceDir(), settings.sourceRevision());
     LocalTemplateBaseline baseline = LocalTemplateBaseline.load(
         config.configDir().resolve("local-template-baseline.json"));
-    TemplateIdAllocations.load(config.configDir().resolve("template-id-allocations.json"), baseline);
-    TemplateNameMappings.load(config.configDir().resolve("template-name-mappings.json"));
+    TemplateIdAllocations allocations = TemplateIdAllocations.load(
+        config.configDir().resolve("template-id-allocations.json"), baseline);
+    TemplateNameMappings mappings = TemplateNameMappings.load(
+        config.configDir().resolve("template-name-mappings.json"));
+    new RecipeSyncPipeline().run(config, settings, baseline, allocations, mappings);
   }
 }

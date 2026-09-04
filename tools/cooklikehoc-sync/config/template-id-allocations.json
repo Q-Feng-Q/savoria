@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "highWaterMark": 240,
+  "highWaterMark": 549.0,
   "allocations": [
     {
       "stableKey": "local:DISH_001",
@@ -1201,6 +1201,1551 @@
       "stableKey": "local:DISH_240",
       "id": 240,
       "templateCode": "DISH_240"
+    },
+    {
+      "stableKey": "source:主食/Q 弹虾滑馄饨.md",
+      "id": 241,
+      "templateCode": "CLH_241"
+    },
+    {
+      "stableKey": "source:主食/五彩鸡丝拌面.md",
+      "id": 242,
+      "templateCode": "CLH_242"
+    },
+    {
+      "stableKey": "source:主食/大大大块牛腩面.md",
+      "id": 243,
+      "templateCode": "CLH_243"
+    },
+    {
+      "stableKey": "source:主食/大排面.md",
+      "id": 244,
+      "templateCode": "CLH_244"
+    },
+    {
+      "stableKey": "source:主食/大盘肥肠鸡手工面.md",
+      "id": 245,
+      "templateCode": "CLH_245"
+    },
+    {
+      "stableKey": "source:主食/姬松茸菌子鸡汤面.md",
+      "id": 246,
+      "templateCode": "CLH_246"
+    },
+    {
+      "stableKey": "source:主食/泡椒鸡杂面.md",
+      "id": 247,
+      "templateCode": "CLH_247"
+    },
+    {
+      "stableKey": "source:主食/浓香整块鸡汤面.md",
+      "id": 248,
+      "templateCode": "CLH_248"
+    },
+    {
+      "stableKey": "source:主食/炸鸡腿时蔬面.md",
+      "id": 249,
+      "templateCode": "CLH_249"
+    },
+    {
+      "stableKey": "source:主食/特色鸡汤馄饨.md",
+      "id": 250,
+      "templateCode": "CLH_250"
+    },
+    {
+      "stableKey": "source:主食/砂锅荠菜鲜肉馄饨.md",
+      "id": 251,
+      "templateCode": "CLH_251"
+    },
+    {
+      "stableKey": "source:主食/笋子鸡丁盖饭（包菜版）.md",
+      "id": 252,
+      "templateCode": "CLH_252"
+    },
+    {
+      "stableKey": "source:主食/笋子鸡丁盖饭（菜苔版）.md",
+      "id": 253,
+      "templateCode": "CLH_253"
+    },
+    {
+      "stableKey": "source:主食/米饭.md",
+      "id": 254,
+      "templateCode": "CLH_254"
+    },
+    {
+      "stableKey": "source:主食/素面.md",
+      "id": 255,
+      "templateCode": "CLH_255"
+    },
+    {
+      "stableKey": "source:主食/紫薯杂粮饭.md",
+      "id": 256,
+      "templateCode": "CLH_256"
+    },
+    {
+      "stableKey": "source:主食/老母鸡汤面.md",
+      "id": 257,
+      "templateCode": "CLH_257"
+    },
+    {
+      "stableKey": "source:主食/老鸡扬米面.md",
+      "id": 258,
+      "templateCode": "CLH_258"
+    },
+    {
+      "stableKey": "source:主食/肥西老母鸡汤面.md",
+      "id": 259,
+      "templateCode": "CLH_259"
+    },
+    {
+      "stableKey": "source:主食/西红柿炒鸡蛋盖饭.md",
+      "id": 260,
+      "templateCode": "CLH_260"
+    },
+    {
+      "stableKey": "source:主食/香菇鸡汤面.md",
+      "id": 261,
+      "templateCode": "CLH_261"
+    },
+    {
+      "stableKey": "source:主食/香辣牛肉面.md",
+      "id": 262,
+      "templateCode": "CLH_262"
+    },
+    {
+      "stableKey": "source:主食/香辣牛腩面.md",
+      "id": 263,
+      "templateCode": "CLH_263"
+    },
+    {
+      "stableKey": "source:主食/香辣鸡丁拌面.md",
+      "id": 264,
+      "templateCode": "CLH_264"
+    },
+    {
+      "stableKey": "source:主食/鱼香肉丝盖饭（包菜版）.md",
+      "id": 265,
+      "templateCode": "CLH_265"
+    },
+    {
+      "stableKey": "source:主食/鱼香肉丝盖饭（菜苔版）.md",
+      "id": 266,
+      "templateCode": "CLH_266"
+    },
+    {
+      "stableKey": "source:主食/鸡杂手擀面.md",
+      "id": 267,
+      "templateCode": "CLH_267"
+    },
+    {
+      "stableKey": "source:凉拌/凉拌莴笋丝.md",
+      "id": 268,
+      "templateCode": "CLH_268"
+    },
+    {
+      "stableKey": "source:凉拌/柠檬凤爪.md",
+      "id": 269,
+      "templateCode": "CLH_269"
+    },
+    {
+      "stableKey": "source:凉拌/西芹花生米.md",
+      "id": 270,
+      "templateCode": "CLH_270"
+    },
+    {
+      "stableKey": "source:卤菜/卤大排.md",
+      "id": 271,
+      "templateCode": "CLH_271"
+    },
+    {
+      "stableKey": "source:卤菜/卤方干.md",
+      "id": 272,
+      "templateCode": "CLH_272"
+    },
+    {
+      "stableKey": "source:卤菜/卤翅根.md",
+      "id": 273,
+      "templateCode": "CLH_273"
+    },
+    {
+      "stableKey": "source:卤菜/卤肉肠.md",
+      "id": 274,
+      "templateCode": "CLH_274"
+    },
+    {
+      "stableKey": "source:卤菜/卤鸡爪.md",
+      "id": 275,
+      "templateCode": "CLH_275"
+    },
+    {
+      "stableKey": "source:卤菜/卤鸡腿.md",
+      "id": 276,
+      "templateCode": "CLH_276"
+    },
+    {
+      "stableKey": "source:卤菜/咸蛋黄狮子头（卤制版）.md",
+      "id": 277,
+      "templateCode": "CLH_277"
+    },
+    {
+      "stableKey": "source:卤菜/嗨嗨桶（红油串串）.md",
+      "id": 278,
+      "templateCode": "CLH_278"
+    },
+    {
+      "stableKey": "source:卤菜/把子肉.md",
+      "id": 279,
+      "templateCode": "CLH_279"
+    },
+    {
+      "stableKey": "source:卤菜/海带结.md",
+      "id": 280,
+      "templateCode": "CLH_280"
+    },
+    {
+      "stableKey": "source:卤菜/薄皮青椒.md",
+      "id": 281,
+      "templateCode": "CLH_281"
+    },
+    {
+      "stableKey": "source:早餐/包子.md",
+      "id": 282,
+      "templateCode": "CLH_282"
+    },
+    {
+      "stableKey": "source:早餐/奶黄鸡包.md",
+      "id": 283,
+      "templateCode": "CLH_283"
+    },
+    {
+      "stableKey": "source:早餐/小米南瓜粥.md",
+      "id": 284,
+      "templateCode": "CLH_284"
+    },
+    {
+      "stableKey": "source:早餐/手工春卷.md",
+      "id": 285,
+      "templateCode": "CLH_285"
+    },
+    {
+      "stableKey": "source:早餐/手工烧麦.md",
+      "id": 286,
+      "templateCode": "CLH_286"
+    },
+    {
+      "stableKey": "source:早餐/水煮蛋.md",
+      "id": 287,
+      "templateCode": "CLH_287"
+    },
+    {
+      "stableKey": "source:早餐/牛肉盒.md",
+      "id": 288,
+      "templateCode": "CLH_288"
+    },
+    {
+      "stableKey": "source:早餐/现炸大油条.md",
+      "id": 289,
+      "templateCode": "CLH_289"
+    },
+    {
+      "stableKey": "source:早餐/现熬豆粥.md",
+      "id": 290,
+      "templateCode": "CLH_290"
+    },
+    {
+      "stableKey": "source:早餐/白米粥.md",
+      "id": 291,
+      "templateCode": "CLH_291"
+    },
+    {
+      "stableKey": "source:早餐/粢饭糕.md",
+      "id": 292,
+      "templateCode": "CLH_292"
+    },
+    {
+      "stableKey": "source:早餐/糍糕.md",
+      "id": 293,
+      "templateCode": "CLH_293"
+    },
+    {
+      "stableKey": "source:早餐/糯米杂谷饭团（奥尔良鸡肉馅）.md",
+      "id": 294,
+      "templateCode": "CLH_294"
+    },
+    {
+      "stableKey": "source:早餐/老面小笼包.md",
+      "id": 295,
+      "templateCode": "CLH_295"
+    },
+    {
+      "stableKey": "source:早餐/老面馒头.md",
+      "id": 296,
+      "templateCode": "CLH_296"
+    },
+    {
+      "stableKey": "source:早餐/荠菜鲜肉蒸饺.md",
+      "id": 297,
+      "templateCode": "CLH_297"
+    },
+    {
+      "stableKey": "source:早餐/葱香酱肉包.md",
+      "id": 298,
+      "templateCode": "CLH_298"
+    },
+    {
+      "stableKey": "source:早餐/蔬菜鸡蛋卷饼.md",
+      "id": 299,
+      "templateCode": "CLH_299"
+    },
+    {
+      "stableKey": "source:早餐/蛋饼.md",
+      "id": 300,
+      "templateCode": "CLH_300"
+    },
+    {
+      "stableKey": "source:早餐/赤豆糊元宵.md",
+      "id": 301,
+      "templateCode": "CLH_301"
+    },
+    {
+      "stableKey": "source:早餐/酥皮萝卜丝馅饼.md",
+      "id": 302,
+      "templateCode": "CLH_302"
+    },
+    {
+      "stableKey": "source:早餐/饭团.md",
+      "id": 303,
+      "templateCode": "CLH_303"
+    },
+    {
+      "stableKey": "source:早餐/馒头.md",
+      "id": 304,
+      "templateCode": "CLH_304"
+    },
+    {
+      "stableKey": "source:早餐/香脆土豆丝饼.md",
+      "id": 305,
+      "templateCode": "CLH_305"
+    },
+    {
+      "stableKey": "source:早餐/香脆春卷.md",
+      "id": 306,
+      "templateCode": "CLH_306"
+    },
+    {
+      "stableKey": "source:早餐/香菇猪肉烧麦.md",
+      "id": 307,
+      "templateCode": "CLH_307"
+    },
+    {
+      "stableKey": "source:早餐/香菇青菜包（菠菜面皮）.md",
+      "id": 308,
+      "templateCode": "CLH_308"
+    },
+    {
+      "stableKey": "source:早餐/香酥牛肉饼.md",
+      "id": 309,
+      "templateCode": "CLH_309"
+    },
+    {
+      "stableKey": "source:早餐/鸡丝沙汤.md",
+      "id": 310,
+      "templateCode": "CLH_310"
+    },
+    {
+      "stableKey": "source:早餐/鸡汁汤包.md",
+      "id": 311,
+      "templateCode": "CLH_311"
+    },
+    {
+      "stableKey": "source:早餐/鸡汁辣糊汤.md",
+      "id": 312,
+      "templateCode": "CLH_312"
+    },
+    {
+      "stableKey": "source:早餐/黑全麦鸡丁包.md",
+      "id": 313,
+      "templateCode": "CLH_313"
+    },
+    {
+      "stableKey": "source:汤/竹荪鹿茸菇鸡汤.md",
+      "id": 314,
+      "templateCode": "CLH_314"
+    },
+    {
+      "stableKey": "source:汤/老鸡汤.md",
+      "id": 315,
+      "templateCode": "CLH_315"
+    },
+    {
+      "stableKey": "source:汤/肥西老母鸡汤（单品）.md",
+      "id": 316,
+      "templateCode": "CLH_316"
+    },
+    {
+      "stableKey": "source:汤/金牌老母鸡汤.md",
+      "id": 317,
+      "templateCode": "CLH_317"
+    },
+    {
+      "stableKey": "source:炒菜/什锦蛋炒饭.md",
+      "id": 318,
+      "templateCode": "CLH_318"
+    },
+    {
+      "stableKey": "source:炒菜/农家小炒肉（玉耳版本）.md",
+      "id": 319,
+      "templateCode": "CLH_319"
+    },
+    {
+      "stableKey": "source:炒菜/农家小炒肉（鸡蛋干版本）.md",
+      "id": 320,
+      "templateCode": "CLH_320"
+    },
+    {
+      "stableKey": "source:炒菜/剁椒木耳炒鸡蛋.md",
+      "id": 321,
+      "templateCode": "CLH_321"
+    },
+    {
+      "stableKey": "source:炒菜/包菜炒鸡蛋.md",
+      "id": 322,
+      "templateCode": "CLH_322"
+    },
+    {
+      "stableKey": "source:炒菜/外婆菜炒鸡蛋.md",
+      "id": 323,
+      "templateCode": "CLH_323"
+    },
+    {
+      "stableKey": "source:炒菜/家常土豆片.md",
+      "id": 324,
+      "templateCode": "CLH_324"
+    },
+    {
+      "stableKey": "source:炒菜/家常小炒.md",
+      "id": 325,
+      "templateCode": "CLH_325"
+    },
+    {
+      "stableKey": "source:炒菜/小炒河虾.md",
+      "id": 326,
+      "templateCode": "CLH_326"
+    },
+    {
+      "stableKey": "source:炒菜/小炒脆笋.md",
+      "id": 327,
+      "templateCode": "CLH_327"
+    },
+    {
+      "stableKey": "source:炒菜/小炒花菜.md",
+      "id": 328,
+      "templateCode": "CLH_328"
+    },
+    {
+      "stableKey": "source:炒菜/小炒面筋.md",
+      "id": 329,
+      "templateCode": "CLH_329"
+    },
+    {
+      "stableKey": "source:炒菜/小炒香干.md",
+      "id": 330,
+      "templateCode": "CLH_330"
+    },
+    {
+      "stableKey": "source:炒菜/小炒鸡丁.md",
+      "id": 331,
+      "templateCode": "CLH_331"
+    },
+    {
+      "stableKey": "source:炒菜/小炒黄牛肉.md",
+      "id": 332,
+      "templateCode": "CLH_332"
+    },
+    {
+      "stableKey": "source:炒菜/毛豆烧土鸡.md",
+      "id": 333,
+      "templateCode": "CLH_333"
+    },
+    {
+      "stableKey": "source:炒菜/油渣大白菜.md",
+      "id": 334,
+      "templateCode": "CLH_334"
+    },
+    {
+      "stableKey": "source:炒菜/清炒春菜.md",
+      "id": 335,
+      "templateCode": "CLH_335"
+    },
+    {
+      "stableKey": "source:炒菜/清炒毛白菜.md",
+      "id": 336,
+      "templateCode": "CLH_336"
+    },
+    {
+      "stableKey": "source:炒菜/清炒油麦菜.md",
+      "id": 337,
+      "templateCode": "CLH_337"
+    },
+    {
+      "stableKey": "source:炒菜/清炒莴笋片.md",
+      "id": 338,
+      "templateCode": "CLH_338"
+    },
+    {
+      "stableKey": "source:炒菜/清炒菜心.md",
+      "id": 339,
+      "templateCode": "CLH_339"
+    },
+    {
+      "stableKey": "source:炒菜/清炒青菜.md",
+      "id": 340,
+      "templateCode": "CLH_340"
+    },
+    {
+      "stableKey": "source:炒菜/爆炒牛肉.md",
+      "id": 341,
+      "templateCode": "CLH_341"
+    },
+    {
+      "stableKey": "source:炒菜/生炒上海青.md",
+      "id": 342,
+      "templateCode": "CLH_342"
+    },
+    {
+      "stableKey": "source:炒菜/笋子烧肉.md",
+      "id": 343,
+      "templateCode": "CLH_343"
+    },
+    {
+      "stableKey": "source:炒菜/笋子鸡丁盖饭.md",
+      "id": 344,
+      "templateCode": "CLH_344"
+    },
+    {
+      "stableKey": "source:炒菜/经典毛豆烧鸡.md",
+      "id": 345,
+      "templateCode": "CLH_345"
+    },
+    {
+      "stableKey": "source:炒菜/肥肠鸡.md",
+      "id": 346,
+      "templateCode": "CLH_346"
+    },
+    {
+      "stableKey": "source:炒菜/胡萝卜炒木耳.md",
+      "id": 347,
+      "templateCode": "CLH_347"
+    },
+    {
+      "stableKey": "source:炒菜/胡萝卜炒肉丝.md",
+      "id": 348,
+      "templateCode": "CLH_348"
+    },
+    {
+      "stableKey": "source:炒菜/胡萝卜炒肉片.md",
+      "id": 349,
+      "templateCode": "CLH_349"
+    },
+    {
+      "stableKey": "source:炒菜/胡萝卜炒鸡蛋.md",
+      "id": 350,
+      "templateCode": "CLH_350"
+    },
+    {
+      "stableKey": "source:炒菜/芋儿鸡.md",
+      "id": 351,
+      "templateCode": "CLH_351"
+    },
+    {
+      "stableKey": "source:炒菜/芹菜炒香干.md",
+      "id": 352,
+      "templateCode": "CLH_352"
+    },
+    {
+      "stableKey": "source:炒菜/芹菜香干炒肉丝.md",
+      "id": 353,
+      "templateCode": "CLH_353"
+    },
+    {
+      "stableKey": "source:炒菜/莴笋丝炒鸡蛋.md",
+      "id": 354,
+      "templateCode": "CLH_354"
+    },
+    {
+      "stableKey": "source:炒菜/菠萝咕咾肉时蔬饭.md",
+      "id": 355,
+      "templateCode": "CLH_355"
+    },
+    {
+      "stableKey": "source:炒菜/蒜泥菠菜.md",
+      "id": 356,
+      "templateCode": "CLH_356"
+    },
+    {
+      "stableKey": "source:炒菜/蒜苔炒木耳.md",
+      "id": 357,
+      "templateCode": "CLH_357"
+    },
+    {
+      "stableKey": "source:炒菜/蒜苔炒香干.md",
+      "id": 358,
+      "templateCode": "CLH_358"
+    },
+    {
+      "stableKey": "source:炒菜/蒜苔炒鸡胗.md",
+      "id": 359,
+      "templateCode": "CLH_359"
+    },
+    {
+      "stableKey": "source:炒菜/蒜黄炒鸡蛋.md",
+      "id": 360,
+      "templateCode": "CLH_360"
+    },
+    {
+      "stableKey": "source:炒菜/蚕豆炒虾仁.md",
+      "id": 361,
+      "templateCode": "CLH_361"
+    },
+    {
+      "stableKey": "source:炒菜/蚕豆炒鸡蛋.md",
+      "id": 362,
+      "templateCode": "CLH_362"
+    },
+    {
+      "stableKey": "source:炒菜/西兰花炒鸡胸肉.md",
+      "id": 363,
+      "templateCode": "CLH_363"
+    },
+    {
+      "stableKey": "source:炒菜/西红柿炒鸡蛋.md",
+      "id": 364,
+      "templateCode": "CLH_364"
+    },
+    {
+      "stableKey": "source:炒菜/西芹炒虾仁.md",
+      "id": 365,
+      "templateCode": "CLH_365"
+    },
+    {
+      "stableKey": "source:炒菜/豆皮毛白菜.md",
+      "id": 366,
+      "templateCode": "CLH_366"
+    },
+    {
+      "stableKey": "source:炒菜/贵州风味辣子鸡.md",
+      "id": 367,
+      "templateCode": "CLH_367"
+    },
+    {
+      "stableKey": "source:炒菜/酸辣包菜.md",
+      "id": 368,
+      "templateCode": "CLH_368"
+    },
+    {
+      "stableKey": "source:炒菜/酸辣土豆丝.md",
+      "id": 369,
+      "templateCode": "CLH_369"
+    },
+    {
+      "stableKey": "source:炒菜/酸辣大白菜.md",
+      "id": 370,
+      "templateCode": "CLH_370"
+    },
+    {
+      "stableKey": "source:炒菜/酸辣海带丝.md",
+      "id": 371,
+      "templateCode": "CLH_371"
+    },
+    {
+      "stableKey": "source:炒菜/青椒毛豆米.md",
+      "id": 372,
+      "templateCode": "CLH_372"
+    },
+    {
+      "stableKey": "source:炒菜/青椒炒豆芽.md",
+      "id": 373,
+      "templateCode": "CLH_373"
+    },
+    {
+      "stableKey": "source:炒菜/青椒炒鸡蛋.md",
+      "id": 374,
+      "templateCode": "CLH_374"
+    },
+    {
+      "stableKey": "source:炒菜/香椿炒鸡蛋.md",
+      "id": 375,
+      "templateCode": "CLH_375"
+    },
+    {
+      "stableKey": "source:炒菜/香菇青菜.md",
+      "id": 376,
+      "templateCode": "CLH_376"
+    },
+    {
+      "stableKey": "source:炒菜/鱼香肉丝盖饭.md",
+      "id": 377,
+      "templateCode": "CLH_377"
+    },
+    {
+      "stableKey": "source:炒菜/黄瓜炒红肠.md",
+      "id": 378,
+      "templateCode": "CLH_378"
+    },
+    {
+      "stableKey": "source:炖菜/土豆牛腩.md",
+      "id": 379,
+      "templateCode": "CLH_379"
+    },
+    {
+      "stableKey": "source:炖菜/梅干菜凤爪翅.md",
+      "id": 380,
+      "templateCode": "CLH_380"
+    },
+    {
+      "stableKey": "source:炖菜/甜辣辣年糕烧鸡.md",
+      "id": 381,
+      "templateCode": "CLH_381"
+    },
+    {
+      "stableKey": "source:炖菜/白菜炖豆腐.md",
+      "id": 382,
+      "templateCode": "CLH_382"
+    },
+    {
+      "stableKey": "source:炖菜/红烧冬瓜.md",
+      "id": 383,
+      "templateCode": "CLH_383"
+    },
+    {
+      "stableKey": "source:炖菜/红烧鱼块.md",
+      "id": 384,
+      "templateCode": "CLH_384"
+    },
+    {
+      "stableKey": "source:炖菜/肉汁素鸡.md",
+      "id": 385,
+      "templateCode": "CLH_385"
+    },
+    {
+      "stableKey": "source:炖菜/酸菜血旺豆腐.md",
+      "id": 386,
+      "templateCode": "CLH_386"
+    },
+    {
+      "stableKey": "source:炖菜/银鱼浦鸡蛋.md",
+      "id": 387,
+      "templateCode": "CLH_387"
+    },
+    {
+      "stableKey": "source:炖菜/香辣鸡杂.md",
+      "id": 388,
+      "templateCode": "CLH_388"
+    },
+    {
+      "stableKey": "source:炖菜/鸡血汤.md",
+      "id": 389,
+      "templateCode": "CLH_389"
+    },
+    {
+      "stableKey": "source:炸品/傲椒风味翅尖.md",
+      "id": 390,
+      "templateCode": "CLH_390"
+    },
+    {
+      "stableKey": "source:炸品/嗨嗨桶（炸物桶）.md",
+      "id": 391,
+      "templateCode": "CLH_391"
+    },
+    {
+      "stableKey": "source:炸品/心形鸡排.md",
+      "id": 392,
+      "templateCode": "CLH_392"
+    },
+    {
+      "stableKey": "source:炸品/手枪大鸡腿.md",
+      "id": 393,
+      "templateCode": "CLH_393"
+    },
+    {
+      "stableKey": "source:炸品/棒棒虾.md",
+      "id": 394,
+      "templateCode": "CLH_394"
+    },
+    {
+      "stableKey": "source:炸品/炸肉肠.md",
+      "id": 395,
+      "templateCode": "CLH_395"
+    },
+    {
+      "stableKey": "source:炸品/炸鸡排.md",
+      "id": 396,
+      "templateCode": "CLH_396"
+    },
+    {
+      "stableKey": "source:炸品/炸鸡排（普通鸡排）.md",
+      "id": 397,
+      "templateCode": "CLH_397"
+    },
+    {
+      "stableKey": "source:炸品/炸鸡排（调理鸡排）.md",
+      "id": 398,
+      "templateCode": "CLH_398"
+    },
+    {
+      "stableKey": "source:炸品/炸鸡腿.md",
+      "id": 399,
+      "templateCode": "CLH_399"
+    },
+    {
+      "stableKey": "source:炸品/生炸大鸡腿.md",
+      "id": 400,
+      "templateCode": "CLH_400"
+    },
+    {
+      "stableKey": "source:炸品/糖糕（红糖馅）.md",
+      "id": 401,
+      "templateCode": "CLH_401"
+    },
+    {
+      "stableKey": "source:炸品/脆皮鸡翅.md",
+      "id": 402,
+      "templateCode": "CLH_402"
+    },
+    {
+      "stableKey": "source:炸品/薯条.md",
+      "id": 403,
+      "templateCode": "CLH_403"
+    },
+    {
+      "stableKey": "source:炸品/香脆薯饼.md",
+      "id": 404,
+      "templateCode": "CLH_404"
+    },
+    {
+      "stableKey": "source:炸品/香芋地瓜丸.md",
+      "id": 405,
+      "templateCode": "CLH_405"
+    },
+    {
+      "stableKey": "source:炸品/香酥鸡米花.md",
+      "id": 406,
+      "templateCode": "CLH_406"
+    },
+    {
+      "stableKey": "source:炸品/鸡肉洋葱圈.md",
+      "id": 407,
+      "templateCode": "CLH_407"
+    },
+    {
+      "stableKey": "source:烤类/烤肠.md",
+      "id": 408,
+      "templateCode": "CLH_408"
+    },
+    {
+      "stableKey": "source:烫菜/浇汁西兰花.md",
+      "id": 409,
+      "templateCode": "CLH_409"
+    },
+    {
+      "stableKey": "source:烫菜/特色热干面.md",
+      "id": 410,
+      "templateCode": "CLH_410"
+    },
+    {
+      "stableKey": "source:烫菜/白灼虾（8只）.md",
+      "id": 411,
+      "templateCode": "CLH_411"
+    },
+    {
+      "stableKey": "source:烫菜/菠菜蛋皮丝.md",
+      "id": 412,
+      "templateCode": "CLH_412"
+    },
+    {
+      "stableKey": "source:烫菜/葱油生菜.md",
+      "id": 413,
+      "templateCode": "CLH_413"
+    },
+    {
+      "stableKey": "source:烫菜/葱油菜心.md",
+      "id": 414,
+      "templateCode": "CLH_414"
+    },
+    {
+      "stableKey": "source:烫菜/葱油菜苔.md",
+      "id": 415,
+      "templateCode": "CLH_415"
+    },
+    {
+      "stableKey": "source:烫菜/葱油青菜.md",
+      "id": 416,
+      "templateCode": "CLH_416"
+    },
+    {
+      "stableKey": "source:烫菜/香脆木耳.md",
+      "id": 417,
+      "templateCode": "CLH_417"
+    },
+    {
+      "stableKey": "source:烫菜/鸡汤娃娃菜.md",
+      "id": 418,
+      "templateCode": "CLH_418"
+    },
+    {
+      "stableKey": "source:烫菜/麻辣鸡块.md",
+      "id": 419,
+      "templateCode": "CLH_419"
+    },
+    {
+      "stableKey": "source:煮锅/冒烤鸭.md",
+      "id": 420,
+      "templateCode": "CLH_420"
+    },
+    {
+      "stableKey": "source:煮锅/嗨嗨锅（泡椒鸡米花米线）.md",
+      "id": 421,
+      "templateCode": "CLH_421"
+    },
+    {
+      "stableKey": "source:煮锅/嗨嗨锅（番茄肥牛锅）.md",
+      "id": 422,
+      "templateCode": "CLH_422"
+    },
+    {
+      "stableKey": "source:煮锅/嗨嗨锅（酸菜鱼米线）.md",
+      "id": 423,
+      "templateCode": "CLH_423"
+    },
+    {
+      "stableKey": "source:煮锅/嗨嗨锅（鲜蔬锅）.md",
+      "id": 424,
+      "templateCode": "CLH_424"
+    },
+    {
+      "stableKey": "source:煮锅/金汤酸菜鱼.md",
+      "id": 425,
+      "templateCode": "CLH_425"
+    },
+    {
+      "stableKey": "source:煮锅/金汤酸菜鱼（大份）.md",
+      "id": 426,
+      "templateCode": "CLH_426"
+    },
+    {
+      "stableKey": "source:煮锅/铜锅安格斯肥牛.md",
+      "id": 427,
+      "templateCode": "CLH_427"
+    },
+    {
+      "stableKey": "source:煮锅/铜锅川味水煮肉片.md",
+      "id": 428,
+      "templateCode": "CLH_428"
+    },
+    {
+      "stableKey": "source:煮锅/铜锅番茄虾滑.md",
+      "id": 429,
+      "templateCode": "CLH_429"
+    },
+    {
+      "stableKey": "source:煮锅/铜锅豆花鸡.md",
+      "id": 430,
+      "templateCode": "CLH_430"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅三鲜豆腐.md",
+      "id": 431,
+      "templateCode": "CLH_431"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅原味鸡汤米线.md",
+      "id": 432,
+      "templateCode": "CLH_432"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅木瓜.md",
+      "id": 433,
+      "templateCode": "CLH_433"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅泡椒鸡米花米线.md",
+      "id": 434,
+      "templateCode": "CLH_434"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅牛杂煲.md",
+      "id": 435,
+      "templateCode": "CLH_435"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅番茄米线.md",
+      "id": 436,
+      "templateCode": "CLH_436"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅盐焗鸡.md",
+      "id": 437,
+      "templateCode": "CLH_437"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅老坛酸菜鱼.md",
+      "id": 438,
+      "templateCode": "CLH_438"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅肉汁素鸡.md",
+      "id": 439,
+      "templateCode": "CLH_439"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅腐竹.md",
+      "id": 440,
+      "templateCode": "CLH_440"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅蒜蓉粉丝虾.md",
+      "id": 441,
+      "templateCode": "CLH_441"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅豆花鸡.md",
+      "id": 442,
+      "templateCode": "CLH_442"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅酸菜鱼.md",
+      "id": 443,
+      "templateCode": "CLH_443"
+    },
+    {
+      "stableKey": "source:砂锅菜/砂锅香辣鱿鱼.md",
+      "id": 444,
+      "templateCode": "CLH_444"
+    },
+    {
+      "stableKey": "source:砂锅菜/酸菜肥肠煲.md",
+      "id": 445,
+      "templateCode": "CLH_445"
+    },
+    {
+      "stableKey": "source:蒸菜/三色虾仁.md",
+      "id": 446,
+      "templateCode": "CLH_446"
+    },
+    {
+      "stableKey": "source:蒸菜/农家蒸蛋.md",
+      "id": 447,
+      "templateCode": "CLH_447"
+    },
+    {
+      "stableKey": "source:蒸菜/凤爪蒸豆米.md",
+      "id": 448,
+      "templateCode": "CLH_448"
+    },
+    {
+      "stableKey": "source:蒸菜/剁椒鱼头（白鲢鱼头版）.md",
+      "id": 449,
+      "templateCode": "CLH_449"
+    },
+    {
+      "stableKey": "source:蒸菜/剁椒鱼头（草鱼头版）.md",
+      "id": 450,
+      "templateCode": "CLH_450"
+    },
+    {
+      "stableKey": "source:蒸菜/咸蛋黄狮子头（蒸制版）.md",
+      "id": 451,
+      "templateCode": "CLH_451"
+    },
+    {
+      "stableKey": "source:蒸菜/奥尔良鸡翅.md",
+      "id": 452,
+      "templateCode": "CLH_452"
+    },
+    {
+      "stableKey": "source:蒸菜/松糕.md",
+      "id": 453,
+      "templateCode": "CLH_453"
+    },
+    {
+      "stableKey": "source:蒸菜/活珠子.md",
+      "id": 454,
+      "templateCode": "CLH_454"
+    },
+    {
+      "stableKey": "source:蒸菜/珍珠糯米肉丸.md",
+      "id": 455,
+      "templateCode": "CLH_455"
+    },
+    {
+      "stableKey": "source:蒸菜/番茄菌菇肉丸.md",
+      "id": 456,
+      "templateCode": "CLH_456"
+    },
+    {
+      "stableKey": "source:蒸菜/百叶包肉.md",
+      "id": 457,
+      "templateCode": "CLH_457"
+    },
+    {
+      "stableKey": "source:蒸菜/秘汁卤肉饭.md",
+      "id": 458,
+      "templateCode": "CLH_458"
+    },
+    {
+      "stableKey": "source:蒸菜/竹笋蒸鸡翅.md",
+      "id": 459,
+      "templateCode": "CLH_459"
+    },
+    {
+      "stableKey": "source:蒸菜/粉蒸肉.md",
+      "id": 460,
+      "templateCode": "CLH_460"
+    },
+    {
+      "stableKey": "source:蒸菜/粗粮盒.md",
+      "id": 461,
+      "templateCode": "CLH_461"
+    },
+    {
+      "stableKey": "source:蒸菜/肉饼蒸蛋.md",
+      "id": 462,
+      "templateCode": "CLH_462"
+    },
+    {
+      "stableKey": "source:蒸菜/肉饼蒸蛋（常规版）.md",
+      "id": 463,
+      "templateCode": "CLH_463"
+    },
+    {
+      "stableKey": "source:蒸菜/肉饼蒸蛋（马蹄版）.md",
+      "id": 464,
+      "templateCode": "CLH_464"
+    },
+    {
+      "stableKey": "source:蒸菜/胡萝卜牛肉.md",
+      "id": 465,
+      "templateCode": "CLH_465"
+    },
+    {
+      "stableKey": "source:蒸菜/葱油鸡（小母鸡版）.md",
+      "id": 466,
+      "templateCode": "CLH_466"
+    },
+    {
+      "stableKey": "source:蒸菜/葱油鸡（白切鸡版）.md",
+      "id": 467,
+      "templateCode": "CLH_467"
+    },
+    {
+      "stableKey": "source:蒸菜/葱油鸡（鸡排腿版）.md",
+      "id": 468,
+      "templateCode": "CLH_468"
+    },
+    {
+      "stableKey": "source:蒸菜/蒜蓉娃娃菜.md",
+      "id": 469,
+      "templateCode": "CLH_469"
+    },
+    {
+      "stableKey": "source:蒸菜/蒸南瓜.md",
+      "id": 470,
+      "templateCode": "CLH_470"
+    },
+    {
+      "stableKey": "source:蒸菜/蒸嫩豆腐.md",
+      "id": 471,
+      "templateCode": "CLH_471"
+    },
+    {
+      "stableKey": "source:蒸菜/虾仁蒸鸡蛋.md",
+      "id": 472,
+      "templateCode": "CLH_472"
+    },
+    {
+      "stableKey": "source:蒸菜/蜜汁南瓜.md",
+      "id": 473,
+      "templateCode": "CLH_473"
+    },
+    {
+      "stableKey": "source:蒸菜/豉汁鱼块.md",
+      "id": 474,
+      "templateCode": "CLH_474"
+    },
+    {
+      "stableKey": "source:蒸菜/豌豆肉末.md",
+      "id": 475,
+      "templateCode": "CLH_475"
+    },
+    {
+      "stableKey": "source:蒸菜/酱椒蒜香片片鱼.md",
+      "id": 476,
+      "templateCode": "CLH_476"
+    },
+    {
+      "stableKey": "source:蒸菜/酱蒸白干.md",
+      "id": 477,
+      "templateCode": "CLH_477"
+    },
+    {
+      "stableKey": "source:蒸菜/酱蒸豆腐.md",
+      "id": 478,
+      "templateCode": "CLH_478"
+    },
+    {
+      "stableKey": "source:蒸菜/酱香小河虾.md",
+      "id": 479,
+      "templateCode": "CLH_479"
+    },
+    {
+      "stableKey": "source:蒸菜/青椒蒸豆米.md",
+      "id": 480,
+      "templateCode": "CLH_480"
+    },
+    {
+      "stableKey": "source:蒸菜/风干牛肉蒸白干.md",
+      "id": 481,
+      "templateCode": "CLH_481"
+    },
+    {
+      "stableKey": "source:蒸菜/香肠蒸豆干.md",
+      "id": 482,
+      "templateCode": "CLH_482"
+    },
+    {
+      "stableKey": "source:蒸菜/香肠蒸豆米.md",
+      "id": 483,
+      "templateCode": "CLH_483"
+    },
+    {
+      "stableKey": "source:蒸菜/香芋蒸排骨.md",
+      "id": 484,
+      "templateCode": "CLH_484"
+    },
+    {
+      "stableKey": "source:蒸菜/香辣红油鸡（小母鸡版）.md",
+      "id": 485,
+      "templateCode": "CLH_485"
+    },
+    {
+      "stableKey": "source:蒸菜/香辣红油鸡（白切鸡版）.md",
+      "id": 486,
+      "templateCode": "CLH_486"
+    },
+    {
+      "stableKey": "source:蒸菜/香辣红油鸡（鸡排腿版）.md",
+      "id": 487,
+      "templateCode": "CLH_487"
+    },
+    {
+      "stableKey": "source:蒸菜/香辣血旺.md",
+      "id": 488,
+      "templateCode": "CLH_488"
+    },
+    {
+      "stableKey": "source:蒸菜/鸡汁辣鱼.md",
+      "id": 489,
+      "templateCode": "CLH_489"
+    },
+    {
+      "stableKey": "source:配料/三鲜豆腐汤料.md",
+      "id": 490,
+      "templateCode": "CLH_490"
+    },
+    {
+      "stableKey": "source:配料/剁椒酱.md",
+      "id": 491,
+      "templateCode": "CLH_491"
+    },
+    {
+      "stableKey": "source:配料/剁椒鱼头料.md",
+      "id": 492,
+      "templateCode": "CLH_492"
+    },
+    {
+      "stableKey": "source:配料/卤油.md",
+      "id": 493,
+      "templateCode": "CLH_493"
+    },
+    {
+      "stableKey": "source:配料/原味酸菜鱼底料.md",
+      "id": 494,
+      "templateCode": "CLH_494"
+    },
+    {
+      "stableKey": "source:配料/姜汁.md",
+      "id": 495,
+      "templateCode": "CLH_495"
+    },
+    {
+      "stableKey": "source:配料/宫保鸡丁调味酱.md",
+      "id": 496,
+      "templateCode": "CLH_496"
+    },
+    {
+      "stableKey": "source:配料/家常小炒料.md",
+      "id": 497,
+      "templateCode": "CLH_497"
+    },
+    {
+      "stableKey": "source:配料/小炒河虾料.md",
+      "id": 498,
+      "templateCode": "CLH_498"
+    },
+    {
+      "stableKey": "source:配料/小炒肉调味汁.md",
+      "id": 499,
+      "templateCode": "CLH_499"
+    },
+    {
+      "stableKey": "source:配料/小炒肉调料(2026年更新).md",
+      "id": 500,
+      "templateCode": "CLH_500"
+    },
+    {
+      "stableKey": "source:配料/果味糖醋酱.md",
+      "id": 501,
+      "templateCode": "CLH_501"
+    },
+    {
+      "stableKey": "source:配料/毛豆烧鸡料.md",
+      "id": 502,
+      "templateCode": "CLH_502"
+    },
+    {
+      "stableKey": "source:配料/水煮料调味酱.md",
+      "id": 503,
+      "templateCode": "CLH_503"
+    },
+    {
+      "stableKey": "source:配料/油焖茄子料.md",
+      "id": 504,
+      "templateCode": "CLH_504"
+    },
+    {
+      "stableKey": "source:配料/炒菜基料.md",
+      "id": 505,
+      "templateCode": "CLH_505"
+    },
+    {
+      "stableKey": "source:配料/番茄汤膏.md",
+      "id": 506,
+      "templateCode": "CLH_506"
+    },
+    {
+      "stableKey": "source:配料/糊辣油.md",
+      "id": 507,
+      "templateCode": "CLH_507"
+    },
+    {
+      "stableKey": "source:配料/糯米酒汁.md",
+      "id": 508,
+      "templateCode": "CLH_508"
+    },
+    {
+      "stableKey": "source:配料/素鸡煲调味料.md",
+      "id": 509,
+      "templateCode": "CLH_509"
+    },
+    {
+      "stableKey": "source:配料/肥肠鸡酱料.md",
+      "id": 510,
+      "templateCode": "CLH_510"
+    },
+    {
+      "stableKey": "source:配料/花椒汁.md",
+      "id": 511,
+      "templateCode": "CLH_511"
+    },
+    {
+      "stableKey": "source:配料/葱油.md",
+      "id": 512,
+      "templateCode": "CLH_512"
+    },
+    {
+      "stableKey": "source:配料/蒜蓉酱.md",
+      "id": 513,
+      "templateCode": "CLH_513"
+    },
+    {
+      "stableKey": "source:配料/蒸蛋料.md",
+      "id": 514,
+      "templateCode": "CLH_514"
+    },
+    {
+      "stableKey": "source:配料/蒸鱼调味汁.md",
+      "id": 515,
+      "templateCode": "CLH_515"
+    },
+    {
+      "stableKey": "source:配料/血旺料.md",
+      "id": 516,
+      "templateCode": "CLH_516"
+    },
+    {
+      "stableKey": "source:配料/调味料（小炒鸡丁）.md",
+      "id": 517,
+      "templateCode": "CLH_517"
+    },
+    {
+      "stableKey": "source:配料/调味料（鸡汤专用）.md",
+      "id": 518,
+      "templateCode": "CLH_518"
+    },
+    {
+      "stableKey": "source:配料/豉油汁.md",
+      "id": 519,
+      "templateCode": "CLH_519"
+    },
+    {
+      "stableKey": "source:配料/酱蒸白干料.md",
+      "id": 520,
+      "templateCode": "CLH_520"
+    },
+    {
+      "stableKey": "source:配料/风干牛肉酱料.md",
+      "id": 521,
+      "templateCode": "CLH_521"
+    },
+    {
+      "stableKey": "source:配料/鱼香风味酱.md",
+      "id": 522,
+      "templateCode": "CLH_522"
+    },
+    {
+      "stableKey": "source:配料/鸡杂料.md",
+      "id": 523,
+      "templateCode": "CLH_523"
+    },
+    {
+      "stableKey": "source:配料/鸡汁辣鱼料.md",
+      "id": 524,
+      "templateCode": "CLH_524"
+    },
+    {
+      "stableKey": "source:配料/鸡油料.md",
+      "id": 525,
+      "templateCode": "CLH_525"
+    },
+    {
+      "stableKey": "source:配料/鸡翅调料.md",
+      "id": 526,
+      "templateCode": "CLH_526"
+    },
+    {
+      "stableKey": "source:配料/鸡胸肉调味汁.md",
+      "id": 527,
+      "templateCode": "CLH_527"
+    },
+    {
+      "stableKey": "source:配料/麻婆豆腐料.md",
+      "id": 528,
+      "templateCode": "CLH_528"
+    },
+    {
+      "stableKey": "source:饮品/东方树叶（335mL）.md",
+      "id": 529,
+      "templateCode": "CLH_529"
+    },
+    {
+      "stableKey": "source:饮品/农夫山泉矿泉水（运动盖）.md",
+      "id": 530,
+      "templateCode": "CLH_530"
+    },
+    {
+      "stableKey": "source:饮品/劲酒.md",
+      "id": 531,
+      "templateCode": "CLH_531"
+    },
+    {
+      "stableKey": "source:饮品/原味豆浆.md",
+      "id": 532,
+      "templateCode": "CLH_532"
+    },
+    {
+      "stableKey": "source:饮品/原味豆浆（冲调版本）.md",
+      "id": 533,
+      "templateCode": "CLH_533"
+    },
+    {
+      "stableKey": "source:饮品/原味豆浆（现磨版本）.md",
+      "id": 534,
+      "templateCode": "CLH_534"
+    },
+    {
+      "stableKey": "source:饮品/奶皮子酸奶.md",
+      "id": 535,
+      "templateCode": "CLH_535"
+    },
+    {
+      "stableKey": "source:饮品/摩登罐装可乐.md",
+      "id": 536,
+      "templateCode": "CLH_536"
+    },
+    {
+      "stableKey": "source:饮品/摩登罐装芬达.md",
+      "id": 537,
+      "templateCode": "CLH_537"
+    },
+    {
+      "stableKey": "source:饮品/摩登罐装雪碧.md",
+      "id": 538,
+      "templateCode": "CLH_538"
+    },
+    {
+      "stableKey": "source:饮品/摩登零度可乐.md",
+      "id": 539,
+      "templateCode": "CLH_539"
+    },
+    {
+      "stableKey": "source:饮品/热奶茶.md",
+      "id": 540,
+      "templateCode": "CLH_540"
+    },
+    {
+      "stableKey": "source:饮品/猴头菇山药玉米糊.md",
+      "id": 541,
+      "templateCode": "CLH_541"
+    },
+    {
+      "stableKey": "source:饮品/精酿啤酒330mL.md",
+      "id": 542,
+      "templateCode": "CLH_542"
+    },
+    {
+      "stableKey": "source:饮品/红豆酒酿.md",
+      "id": 543,
+      "templateCode": "CLH_543"
+    },
+    {
+      "stableKey": "source:饮品/苹果山楂红茶.md",
+      "id": 544,
+      "templateCode": "CLH_544"
+    },
+    {
+      "stableKey": "source:饮品/蒙牛纯牛奶（150mL）.md",
+      "id": 545,
+      "templateCode": "CLH_545"
+    },
+    {
+      "stableKey": "source:饮品/酒酿蛋花甜羹.md",
+      "id": 546,
+      "templateCode": "CLH_546"
+    },
+    {
+      "stableKey": "source:饮品/银耳莲子炖梨.md",
+      "id": 547,
+      "templateCode": "CLH_547"
+    },
+    {
+      "stableKey": "source:饮品/雪花纯生啤酒（罐装）.md",
+      "id": 548,
+      "templateCode": "CLH_548"
+    },
+    {
+      "stableKey": "source:饮品/鸡笼香柠檬茶.md",
+      "id": 549,
+      "templateCode": "CLH_549"
     }
   ]
 }

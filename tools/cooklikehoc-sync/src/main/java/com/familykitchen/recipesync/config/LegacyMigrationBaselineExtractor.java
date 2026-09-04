@@ -22,6 +22,7 @@ public final class LegacyMigrationBaselineExtractor {
   private static final String TEMPLATE_INSERT = "INSERT INTO dish_templates ";
   private static final String INGREDIENT_INSERT = "INSERT INTO dish_template_ingredients ";
   private static final String IMAGE_UPDATE = "UPDATE dish_templates SET ";
+  private static final String GENERATED_SECTION_START = "-- BEGIN GENERATED COOKLIKEHOC DATA";
 
   private LegacyMigrationBaselineExtractor() {
   }
@@ -31,7 +32,9 @@ public final class LegacyMigrationBaselineExtractor {
     Map<Long, MutableTemplate> templates = new LinkedHashMap<>();
     for (Path migration : migrations) {
       for (String line : readUtf8Strict(migration).split("\\R")) {
-        if (line.startsWith(TEMPLATE_INSERT)) {
+        if (GENERATED_SECTION_START.equals(line)) {
+          break;
+        } else if (line.startsWith(TEMPLATE_INSERT)) {
           addTemplate(templates, parseInsertValues(line));
         } else if (line.startsWith(INGREDIENT_INSERT)) {
           addIngredient(templates, parseInsertValues(line));

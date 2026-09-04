@@ -45,14 +45,19 @@ class CookLikeHocTemplateMigrationTest {
   }
 
   @Test
-  void migrationHasExactlyOneEmptyGeneratedDataSection() throws Exception {
+  void migrationHasExactlyOneCompleteGeneratedDataSection() throws Exception {
     String sql = Files.readString(MIGRATION, StandardCharsets.UTF_8);
     assertEquals(1, count(sql, "-- BEGIN GENERATED COOKLIKEHOC DATA"));
     assertEquals(1, count(sql, "-- END GENERATED COOKLIKEHOC DATA"));
     int start = sql.indexOf("-- BEGIN GENERATED COOKLIKEHOC DATA")
         + "-- BEGIN GENERATED COOKLIKEHOC DATA".length();
     int end = sql.indexOf("-- END GENERATED COOKLIKEHOC DATA");
-    assertTrue(sql.substring(start, end).isBlank());
+    String generated = sql.substring(start, end);
+    assertFalse(generated.isBlank());
+    assertEquals(336, count(generated, "INSERT INTO dish_template_source_records"));
+    assertEquals(179, count(generated, "INSERT INTO dish_template_image_assets"));
+    assertTrue(generated.contains("f7a91c2db0ce9b6a41eaf06e5ce64cbde5a831ed"));
+    assertTrue(generated.contains("INSERT INTO dish_template_cooking_steps"));
   }
 
   private static int count(String text, String value) {

@@ -28,8 +28,8 @@ class LocalTemplateBaselineContractTest {
 
     TemplateIdAllocations allocations = TemplateIdAllocations.load(
         Path.of("config/template-id-allocations.json").toAbsolutePath(), actual);
-    assertEquals(240L, allocations.highWaterMark());
-    assertEquals(240, allocations.allocations().size());
+    assertEquals(549L, allocations.highWaterMark());
+    assertEquals(549, allocations.allocations().size());
   }
 
   @Test

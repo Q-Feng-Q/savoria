@@ -958,7 +958,11 @@ POST /api/merchant/dishes
     {
       "stepNo": 1,
       "title": "焯水",
-      "content": "牛腩冷水下锅焯水"
+      "content": "牛腩冷水下锅焯水",
+      "durationSeconds": 300,
+      "temperatureText": "冷水下锅后煮沸",
+      "heatLevel": "大火",
+      "componentTemplateId": null
     }
   ],
   "status": "active"
@@ -972,6 +976,8 @@ PUT /api/merchant/dishes/{dishId}
 ```
 
 请求体同新增菜品。
+
+`cookingSteps` 的四个结构化字段都允许为 `null`。从平台模板导入的菜品可能包含这些字段，商户端读取详情、编辑和回传时必须原样保留未修改字段；否则保存或提交审核会丢失模板中的时长、温度、火候或配料组件引用。
 
 当完整修改把 `status` 设为 `INACTIVE` 时，会在同一条更新中清除推荐状态。
 
@@ -1014,10 +1020,16 @@ PUT /api/merchant/dishes/{dishId}/cooking-steps
   {
     "stepNo": 1,
     "title": "焯水",
-    "content": "牛腩冷水下锅"
+    "content": "牛腩冷水下锅",
+    "durationSeconds": 300,
+    "temperatureText": "冷水下锅后煮沸",
+    "heatLevel": "大火",
+    "componentTemplateId": null
   }
 ]
 ```
+
+详情响应使用相同的制作步骤结构。`durationSeconds` 必须大于等于 0；`temperatureText` 最长 100 字，`heatLevel` 最长 50 字。
 
 ### 7.7 菜品分类
 

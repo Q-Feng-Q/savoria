@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -54,12 +55,31 @@ public record DishRequest(
    * @param stepNo stepNo
    * @param title title
    * @param content content
+   * @param durationSeconds 制作持续秒数；未知时为空
+   * @param temperatureText 温度说明；未知时为空
+   * @param heatLevel 火候说明；未知时为空
+   * @param componentTemplateId 当前步骤引用的配料组件模板ID；未引用时为空
    */
   public record CookingStepRequest(
       @Min(1) int stepNo,
-      String title,
-      @NotBlank String content
+      @Size(max = 100) String title,
+      @NotBlank String content,
+      @Min(0) Integer durationSeconds,
+      @Size(max = 100) String temperatureText,
+      @Size(max = 50) String heatLevel,
+      Long componentTemplateId
   ) {
+
+    /**
+     * 兼容只维护基础步骤文本的调用方。
+     *
+     * @param stepNo 步骤序号
+     * @param title 步骤标题
+     * @param content 步骤内容
+     */
+    public CookingStepRequest(int stepNo, String title, String content) {
+      this(stepNo, title, content, null, null, null, null);
+    }
   }
 }
 
