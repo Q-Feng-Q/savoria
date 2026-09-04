@@ -215,14 +215,6 @@ public interface DishTemplateMapper {
    */
   int insertMerchantIngredientIgnore(IngredientDictionaryEntity ingredient);
   /**
-   * 按目标完整快照覆盖模板主信息，并以基础版本作并发保护。
-   * @param template 目标模板实体
-   * @param baseVersion 基础版本
-   * @return 更新行数
-   */
-  int replaceTemplate(@Param("template") DishTemplateEntity template,
-      @Param("baseVersion") Long baseVersion);
-  /**
    * 保存平台管理员可编辑字段和服务端派生状态。
    * @param template 待保存模板
    * @param expectedVersion 期望并发版本

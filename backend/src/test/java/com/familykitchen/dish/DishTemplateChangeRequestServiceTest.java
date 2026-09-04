@@ -4,10 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.inOrder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -26,10 +27,12 @@ import com.familykitchen.dish.model.entity.DishTemplateChangeRequestDO;
 import com.familykitchen.dish.model.entity.DishTemplateEntity;
 import com.familykitchen.dish.model.entity.DishTemplateIngredientEntity;
 import com.familykitchen.dish.model.entity.DishEntity;
+import com.familykitchen.dish.model.entity.DishCookingStepEntity;
 import com.familykitchen.dish.model.entity.DishIngredientEntity;
 import com.familykitchen.dish.model.entity.IngredientDictionaryEntity;
 import com.familykitchen.dish.model.vo.DishTemplateChangeSubmitView;
 import com.familykitchen.dish.service.DishTemplateSnapshotValidator;
+import com.familykitchen.dish.service.DishTemplateProcurementReadinessEvaluator;
 import com.familykitchen.dish.service.impl.DishTemplateChangeRequestServiceImpl;
 import com.familykitchen.notification.mapper.NotificationPersistenceMapper;
 import com.familykitchen.notification.model.entity.NotificationDO;
@@ -53,6 +56,7 @@ class DishTemplateChangeRequestServiceTest {
   @Mock private DishTemplateMapper templateMapper;
   @Mock private DishMapper dishMapper;
   @Mock private NotificationPersistenceMapper notificationMapper;
+  @Mock private DishTemplateProcurementReadinessEvaluator procurementEvaluator;
 
   private ObjectMapper objectMapper;
   private DishTemplateChangeRequestServiceImpl service;
@@ -62,7 +66,9 @@ class DishTemplateChangeRequestServiceTest {
   void setUp() {
     objectMapper = new ObjectMapper();
     service = new DishTemplateChangeRequestServiceImpl(requestMapper, templateMapper, dishMapper, notificationMapper,
-        objectMapper, new DishTemplateSnapshotValidator(objectMapper));
+        objectMapper, new DishTemplateSnapshotValidator(objectMapper), procurementEvaluator);
+    lenient().when(procurementEvaluator.evaluate(any(), any(), any())).thenReturn(
+        new DishTemplateProcurementReadinessEvaluator.EvaluationResult(true, List.of(), List.of()));
     merchantAdmin = new CurrentUserContext(7L, 21L, null, 7L, "user",
         Set.of("MERCHANT_ADMIN"), Set.of("MERCHANT_ADMIN"), "session");
   }
@@ -107,12 +113,31 @@ class DishTemplateChangeRequestServiceTest {
   }
 
   @Test
-  void submitFromImportedDishUsesMerchantFieldsAndPreservesTemplateOwnedFields() throws Exception {
+  void submitRejectsUnknownComponentBeforeCreatingReviewRequest() {
+    ObjectNode snapshot = targetSnapshot();
+    ((ObjectNode) snapshot.withArray("ingredients").get(0)).put("componentTemplateId", 999L)
+        .put("componentMultiplier", "1.00");
+    when(templateMapper.selectTemplateForUpdate(5L)).thenReturn(template(5L, 3L, "原菜名", 4L));
+    when(templateMapper.selectCategoryForUpdate(2L)).thenReturn(category(2L, true));
+    when(templateMapper.selectTemplateIngredients(5L)).thenReturn(List.of(ingredient("豆角")));
+    when(templateMapper.selectTemplateCookingSteps(5L)).thenReturn(List.of());
+    when(templateMapper.selectTemplateForUpdate(999L)).thenReturn(null);
+
+    BusinessException error = assertThrows(BusinessException.class, () -> service.submit(merchantAdmin, 5L,
+        new DishTemplateChangeSubmitRequest(null, snapshot)));
+
+    assertEquals("审核快照引用的配料组件不存在：999", error.getMessage());
+    verify(requestMapper, never()).insert(any());
+  }
+
+  @Test
+  void submitFromImportedDishUsesEditableMerchantFieldsAndOmitsTemplateOwnedFields() throws Exception {
     DishEntity dish = importedDish(8L, 5L);
     when(dishMapper.selectDish(21L, 8L)).thenReturn(dish);
     when(dishMapper.selectDishIngredients(8L)).thenReturn(List.of(
         dishIngredient("豆角", "120.00"), dishIngredient("面条", "300.00"),
         dishIngredient("蒜", "10.00")));
+    when(dishMapper.selectCookingSteps(8L)).thenReturn(List.of(dishStep(1, "焖制", "加水焖熟")));
     when(dishMapper.selectIngredientDictionary(21L)).thenReturn(List.of(dictionary("豆角", "时令蔬菜")));
     DishTemplateEntity template = template(5L, 3L, "原豆角焖面", 4L);
     when(templateMapper.selectTemplateForUpdate(5L)).thenReturn(template);
@@ -135,19 +160,22 @@ class DishTemplateChangeRequestServiceTest {
         ArgumentCaptor.forClass(DishTemplateChangeRequestDO.class);
     verify(requestMapper).insert(request.capture());
     var snapshot = objectMapper.readTree(request.getValue().getSnapshotJson());
+    assertEquals(2, snapshot.get("schemaVersion").asInt());
     assertEquals("商户豆角焖面", snapshot.get("name").asText());
     assertEquals("按家庭反馈调整", snapshot.get("description").asText());
-    assertEquals("/uploads/images/merchant-dish.jpg", snapshot.get("imageUrl").asText());
+    assertTrue(!snapshot.has("imageUrl"));
     assertEquals(0, new BigDecimal("22.00").compareTo(snapshot.get("referencePrice").decimalValue()));
     assertEquals(3L, snapshot.get("categoryId").asLong());
-    assertEquals("https://example.com/original", snapshot.get("imageSourceUrl").asText());
-    assertEquals("原作者", snapshot.get("imageAuthor").asText());
-    assertEquals("原授权", snapshot.get("imageLicense").asText());
+    assertTrue(!snapshot.has("imageSourceUrl"));
+    assertTrue(!snapshot.has("imageAuthor"));
+    assertTrue(!snapshot.has("imageLicense"));
     assertEquals("家常", snapshot.get("tasteTags").get(0).asText());
     assertEquals("DINNER", snapshot.get("mealTags").get(0).asText());
     assertEquals("时令蔬菜", snapshot.get("ingredients").get(0).get("ingredientCategory").asText());
     assertEquals("米面粮油", snapshot.get("ingredients").get(1).get("ingredientCategory").asText());
     assertEquals("其他", snapshot.get("ingredients").get(2).get("ingredientCategory").asText());
+    assertEquals("焖制", snapshot.get("cookingSteps").get(0).get("title").asText());
+    assertEquals("加水焖熟", snapshot.get("cookingSteps").get(0).get("content").asText());
     assertEquals("采用商户实测用量", request.getValue().getSubmitNote());
   }
 
@@ -236,13 +264,16 @@ class DishTemplateChangeRequestServiceTest {
   }
 
   @Test
-  void approveLocksInOrderReplacesTemplateAndCreatesMerchantNotification() throws Exception {
+  void approveLocksInOrderUpdatesEditableFieldsAndCreatesMerchantNotification() throws Exception {
     CurrentUserContext platformAdmin = platformAdmin();
     DishTemplateChangeRequestDO application = pendingApplication();
     when(requestMapper.selectForUpdate(88L)).thenReturn(application);
-    when(templateMapper.selectTemplateForUpdate(5L)).thenReturn(template(5L, 3L, "原菜名", 4L));
+    DishTemplateEntity current = template(5L, 3L, "原菜名", 4L);
+    current.setImageUrl("/images/reviewed.jpg");
+    current.setSourceUrl("https://cooklikehoc.soilzhu.su/炒菜/豆角焖面");
+    when(templateMapper.selectTemplateForUpdate(5L)).thenReturn(current);
     when(templateMapper.selectCategoryForUpdate(2L)).thenReturn(category(2L, true));
-    when(templateMapper.replaceTemplate(any(), org.mockito.ArgumentMatchers.eq(4L))).thenReturn(1);
+    when(templateMapper.updateAdminTemplate(any(), org.mockito.ArgumentMatchers.eq(4L))).thenReturn(1);
     when(requestMapper.markApproved(88L, 1L, "资料完整")).thenReturn(1);
     when(notificationMapper.insertNotificationEntity(any())).thenAnswer(invocation -> {
       NotificationDO notification = invocation.getArgument(0);
@@ -257,8 +288,15 @@ class DishTemplateChangeRequestServiceTest {
     locks.verify(requestMapper).selectForUpdate(88L);
     locks.verify(templateMapper).selectTemplateForUpdate(5L);
     locks.verify(templateMapper).selectCategoryForUpdate(2L);
+    ArgumentCaptor<DishTemplateEntity> updatedTemplate = ArgumentCaptor.forClass(DishTemplateEntity.class);
+    verify(templateMapper).updateAdminTemplate(updatedTemplate.capture(), org.mockito.ArgumentMatchers.eq(4L));
+    assertEquals("豆角焖面", updatedTemplate.getValue().getName());
+    assertEquals("/images/reviewed.jpg", updatedTemplate.getValue().getImageUrl());
+    assertEquals("https://cooklikehoc.soilzhu.su/炒菜/豆角焖面", updatedTemplate.getValue().getSourceUrl());
     verify(templateMapper).deleteTemplateIngredients(5L);
     verify(templateMapper).insertTemplateIngredient(any());
+    verify(templateMapper).deleteTemplateCookingSteps(5L);
+    verify(templateMapper).insertTemplateCookingStep(any());
     ArgumentCaptor<NotificationDO> notification = ArgumentCaptor.forClass(NotificationDO.class);
     verify(notificationMapper).insertNotificationEntity(notification.capture());
     assertEquals("merchant", notification.getValue().getReceiverType());
@@ -306,27 +344,29 @@ class DishTemplateChangeRequestServiceTest {
 
   private ObjectNode targetSnapshot() {
     ObjectNode node = objectMapper.createObjectNode();
-    node.put("schemaVersion", 1);
+    node.put("schemaVersion", 2);
     node.put("categoryId", 2L);
     node.put("name", "豆角焖面");
     node.put("description", "北方家常焖面");
-    node.put("imageUrl", "/images/dish-templates/dou-jiao-men-mian.jpg");
-    node.put("imageSourceUrl", "https://example.com/source");
-    node.put("imageAuthor", "家庭厨房");
-    node.put("imageLicense", "授权使用");
     node.put("referencePrice", "18.00");
     node.putArray("tasteTags").add("家常");
     node.putArray("mealTags").add("LUNCH").add("DINNER");
     node.put("sortOrder", 10);
     node.put("enabled", true);
     ObjectNode ingredient = objectMapper.createObjectNode();
+    ingredient.put("itemId", "line-1");
     ingredient.put("ingredientName", "豆角");
     ingredient.put("ingredientCategory", "蔬菜");
+    ingredient.put("quantityStatus", "VERIFIED");
     ingredient.put("quantity", "100.00");
     ingredient.put("unit", "克");
     ingredient.put("calcType", "FIXED");
     ingredient.put("sortOrder", 1);
     node.putArray("ingredients").add(ingredient);
+    ObjectNode step = objectMapper.createObjectNode();
+    step.put("itemId", "step-1"); step.put("stepNo", 1); step.put("title", "焖制");
+    step.put("content", "加入豆角焖熟");
+    node.putArray("cookingSteps").add(step);
     return node;
   }
 
@@ -361,6 +401,10 @@ class DishTemplateChangeRequestServiceTest {
     entity.setMealTags("[\"DINNER\"]");
     entity.setSortOrder(5);
     entity.setEnabled(true);
+    entity.setTemplateType("DISH");
+    entity.setDataStatus("READY");
+    entity.setProcurementReady(true);
+    entity.setImageRightsStatus("DECLARED");
     entity.setVersion(version);
     return entity;
   }
@@ -379,6 +423,7 @@ class DishTemplateChangeRequestServiceTest {
     entity.setQuantity(new BigDecimal("80.00"));
     entity.setUnit("克");
     entity.setCalcType("FIXED");
+    entity.setQuantityStatus("VERIFIED");
     entity.setSortOrder(1);
     return entity;
   }
@@ -409,6 +454,15 @@ class DishTemplateChangeRequestServiceTest {
     entity.setQuantity(new BigDecimal(quantity));
     entity.setUnit("克");
     entity.setCalcType("FIXED");
+    return entity;
+  }
+
+  private static DishCookingStepEntity dishStep(int stepNo, String title, String content) {
+    DishCookingStepEntity entity = new DishCookingStepEntity();
+    entity.setId((long) stepNo);
+    entity.setStepNo(stepNo);
+    entity.setTitle(title);
+    entity.setContent(content);
     return entity;
   }
 

@@ -257,13 +257,6 @@
     insert ignore into merchant_ingredients (merchant_id,name,category,unit)
     values (#{merchantId},#{name},#{category},#{unit})
   </insert>
-  <update id="replaceTemplate">
-    update dish_templates set category_id=#{template.categoryId},name=#{template.name},description=#{template.description},
-      image_url=#{template.imageUrl},image_source_url=#{template.imageSourceUrl},image_author=#{template.imageAuthor},
-      image_license=#{template.imageLicense},reference_price=#{template.referencePrice},taste_tags=#{template.tasteTags},
-      meal_tags=#{template.mealTags},sort_order=#{template.sortOrder},enabled=#{template.enabled},version=version+1
-    where id=#{template.id} and version=#{baseVersion}
-  </update>
   <delete id="deleteTemplateIngredients">
     delete from dish_template_ingredients where template_id=#{templateId}
   </delete>
@@ -325,7 +318,8 @@
   <update id="updateAdminTemplate">
     update dish_templates set category_id=#{template.categoryId},name=#{template.name},
       description=#{template.description},reference_price=#{template.referencePrice},
-      taste_tags=#{template.tasteTags},meal_tags=#{template.mealTags},enabled=#{template.enabled},
+      taste_tags=#{template.tasteTags},meal_tags=#{template.mealTags},sort_order=#{template.sortOrder},
+      enabled=#{template.enabled},
       data_status=#{template.dataStatus},procurement_ready=#{template.procurementReady},version=version+1
     where id=#{template.id} and version=#{expectedVersion}
   </update>
