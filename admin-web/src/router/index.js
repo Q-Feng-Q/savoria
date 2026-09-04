@@ -23,6 +23,8 @@ import SystemSettingsView from '../views/platform/SystemSettingsView.vue';
 import UsersView from '../views/platform/UsersView.vue';
 import MerchantsView from '../views/platform/MerchantsView.vue';
 import DishTemplateChangeReviewsView from '../views/platform/DishTemplateChangeReviewsView.vue';
+import PlatformDishTemplatesView from '../views/platform/DishTemplatesView.vue';
+import PlatformDishTemplateDetailView from '../views/platform/DishTemplateDetailView.vue';
 
 const routes = [
   {
@@ -140,6 +142,14 @@ const routes = [
       {
         path: 'dish-template-change-reviews', name: 'dish-template-change-reviews', component: DishTemplateChangeReviewsView,
         meta: { title: '模板修改审核', subtitle: '对比并审核商户提交的平台模板覆盖申请', requiresPlatformAdmin: true }
+      },
+      {
+        path: 'platform-dish-templates', name: 'platform-dish-templates', component: PlatformDishTemplatesView,
+        meta: { title: '平台菜谱模板', subtitle: '维护来源菜谱、采购完整度、制作步骤与图片审核', requiresPlatformAdmin: true }
+      },
+      {
+        path: 'platform-dish-templates/:templateId', name: 'platform-dish-template-detail', component: PlatformDishTemplateDetailView,
+        meta: { title: '菜谱模板详情', subtitle: '编辑完整模板并处理内部图片授权', requiresPlatformAdmin: true }
       },
       {
         path: 'system-settings', name: 'system-settings', component: SystemSettingsView,
