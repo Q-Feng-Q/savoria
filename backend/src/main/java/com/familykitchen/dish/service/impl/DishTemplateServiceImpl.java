@@ -9,9 +9,11 @@ import com.familykitchen.dish.mapper.DishMapper;
 import com.familykitchen.dish.mapper.DishTemplateMapper;
 import com.familykitchen.dish.model.dto.DishTemplateQuery;
 import com.familykitchen.dish.model.entity.DishCategoryEntity;
+import com.familykitchen.dish.model.entity.DishCookingStepEntity;
 import com.familykitchen.dish.model.entity.DishEntity;
 import com.familykitchen.dish.model.entity.DishIngredientEntity;
 import com.familykitchen.dish.model.entity.DishTemplateEntity;
+import com.familykitchen.dish.model.entity.DishTemplateCookingStepEntity;
 import com.familykitchen.dish.model.entity.DishTemplateIngredientEntity;
 import com.familykitchen.dish.model.entity.IngredientDictionaryEntity;
 import com.familykitchen.dish.model.vo.DishTemplateCategoryView;
@@ -20,6 +22,8 @@ import com.familykitchen.dish.model.vo.DishTemplateImportResultView;
 import com.familykitchen.dish.model.vo.DishTemplatePageView;
 import com.familykitchen.dish.model.vo.DishTemplateView;
 import com.familykitchen.dish.service.DishTemplateService;
+import com.familykitchen.dish.service.DishTemplateProcurementReadinessEvaluator;
+import com.familykitchen.dish.service.DishTemplateProcurementReadinessEvaluator.ProcurementItem;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -42,18 +46,21 @@ public class DishTemplateServiceImpl implements DishTemplateService {
   private final DishTemplateMapper templateMapper;
   private final DishMapper dishMapper;
   private final ObjectMapper objectMapper;
+  private final DishTemplateProcurementReadinessEvaluator procurementEvaluator;
 
   /**
    * 创建平台菜品模板服务。
    * @param templateMapper 模板查询和导入 Mapper
    * @param dishMapper 商户菜品与食材 Mapper
    * @param objectMapper JSON 标签解析器
+   * @param procurementEvaluator 模板采购就绪判定器
    */
   public DishTemplateServiceImpl(DishTemplateMapper templateMapper, DishMapper dishMapper,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper, DishTemplateProcurementReadinessEvaluator procurementEvaluator) {
     this.templateMapper = templateMapper;
     this.dishMapper = dishMapper;
     this.objectMapper = objectMapper;
+    this.procurementEvaluator = procurementEvaluator;
   }
 
   /** {@inheritDoc} */
@@ -121,10 +128,6 @@ public class DishTemplateServiceImpl implements DishTemplateService {
     List<Long> requested = templates.stream().map(DishTemplateEntity::getId).toList();
     Set<Long> alreadyImported = new LinkedHashSet<>(
         templateMapper.selectImportedTemplateIds(user.merchantId(), requested));
-    List<DishTemplateIngredientEntity> ingredients = templateMapper.selectTemplateIngredientsByIds(requested);
-    Map<Long, List<DishTemplateIngredientEntity>> ingredientsByTemplate = ingredients.stream()
-        .collect(Collectors.groupingBy(DishTemplateIngredientEntity::getTemplateId, LinkedHashMap::new,
-            Collectors.toList()));
     Map<String, DishCategoryEntity> categoryCache = new LinkedHashMap<>();
     List<Long> importedIds = new ArrayList<>();
     List<Long> skippedIds = new ArrayList<>();
@@ -133,20 +136,33 @@ public class DishTemplateServiceImpl implements DishTemplateService {
         skippedIds.add(template.getId());
         continue;
       }
-      DishCategoryEntity category = categoryCache.computeIfAbsent(template.getCategoryName(),
-          name -> requireMerchantCategory(user.merchantId(), name, template.getSortOrder()));
-      DishEntity dish = toImportedDish(user.merchantId(), category.getId(), template);
+      DishTemplateEntity locked = templateMapper.selectEligibleTemplateForUpdate(template.getId());
+      if (locked == null) {
+        throw new BusinessException(ErrorCode.BUSINESS_INVALID,
+            "模板菜品价格或采购数据已变化，请刷新后重试：" + template.getId());
+      }
+      RecipeGraph graph = loadRecipeGraph(locked);
+      var readiness = procurementEvaluator.evaluate(locked.getId(),
+          List.copyOf(graph.templates().values()), List.copyOf(graph.ingredients()));
+      if (!readiness.ready()) {
+        throw new BusinessException(ErrorCode.BUSINESS_INVALID,
+            "模板菜品采购数据不可用：" + String.join("；", readiness.blockingReasons()));
+      }
+      DishCategoryEntity category = categoryCache.computeIfAbsent(locked.getCategoryName(),
+          name -> requireMerchantCategory(user.merchantId(), name, locked.getSortOrder()));
+      DishEntity dish = toImportedDish(user.merchantId(), category.getId(), locked);
       if (templateMapper.insertImportedDishIgnore(dish) == 0) {
         skippedIds.add(template.getId());
         continue;
       }
       Long dishId = dish.getId() == null
           ? templateMapper.selectImportedDishId(user.merchantId(), template.getId()) : dish.getId();
-      for (DishTemplateIngredientEntity source : ingredientsByTemplate.getOrDefault(template.getId(), List.of())) {
+      for (ProcurementItem source : readiness.procurementItems()) {
         dishMapper.insertDishIngredient(toDishIngredient(dishId, source));
         templateMapper.insertMerchantIngredientIgnore(toDictionaryIngredient(user.merchantId(), source));
       }
-      importedIds.add(template.getId());
+      copyCookingSteps(dishId, locked, graph);
+      importedIds.add(locked.getId());
     }
     return new DishTemplateImportResultView(List.copyOf(importedIds), List.copyOf(skippedIds));
   }
@@ -171,18 +187,78 @@ public class DishTemplateServiceImpl implements DishTemplateService {
     return dish;
   }
 
-  private static DishIngredientEntity toDishIngredient(Long dishId, DishTemplateIngredientEntity source) {
-    DishIngredientEntity target = new DishIngredientEntity();
-    target.setDishId(dishId); target.setIngredientName(source.getIngredientName());
-    target.setQuantity(source.getQuantity()); target.setUnit(source.getUnit()); target.setCalcType(source.getCalcType());
+  private RecipeGraph loadRecipeGraph(DishTemplateEntity root) {
+    Map<Long, DishTemplateEntity> templates = new LinkedHashMap<>();
+    List<DishTemplateIngredientEntity> ingredients = new ArrayList<>();
+    Map<Long, List<DishTemplateCookingStepEntity>> steps = new LinkedHashMap<>();
+    loadTemplateData(root, templates, ingredients, steps);
+    return new RecipeGraph(templates, ingredients, steps);
+  }
+
+  private void loadTemplateData(DishTemplateEntity template, Map<Long, DishTemplateEntity> templates,
+      List<DishTemplateIngredientEntity> ingredients,
+      Map<Long, List<DishTemplateCookingStepEntity>> steps) {
+    if (templates.putIfAbsent(template.getId(), template) != null) return;
+    List<DishTemplateIngredientEntity> rows = templateMapper.selectTemplateIngredients(template.getId());
+    ingredients.addAll(rows);
+    steps.put(template.getId(), templateMapper.selectTemplateCookingSteps(template.getId()));
+    for (DishTemplateIngredientEntity row : rows) {
+      if (row.getComponentTemplateId() == null || templates.containsKey(row.getComponentTemplateId())) continue;
+      DishTemplateEntity component = templateMapper.selectTemplateForUpdate(row.getComponentTemplateId());
+      if (component != null) loadTemplateData(component, templates, ingredients, steps);
+    }
+  }
+
+  private void copyCookingSteps(Long dishId, DishTemplateEntity root, RecipeGraph graph) {
+    List<DishCookingStepEntity> expanded = new ArrayList<>();
+    appendComponentSteps(root.getId(), dishId, graph, expanded);
+    for (DishTemplateCookingStepEntity step : graph.steps().getOrDefault(root.getId(), List.of())) {
+      expanded.add(toDishCookingStep(dishId, expanded.size() + 1, step, null, null));
+    }
+    expanded.forEach(dishMapper::insertCookingStep);
+  }
+
+  private void appendComponentSteps(Long templateId, Long dishId, RecipeGraph graph,
+      List<DishCookingStepEntity> expanded) {
+    for (DishTemplateIngredientEntity row : graph.ingredients().stream()
+        .filter(item -> templateId.equals(item.getTemplateId()) && item.getComponentTemplateId() != null)
+        .toList()) {
+      DishTemplateEntity component = graph.templates().get(row.getComponentTemplateId());
+      if (component == null) continue;
+      appendComponentSteps(component.getId(), dishId, graph, expanded);
+      for (DishTemplateCookingStepEntity step
+          : graph.steps().getOrDefault(component.getId(), List.of())) {
+        expanded.add(toDishCookingStep(dishId, expanded.size() + 1, step,
+            component.getName(), component.getId()));
+      }
+    }
+  }
+
+  private static DishCookingStepEntity toDishCookingStep(Long dishId, int stepNo,
+      DishTemplateCookingStepEntity source, String stageTitle, Long stageComponentId) {
+    DishCookingStepEntity target = new DishCookingStepEntity();
+    target.setDishId(dishId); target.setStepNo(stepNo);
+    target.setTitle(stageTitle == null ? source.getTitle() : stageTitle);
+    target.setContent(source.getContent()); target.setDurationSeconds(source.getDurationSeconds());
+    target.setTemperatureText(source.getTemperatureText()); target.setHeatLevel(source.getHeatLevel());
+    target.setSourceTemplateStepId(source.getId());
+    target.setComponentTemplateId(stageComponentId == null
+        ? source.getComponentTemplateId() : stageComponentId);
+    target.setSourceNote(source.getSourceText());
     return target;
   }
 
-  private static IngredientDictionaryEntity toDictionaryIngredient(Long merchantId,
-      DishTemplateIngredientEntity source) {
+  private static DishIngredientEntity toDishIngredient(Long dishId, ProcurementItem source) {
+    DishIngredientEntity target = new DishIngredientEntity();
+    target.setDishId(dishId); target.setIngredientName(source.name());
+    target.setQuantity(source.quantity()); target.setUnit(source.unit()); target.setCalcType(source.calcType());
+    return target;
+  }
+
+  private static IngredientDictionaryEntity toDictionaryIngredient(Long merchantId, ProcurementItem source) {
     IngredientDictionaryEntity target = new IngredientDictionaryEntity();
-    target.setMerchantId(merchantId); target.setName(source.getIngredientName());
-    target.setCategory(source.getIngredientCategory()); target.setUnit(source.getUnit());
+    target.setMerchantId(merchantId); target.setName(source.name());
+    target.setCategory(source.category()); target.setUnit(source.unit());
     return target;
   }
 
@@ -204,4 +280,14 @@ public class DishTemplateServiceImpl implements DishTemplateService {
       throw new BusinessException(ErrorCode.SYSTEM_ERROR, "模板菜品标签数据格式错误");
     }
   }
+
+  /**
+   * 单次导入事务内锁定并加载的完整模板组件图。
+   * @param templates 模板ID到实体的映射
+   * @param ingredients 图中全部食材和组件引用行
+   * @param steps 模板ID到有序步骤的映射
+   */
+  private record RecipeGraph(Map<Long, DishTemplateEntity> templates,
+                             List<DishTemplateIngredientEntity> ingredients,
+                             Map<Long, List<DishTemplateCookingStepEntity>> steps) { }
 }

@@ -16,6 +16,7 @@ class DishTemplateMapperContractTest {
         Path.of("src/main/resources/mapper/dish/DishTemplateMapper.xml"), StandardCharsets.UTF_8);
     for (String statement : new String[] {
         "selectTemplateCategories", "countTemplates", "selectTemplates", "selectTemplate",
+        "selectEligibleTemplateForUpdate",
         "selectTemplateIngredients", "selectTemplatesByIds", "selectAllEnabledTemplates",
         "selectTemplateIngredientsByIds",
         "selectImportedTemplateIds", "selectMerchantCategoryByName", "insertMerchantCategoryIgnore",

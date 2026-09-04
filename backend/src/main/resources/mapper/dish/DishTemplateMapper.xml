@@ -123,6 +123,17 @@
       not exists (select 1 from dish_template_cooking_steps ts where ts.template_id=t.id) missing_steps
     from dish_templates t where t.id=#{templateId} for update
   </select>
+  <select id="selectEligibleTemplateForUpdate" resultMap="TemplateMap">
+    select t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.image_url,
+      t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
+      t.template_type,t.source_type,t.source_key,t.source_url,t.source_revision,t.source_category,
+      t.source_yield_text,t.data_status,t.procurement_ready,t.image_rights_status,
+      t.sort_order,t.enabled,t.version,false imported,
+      (select count(*) from dish_template_ingredients ti where ti.template_id=t.id) ingredient_count,
+      not exists (select 1 from dish_template_cooking_steps ts where ts.template_id=t.id) missing_steps
+    from dish_templates t join dish_template_categories c on c.id=t.category_id and c.enabled=1
+    where t.id=#{templateId} and <include refid="MerchantEligibleTemplateFilter"/> for update
+  </select>
   <select id="selectCategoryForUpdate" resultMap="TemplateCategoryMap">
     select id,code,name,sort_order,enabled from dish_template_categories where id=#{categoryId} for update
   </select>

@@ -64,6 +64,12 @@ public interface DishTemplateMapper {
    */
   DishTemplateEntity selectTemplateForUpdate(@Param("templateId") Long templateId);
   /**
+   * 锁定并读取仍满足商户市场资格的成品模板。
+   * @param templateId 模板ID
+   * @return 满足资格的锁定模板；资格已变化时为空
+   */
+  DishTemplateEntity selectEligibleTemplateForUpdate(@Param("templateId") Long templateId);
+  /**
    * 锁定并读取目标模板分类，防止事务内被并发停用。
    * @param categoryId 分类 ID
    * @return 被锁定分类，不存在时为空

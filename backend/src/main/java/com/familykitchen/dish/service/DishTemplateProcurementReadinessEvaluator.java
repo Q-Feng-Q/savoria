@@ -28,15 +28,30 @@ public interface DishTemplateProcurementReadinessEvaluator {
    *
    * @param ready 是否可安全生成采购清单
    * @param blockingReasons 阻断原因；就绪时为空
+   * @param procurementItems 展开并聚合后的采购食材；未就绪时为空
    */
-  record EvaluationResult(boolean ready, List<String> blockingReasons) {
+  record EvaluationResult(boolean ready, List<String> blockingReasons,
+                          List<ProcurementItem> procurementItems) {
     /**
      * 防止调用方修改返回的原因集合。
      * @param ready 是否可安全生成采购清单
      * @param blockingReasons 阻断原因
+     * @param procurementItems 展开并聚合后的采购食材
      */
     public EvaluationResult {
       blockingReasons = List.copyOf(blockingReasons);
+      procurementItems = List.copyOf(procurementItems);
     }
   }
+
+  /**
+   * 可直接写入商户菜品的采购食材。
+   * @param name 食材名称
+   * @param category 食材分类
+   * @param quantity 已乘入组件路径倍数的数量
+   * @param unit 规范化后的计量单位
+   * @param calcType 采购计算方式
+   */
+  record ProcurementItem(String name, String category, java.math.BigDecimal quantity,
+                         String unit, String calcType) { }
 }

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -39,7 +40,9 @@ public class DishTemplateProcurementReadinessEvaluatorImpl
           new ArrayDeque<>(), reasons, leaves);
       validateCompatibleUnits(leaves, reasons);
     }
-    return new EvaluationResult(reasons.isEmpty(), List.copyOf(reasons));
+    if (reasons.isEmpty() && leaves.isEmpty()) reasons.add("成品模板没有可采购的叶子食材");
+    List<ProcurementItem> items = reasons.isEmpty() ? aggregate(leaves) : List.of();
+    return new EvaluationResult(reasons.isEmpty(), List.copyOf(reasons), items);
   }
 
   private void visit(Long templateId, BigDecimal pathMultiplier,
@@ -89,15 +92,31 @@ public class DishTemplateProcurementReadinessEvaluatorImpl
       return;
     }
     Unit normalized = normalizeUnit(ingredient.getUnit());
-    leaves.add(new Leaf(normalizeName(ingredient.getIngredientName()), normalized.family(),
+    leaves.add(new Leaf(ingredient.getIngredientName(), normalizeName(ingredient.getIngredientName()),
+        ingredient.getIngredientCategory(), normalized.family(), normalized.baseUnit(),
         ingredient.getCalcType(), ingredient.getQuantity().multiply(pathMultiplier)
             .multiply(normalized.factor())));
+  }
+
+  private List<ProcurementItem> aggregate(List<Leaf> leaves) {
+    Map<String, ProcurementItem> aggregated = new LinkedHashMap<>();
+    for (Leaf leaf : leaves) {
+      String key = leaf.normalizedName() + "|" + leaf.unitFamily() + "|" + leaf.calcType();
+      ProcurementItem previous = aggregated.get(key);
+      BigDecimal quantity = previous == null ? leaf.quantity()
+          : previous.quantity().add(leaf.quantity());
+      aggregated.put(key, new ProcurementItem(
+          previous == null ? leaf.displayName() : previous.name(),
+          previous == null ? leaf.category() : previous.category(), quantity,
+          leaf.baseUnit(), leaf.calcType()));
+    }
+    return List.copyOf(aggregated.values());
   }
 
   private void validateCompatibleUnits(List<Leaf> leaves, Set<String> reasons) {
     Map<String, Set<String>> familiesByIngredient = new HashMap<>();
     for (Leaf leaf : leaves) {
-      String key = leaf.name() + "|" + leaf.calcType();
+      String key = leaf.normalizedName() + "|" + leaf.calcType();
       familiesByIngredient.computeIfAbsent(key, ignored -> new HashSet<>()).add(leaf.unitFamily());
     }
     familiesByIngredient.forEach((key, families) -> {
@@ -107,11 +126,11 @@ public class DishTemplateProcurementReadinessEvaluatorImpl
 
   private static Unit normalizeUnit(String unit) {
     return switch (unit.trim().toLowerCase(Locale.ROOT)) {
-      case "kg", "千克", "公斤" -> new Unit("MASS", new BigDecimal("1000"));
-      case "g", "克" -> new Unit("MASS", BigDecimal.ONE);
-      case "l", "升" -> new Unit("VOLUME", new BigDecimal("1000"));
-      case "ml", "毫升" -> new Unit("VOLUME", BigDecimal.ONE);
-      default -> new Unit("UNIT:" + unit.trim(), BigDecimal.ONE);
+      case "kg", "千克", "公斤" -> new Unit("MASS", "g", new BigDecimal("1000"));
+      case "g", "克" -> new Unit("MASS", "g", BigDecimal.ONE);
+      case "l", "升" -> new Unit("VOLUME", "ml", new BigDecimal("1000"));
+      case "ml", "毫升" -> new Unit("VOLUME", "ml", BigDecimal.ONE);
+      default -> new Unit("UNIT:" + unit.trim(), unit.trim(), BigDecimal.ONE);
     };
   }
 
@@ -135,16 +154,21 @@ public class DishTemplateProcurementReadinessEvaluatorImpl
   /**
    * 规范化计量单位族和换算到基础单位的倍数。
    * @param family 单位族
+   * @param baseUnit 单位族的基础单位
    * @param factor 换算到基础单位的倍数
    */
-  private record Unit(String family, BigDecimal factor) { }
+  private record Unit(String family, String baseUnit, BigDecimal factor) { }
 
   /**
    * 展开组件路径后的采购叶子食材。
-   * @param name 规范化食材名称
+   * @param displayName 食材显示名称
+   * @param normalizedName 规范化食材名称
+   * @param category 食材分类
    * @param unitFamily 规范化单位族
+   * @param baseUnit 规范化基础单位
    * @param calcType 采购计算方式
    * @param quantity 乘入完整组件路径倍数后的基础单位数量
    */
-  private record Leaf(String name, String unitFamily, String calcType, BigDecimal quantity) { }
+  private record Leaf(String displayName, String normalizedName, String category, String unitFamily,
+                      String baseUnit, String calcType, BigDecimal quantity) { }
 }
