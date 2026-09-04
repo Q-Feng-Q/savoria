@@ -24,7 +24,7 @@
     <view class="form-section">
       <text class="section-title">制作步骤</text>
       <view wx:if="{{!hasCookingSteps}}" class="empty-copy">尚未添加制作步骤</view>
-      <block wx:for="{{dish.cookingSteps}}" wx:key="index"><view class="line-row"><view><text class="strong">{{index + 1}}. {{item.title}}</text><text class="muted">{{item.content}}</text></view><view class="text-action" data-index="{{index}}" bindtap="removeCookingStep" aria-role="button" aria-label="删除步骤" hover-class="ui-button--pressed">删除</view></view></block>
+      <block wx:for="{{dish.cookingSteps}}" wx:key="index"><view class="line-row"><view><text class="strong">{{index + 1}}. {{item.title}}</text><text class="muted">{{item.content}}</text><text wx:if="{{item.heatLevel || item.temperatureText || item.durationSeconds}}" class="muted">{{item.heatLevel}} {{item.temperatureText}} {{item.durationSeconds ? item.durationSeconds + ' 秒' : ''}}</text></view><view class="text-action" data-index="{{index}}" bindtap="removeCookingStep" aria-role="button" aria-label="删除步骤" hover-class="ui-button--pressed">删除</view></view></block>
       <input value="{{stepTitle}}" bindinput="bindStepTitle" placeholder="步骤标题" disabled="{{saving || uploading}}" />
       <textarea value="{{stepContent}}" bindinput="bindStepContent" placeholder="步骤内容" disabled="{{saving || uploading}}" />
       <view class="ui-button secondary-action" bindtap="addCookingStep" aria-role="button" aria-label="添加制作步骤" hover-class="ui-button--pressed">添加制作步骤</view>

@@ -25,6 +25,7 @@
 .list-progress { padding:28rpx 0 18rpx; color:#6f8d75; font-size:23rpx; text-align:center; }
 .list-progress--done { color:#9a8572; }
 .template-image { width:136rpx; height:136rpx; flex:none; border-radius:18rpx; background:#f3eadc; }
+.template-image-placeholder { display:flex; flex:none; align-items:center; justify-content:center; box-sizing:border-box; width:136rpx; height:136rpx; border:2rpx dashed #dccdbb; border-radius:18rpx; background:#f3eadc; color:#9a816d; font-size:20rpx; }
 .template-main { flex:1; min-width:0; }
 .template-name { color:#2c2118; font-size:30rpx; font-weight:900; }
 .template-meta,.template-tags { margin-top:10rpx; color:#907967; font-size:23rpx; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }

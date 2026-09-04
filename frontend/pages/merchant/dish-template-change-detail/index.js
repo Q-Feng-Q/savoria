@@ -6,8 +6,7 @@ const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 const FIELD_META = [
   ['name', '菜品名称'], ['categoryId', '分类 ID'], ['description', '菜品简介'],
   ['referencePrice', '参考价格'], ['tasteTags', '口味标签'], ['mealTags', '推荐餐次'],
-  ['imageUrl', '图片路径'], ['imageSourceUrl', '来源页面'], ['imageAuthor', '图片作者'],
-  ['imageLicense', '授权说明'], ['sortOrder', '排序值'], ['enabled', '启用状态']
+  ['sortOrder', '排序值'], ['enabled', '启用状态']
 ];
 
 function displayValue(value) {
@@ -24,12 +23,22 @@ function buildComparison(base = {}, target = {}) {
 }
 
 function decorateIngredients(rows) {
-  return (rows || []).map((item, index) => ({ ...item, key: `${index}-${item.ingredientName}`, text: `${item.quantity} ${item.unit} · ${item.ingredientCategory} · ${item.calcType}` }));
+  return (rows || []).map((item, index) => {
+    const quantityText = item.quantityStatus === 'VERIFIED'
+      ? `${item.quantity} ${item.unit} · ${item.calcType}`
+      : ({ SOURCE_BATCH: item.sourceQuantityText || '原配方批量', MISSING: '用量待完善', NOT_APPLICABLE: '无需采购' }[item.quantityStatus] || '用量待完善');
+    return { ...item, key: item.itemId || `${index}-${item.ingredientName}`, text: `${quantityText} · ${item.ingredientCategory}` };
+  });
+}
+
+function decorateSteps(rows) {
+  return (rows || []).slice().sort((left, right) => Number(left.stepNo) - Number(right.stepNo))
+    .map((item, index) => ({ ...item, key: item.itemId || `step-${index}`, titleText: item.title || `步骤 ${index + 1}` }));
 }
 
 Page({
   identityLoad: createIdentityLoadGuard(),
-  data: { phase: 'loading', errorMessage: '', detail: null, comparison: [], baseIngredients: [], targetIngredients: [], withdrawing: false },
+  data: { phase: 'loading', errorMessage: '', detail: null, comparison: [], baseIngredients: [], targetIngredients: [], baseSteps: [], targetSteps: [], withdrawing: false },
   onLoad(options) { this.requestId = Number(options.id); },
   onShow() { this.load(); },
   onPullDownRefresh() { this.load().finally(() => wx.stopPullDownRefresh()); },
@@ -37,12 +46,20 @@ Page({
     const session = requireSession({ merchantOnly: true });
     if (!session) return;
     const loadToken = this.identityLoad.begin(session);
-    this.setData({ phase: 'loading', errorMessage: '', detail: null, comparison: [], baseIngredients: [], targetIngredients: [] });
+    this.setData({ phase: 'loading', errorMessage: '', detail: null, comparison: [], baseIngredients: [], targetIngredients: [], baseSteps: [], targetSteps: [] });
     try {
       const result = await createApiRuntime().merchant.getDishTemplateChangeDetail(this.requestId);
       const detail = decorateChangeRequest(result);
       if (!this.identityLoad.isCurrent(loadToken)) return;
-      this.setData({ detail, comparison: buildComparison(detail.baseSnapshot, detail.targetSnapshot), baseIngredients: decorateIngredients(detail.baseSnapshot.ingredients), targetIngredients: decorateIngredients(detail.targetSnapshot.ingredients), phase: 'ready' });
+      this.setData({
+        detail,
+        comparison: buildComparison(detail.baseSnapshot, detail.targetSnapshot),
+        baseIngredients: decorateIngredients(detail.baseSnapshot.ingredients),
+        targetIngredients: decorateIngredients(detail.targetSnapshot.ingredients),
+        baseSteps: decorateSteps(detail.baseSnapshot.cookingSteps),
+        targetSteps: decorateSteps(detail.targetSnapshot.cookingSteps),
+        phase: 'ready'
+      });
     } catch (error) {
       if (this.identityLoad.isCurrent(loadToken)) this.setData({ phase: 'error', errorMessage: resolveApiErrorMessage(error, '申请详情加载失败') });
     }
@@ -59,4 +76,4 @@ Page({
   }
 });
 
-module.exports = { buildComparison };
+module.exports = { buildComparison, decorateIngredients, decorateSteps };

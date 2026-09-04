@@ -1,13 +1,24 @@
 .detail-page { padding-bottom:140rpx; }
 .detail-image { width:100%; height:480rpx; border-radius:24rpx; background:#f3eadc; }
+.detail-image-placeholder { display:flex; align-items:center; justify-content:center; box-sizing:border-box; border:2rpx dashed #ddcebb; color:#9a816c; font-size:24rpx; }
 .detail-head { padding:28rpx 4rpx; border-bottom:2rpx solid #eadfce; }
 .detail-category,.detail-name,.detail-description { display:block; }
 .detail-category { color:#4d9565; font-size:23rpx; font-weight:850; }
 .detail-name { margin-top:8rpx; color:#302219; font-size:42rpx; font-weight:950; }
 .detail-description { margin-top:14rpx; color:#806c59; font-size:25rpx; line-height:1.65; }
 .detail-meta { display:flex; gap:16rpx; flex-wrap:wrap; margin-top:20rpx; color:#a05c27; font-size:23rpx; }
+.source-line { display:flex; gap:14rpx; margin-top:16rpx; color:#4d8b61; font-size:21rpx; }
 .ingredient-list { background:#fffdf8; border-top:2rpx solid #eee1d2; }
 .ingredient-row { display:flex; justify-content:space-between; padding:24rpx 4rpx; border-bottom:2rpx solid #eee1d2; color:#49392c; font-size:26rpx; }
+.ingredient-category { display:block; margin-top:5rpx; color:#9a8877; font-size:19rpx; }
+.step-list { border-top:2rpx solid #eee1d2; }
+.step-row { display:grid; grid-template-columns:54rpx 1fr; gap:14rpx; padding:22rpx 4rpx; border-bottom:2rpx solid #eee1d2; }
+.step-number { display:flex; align-items:center; justify-content:center; width:46rpx; height:46rpx; border-radius:50%; background:#e8f4e8; color:#41865a; font-size:22rpx; font-weight:900; }
+.step-title,.step-content,.step-meta { display:block; }
+.step-title { color:#403127; font-size:25rpx; font-weight:900; }
+.step-content { margin-top:7rpx; color:#776452; font-size:23rpx; line-height:1.65; }
+.step-meta { margin-top:7rpx; color:#a06a3c; font-size:19rpx; }
+.step-empty { padding:24rpx 4rpx; border-top:2rpx solid #eee1d2; color:#9a8877; font-size:23rpx; }
 .source-note { margin-top:22rpx; color:#9b8978; font-size:21rpx; line-height:1.5; }
 .detail-actions { position:fixed; z-index:20; left:28rpx; right:28rpx; bottom:calc(24rpx + env(safe-area-inset-bottom)); display:grid; grid-template-columns:1fr 1.15fr; gap:14rpx; padding:12rpx; border:2rpx solid #eadfce; border-radius:28rpx; background:rgba(255,253,248,.98); box-shadow:0 16rpx 38rpx rgba(97,72,43,.18); }
 .detail-change,.detail-import { display:flex; align-items:center; justify-content:center; height:82rpx; border-radius:20rpx; font-size:25rpx; font-weight:900; }

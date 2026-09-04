@@ -14,46 +14,106 @@ function normalizeTags(value) {
   return Array.from(new Set(values.map(trim).filter(Boolean)));
 }
 
+function nullableText(value) {
+  const valueText = trim(value);
+  return valueText || null;
+}
+
+function nullableNumber(value) {
+  if (value === null || value === undefined || trim(value) === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : NaN;
+}
+
+function ingredientItemId(item, index) {
+  return trim(item.itemId || item.sourceLineKey)
+    || (item.id ? `template-ingredient:${item.id}` : `client-ingredient:${index + 1}`);
+}
+
+function stepItemId(item, index) {
+  return trim(item.itemId || item.itemKey)
+    || (item.id ? `template-step:${item.id}` : `client-step:${index + 1}`);
+}
+
 function buildTemplateSnapshot(source = {}) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     categoryId: Number(source.categoryId),
     name: trim(source.name),
-    description: trim(source.description),
-    imageUrl: trim(source.imageUrl),
-    imageSourceUrl: trim(source.imageSourceUrl),
-    imageAuthor: trim(source.imageAuthor),
-    imageLicense: trim(source.imageLicense),
-    referencePrice: Number(source.referencePrice),
+    description: nullableText(source.description),
+    referencePrice: nullableNumber(source.referencePrice),
     tasteTags: normalizeTags(source.tasteTags),
     mealTags: normalizeTags(source.mealTags).filter((item) => ['BREAKFAST', 'LUNCH', 'DINNER'].includes(item)),
     sortOrder: Number(source.sortOrder || 0),
     enabled: source.enabled !== false,
-    ingredients: (source.ingredients || []).map((item, index) => ({
-      ingredientName: trim(item.ingredientName || item.name),
-      ingredientCategory: trim(item.ingredientCategory || item.category),
-      quantity: Number(item.quantity),
-      unit: trim(item.unit),
-      calcType: item.calcType || item.calculationType || 'FIXED',
-      sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : index + 1
+    ingredients: (source.ingredients || []).map((item, index) => {
+      const rawCalcType = item.calcType || item.calculationType || null;
+      const quantityStatus = item.quantityStatus
+        || (rawCalcType === 'NO_PURCHASE' ? 'NOT_APPLICABLE'
+          : (nullableNumber(item.quantity) === null ? 'MISSING' : 'VERIFIED'));
+      const verified = quantityStatus === 'VERIFIED';
+      return {
+        itemId: ingredientItemId(item, index),
+        ingredientName: trim(item.ingredientName || item.name),
+        ingredientCategory: trim(item.ingredientCategory || item.category),
+        quantityStatus,
+        quantity: verified ? nullableNumber(item.quantity) : null,
+        unit: verified ? nullableText(item.unit) : null,
+        calcType: verified ? (rawCalcType || 'FIXED') : null,
+        sourceText: nullableText(item.sourceText),
+        sourceQuantityText: nullableText(item.sourceQuantityText),
+        componentTemplateId: nullableNumber(item.componentTemplateId),
+        componentMultiplier: nullableNumber(item.componentMultiplier),
+        sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : index + 1
+      };
+    }),
+    cookingSteps: (source.cookingSteps || []).map((item, index) => ({
+      itemId: stepItemId(item, index),
+      stepNo: index + 1,
+      title: nullableText(item.title),
+      content: trim(item.content),
+      durationSeconds: nullableNumber(item.durationSeconds),
+      temperatureText: nullableText(item.temperatureText),
+      heatLevel: nullableText(item.heatLevel),
+      componentTemplateId: nullableNumber(item.componentTemplateId)
     }))
   };
 }
 
 function validateTemplateSnapshot(snapshot) {
+  if (!snapshot || snapshot.schemaVersion !== 2) return '模板快照版本不正确';
   if (!Number.isInteger(snapshot.categoryId) || snapshot.categoryId < 1) return '请选择模板分类';
   if (!snapshot.name) return '请填写菜品名称';
-  if (!snapshot.description) return '请填写菜品简介';
-  if (!snapshot.imageUrl) return '请上传菜品图片';
-  if (!snapshot.imageSourceUrl) return '请填写图片来源地址';
-  if (!snapshot.imageAuthor) return '请填写图片作者或来源平台';
-  if (!snapshot.imageLicense) return '请填写图片授权说明';
-  if (!Number.isFinite(snapshot.referencePrice) || snapshot.referencePrice < 0) return '参考价格必须是大于等于 0 的数字';
+  if (snapshot.referencePrice !== null
+      && (!Number.isFinite(snapshot.referencePrice) || snapshot.referencePrice < 0)) {
+    return '参考价格必须留空或填写大于等于 0 的数字';
+  }
   if (!snapshot.ingredients.length) return '模板菜品至少需要 1 项食材';
+  const ingredientIds = new Set();
   for (const item of snapshot.ingredients) {
-    if (!item.ingredientName || !item.ingredientCategory || !item.unit) return '请补全食材名称、分类和单位';
-    if (!Number.isFinite(item.quantity) || item.quantity < 0) return '食材用量必须是大于等于 0 的数字';
-    if (!['FIXED', 'PER_PERSON', 'NO_PURCHASE'].includes(item.calcType)) return '请选择正确的食材计算方式';
+    if (!item.itemId || ingredientIds.has(item.itemId)) return '请检查食材项目编号';
+    ingredientIds.add(item.itemId);
+    if (!item.ingredientName || !item.ingredientCategory) return '请补全食材名称和分类';
+    if (!['VERIFIED', 'SOURCE_BATCH', 'MISSING', 'NOT_APPLICABLE'].includes(item.quantityStatus)) {
+      return '请选择正确的食材数量状态';
+    }
+    if (item.quantityStatus === 'VERIFIED') {
+      if (!Number.isFinite(item.quantity) || item.quantity <= 0 || !item.unit) return '请补全已核实食材的用量和单位';
+      if (!['FIXED', 'PER_PERSON'].includes(item.calcType)) return '请选择正确的食材计算方式';
+    } else if (item.quantity !== null || item.unit !== null || item.calcType !== null) {
+      return '未核实食材不能填写采购用量';
+    }
+    if (item.componentTemplateId !== null
+      && (!Number.isInteger(item.componentTemplateId) || item.componentTemplateId <= 0
+        || !Number.isFinite(item.componentMultiplier) || item.componentMultiplier <= 0)) {
+      return '请检查配料组件和展开倍数';
+    }
+  }
+  const stepIds = new Set();
+  for (const [index, item] of (snapshot.cookingSteps || []).entries()) {
+    if (!item.itemId || stepIds.has(item.itemId)) return '请检查制作步骤项目编号';
+    stepIds.add(item.itemId);
+    if (item.stepNo !== index + 1 || !item.content) return '请按顺序补全制作步骤内容';
   }
   return '';
 }

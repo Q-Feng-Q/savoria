@@ -1,17 +1,14 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
-const { createDishTemplateSelection } = require('../../../utils/dish-template-selection');
+const {
+  createDishTemplateSelection,
+  decorateTemplateRows
+} = require('../../../utils/dish-template-selection');
 const { toImageUrl } = require('../../../utils/image-url');
 const { requireSession, showApiError } = require('../../../utils/page-api');
 
 function mapTemplateRows(runtime, rows, selectedIds) {
-  const selected = new Set(selectedIds);
-  return (rows || []).map(item => ({
-    ...item,
-    imageUrl: toImageUrl(runtime.baseUrl, item.imageUrl),
-    selected: selected.has(Number(item.templateId)),
-    tagsText: (item.tasteTags || []).join(' · '),
-    priceText: `¥${Number(item.referencePrice || 0).toFixed(0)}`
-  }));
+  return decorateTemplateRows(rows, selectedIds,
+    (value) => toImageUrl(runtime.baseUrl, value));
 }
 
 Page({
