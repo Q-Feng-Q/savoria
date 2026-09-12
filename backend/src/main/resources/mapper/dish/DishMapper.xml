@@ -39,6 +39,12 @@
     <result property="stepNo" column="step_no"/>
     <result property="title" column="title"/>
     <result property="content" column="content"/>
+    <result property="durationSeconds" column="duration_seconds"/>
+    <result property="temperatureText" column="temperature_text"/>
+    <result property="heatLevel" column="heat_level"/>
+    <result property="sourceTemplateStepId" column="source_template_step_id"/>
+    <result property="componentTemplateId" column="component_template_id"/>
+    <result property="sourceNote" column="source_note"/>
   </resultMap>
 
   <resultMap id="IngredientDictionaryMap" type="com.familykitchen.dish.model.entity.IngredientDictionaryEntity">
@@ -145,12 +151,15 @@
   </delete>
 
   <insert id="insertCookingStep" parameterType="com.familykitchen.dish.model.entity.DishCookingStepEntity">
-    insert into dish_cooking_steps (dish_id, step_no, title, content)
-    values (#{dishId}, #{stepNo}, #{title}, #{content})
+    insert into dish_cooking_steps (dish_id,step_no,title,content,duration_seconds,temperature_text,
+      heat_level,source_template_step_id,component_template_id,source_note)
+    values (#{dishId},#{stepNo},#{title},#{content},#{durationSeconds},#{temperatureText},
+      #{heatLevel},#{sourceTemplateStepId},#{componentTemplateId},#{sourceNote})
   </insert>
 
   <select id="selectCookingSteps" resultMap="CookingStepMap">
-    select id, dish_id, step_no, title, content
+    select id,dish_id,step_no,title,content,duration_seconds,temperature_text,heat_level,
+      source_template_step_id,component_template_id,source_note
     from dish_cooking_steps
     where dish_id = #{dishId}
     order by step_no asc, id asc

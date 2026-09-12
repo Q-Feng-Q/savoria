@@ -86,7 +86,7 @@ public class DishTemplateController {
    * @return 模板详情
    */
   @GetMapping("/dish-templates/{templateId}")
-  @Operation(summary = "查询模板菜品详情", description = "返回简介、授权图片、标签和食材，不包含制作步骤。")
+  @Operation(summary = "查询模板菜品详情", description = "返回完整食材和按序制作步骤；图片与价格可能为空。")
   public ApiResponse<DishTemplateDetailView> detail(HttpServletRequest request,
       @Parameter(description = "平台模板ID", required = true) @PathVariable Long templateId) {
     return ApiResponse.ok(templateService.detail(requireMerchant(request), templateId));

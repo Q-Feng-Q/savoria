@@ -2,7 +2,11 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { createDishTemplateSelection } = require('../utils/dish-template-selection');
+const {
+  createDishTemplateSelection,
+  decorateTemplateDetail,
+  decorateTemplateRows
+} = require('../utils/dish-template-selection');
 const { createMerchantService } = require('../services/merchant');
 
 test('template selection ignores imported items and caps selection at 100', () => {
@@ -18,6 +22,36 @@ test('template selection toggles one item without retaining imported item', () =
   const selection = createDishTemplateSelection([2]);
   assert.deepEqual(selection.toggle({ templateId: 2, imported: false }).selectedIds, []);
   assert.deepEqual(selection.toggle({ templateId: 3, imported: true }).selectedIds, []);
+});
+
+test('template view models keep null image and price explicit', () => {
+  const rows = decorateTemplateRows([{
+    templateId: 7,
+    imageUrl: null,
+    referencePrice: null,
+    tasteTags: [],
+    sourceType: 'COOK_LIKE_HOC',
+    missingSteps: true
+  }], [], (value) => value ? `https://api.test${value}` : '');
+
+  assert.equal(rows[0].hasImage, false);
+  assert.equal(rows[0].imageUrl, '');
+  assert.equal(rows[0].priceText, '价格待完善');
+  assert.equal(rows[0].sourceLabel, 'CookLikeHOC');
+  assert.equal(rows[0].stepsLabel, '步骤待补充');
+
+  const detail = decorateTemplateDetail({
+    imageUrl: null,
+    referencePrice: null,
+    sourceType: 'LOCAL_EXTENSION',
+    ingredients: [{ quantityStatus: 'MISSING', quantity: null, unit: null }],
+    cookingSteps: [{ stepNo: 2, content: '第二步' }, { stepNo: 1, content: '第一步' }]
+  }, (value) => value || '');
+  assert.equal(detail.hasImage, false);
+  assert.equal(detail.priceText, '价格待完善');
+  assert.equal(detail.sourceLabel, '本地扩展');
+  assert.equal(detail.ingredients[0].quantityText, '用量待完善');
+  assert.deepEqual(detail.cookingSteps.map((item) => item.stepNo), [1, 2]);
 });
 
 test('merchant service calls real template endpoints', async () => {
@@ -184,6 +218,46 @@ test('template market renders a custom import-all action and mutually disabled i
   assert.match(markup, /<view class="ui-button import-all-action[^>]*bindtap="importAll"[^>]*aria-role="button"[^>]*aria-label="导入全部系统菜品"[^>]*aria-disabled="\{\{importing \|\| importingAll\}\}"[^>]*aria-busy="\{\{importingAll\}\}"[^>]*hover-class="ui-button--pressed"/);
   assert.match(markup, /import-action[^>]*importing \|\| importingAll[^>]*aria-disabled="\{\{!selectedIds\.length \|\| importing \|\| importingAll\}\}"[^>]*aria-busy="\{\{importing \|\| importingAll\}\}"/);
   assert.doesNotMatch(markup, /<button\b/);
+  assert.match(markup, /wx:if="\{\{item\.hasImage\}\}"/);
+  assert.match(markup, /class="template-image-placeholder"/);
+});
+
+test('template detail renders source, nullable states and ordered cooking steps', () => {
+  const root = path.resolve(__dirname, '..');
+  const markup = fs.readFileSync(path.join(root, 'pages/merchant/dish-template-detail/index.wxml'), 'utf8');
+  assert.match(markup, /detail\.hasImage/);
+  assert.match(markup, /detail\.priceText/);
+  assert.match(markup, /detail\.sourceLabel/);
+  assert.match(markup, /detail\.cookingSteps/);
+  assert.match(markup, /制作步骤/);
+});
+
+test('merchant dish editing preserves imported cooking step facts', () => {
+  const root = path.resolve(__dirname, '..');
+  const pagePath = path.join(root, 'pages', 'merchant', 'dish-edit', 'index.js');
+  const previousPage = global.Page;
+  global.Page = () => {};
+  try {
+    delete require.cache[require.resolve(pagePath)];
+    const { buildDishPayload } = require(pagePath);
+    const payload = buildDishPayload({
+      name: '豆角焖面', categoryId: 1, basePrice: 18, cookingSteps: [{
+        stepNo: 3, title: '焖制', content: '盖盖焖熟', durationSeconds: 600,
+        temperatureText: '保持微沸', heatLevel: '小火', componentTemplateId: 9
+      }]
+    });
+    assert.deepEqual(payload.cookingSteps[0], {
+      stepNo: 1, title: '焖制', content: '盖盖焖熟', durationSeconds: 600,
+      temperatureText: '保持微沸', heatLevel: '小火', componentTemplateId: 9
+    });
+    const markup = fs.readFileSync(path.join(root, 'pages', 'merchant', 'dish-edit', 'index.wxml'), 'utf8');
+    assert.match(markup, /item\.durationSeconds/);
+    assert.match(markup, /item\.temperatureText/);
+    assert.match(markup, /item\.heatLevel/);
+  } finally {
+    delete require.cache[require.resolve(pagePath)];
+    global.Page = previousPage;
+  }
 });
 
 test('template market appends every backend page and stops when total is reached', async () => {

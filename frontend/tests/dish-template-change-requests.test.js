@@ -17,7 +17,7 @@ test('merchant service exposes the complete template change request workflow', a
     return { code: 0, data: {} };
   }});
 
-  const targetSnapshot = { schemaVersion: 1, name: '豆角焖面' };
+  const targetSnapshot = { schemaVersion: 2, name: '豆角焖面' };
   await service.submitDishTemplateChange(7, { submitNote: '补充特色菜', targetSnapshot });
   await service.submitImportedDishTemplateChange(31, { submitNote: '同步商户实测用量' });
   await service.getDishTemplateChanges({ status: 'PENDING', keyword: '豆角', page: 2, pageSize: 20 });
@@ -39,7 +39,7 @@ test('merchant service exposes the complete template change request workflow', a
   assert.equal(calls[4].pathname, '/api/merchant/dish-template-change-requests/9/withdraw');
 });
 
-test('template snapshot keeps every backend field and validates required data', () => {
+test('template snapshot v2 keeps editable data and strips server-owned fields', () => {
   const snapshot = buildTemplateSnapshot({
     categoryId: 3,
     name: '豆角焖面',
@@ -53,27 +53,60 @@ test('template snapshot keeps every backend field and validates required data', 
     mealTags: ['LUNCH', 'DINNER'],
     sortOrder: 10,
     enabled: true,
-    ingredients: [{ ingredientName: '豆角', ingredientCategory: '蔬菜', quantity: '100', unit: '克', calcType: 'FIXED' }]
+    ingredients: [{ itemId: 'ingredient-1', ingredientName: '豆角', ingredientCategory: '蔬菜', quantityStatus: 'VERIFIED', quantity: '100', unit: '克', calcType: 'FIXED' }],
+    cookingSteps: [{ itemId: 'step-1', stepNo: 1, title: '焖制', content: '小火焖熟', durationSeconds: 600, heatLevel: '小火' }]
   });
 
   assert.deepEqual(snapshot, {
-    schemaVersion: 1,
+    schemaVersion: 2,
     categoryId: 3,
     name: '豆角焖面',
     description: '北方家常焖面',
-    imageUrl: '/images/dish-templates/dou-jiao-men-mian.jpg',
-    imageSourceUrl: 'https://example.com/source',
-    imageAuthor: '作者',
-    imageLicense: '授权使用',
     referencePrice: 18.5,
     tasteTags: ['咸香', '家常'],
     mealTags: ['LUNCH', 'DINNER'],
     sortOrder: 10,
     enabled: true,
-    ingredients: [{ ingredientName: '豆角', ingredientCategory: '蔬菜', quantity: 100, unit: '克', calcType: 'FIXED', sortOrder: 1 }]
+    ingredients: [{
+      itemId: 'ingredient-1', ingredientName: '豆角', ingredientCategory: '蔬菜',
+      quantityStatus: 'VERIFIED', quantity: 100, unit: '克', calcType: 'FIXED',
+      sourceText: null, sourceQuantityText: null, componentTemplateId: null,
+      componentMultiplier: null, sortOrder: 1
+    }],
+    cookingSteps: [{
+      itemId: 'step-1', stepNo: 1, title: '焖制', content: '小火焖熟',
+      durationSeconds: 600, temperatureText: null, heatLevel: '小火', componentTemplateId: null
+    }]
   });
+  assert.equal('imageUrl' in snapshot, false);
+  assert.equal('imageSourceUrl' in snapshot, false);
+  assert.equal('dataStatus' in snapshot, false);
   assert.equal(validateTemplateSnapshot(snapshot), '');
   assert.equal(validateTemplateSnapshot({ ...snapshot, ingredients: [] }), '模板菜品至少需要 1 项食材');
+});
+
+test('template snapshot v2 allows null price and nullable quantity states', () => {
+  const snapshot = buildTemplateSnapshot({
+    categoryId: 3,
+    name: '待完善菜谱',
+    description: null,
+    referencePrice: null,
+    tasteTags: [],
+    mealTags: [],
+    sortOrder: 0,
+    enabled: true,
+    ingredients: [{
+      itemId: 'missing-1', ingredientName: '调料适量', ingredientCategory: '调味',
+      quantityStatus: 'MISSING', quantity: null, unit: null, calcType: null
+    }],
+    cookingSteps: []
+  });
+  assert.equal(snapshot.referencePrice, null);
+  assert.equal(snapshot.description, null);
+  assert.equal(snapshot.ingredients[0].quantity, null);
+  assert.equal(snapshot.ingredients[0].unit, null);
+  assert.equal(snapshot.ingredients[0].calcType, null);
+  assert.equal(validateTemplateSnapshot(snapshot), '');
 });
 
 test('change request decoration exposes readable status and stale state', () => {
@@ -102,4 +135,11 @@ test('mini program registers submit, list and detail pages with discoverable ent
   assert.match(detail, /申请修改模板/);
   assert.match(market, /修改申请/);
   assert.match(merchantDishes, /同步模板/);
+  const editor = fs.readFileSync(path.join(root, 'pages/merchant/dish-template-change-edit/index.wxml'), 'utf8');
+  assert.doesNotMatch(editor, /更换图片|图片来源页面|图片授权|form\.imageUrl/);
+  assert.match(editor, /制作步骤/);
+  const changeDetail = fs.readFileSync(path.join(root, 'pages/merchant/dish-template-change-detail/index.wxml'), 'utf8');
+  assert.match(changeDetail, /制作步骤对比/);
+  assert.match(changeDetail, /baseSteps/);
+  assert.match(changeDetail, /targetSteps/);
 });

@@ -958,7 +958,11 @@ POST /api/merchant/dishes
     {
       "stepNo": 1,
       "title": "焯水",
-      "content": "牛腩冷水下锅焯水"
+      "content": "牛腩冷水下锅焯水",
+      "durationSeconds": 300,
+      "temperatureText": "冷水下锅后煮沸",
+      "heatLevel": "大火",
+      "componentTemplateId": null
     }
   ],
   "status": "active"
@@ -972,6 +976,8 @@ PUT /api/merchant/dishes/{dishId}
 ```
 
 请求体同新增菜品。
+
+`cookingSteps` 的四个结构化字段都允许为 `null`。从平台模板导入的菜品可能包含这些字段，商户端读取详情、编辑和回传时必须原样保留未修改字段；否则保存或提交审核会丢失模板中的时长、温度、火候或配料组件引用。
 
 当完整修改把 `status` 设为 `INACTIVE` 时，会在同一条更新中清除推荐状态。
 
@@ -1014,10 +1020,16 @@ PUT /api/merchant/dishes/{dishId}/cooking-steps
   {
     "stepNo": 1,
     "title": "焯水",
-    "content": "牛腩冷水下锅"
+    "content": "牛腩冷水下锅",
+    "durationSeconds": 300,
+    "temperatureText": "冷水下锅后煮沸",
+    "heatLevel": "大火",
+    "componentTemplateId": null
   }
 ]
 ```
+
+详情响应使用相同的制作步骤结构。`durationSeconds` 必须大于等于 0；`temperatureText` 最长 100 字，`heatLevel` 最长 50 字。
 
 ### 7.7 菜品分类
 
@@ -1545,7 +1557,7 @@ PC 后台优先真实接口接入顺序：
 
 小程序商户端页面：`pages/merchant/dish-templates/index`、`pages/merchant/dish-template-detail/index`。PC 商户后台页面：`/dish-templates`。两端都只能使用以下真实接口，不从本地 Mock 或基础商户复制模板。
 
-当前模板市场共 240 道菜，包括 198 道基础家常菜和 42 道地域特色菜。列表中的 `data.total` 是系统模板总数；商户菜品接口显示的是当前商户已经导入的副本数量，两者不能混用。
+模板市场数量以接口返回的 `data.total` 为准，不在前端硬编码。列表中的 `data.total` 是当前筛选条件下的平台成品模板总数；商户菜品接口显示的是当前商户已经导入的副本数量，两者不能混用。
 
 ### 21.1 模板分类
 
@@ -1572,7 +1584,7 @@ GET /api/merchant/dish-templates?categoryId=1&keyword=鸡&imported=false&page=1&
 GET /api/merchant/dish-templates/{templateId}
 ```
 
-详情额外返回 `imageSourceUrl`、`imageAuthor`、`imageLicense` 和 `ingredients`。模板没有 `cookingSteps`；导入后商户可在普通菜品编辑页自行补录。
+详情额外返回 `imageSourceUrl`、`imageAuthor`、`imageLicense`、`ingredients` 和按 `stepNo` 排序的 `cookingSteps`。无制作流程时返回空数组。`referencePrice` 和图片字段可为 `null`，前端必须显示固定尺寸占位，不得用假价格或假图片补齐。
 
 ### 21.4 选择性批量导入
 
@@ -1735,8 +1747,8 @@ function toImageUrl(url) {
 
 ### 商户后台小程序与 PC
 
-1. 在模板详情增加“申请修改”入口，先加载 `GET /api/merchant/dish-templates/{templateId}`；响应包含 `sortOrder/enabled/version`，可直接组装完整快照，再由用户编辑。
-2. 图片先调用真实上传接口，提交时只传 `/uploads/` 或 `/images/` 相对路径。
+1. 在模板详情增加“申请修改”入口，先加载 `GET /api/merchant/dish-templates/{templateId}`；响应包含 `sortOrder/enabled/version`、完整食材和制作步骤，可组装 v2 可编辑快照后再由用户编辑。
+2. 修改申请使用 `schemaVersion: 2`，只能提交名称、简介、分类、可空价格、标签、餐次、排序、启用状态、食材和步骤；不能提交图片、来源、类型或派生状态字段。
 3. 调用 `POST /api/merchant/dish-templates/{templateId}/change-requests`；不要传 `merchantId`。
 4. 申请列表调用 `GET /api/merchant/dish-template-change-requests`，状态映射为待审核、已通过、已驳回、已撤回。
 5. 详情同时展示 `baseSnapshot` 和 `targetSnapshot`；`stale=true` 时提示模板已变化，商户可撤回后重提。
@@ -1764,13 +1776,21 @@ Content-Type: application/json
 前端接入约束：
 
 1. 请求体只发送可选 `submitNote`，不读取模板详情拼装快照，也不传 `merchantId`、`templateId`。
-2. 点击前明确提示“提交后进入平台审核，不会立即修改系统菜库，制作步骤不会同步”。
+2. 点击前明确提示“提交后进入平台审核，不会立即修改系统菜库；菜品食材和制作步骤会作为完整快照送审”。
 3. 提交期间按 `dishId` 禁止重复点击。
 4. 成功后使用响应 `requestId` 进入现有模板修改申请详情；申请状态仍使用 `PENDING/APPROVED/REJECTED/WITHDRAWN`。
 5. 400、403、404、409、422 的后端中文 `message` 直接展示，尤其是手工菜品、来源模板停用、空食材和重复待审核申请。
 6. 审核通过只更新平台模板，不把新模板自动覆盖到当前商户或其他商户已有菜品。
 
-服务端自动覆盖菜名、简介、图片、价格和食材；模板分类、标签、餐次、图片授权、排序和启用状态保持来源模板值。因此前端没有这些字段的选择或编辑步骤。
+服务端从商户菜品自动生成可编辑业务快照，包含菜名、简介、价格、食材和制作步骤；模板分类、标签、餐次、排序和启用状态保持来源模板值。图片、来源身份、模板类型、图片授权和派生状态永远由平台服务端维护，不进入商户快照。
+
+### 20.2 v2 快照字段约束
+
+模板修改接口固定提交 `schemaVersion: 2`。`ingredients` 中每项必须有稳定且唯一的 `itemId` 与 `quantityStatus`；只有 `VERIFIED` 可填写 `quantity/unit/calcType`。`cookingSteps` 使用稳定 `itemId`，`stepNo` 必须从 1 连续排列。没有制作步骤时提交空数组。
+
+`imageUrl`、`imageSourceUrl`、`imageAuthor`、`imageLicense`、内部资源 ID、来源键/版本、`templateType`、`dataStatus`、`procurementReady`、`imageRightsStatus` 不能提交。收到 400、409 或 422 时直接展示后端 `message`，不要自动删字段重试。
+
+模板导入后，采购食材和制作步骤会随导入复制到商户菜品。制作步骤会随导入复制，之后商户可独立修改；平台模板后续变化不会自动覆盖商户副本。
 
 ## 21. 家庭共享餐篮、预计用餐时间与家庭钱包（当前权威契约）
 

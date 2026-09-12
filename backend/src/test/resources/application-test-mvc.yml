@@ -3,3 +3,8 @@ spring:
     url: ''
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+family-kitchen:
+  dish-template-assets:
+    private-root: ./target/test-data/dish-template-assets/private
+    public-root: ./target/test-data/dish-template-assets/public
+    public-url-prefix: /uploads/dish-template-assets

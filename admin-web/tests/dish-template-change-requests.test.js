@@ -32,11 +32,16 @@ test('PC routes and navigation expose merchant applications and platform review'
 
 test('merchant template market supports opening a full change request editor', () => {
   const view = read('src/views/merchant/DishTemplatesView.vue');
+  const utility = read('src/utils/dish-template-changes.js');
   assert.match(view, /申请修改/);
   assert.match(view, /submitDishTemplateChange/);
-  assert.match(view, /imageSourceUrl/);
+  assert.doesNotMatch(view, /imageSourceUrl|imageAuthor|imageLicense|uploadTemplateImage/);
   assert.match(view, /ingredientCategory/);
   assert.match(view, /mealTags/);
+  assert.match(view, /cookingSteps/);
+  assert.match(view, /quantityStatus/);
+  assert.match(utility, /schemaVersion:\s*2/);
+  assert.doesNotMatch(utility, /imageUrl:\s*text\(form\.imageUrl\)/);
 });
 
 test('merchant dish management can submit an imported dish without building a template snapshot', () => {
@@ -53,9 +58,13 @@ test('merchant dish management can submit an imported dish without building a te
 
 test('platform review shows both snapshots, stale warning and explicit decisions', () => {
   const view = read('src/views/platform/DishTemplateChangeReviewsView.vue');
+  const comparison = read('src/components/SnapshotComparison.vue');
   assert.match(view, /baseSnapshot/);
   assert.match(view, /targetSnapshot/);
   assert.match(view, /stale/);
   assert.match(view, /approveDishTemplateChange/);
   assert.match(view, /rejectDishTemplateChange/);
+  assert.match(comparison, /制作步骤对比/);
+  assert.match(comparison, /baseSteps/);
+  assert.match(comparison, /targetSteps/);
 });

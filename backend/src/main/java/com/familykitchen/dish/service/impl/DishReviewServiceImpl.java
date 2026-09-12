@@ -147,10 +147,13 @@ public class DishReviewServiceImpl implements DishReviewService {
       .map(i->new DishRequest.IngredientRequest(i.getIngredientName(),i.getQuantity(),i.getUnit(),i.getCalcType())).toList();
     List<DishRequest.CookingStepRequest> steps=r.cookingSteps();
     if(steps==null)steps=dishMapper.selectCookingSteps(dishId).stream()
-      .map(s->new DishRequest.CookingStepRequest(s.getStepNo(),s.getTitle(),s.getContent())).toList();
+      .map(s->new DishRequest.CookingStepRequest(s.getStepNo(),s.getTitle(),s.getContent(),
+          s.getDurationSeconds(),s.getTemperatureText(),s.getHeatLevel(),s.getComponentTemplateId())).toList();
     return new DishRequest(r.name(),r.categoryId(),r.description(),r.imageUrl(),r.basePrice(),ingredients,steps,r.status());}
   private void replaceIngredients(Long dishId,List<DishRequest.IngredientRequest> items){dishMapper.deleteDishIngredients(dishId);if(items==null)return;
     for(var item:items){DishIngredientEntity e=new DishIngredientEntity();e.setDishId(dishId);e.setIngredientName(item.ingredientName());e.setQuantity(item.quantity());e.setUnit(item.unit());e.setCalcType(item.calcType());dishMapper.insertDishIngredient(e);}}
   private void replaceSteps(Long dishId,List<DishRequest.CookingStepRequest> items){dishMapper.deleteCookingSteps(dishId);if(items==null)return;
-    for(var item:items){DishCookingStepEntity e=new DishCookingStepEntity();e.setDishId(dishId);e.setStepNo(item.stepNo());e.setTitle(item.title());e.setContent(item.content());dishMapper.insertCookingStep(e);}}
+    for(var item:items){DishCookingStepEntity e=new DishCookingStepEntity();e.setDishId(dishId);e.setStepNo(item.stepNo());e.setTitle(item.title());e.setContent(item.content());
+      e.setDurationSeconds(item.durationSeconds());e.setTemperatureText(item.temperatureText());e.setHeatLevel(item.heatLevel());
+      e.setComponentTemplateId(item.componentTemplateId());dishMapper.insertCookingStep(e);}}
 }

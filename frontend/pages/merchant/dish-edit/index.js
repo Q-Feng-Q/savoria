@@ -37,7 +37,17 @@ function buildDishPayload(dish) {
     description: String(dish.description || '').trim(), imageUrl: dish.imageUrl || '',
     basePrice: Number(dish.basePrice),
     ingredients: (dish.ingredients || []).map((item) => ({ ingredientName: String(item.name || item.ingredientName || '').trim(), quantity: Number(item.quantity), unit: String(item.unit || '').trim(), calcType: item.calcType || item.calculationType || 'FIXED' })),
-    cookingSteps: (dish.cookingSteps || []).map((item, index) => ({ stepNo: index + 1, title: String(item.title || '').trim(), content: String(item.content || '').trim() })),
+    cookingSteps: (dish.cookingSteps || []).map((item, index) => ({
+      stepNo: index + 1,
+      title: String(item.title || '').trim(),
+      content: String(item.content || '').trim(),
+      durationSeconds: item.durationSeconds === null || item.durationSeconds === undefined
+        ? null : Number(item.durationSeconds),
+      temperatureText: String(item.temperatureText || '').trim() || null,
+      heatLevel: String(item.heatLevel || '').trim() || null,
+      componentTemplateId: item.componentTemplateId === null || item.componentTemplateId === undefined
+        ? null : Number(item.componentTemplateId)
+    })),
     status: dish.status || 'active'
   };
 }

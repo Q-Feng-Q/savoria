@@ -170,7 +170,7 @@ public class DishApplicationServiceImpl implements DishApplicationService {
           .map(item -> new DishRequest.IngredientRequest(item.getIngredientName(), item.getQuantity(), item.getUnit(), item.getCalcType()))
           .toList();
       List<DishRequest.CookingStepRequest> steps = dishMapper.selectCookingSteps(dishId).stream()
-          .map(item -> new DishRequest.CookingStepRequest(item.getStepNo(), item.getTitle(), item.getContent()))
+          .map(item -> toCookingStepRequest(item))
           .toList();
       DishRequest snapshot = new DishRequest(current.getName(), current.getCategoryId(), current.getDescription(),
           current.getImageUrl(), current.getBasePrice(), ingredients, steps, status);
@@ -341,8 +341,19 @@ public class DishApplicationServiceImpl implements DishApplicationService {
       entity.setStepNo(item.stepNo());
       entity.setTitle(item.title());
       entity.setContent(item.content());
+      entity.setDurationSeconds(item.durationSeconds());
+      entity.setTemperatureText(item.temperatureText());
+      entity.setHeatLevel(item.heatLevel());
+      entity.setComponentTemplateId(item.componentTemplateId());
       dishMapper.insertCookingStep(entity);
     }
+  }
+
+  /** 将持久化步骤完整映射为审核快照，避免结构化制作信息在状态变更时丢失。 */
+  private static DishRequest.CookingStepRequest toCookingStepRequest(DishCookingStepEntity item) {
+    return new DishRequest.CookingStepRequest(item.getStepNo(), item.getTitle(), item.getContent(),
+        item.getDurationSeconds(), item.getTemperatureText(), item.getHeatLevel(),
+        item.getComponentTemplateId());
   }
 
   /**
@@ -395,7 +406,9 @@ public class DishApplicationServiceImpl implements DishApplicationService {
             .map(item -> new DishDetailView.IngredientView(item.getIngredientName(), money(item.getQuantity()), item.getUnit(), item.getCalcType()))
             .toList(),
         dishMapper.selectCookingSteps(dish.getId()).stream()
-            .map(item -> new DishDetailView.CookingStepView(item.getStepNo(), item.getTitle(), item.getContent()))
+            .map(item -> new DishDetailView.CookingStepView(item.getStepNo(), item.getTitle(),
+                item.getContent(), item.getDurationSeconds(), item.getTemperatureText(),
+                item.getHeatLevel(), item.getComponentTemplateId()))
             .toList()
     );
   }

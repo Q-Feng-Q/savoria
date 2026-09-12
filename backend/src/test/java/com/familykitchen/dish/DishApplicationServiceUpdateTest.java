@@ -18,6 +18,7 @@ import com.familykitchen.dish.model.dto.DishRequest;
 import com.familykitchen.dish.model.dto.DishStatusRequest;
 import com.familykitchen.dish.model.dto.DishMutationResult;
 import com.familykitchen.dish.model.entity.DishEntity;
+import com.familykitchen.dish.model.entity.DishCookingStepEntity;
 import com.familykitchen.dish.service.DishReviewService;
 import com.familykitchen.dish.service.MerchantDishMutationLock;
 import com.familykitchen.dish.service.impl.DishApplicationServiceImpl;
@@ -35,6 +36,29 @@ import org.mockito.InOrder;
  * 菜品更新事务编排测试，确保菜品主信息、食材配方和商户制作步骤在一次服务调用中同步更新。
  */
 class DishApplicationServiceUpdateTest {
+
+  @Test
+  void dishDetailReturnsCompleteStructuredCookingStep() {
+    DishMapper mapper = mock(DishMapper.class);
+    DishEntity dish = new DishEntity(); dish.setId(8L); dish.setMerchantId(2L);
+    DishCookingStepEntity step = new DishCookingStepEntity(); step.setStepNo(1); step.setTitle("焖煮");
+    step.setContent("盖盖焖煮"); step.setDurationSeconds(900); step.setTemperatureText("保持微沸");
+    step.setHeatLevel("小火"); step.setComponentTemplateId(21L);
+    when(mapper.selectDish(2L, 8L)).thenReturn(dish);
+    when(mapper.selectDishIngredients(8L)).thenReturn(List.of());
+    when(mapper.selectCookingSteps(8L)).thenReturn(List.of(step));
+
+    var detail = new DishApplicationServiceImpl(mapper, mock(SystemSettingService.class),
+        mock(DishReviewService.class), mock(MerchantDishMutationLock.class), mock(FamilyMapper.class))
+        .detail(new CurrentUserContext(1L, 2L, null, null, null,
+            Set.of("MERCHANT_ADMIN"), Set.of()), 8L);
+
+    assertEquals(900, detail.cookingSteps().get(0).durationSeconds());
+    assertEquals("保持微沸", detail.cookingSteps().get(0).temperatureText());
+    assertEquals("小火", detail.cookingSteps().get(0).heatLevel());
+    assertEquals(21L, detail.cookingSteps().get(0).componentTemplateId());
+  }
+
   @Test
   void activeDishCreationEnablesDishForEveryActiveMerchantFamily() {
     DishMapper mapper = mock(DishMapper.class);
@@ -124,7 +148,8 @@ class DishApplicationServiceUpdateTest {
     when(settings.dishReviewEnabled()).thenReturn(false);
     DishRequest request = new DishRequest("鱼", 3L, "", "", BigDecimal.TEN,
         List.of(new DishRequest.IngredientRequest("盐", BigDecimal.ONE, "克", "FIXED")),
-        List.of(new DishRequest.CookingStepRequest(1, "蒸", "蒸熟")), "active");
+        List.of(new DishRequest.CookingStepRequest(1, "蒸", "蒸熟", 600, "100摄氏度", "中火", 21L)),
+        "active");
     CurrentUserContext user = new CurrentUserContext(1L, 2L, null, null, null, Set.of("MERCHANT_ADMIN"), Set.of());
 
     DishMutationResult result = new DishApplicationServiceImpl(mapper, settings,
@@ -136,7 +161,13 @@ class DishApplicationServiceUpdateTest {
     verify(mapper).deleteDishIngredients(8L);
     verify(mapper).insertDishIngredient(any());
     verify(mapper).deleteCookingSteps(8L);
-    verify(mapper).insertCookingStep(any());
+    ArgumentCaptor<com.familykitchen.dish.model.entity.DishCookingStepEntity> step =
+        ArgumentCaptor.forClass(com.familykitchen.dish.model.entity.DishCookingStepEntity.class);
+    verify(mapper).insertCookingStep(step.capture());
+    assertEquals(600, step.getValue().getDurationSeconds());
+    assertEquals("100摄氏度", step.getValue().getTemperatureText());
+    assertEquals("中火", step.getValue().getHeatLevel());
+    assertEquals(21L, step.getValue().getComponentTemplateId());
     org.junit.jupiter.api.Assertions.assertEquals(DishMutationResult.Outcome.APPLIED, result.outcome());
   }
 

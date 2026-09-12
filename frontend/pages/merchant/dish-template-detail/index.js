@@ -1,5 +1,6 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
 const { toImageUrl } = require('../../../utils/image-url');
+const { decorateTemplateDetail } = require('../../../utils/dish-template-selection');
 const { requireSession, showApiError } = require('../../../utils/page-api');
 
 Page({
@@ -16,9 +17,12 @@ Page({
     try {
       const runtime = createApiRuntime();
       const detail = await runtime.merchant.getDishTemplateDetail(this.templateId);
-      this.setData({ detail: { ...detail, imageUrl: toImageUrl(runtime.baseUrl, detail.imageUrl),
-        tasteText: (detail.tasteTags || []).join(' · '), mealText: (detail.mealTags || []).map(value => ({ BREAKFAST:'早餐',LUNCH:'午餐',DINNER:'晚餐' }[value] || value)).join(' · ')
-      }, loading: false, phase: 'ready', errorMessage: '' });
+      this.setData({
+        detail: decorateTemplateDetail(detail, (value) => toImageUrl(runtime.baseUrl, value)),
+        loading: false,
+        phase: 'ready',
+        errorMessage: ''
+      });
     } catch (error) {
       this.setData({ loading: false, phase: 'error', errorMessage: (error && error.message) || '模板详情加载失败' });
       showApiError(error, '模板详情加载失败');

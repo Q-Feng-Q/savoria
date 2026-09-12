@@ -1,18 +1,25 @@
 <view class="warm-page detail-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="模板菜品详情" description="{{errorMessage || '正在读取模板'}}" bind:retry="retryLoad" />
   <block wx:if="{{phase === 'ready'}}">
-    <image class="detail-image" src="{{detail.imageUrl}}" mode="aspectFill" />
+    <image wx:if="{{detail.hasImage}}" class="detail-image" src="{{detail.imageUrl}}" mode="aspectFill" />
+    <view wx:else class="detail-image detail-image-placeholder"><text>这道菜暂时没有公开图片</text></view>
     <view class="detail-head">
       <text class="detail-category">{{detail.categoryName}}</text>
       <text class="detail-name">{{detail.name}}</text>
-      <text class="detail-description">{{detail.description}}</text>
-      <view class="detail-meta"><text>参考价 ¥{{detail.referencePrice}}</text><text>{{detail.tasteText}}</text><text>{{detail.mealText}}</text></view>
+      <text class="detail-description">{{detail.descriptionText}}</text>
+      <view class="detail-meta"><text>{{detail.priceText}}</text><text wx:if="{{detail.tasteText}}">{{detail.tasteText}}</text><text wx:if="{{detail.mealText}}">{{detail.mealText}}</text></view>
+      <view class="source-line"><text>{{detail.sourceLabel}}</text><text>{{detail.dataStatus === 'READY' ? '采购数据完整' : '数据待完善'}}</text></view>
     </view>
     <text class="section-title">默认食材</text>
     <view class="ingredient-list">
-      <view wx:for="{{detail.ingredients}}" wx:key="id" class="ingredient-row"><text>{{item.ingredientName}}</text><text>{{item.quantity}} {{item.unit}}</text></view>
+      <view wx:for="{{detail.ingredients}}" wx:key="id" class="ingredient-row"><view><text>{{item.ingredientName}}</text><text class="ingredient-category">{{item.ingredientCategory}}</text></view><text>{{item.quantityText}}</text></view>
     </view>
-    <view class="source-note">图片：{{detail.imageAuthor}} · {{detail.imageLicense}}</view>
+    <text class="section-title">制作步骤</text>
+    <view wx:if="{{detail.hasCookingSteps}}" class="step-list">
+      <view wx:for="{{detail.cookingSteps}}" wx:key="stepNo" class="step-row"><text class="step-number">{{item.stepNo}}</text><view><text class="step-title">{{item.titleText}}</text><text class="step-content">{{item.content}}</text><text wx:if="{{item.heatLevel || item.temperatureText || item.durationSeconds}}" class="step-meta">{{item.heatLevel}} {{item.temperatureText}} {{item.durationSeconds ? item.durationSeconds + ' 秒' : ''}}</text></view></view>
+    </view>
+    <view wx:else class="step-empty">制作步骤待补充，仍可申请完善模板。</view>
+    <view class="source-note">图片信息：{{detail.imageCreditText}}</view>
     <view class="detail-actions">
       <view class="detail-change" bindtap="requestChange" aria-role="button" aria-label="申请修改模板" hover-class="ui-button--pressed">申请修改模板</view>
       <view class="detail-import {{detail.imported || importing ? 'detail-import--disabled' : ''}}" bindtap="importTemplate" aria-role="button" aria-label="{{detail.imported ? '菜品已导入' : '导入这道菜'}}" aria-disabled="{{detail.imported || importing}}" aria-busy="{{importing}}" hover-class="ui-button--pressed">{{detail.imported ? '已导入' : (importing ? '导入中…' : '导入这道菜')}}</view>

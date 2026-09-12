@@ -70,7 +70,7 @@ public class DishTemplateChangeRequestController {
    */
   @PostMapping("/dishes/{dishId}/template-change-requests")
   @Operation(summary = "将已导入菜品申请同步到模板",
-      description = "服务端读取当前菜品资料生成完整快照，经平台审核通过后才更新来源模板；制作步骤不会同步。")
+      description = "服务端读取当前菜品、食材和制作步骤生成第二版快照，经平台审核通过后才更新来源模板。")
   @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "申请提交成功")
   public ApiResponse<DishTemplateChangeSubmitView> submitFromImportedDish(
       HttpServletRequest servletRequest,

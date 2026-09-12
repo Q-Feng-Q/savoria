@@ -1,6 +1,7 @@
 package com.familykitchen.database;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -23,12 +24,16 @@ class DishTemplateChangeMapperContractTest {
   }
 
   @Test
-  void approvedReplacementUsesVersionGuardAndNeverUpdatesMerchantDishes() throws Exception {
+  void approvedReplacementUpdatesAllEditableFieldsWithVersionGuard() throws Exception {
     String templates = normalized("src/main/resources/mapper/dish/DishTemplateMapper.xml");
 
+    assertTrue(templates.contains("id=\"updateAdminTemplate\""));
+    assertFalse(templates.contains("id=\"replaceTemplate\""));
+    assertTrue(templates.contains("sort_order=#{template.sortOrder}"));
     assertTrue(templates.contains("version=version+1"));
-    assertTrue(templates.contains("where id=#{template.id} and version=#{baseVersion}"));
+    assertTrue(templates.contains("where id=#{template.id} and version=#{expectedVersion}"));
     assertTrue(templates.contains("delete from dish_template_ingredients where template_id=#{templateId}"));
+    assertTrue(templates.contains("delete from dish_template_cooking_steps where template_id=#{templateId}"));
   }
 
   private static String normalized(String path) throws Exception {

@@ -25,6 +25,20 @@ public class DishTemplateIngredientEntity {
   private String unit;
   /** 用量计算方式。 */
   private String calcType;
+  /** 归一化来源原料行。 */
+  private String sourceText;
+  /** 来源批量用量原文。 */
+  private String sourceQuantityText;
+  /** 数量状态。 */
+  private String quantityStatus;
+  /** 引用组件模板ID。 */
+  private Long componentTemplateId;
+  /** 来源原料行稳定键。 */
+  private String sourceLineKey;
+  /** 组件引用出现键。 */
+  private String componentOccurrenceKey;
+  /** 经验证的组件引用倍数。 */
+  private BigDecimal componentMultiplier;
   /** 排序值。 */
   private Integer sortOrder;
   /**
@@ -97,6 +111,90 @@ public class DishTemplateIngredientEntity {
    * @param calcType 用量计算方式
    */
   public void setCalcType(String calcType) { this.calcType = calcType; }
+  /**
+   * 获取归一化来源原料行。
+   *
+   * @return 归一化来源原料行
+   */
+  public String getSourceText() { return sourceText; }
+  /**
+   * 设置归一化来源原料行。
+   *
+   * @param sourceText 归一化来源原料行
+   */
+  public void setSourceText(String sourceText) { this.sourceText = sourceText; }
+  /**
+   * 获取来源批量用量原文。
+   *
+   * @return 来源批量用量原文
+   */
+  public String getSourceQuantityText() { return sourceQuantityText; }
+  /**
+   * 设置来源批量用量原文。
+   *
+   * @param sourceQuantityText 来源批量用量原文
+   */
+  public void setSourceQuantityText(String sourceQuantityText) { this.sourceQuantityText = sourceQuantityText; }
+  /**
+   * 获取数量状态。
+   *
+   * @return 数量状态
+   */
+  public String getQuantityStatus() { return quantityStatus; }
+  /**
+   * 设置数量状态。
+   *
+   * @param quantityStatus 数量状态
+   */
+  public void setQuantityStatus(String quantityStatus) { this.quantityStatus = quantityStatus; }
+  /**
+   * 获取引用组件模板ID。
+   *
+   * @return 引用组件模板ID
+   */
+  public Long getComponentTemplateId() { return componentTemplateId; }
+  /**
+   * 设置引用组件模板ID。
+   *
+   * @param componentTemplateId 引用组件模板ID
+   */
+  public void setComponentTemplateId(Long componentTemplateId) { this.componentTemplateId = componentTemplateId; }
+  /**
+   * 获取来源原料行稳定键。
+   *
+   * @return 来源原料行稳定键
+   */
+  public String getSourceLineKey() { return sourceLineKey; }
+  /**
+   * 设置来源原料行稳定键。
+   *
+   * @param sourceLineKey 来源原料行稳定键
+   */
+  public void setSourceLineKey(String sourceLineKey) { this.sourceLineKey = sourceLineKey; }
+  /**
+   * 获取组件引用出现键。
+   *
+   * @return 组件引用出现键
+   */
+  public String getComponentOccurrenceKey() { return componentOccurrenceKey; }
+  /**
+   * 设置组件引用出现键。
+   *
+   * @param componentOccurrenceKey 组件引用出现键
+   */
+  public void setComponentOccurrenceKey(String componentOccurrenceKey) { this.componentOccurrenceKey = componentOccurrenceKey; }
+  /**
+   * 获取经验证的组件引用倍数。
+   *
+   * @return 经验证的组件引用倍数
+   */
+  public BigDecimal getComponentMultiplier() { return componentMultiplier; }
+  /**
+   * 设置经验证的组件引用倍数。
+   *
+   * @param componentMultiplier 经验证的组件引用倍数
+   */
+  public void setComponentMultiplier(BigDecimal componentMultiplier) { this.componentMultiplier = componentMultiplier; }
   /**
    * 获取排序值。
    * @return 排序值

@@ -20,6 +20,7 @@
     { key: 'users', label: '用户管理', route: '/users', icon: 'users' },
     { key: 'dish-reviews', label: '菜品审核', route: '/dish-reviews', icon: 'clipboard' },
     { key: 'dish-template-change-reviews', label: '模板修改审核', route: '/dish-template-change-reviews', icon: 'clipboard' },
+    { key: 'platform-dish-templates', label: '平台菜谱模板', route: '/platform-dish-templates', icon: 'layout' },
     { key: 'system-settings', label: '系统配置', route: '/system-settings', icon: 'settings' },
     { key: 'family-settings', label: '家庭设置', route: '/family-settings', icon: 'settings' },
     { key: 'family-applications', label: '申请审批', route: '/family-applications', icon: 'clipboard' },

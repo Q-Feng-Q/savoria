@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** 验证模板图片均已本地化并保留可追溯授权信息。 */
+/** 验证已有本地模板的授权图片子集均可追溯且可读取。 */
 class DishTemplateImageAssetTest {
 
   private static final Path DATA_DIR = Path.of("src/main/resources/db/data");
@@ -19,7 +19,7 @@ class DishTemplateImageAssetTest {
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
-  void everyTemplateHasReadableLocalJpegAndAttribution() throws Exception {
+  void everyLicensedLegacyImageHasReadableLocalJpegAndAttribution() throws Exception {
     List<Map<String, Object>> manifest = objectMapper.readValue(
         DATA_DIR.resolve("dish-template-image-manifest.json").toFile(), new TypeReference<>() {});
     Map<String, Map<String, String>> sources = objectMapper.readValue(

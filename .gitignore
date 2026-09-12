@@ -13,3 +13,6 @@
 /.agents/
 /.idea
 /.worktrees/
+**/target/
+tools/cooklikehoc-sync/.source/
+backend/runtime-data/private/dish-template-review-assets/

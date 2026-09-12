@@ -1,6 +1,5 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
 const { createDirtyForm } = require('../../../utils/dirty-form');
-const { toImageUrl } = require('../../../utils/image-url');
 const { requireSession, showApiError, resolveApiErrorMessage } = require('../../../utils/page-api');
 const { buildTemplateSnapshot, validateTemplateSnapshot } = require('../../../utils/dish-template-change');
 
@@ -11,8 +10,13 @@ const MEALS = [
 ];
 const CALC_TYPES = [
   { value: 'FIXED', label: '固定消耗' },
-  { value: 'PER_PERSON', label: '按人数' },
-  { value: 'NO_PURCHASE', label: '不进采购' }
+  { value: 'PER_PERSON', label: '按人数' }
+];
+const QUANTITY_STATUSES = [
+  { value: 'VERIFIED', label: '用量已核实' },
+  { value: 'SOURCE_BATCH', label: '原配方批量' },
+  { value: 'MISSING', label: '用量待完善' },
+  { value: 'NOT_APPLICABLE', label: '无需采购' }
 ];
 
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -24,17 +28,20 @@ function decorateForm(detail) {
     tasteTagsText: snapshot.tasteTags.join('，'),
     ingredients: snapshot.ingredients.map((item) => ({
       ...item,
-      calcIndex: item.calcType === 'PER_PERSON' ? 1 : (item.calcType === 'NO_PURCHASE' ? 2 : 0),
-      calcLabel: item.calcType === 'PER_PERSON' ? '按人数' : (item.calcType === 'NO_PURCHASE' ? '不进采购' : '固定消耗')
-    }))
+      quantityStatusIndex: Math.max(0, QUANTITY_STATUSES.findIndex((status) => status.value === item.quantityStatus)),
+      quantityStatusLabel: (QUANTITY_STATUSES.find((status) => status.value === item.quantityStatus) || QUANTITY_STATUSES[0]).label,
+      calcIndex: item.calcType === 'PER_PERSON' ? 1 : 0,
+      calcLabel: item.calcType === 'PER_PERSON' ? '按人数' : '固定消耗'
+    })),
+    cookingSteps: snapshot.cookingSteps
   };
 }
 
 Page({
   data: {
-    phase: 'loading', errorMessage: '', saving: false, uploading: false,
-    form: null, displayImageUrl: '', submitNote: '', categories: [], categoryNames: [], categoryIndex: 0,
-    meals: MEALS, calcTypes: CALC_TYPES
+    phase: 'loading', errorMessage: '', saving: false,
+    form: null, submitNote: '', categories: [], categoryNames: [], categoryIndex: 0,
+    meals: MEALS, calcTypes: CALC_TYPES, quantityStatuses: QUANTITY_STATUSES
   },
   onLoad(options) {
     this.templateId = Number(options.id);
@@ -55,7 +62,7 @@ Page({
       ]);
       const categoryIndex = Math.max(0, categories.findIndex((item) => Number(item.categoryId) === Number(detail.categoryId)));
       this.setData({
-        form: decorateForm(detail), displayImageUrl: toImageUrl(runtime.baseUrl, detail.imageUrl),
+        form: decorateForm(detail),
         categories, categoryNames: categories.map((item) => item.name),
         categoryIndex,
         meals: MEALS.map((item) => ({ ...item, selected: detail.mealTags && detail.mealTags.includes(item.value) })),
@@ -68,7 +75,7 @@ Page({
   },
   retryLoad() { return this.load(); },
   bindField(event) {
-    if (this.data.saving || this.data.uploading) return;
+    if (this.data.saving) return;
     this.setData({ [`form.${event.currentTarget.dataset.field}`]: event.detail.value });
     this.markDirty();
   },
@@ -106,9 +113,39 @@ Page({
     });
     this.markDirty();
   },
+  bindIngredientStatus(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    const statusIndex = Number(event.detail.value || 0);
+    const status = QUANTITY_STATUSES[statusIndex];
+    const updates = {
+      [`form.ingredients[${index}].quantityStatus`]: status.value,
+      [`form.ingredients[${index}].quantityStatusIndex`]: statusIndex,
+      [`form.ingredients[${index}].quantityStatusLabel`]: status.label
+    };
+    if (status.value !== 'VERIFIED') {
+      updates[`form.ingredients[${index}].quantity`] = null;
+      updates[`form.ingredients[${index}].unit`] = null;
+      updates[`form.ingredients[${index}].calcType`] = null;
+    } else {
+      updates[`form.ingredients[${index}].quantity`] = '';
+      updates[`form.ingredients[${index}].unit`] = 'g';
+      updates[`form.ingredients[${index}].calcType`] = 'FIXED';
+      updates[`form.ingredients[${index}].calcIndex`] = 0;
+      updates[`form.ingredients[${index}].calcLabel`] = '固定消耗';
+    }
+    this.setData(updates);
+    this.markDirty();
+  },
   addIngredient() {
     const ingredients = clone(this.data.form.ingredients || []);
-    ingredients.push({ ingredientName: '', ingredientCategory: '', quantity: '', unit: '克', calcType: 'FIXED', calcIndex: 0, calcLabel: '固定消耗', sortOrder: ingredients.length + 1 });
+    ingredients.push({
+      itemId: `client-ingredient:${Date.now()}:${ingredients.length + 1}`,
+      ingredientName: '', ingredientCategory: '', quantityStatus: 'VERIFIED',
+      quantityStatusIndex: 0, quantityStatusLabel: '用量已核实', quantity: '', unit: 'g',
+      calcType: 'FIXED', calcIndex: 0, calcLabel: '固定消耗', sourceText: null,
+      sourceQuantityText: null, componentTemplateId: null, componentMultiplier: null,
+      sortOrder: ingredients.length + 1
+    });
     this.setData({ 'form.ingredients': ingredients });
     this.markDirty();
   },
@@ -123,30 +160,36 @@ Page({
     this.setData({ 'form.ingredients': ingredients });
     this.markDirty();
   },
-  async chooseImage() {
-    if (this.data.uploading || this.data.saving) return;
-    const applyImage = async (file) => {
-      if (!file || !file.tempFilePath) return;
-      if (Number(file.size || 0) > 4 * 1024 * 1024) { wx.showToast({ title: '图片不能超过 4MB', icon: 'none' }); return; }
-      this.setData({ uploading: true });
-      try {
-        const uploaded = await createApiRuntime().files.uploadImage(file.tempFilePath);
-        this.setData({
-          'form.imageUrl': uploaded.url || '',
-          displayImageUrl: uploaded.imageUrl || toImageUrl(createApiRuntime().baseUrl, uploaded.url)
-        });
-        this.markDirty();
-      } catch (error) { showApiError(error, '图片上传失败'); }
-      finally { this.setData({ uploading: false }); }
-    };
-    if (wx.chooseMedia) {
-      wx.chooseMedia({ count: 1, mediaType: ['image'], sourceType: ['album', 'camera'], success: (result) => applyImage(result.tempFiles && result.tempFiles[0]) });
-      return;
-    }
-    wx.chooseImage({ count: 1, sourceType: ['album', 'camera'], success: (result) => applyImage({ tempFilePath: result.tempFilePaths && result.tempFilePaths[0], size: 0 }) });
+  bindStepField(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    const field = event.currentTarget.dataset.field;
+    this.setData({ [`form.cookingSteps[${index}].${field}`]: event.detail.value });
+    this.markDirty();
+  },
+  addCookingStep() {
+    const cookingSteps = clone(this.data.form.cookingSteps || []);
+    cookingSteps.push({
+      itemId: `client-step:${Date.now()}:${cookingSteps.length + 1}`,
+      stepNo: cookingSteps.length + 1,
+      title: null,
+      content: '',
+      durationSeconds: null,
+      temperatureText: null,
+      heatLevel: null,
+      componentTemplateId: null
+    });
+    this.setData({ 'form.cookingSteps': cookingSteps });
+    this.markDirty();
+  },
+  removeCookingStep(event) {
+    const cookingSteps = clone(this.data.form.cookingSteps || []);
+    cookingSteps.splice(Number(event.currentTarget.dataset.index), 1);
+    cookingSteps.forEach((item, index) => { item.stepNo = index + 1; });
+    this.setData({ 'form.cookingSteps': cookingSteps });
+    this.markDirty();
   },
   async submit() {
-    if (this.data.saving || this.data.uploading || !this.data.form) return;
+    if (this.data.saving || !this.data.form) return;
     const source = { ...clone(this.data.form), tasteTags: this.data.form.tasteTagsText };
     const targetSnapshot = buildTemplateSnapshot(source);
     const validation = validateTemplateSnapshot(targetSnapshot);

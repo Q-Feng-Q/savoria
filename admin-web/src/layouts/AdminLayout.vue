@@ -60,7 +60,7 @@ import { useAuthStore } from '../stores/auth';
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
-const platformOnly = new Set(['platform-families', 'platform-merchants', 'users', 'dish-reviews', 'dish-template-change-reviews', 'system-settings']);
+const platformOnly = new Set(['platform-families', 'platform-merchants', 'users', 'dish-reviews', 'dish-template-change-reviews', 'platform-dish-templates', 'system-settings']);
 const navItems = computed(() => ADMIN_NAV_ITEMS.filter((item) => !platformOnly.has(item.key) || authStore.isPlatformAdmin));
 const drawerOpen = ref(false);
 const navIcons = { home: '⌂', receipt: '单', dish: '味', leaf: '叶', users: '家', building: '全', settings: '设', clipboard: '审', layout: '菜', basket: '采', bell: '铃' };
