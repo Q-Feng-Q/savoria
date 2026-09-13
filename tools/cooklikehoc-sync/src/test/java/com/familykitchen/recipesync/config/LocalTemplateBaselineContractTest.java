@@ -3,27 +3,18 @@ package com.familykitchen.recipesync.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.file.Path;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/** Locks the versioned JSON baseline to the immutable historical template migrations. */
+/** 固定菜谱同步所使用的本地模板基线。 */
 class LocalTemplateBaselineContractTest {
 
-  private final Path repositoryRoot = Path.of("../..").toAbsolutePath().normalize();
-  private final List<Path> consolidatedMigrations = List.of(
-      repositoryRoot.resolve("backend/src/main/resources/db/migration/V4__init_dish_template_market.sql"),
-      repositoryRoot.resolve("backend/src/main/resources/db/migration/V5__expand_regional_dish_templates.sql"),
-      repositoryRoot.resolve("backend/src/main/resources/db/migration/V6__finalize_regional_dish_template_images.sql"));
-
   @Test
-  void baselineMatchesAllConsolidatedTemplateAndIngredientRows() {
-    LocalTemplateBaseline expected = LegacyMigrationBaselineExtractor.extract(consolidatedMigrations);
+  void baselineKeepsTheReviewedLegacyIdentitySet() {
     LocalTemplateBaseline actual = LocalTemplateBaseline.load(
         Path.of("config/local-template-baseline.json").toAbsolutePath());
 
     assertEquals(240, actual.templates().size());
     assertEquals(403, actual.templates().stream().mapToInt(value -> value.ingredients().size()).sum());
-    assertEquals(expected, actual);
     assertEquals("https://www.flickr.com/photos/10559879@N00/504366900",
         actual.templates().stream().filter(value -> value.id() == 199L).findFirst().orElseThrow()
             .imageSourceUrl());

@@ -98,7 +98,7 @@ final class RecipeSyncPipeline {
     if (config.mode() == SyncConfig.Mode.DRAFT) {
       new SyncArtifactWriter().writeDraft(config.outputDir(), artifacts);
     } else {
-      new SyncArtifactWriter().writeRelease(config.v4File(), config.manifestFile(),
+      new SyncArtifactWriter().writeRelease(config.migrationFile(), config.manifestFile(),
           config.qualityReportFile(), artifacts, unresolved);
     }
   }

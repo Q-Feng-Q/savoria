@@ -10,7 +10,7 @@ public record SyncConfig(
     Path sourceDir,
     Path configDir,
     Path outputDir,
-    Path v4File,
+    Path migrationFile,
     Path manifestFile,
     Path qualityReportFile) {
 
@@ -27,15 +27,15 @@ public record SyncConfig(
     Path sourceDir = Path.of(require(values, "--source-dir"));
     Path configDir = Path.of(require(values, "--config-dir"));
     Path outputDir = Path.of(require(values, "--output-dir"));
-    Path v4File = optionalPath(values, "--v4-file");
+    Path migrationFile = optionalPath(values, "--migration-file");
     Path manifestFile = optionalPath(values, "--manifest-file");
     Path qualityReportFile = optionalPath(values, "--quality-report-file");
     if (mode == Mode.RELEASE) {
-      requirePath(v4File, "--v4-file");
+      requirePath(migrationFile, "--migration-file");
       requirePath(manifestFile, "--manifest-file");
       requirePath(qualityReportFile, "--quality-report-file");
     }
-    return new SyncConfig(mode, sourceDir, configDir, outputDir, v4File, manifestFile,
+    return new SyncConfig(mode, sourceDir, configDir, outputDir, migrationFile, manifestFile,
         qualityReportFile);
   }
 

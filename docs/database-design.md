@@ -62,4 +62,4 @@
 
 ## 5. 初始化与同步
 
-CookLikeHOC 同步固定到已审核的来源提交，生成清单、质量报告和确定性 SQL 数据段。生产发布使用 `V13__sync_complete_cooklikehoc_recipe_catalog.sql` 作为前向迁移，避免修改已执行的 `V4/V5/V6` 及其 Flyway 校验和。相同来源版本重复生成必须得到相同数据；缺少步骤的菜谱保留空步骤集合，缺少图片或授权声明的菜谱不发布公共图片。
+空库初始化固定为三段：`V1__init_schema.sql` 创建最终结构，`V2__init_system_and_admin.sql` 写入系统与管理员基础数据，`V3__init_recipe_catalog.sql` 写入完整菜谱目录。三份基线在部署后不得修改；后续 CookLikeHOC 同步工具通过 `--migration-file` 生成新的前向迁移。相同来源版本重复生成必须得到相同数据；缺少步骤的菜谱保留空步骤集合，缺少图片或授权声明的菜谱不发布公共图片。

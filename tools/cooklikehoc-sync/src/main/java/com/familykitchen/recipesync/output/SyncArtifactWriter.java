@@ -2,8 +2,10 @@ package com.familykitchen.recipesync.output;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
@@ -19,7 +21,7 @@ public final class SyncArtifactWriter {
   private final AtomicMover atomicMover;
 
   public SyncArtifactWriter() {
-    this(V4GeneratedSectionUpdater::atomicReplace);
+    this(SyncArtifactWriter::atomicReplace);
   }
 
   SyncArtifactWriter(AtomicMover atomicMover) {
@@ -43,21 +45,20 @@ public final class SyncArtifactWriter {
   }
 
   /** Writes all release targets only after every explicit issue has been resolved. */
-  public void writeRelease(Path v4File, Path manifestFile, Path qualityReportFile,
+  public void writeRelease(Path migrationFile, Path manifestFile, Path qualityReportFile,
       SyncArtifacts artifacts, List<String> unresolvedIssues) {
     if (unresolvedIssues != null && !unresolvedIssues.isEmpty()) {
       throw new IllegalStateException("RELEASE_BLOCKED:" + String.join(",", unresolvedIssues));
     }
-    if (!Files.exists(v4File)) {
-      throw new IllegalArgumentException("V4 target does not exist: " + v4File);
-    }
     try {
-      String currentV4 = Files.readString(v4File, StandardCharsets.UTF_8);
-      String updatedV4 = new V4GeneratedSectionUpdater().render(currentV4, artifacts.generatedSql());
+      String migrationSql = "-- CookLikeHOC 菜谱目录前向迁移。\n"
+          + "-- 由固定来源版本和审核配置确定性生成，请在执行前确认 Flyway 版本号。\n\n"
+          + artifacts.generatedSql().replace("\r\n", "\n").replace('\r', '\n');
+      Files.createDirectories(migrationFile.toAbsolutePath().getParent());
       Files.createDirectories(manifestFile.toAbsolutePath().getParent());
       Files.createDirectories(qualityReportFile.toAbsolutePath().getParent());
       List<TargetState> targets = List.of(
-          targetState(v4File, updatedV4.getBytes(StandardCharsets.UTF_8)),
+          targetState(migrationFile, migrationSql.getBytes(StandardCharsets.UTF_8)),
           targetState(manifestFile, artifacts.normalizedRecipesJson().getBytes(StandardCharsets.UTF_8)),
           targetState(qualityReportFile, artifacts.qualityReportJson().getBytes(StandardCharsets.UTF_8)));
       int committed = 0;
@@ -99,7 +100,7 @@ public final class SyncArtifactWriter {
         if (target.existed()) {
           Path restore = stage(target.targetFile(), target.originalContent());
           try {
-            V4GeneratedSectionUpdater.atomicReplace(restore, target.targetFile());
+            atomicReplace(restore, target.targetFile());
           } finally {
             Files.deleteIfExists(restore);
           }
@@ -109,6 +110,14 @@ public final class SyncArtifactWriter {
       } catch (IOException rollbackFailure) {
         releaseFailure.addSuppressed(rollbackFailure);
       }
+    }
+  }
+
+  static void atomicReplace(Path source, Path target) throws IOException {
+    try {
+      Files.move(source, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+    } catch (AtomicMoveNotSupportedException exception) {
+      throw new IOException("Atomic move is not supported for " + target, exception);
     }
   }
 

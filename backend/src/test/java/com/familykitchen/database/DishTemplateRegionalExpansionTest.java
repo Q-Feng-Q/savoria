@@ -9,17 +9,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
-/** 验证地方特色菜模板增量数据可安全追加到现有模板市场。 */
+/** 验证地方特色菜已进入完整初始化目录。 */
 class DishTemplateRegionalExpansionTest {
 
   private static final Path MIGRATION = Path.of(
-      "src/main/resources/db/migration/V5__expand_regional_dish_templates.sql");
+      "src/main/resources/db/migration/V3__init_recipe_catalog.sql");
 
   @Test
-  void migrationAddsFortyTwoRegionalDishesWithIngredientsAndLocalImages() throws Exception {
+  void catalogContainsRegionalDishesAndReviewedLocalImages() throws Exception {
     String sql = Files.readString(MIGRATION, StandardCharsets.UTF_8);
-    assertEquals(42, countLines(sql, "INSERT INTO dish_templates "));
-    assertTrue(countLines(sql, "INSERT INTO dish_template_ingredients ") >= 84);
+    assertEquals(549, countLines(sql, "INSERT INTO dish_templates "));
+    assertEquals(1987, countLines(sql, "INSERT INTO dish_template_ingredients "));
     assertTrue(sql.contains("'豆角焖面'"));
     assertTrue(sql.contains("'武汉热干面'"));
     assertTrue(sql.contains("'东北锅包肉'"));

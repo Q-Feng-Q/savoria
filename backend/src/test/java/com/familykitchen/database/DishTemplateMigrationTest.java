@@ -12,12 +12,12 @@ import org.junit.jupiter.api.Test;
 /** 验证平台菜品模板市场的表结构和初始化数据完整性。 */
 class DishTemplateMigrationTest {
 
-  private static final Path MIGRATION = Path.of(
-      "src/main/resources/db/migration/V4__init_dish_template_market.sql");
+  private static final Path SCHEMA = Path.of("src/main/resources/db/migration/V1__init_schema.sql");
+  private static final Path CATALOG = Path.of("src/main/resources/db/migration/V3__init_recipe_catalog.sql");
 
   @Test
   void migrationContainsIndependentTemplateTablesWithoutPhysicalForeignKeys() throws Exception {
-    String sql = Files.readString(MIGRATION, StandardCharsets.UTF_8);
+    String sql = Files.readString(SCHEMA, StandardCharsets.UTF_8);
     String lowerSql = sql.toLowerCase();
     assertTrue(sql.contains("CREATE TABLE dish_template_categories"));
     assertTrue(sql.contains("CREATE TABLE dish_templates"));
@@ -27,31 +27,27 @@ class DishTemplateMigrationTest {
   }
 
   @Test
-  void migrationSeedsExactlyNineCategoriesAndOneHundredNinetyEightTemplates() throws Exception {
-    String sql = Files.readString(MIGRATION, StandardCharsets.UTF_8);
+  void migrationSeedsTheCompleteTemplateCatalog() throws Exception {
+    String sql = Files.readString(CATALOG, StandardCharsets.UTF_8);
     assertEquals(9, countLines(sql, "INSERT INTO dish_template_categories "));
-    assertEquals(198, countLines(sql, "INSERT INTO dish_templates "));
-    assertTrue(countLines(sql, "INSERT INTO dish_template_ingredients ") >= 198);
-    assertEquals(198, countLines(sql, "-- TEMPLATE "));
+    assertEquals(549, countLines(sql, "INSERT INTO dish_templates "));
+    assertEquals(1987, countLines(sql, "INSERT INTO dish_template_ingredients "));
   }
 
   @Test
-  void everyTemplateCarriesImageAttributionAndNoCookingSteps() throws Exception {
-    String sql = Files.readString(MIGRATION, StandardCharsets.UTF_8);
-    for (String line : sql.lines().map(String::trim).toList()) {
-      if (!line.startsWith("INSERT INTO dish_templates ")) continue;
-      assertTrue(line.contains("image_source_url,image_author,image_license"));
-      assertTrue(line.contains("/images/dish-templates/"));
-    }
-    assertFalse(sql.contains("INSERT INTO dish_cooking_steps"));
+  void catalogPreservesReviewedImagesAndCookingSteps() throws Exception {
+    String sql = Files.readString(CATALOG, StandardCharsets.UTF_8);
+    assertEquals(179, countLines(sql, "INSERT INTO dish_template_image_assets "));
+    assertEquals(795, countLines(sql, "INSERT INTO dish_template_cooking_steps "));
+    assertTrue(sql.contains("'INTERNAL_REVIEW'"));
   }
 
   @Test
   void merchantDishTableDeclaresTemplateOriginAndDeduplicationIndex() throws Exception {
     String sql = Files.readString(
-        Path.of("src/main/resources/db/migration/V2__init_menu_order_wallet_and_purchase.sql"),
+        SCHEMA,
         StandardCharsets.UTF_8);
-    assertTrue(sql.contains("source_template_id bigint NULL COMMENT '来源平台模板菜品ID'"));
+    assertTrue(sql.contains("source_template_id bigint DEFAULT NULL COMMENT '来源平台模板菜品ID'"));
     assertTrue(sql.contains("UNIQUE KEY uk_dishes_merchant_template (merchant_id,source_template_id)"));
   }
 

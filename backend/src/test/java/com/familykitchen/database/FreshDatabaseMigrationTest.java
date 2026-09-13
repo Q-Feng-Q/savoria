@@ -33,18 +33,9 @@ class FreshDatabaseMigrationTest {
           .toList();
     }
     assertEquals(List.of(
-        "V1__init_identity_family_and_merchant.sql",
-        "V2__init_menu_order_wallet_and_purchase.sql",
-        "V3__init_system_notification_and_defaults.sql",
-        "V4__init_dish_template_market.sql",
-        "V5__expand_regional_dish_templates.sql",
-        "V6__finalize_regional_dish_template_images.sql",
-        "V7__backfill_default_family_meal_slots.sql",
-        "V8__add_dish_template_change_review.sql",
-        "V9__add_family_featured_dish.sql",
-        "V10__add_merchant_featured_dishes.sql",
-        "V11__add_family_cart_time_and_wallet.sql",
-        "V13__sync_complete_cooklikehoc_recipe_catalog.sql"),
+        "V1__init_schema.sql",
+        "V2__init_system_and_admin.sql",
+        "V3__init_recipe_catalog.sql"),
         files.stream().map(path -> path.getFileName().toString()).toList());
 
     String sql = readAll(files).toLowerCase();
@@ -60,21 +51,33 @@ class FreshDatabaseMigrationTest {
   }
 
   @Test
-  void everyExistingFamilyReceivesMissingDefaultMealSlotsWithoutOverwritingExistingRows() throws Exception {
+  void baselineScriptsContainOnlyTheirOwnedStatementTypes() throws Exception {
+    String schema = Files.readString(MIGRATION_DIR.resolve("V1__init_schema.sql"),
+        StandardCharsets.UTF_8).toLowerCase();
+    String systemSeeds = Files.readString(MIGRATION_DIR.resolve("V2__init_system_and_admin.sql"),
+        StandardCharsets.UTF_8).toLowerCase();
+    String recipeSeeds = Files.readString(MIGRATION_DIR.resolve("V3__init_recipe_catalog.sql"),
+        StandardCharsets.UTF_8).toLowerCase();
+
+    assertTrue(schema.contains("create table users"));
+    assertTrue(schema.contains("create table dish_templates"));
+    assertFalse(schema.contains("alter table"));
+    assertFalse(schema.contains("insert into"));
+    assertFalse(systemSeeds.contains("create table"));
+    assertFalse(systemSeeds.contains("alter table"));
+    assertFalse(recipeSeeds.contains("create table"));
+    assertFalse(recipeSeeds.contains("alter table"));
+  }
+
+  @Test
+  void baselineDoesNotCreateFakeFamiliesOrMealSlots() throws Exception {
     String sql = Files.readString(
-        MIGRATION_DIR.resolve("V7__backfill_default_family_meal_slots.sql"), StandardCharsets.UTF_8)
+        MIGRATION_DIR.resolve("V2__init_system_and_admin.sql"), StandardCharsets.UTF_8)
         .replaceAll("\\s+", " ")
         .toLowerCase();
 
-    assertTrue(sql.contains("insert into meal_slots"));
-    assertTrue(sql.contains("from families f"));
-    assertTrue(sql.contains("not exists"));
-    assertTrue(sql.contains("'早餐'"));
-    assertTrue(sql.contains("'午餐'"));
-    assertTrue(sql.contains("'晚餐'"));
-    assertTrue(sql.contains("'07:00'"));
-    assertTrue(sql.contains("'12:00'"));
-    assertTrue(sql.contains("'18:30'"));
+    assertFalse(sql.contains("insert into families"));
+    assertFalse(sql.contains("insert into meal_slots"));
   }
 
   @Test
@@ -103,7 +106,7 @@ class FreshDatabaseMigrationTest {
   @Test
   void everySeedRecordUsesAnIndependentSqlLineAndAdminPasswordIsUsable() throws Exception {
     String sql = Files.readString(
-        MIGRATION_DIR.resolve("V3__init_system_notification_and_defaults.sql"), StandardCharsets.UTF_8);
+        MIGRATION_DIR.resolve("V2__init_system_and_admin.sql"), StandardCharsets.UTF_8);
     List<String> insertLines = sql.lines()
         .map(String::trim)
         .filter(line -> line.startsWith("INSERT INTO "))

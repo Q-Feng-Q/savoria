@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -42,16 +43,31 @@ class SyncArtifactWriterTest {
 
   @Test
   void unresolvedReleaseIssueCreatesNoTarget(@TempDir Path tempDir) {
-    Path v4 = tempDir.resolve("V4.sql");
+    Path migration = tempDir.resolve("V4__sync_recipe_catalog.sql");
     Path manifest = tempDir.resolve("manifest.json");
     Path report = tempDir.resolve("report.json");
 
     assertThrows(IllegalStateException.class,
-        () -> writer.writeRelease(v4, manifest, report, artifacts, List.of("MISSING_COMPONENT:x")));
+        () -> writer.writeRelease(migration, manifest, report, artifacts,
+            List.of("MISSING_COMPONENT:x")));
 
-    assertFalse(Files.exists(v4));
+    assertFalse(Files.exists(migration));
     assertFalse(Files.exists(manifest));
     assertFalse(Files.exists(report));
+  }
+
+  @Test
+  void successfulReleaseWritesAStandaloneForwardMigration(@TempDir Path tempDir) throws Exception {
+    Path migration = tempDir.resolve("V4__sync_recipe_catalog.sql");
+    Path manifest = tempDir.resolve("manifest.json");
+    Path report = tempDir.resolve("report.json");
+
+    writer.writeRelease(migration, manifest, report, artifacts, List.of());
+
+    String sql = Files.readString(migration, StandardCharsets.UTF_8);
+    assertTrue(sql.startsWith("-- CookLikeHOC 菜谱目录前向迁移。\n"));
+    assertTrue(sql.contains("INSERT INTO example VALUES (1);"));
+    assertFalse(sql.contains("BEGIN GENERATED COOKLIKEHOC DATA"));
   }
 
   @Test
@@ -71,15 +87,11 @@ class SyncArtifactWriterTest {
   @Test
   void failedReleaseMoveRestoresEveryPreviouslyWrittenTarget(@TempDir Path tempDir)
       throws Exception {
-    Path v4 = tempDir.resolve("V4.sql");
+    Path migration = tempDir.resolve("V4__sync_recipe_catalog.sql");
     Path manifest = tempDir.resolve("manifest.json");
     Path report = tempDir.resolve("report.json");
-    String originalV4 = """
-        -- BEGIN GENERATED COOKLIKEHOC DATA
-        old row;
-        -- END GENERATED COOKLIKEHOC DATA
-        """;
-    Files.writeString(v4, originalV4, StandardCharsets.UTF_8);
+    String originalMigration = "old migration\n";
+    Files.writeString(migration, originalMigration, StandardCharsets.UTF_8);
     Files.writeString(manifest, "old manifest", StandardCharsets.UTF_8);
     Files.writeString(report, "old report", StandardCharsets.UTF_8);
     int[] moves = {0};
@@ -87,13 +99,14 @@ class SyncArtifactWriterTest {
       if (++moves[0] == 2) {
         throw new IOException("simulated second move failure");
       }
-      V4GeneratedSectionUpdater.atomicReplace(source, target);
+      Files.move(source, target, java.nio.file.StandardCopyOption.ATOMIC_MOVE,
+          java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     });
 
     assertThrows(IllegalArgumentException.class,
-        () -> failingWriter.writeRelease(v4, manifest, report, artifacts, List.of()));
+        () -> failingWriter.writeRelease(migration, manifest, report, artifacts, List.of()));
 
-    assertEquals(originalV4, Files.readString(v4, StandardCharsets.UTF_8));
+    assertEquals(originalMigration, Files.readString(migration, StandardCharsets.UTF_8));
     assertEquals("old manifest", Files.readString(manifest, StandardCharsets.UTF_8));
     assertEquals("old report", Files.readString(report, StandardCharsets.UTF_8));
   }

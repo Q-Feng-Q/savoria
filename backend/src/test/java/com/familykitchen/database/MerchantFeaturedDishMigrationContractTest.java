@@ -13,39 +13,28 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
-/** Verifies the V10 merchant-level featured-dish migration and model contract. */
+/** 验证商户特色菜字段、菜单结构和模型契约。 */
 class MerchantFeaturedDishMigrationContractTest {
 
   private static final Path MIGRATION = Path.of(
-      "src/main/resources/db/migration/V10__add_merchant_featured_dishes.sql");
+      "src/main/resources/db/migration/V1__init_schema.sql");
 
   @Test
-  void migrationAddsMerchantFeaturedTimestampAndDeterministicTopFiveBackfill() throws Exception {
+  void schemaDeclaresMerchantFeaturedTimestampAndIndex() throws Exception {
     String sql = normalizedSql();
 
-    assertTrue(sql.contains("add column featured_at datetime(6) null comment '商户推荐时间'"));
+    assertTrue(sql.contains("featured_at datetime(6) default null comment '商户推荐时间'"));
     assertTrue(sql.contains("key idx_dishes_merchant_featured (merchant_id,featured_at)"));
-    assertTrue(sql.contains("count(distinct f.id) as family_reference_count"));
-    assertTrue(sql.contains("partition by candidate.merchant_id"));
-    assertTrue(sql.contains("order by candidate.family_reference_count desc,candidate.dish_id desc"));
-    assertTrue(sql.contains("where ranked.featured_rank <= 5"));
-    assertTrue(sql.contains("f.status = 'active'"));
-    assertTrue(sql.contains("d.status = 'active'"));
-    assertTrue(sql.contains("d.merchant_id = f.merchant_id"));
   }
 
   @Test
-  void migrationEnablesEveryActiveFamilyWithoutOverwritingExistingMenuCustomization() throws Exception {
+  void schemaKeepsFamilyMenuCustomizationFields() throws Exception {
     String sql = normalizedSql();
 
-    assertTrue(sql.contains("update family_menu_items fmi"));
-    assertTrue(sql.contains("set fmi.enabled = 1"));
-    assertTrue(sql.contains("insert into family_menu_items (family_id,dish_id,enabled,sort_order,final_price)"));
-    assertTrue(sql.contains("where f.status = 'active'"));
-    assertTrue(sql.contains("not exists"));
-    assertTrue(sql.contains("existing_tail.max_sort_order"));
-    assertTrue(sql.contains("row_number() over ( partition by f.id order by d.featured_at desc,d.id desc )"));
-    assertTrue(sql.contains("d.base_price"));
+    assertTrue(sql.contains("create table family_menu_items ("));
+    assertTrue(sql.contains("enabled tinyint(1) not null default '1'"));
+    assertTrue(sql.contains("sort_order int not null default '0'"));
+    assertTrue(sql.contains("final_price decimal(10,2) default null"));
   }
 
   @Test
@@ -65,8 +54,9 @@ class MerchantFeaturedDishMigrationContractTest {
         .toLowerCase();
 
     assertTrue(xml.contains("<result property=\"featuredat\" column=\"featured_at\"/>"));
-    assertTrue(xml.contains("source_template_id, featured_at, status"));
-    assertTrue(xml.contains("order by (featured_at is not null) desc, featured_at desc, id desc"));
+    assertTrue(xml.contains("d.source_template_id, d.featured_at, d.status, d.deleted_at"));
+    assertTrue(xml.contains(
+        "(d.featured_at is not null) desc, d.featured_at desc, d.id desc"));
   }
 
   private static String normalizedSql() throws Exception {
