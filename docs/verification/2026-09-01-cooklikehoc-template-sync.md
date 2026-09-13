@@ -25,7 +25,7 @@
 
 使用同一来源提交和同一版本化配置连续执行两次 release，三个产物逐字节一致：
 
-- `V13__sync_complete_cooklikehoc_recipe_catalog.sql`: `30ABF55BE2247919E265E122CCBF098A212C2CF49E6F8A428011F207190D6ECD`。它作为已部署数据库的前向迁移，保留既有 `V4/V5/V6` 校验和，并增量补齐完整目录。
+- `V13__sync_complete_cooklikehoc_recipe_catalog.sql`: `B73112DC358029244933641403DC57E40799E09079923362CF3DDF23E617DECD`。它作为已部署数据库的前向迁移，保留既有 `V4/V5/V6` 校验和，并增量补齐完整目录。
 - `cooklikehoc-sync-manifest.json`: `F2A63E7C84931F64705C3FCA5F060A424717428983F16F9E2452E8AD6E108C98`
 - `cooklikehoc-quality-report.json`: `B1B2356723CE0DCEBC50B8A65AC6682E4A5747FD5C5B1BEE43C8C1071E2BDBAB`
 
@@ -33,9 +33,9 @@
 
 - 同步工具：34 项通过，0 失败。
 - 后端相关迁移与菜品链路：23 项通过，0 失败。
-- 后端完整套件：352 项通过，0 失败，12 项 Docker/MySQL 并发测试因当前环境无 Docker 而跳过。
+- 后端完整套件：360 项通过，0 失败，13 项 Docker/MySQL 并发测试因当前环境无 Docker 而跳过（共 373 项）。
 - 小程序：498 项通过，0 失败。
 - PC 管理端：50 项通过，0 失败。
 - PC 管理端生产构建：通过。
 
-`FreshDatabaseMigrationTest` 已验证初始化 SQL 可按空库顺序执行。现有数据库由 Flyway 顺序执行 `V13`，不会改写已经应用的历史迁移；发布后还需核对 `flyway_schema_history` 以及模板、来源、食材和步骤数量。
+`FreshDatabaseMigrationTest` 已验证初始化 SQL 可按空库顺序执行。真实 MySQL 已由 Flyway 成功执行 `V13`，`flyway_schema_history` 中版本 13 成功记录为 1、失败记录为 0；数据库现有模板 549 个、来源记录 336 条、同步食材 1618 条、制作步骤 795 条、内部图片审核资产 179 条，且 `豆角焖面` 与 `Q 弹虾滑馄饨` 均已落库。

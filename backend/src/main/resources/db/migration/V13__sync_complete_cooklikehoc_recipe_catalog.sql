@@ -2,6 +2,8 @@
 -- 所有关联 ID 均由应用层校验，不创建物理外键。
 
 ALTER TABLE dish_templates
+  MODIFY COLUMN description varchar(255) NULL COMMENT '模板菜品简介',
+  MODIFY COLUMN image_url varchar(500) NULL COMMENT '审核发布后的本地图片访问地址',
   MODIFY COLUMN image_source_url varchar(1000) NULL COMMENT '已声明授权图片的来源页面',
   MODIFY COLUMN image_author varchar(255) NULL COMMENT '已声明授权图片的作者或来源平台',
   MODIFY COLUMN image_license varchar(255) NULL COMMENT '已声明授权图片的许可证',
@@ -24,6 +26,7 @@ ALTER TABLE dish_templates
   ADD KEY idx_dish_templates_market (template_type,data_status,procurement_ready,enabled);
 
 ALTER TABLE dish_template_ingredients
+  MODIFY COLUMN ingredient_name varchar(255) NOT NULL COMMENT '食材名称',
   MODIFY COLUMN quantity decimal(10,2) NULL COMMENT '经家庭化校验的采购数量',
   MODIFY COLUMN unit varchar(20) NULL COMMENT '经家庭化校验的计量单位',
   MODIFY COLUMN calc_type varchar(20) NULL COMMENT '计算方式：FIXED、PER_PERSON',
@@ -106,7 +109,7 @@ CREATE TABLE dish_template_image_assets (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   CONSTRAINT chk_dish_template_image_asset_status CHECK (asset_status IN ('INTERNAL_REVIEW','PUBLISHED','REJECTED')),
   CONSTRAINT chk_template_image_asset_rejection CHECK ((asset_status='REJECTED' AND rejection_reason IS NOT NULL AND CHAR_LENGTH(TRIM(rejection_reason))>0) OR (asset_status<>'REJECTED' AND rejection_reason IS NULL)),
-  UNIQUE KEY uk_dish_template_image_assets_source (template_id,source_revision,source_image_path,content_sha256),
+  UNIQUE KEY uk_dish_template_image_assets_source (template_id,source_revision,source_image_path(512),content_sha256),
   UNIQUE KEY uk_dish_template_image_assets_storage (internal_storage_key),
   KEY idx_dish_template_image_assets_status (asset_status,id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板内部图片审核资产表';
@@ -118,6 +121,15 @@ ALTER TABLE dish_cooking_steps
   ADD COLUMN source_template_step_id bigint NULL COMMENT '来源平台模板步骤逻辑ID' AFTER heat_level,
   ADD COLUMN component_template_id bigint NULL COMMENT '来源配料组件模板逻辑ID' AFTER source_template_step_id,
   ADD COLUMN source_note varchar(1000) NULL COMMENT '来源步骤简短追踪说明' AFTER component_template_id;
+
+ALTER TABLE dish_ingredients
+  MODIFY COLUMN ingredient_name varchar(255) NOT NULL COMMENT '食材名称';
+
+ALTER TABLE purchase_list_items
+  MODIFY COLUMN ingredient_name varchar(255) NOT NULL COMMENT '采购食材名称';
+
+ALTER TABLE temp_purchase_items
+  MODIFY COLUMN ingredient_name varchar(255) NOT NULL COMMENT '临时采购食材名称';
 
 -- 下方数据由固定源码版本和已审核映射配置确定性生成。
 

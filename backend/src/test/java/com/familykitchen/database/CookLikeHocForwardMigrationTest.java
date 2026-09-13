@@ -21,9 +21,16 @@ class CookLikeHocForwardMigrationTest {
     String lowerSql = sql.toLowerCase();
 
     assertTrue(sql.contains("ALTER TABLE dish_templates"));
+    assertTrue(sql.contains("MODIFY COLUMN description varchar(255) NULL"));
+    assertTrue(sql.contains("MODIFY COLUMN image_url varchar(500) NULL"));
     assertTrue(sql.contains("CREATE TABLE dish_template_source_records"));
     assertTrue(sql.contains("CREATE TABLE dish_template_cooking_steps"));
     assertTrue(sql.contains("ALTER TABLE dish_cooking_steps"));
+    assertTrue(sql.contains("MODIFY COLUMN ingredient_name varchar(255) NOT NULL"));
+    assertTrue(sql.contains("ALTER TABLE dish_ingredients"));
+    assertTrue(sql.contains("ALTER TABLE purchase_list_items"));
+    assertFalse(sql.contains("ALTER TABLE purchase_items"));
+    assertTrue(sql.contains("ALTER TABLE temp_purchase_items"));
     assertFalse(lowerSql.contains("foreign key"));
     assertFalse(lowerSql.contains(" references "));
   }
@@ -39,6 +46,16 @@ class CookLikeHocForwardMigrationTest {
     assertEquals(179, countLines(sql, "INSERT INTO dish_template_image_assets "));
     assertTrue(sql.contains("'Q 弹虾滑馄饨'"));
     assertTrue(sql.contains("'f7a91c2db0ce9b6a41eaf06e5ce64cbde5a831ed'"));
+  }
+
+  @Test
+  void imageAssetUniqueIndexFitsTheInnoDbUtf8mb4KeyLimit() throws Exception {
+    String sql = Files.readString(MIGRATION, StandardCharsets.UTF_8);
+
+    assertTrue(sql.contains(
+        "(template_id,source_revision,source_image_path(512),content_sha256)"));
+    assertFalse(sql.contains(
+        "(template_id,source_revision,source_image_path,content_sha256)"));
   }
 
   private static long countLines(String sql, String prefix) {
