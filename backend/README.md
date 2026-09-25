@@ -41,7 +41,7 @@ backend/
 DROP DATABASE IF EXISTS family_kitchen;
 CREATE DATABASE family_kitchen
   CHARACTER SET utf8mb4
-  COLLATE utf8mb4_0900_ai_ci;
+  COLLATE utf8mb4_general_ci;
 ```
 
 三份迁移脚本不包含物理外键。跨表存在性、商户/家庭归属和状态合法性由 Service

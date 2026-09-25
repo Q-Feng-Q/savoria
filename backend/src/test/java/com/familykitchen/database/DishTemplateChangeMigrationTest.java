@@ -45,7 +45,7 @@ class DishTemplateChangeMigrationTest {
     String sql = Files.readString(MIGRATION, StandardCharsets.UTF_8);
     String lowerSql = sql.toLowerCase();
 
-    assertTrue(sql.contains("ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci"));
+    assertTrue(sql.contains("ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"));
     assertTrue(sql.contains("COMMENT='平台模板菜品修改审核申请'"));
     assertFalse(lowerSql.contains("foreign key"));
     assertFalse(lowerSql.contains(" references "));

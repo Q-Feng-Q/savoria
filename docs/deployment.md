@@ -70,7 +70,7 @@
 ```sql
 CREATE DATABASE family_kitchen
   CHARACTER SET utf8mb4
-  COLLATE utf8mb4_0900_ai_ci;
+  COLLATE utf8mb4_general_ci;
 
 CREATE USER 'family_kitchen'@'%' IDENTIFIED BY '请替换为强密码';
 GRANT ALL PRIVILEGES ON family_kitchen.* TO 'family_kitchen'@'%';

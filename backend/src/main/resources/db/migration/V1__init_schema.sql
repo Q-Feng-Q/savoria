@@ -20,7 +20,7 @@ CREATE TABLE user_feedback (
   UNIQUE KEY uk_feedback_request (owner_user_id,request_id),
   KEY idx_feedback_owner_created (owner_user_id,created_at),
   KEY idx_feedback_filters (status,type,created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户反馈表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户反馈表';
 
 CREATE TABLE feedback_images (
   id varchar(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL COMMENT '图片标识',
@@ -37,7 +37,7 @@ CREATE TABLE feedback_images (
   UNIQUE KEY uk_feedback_object (object_key),
   KEY idx_feedback_image_owner_created (owner_user_id,created_at),
   KEY idx_feedback_image_expired (feedback_id,created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='反馈私有图片表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='反馈私有图片表';
 
 CREATE TABLE feedback_history (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '处理记录ID',
@@ -49,7 +49,7 @@ CREATE TABLE feedback_history (
   created_at datetime(6) NOT NULL COMMENT '处理时间',
   PRIMARY KEY (id),
   KEY idx_feedback_history (feedback_id,id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='反馈处理历史表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='反馈处理历史表';
 
 CREATE TABLE account_cancellation_requests (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '账号注销申请ID',
@@ -64,7 +64,7 @@ CREATE TABLE account_cancellation_requests (
   PRIMARY KEY (id),
   UNIQUE KEY uk_cancellation_pending_user (pending_user_id),
   KEY idx_cancellation_due (status,cooling_end_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='账号注销申请表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='账号注销申请表';
 
 CREATE TABLE application_instance_leases (
   instance_id varchar(128) NOT NULL COMMENT '应用实例ID',
@@ -77,7 +77,7 @@ CREATE TABLE application_instance_leases (
   PRIMARY KEY (instance_id),
   KEY idx_application_instance_leases_expiry (lease_expires_at),
   KEY idx_application_instance_leases_build (build_version,heartbeat_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='应用实例租约与构建心跳';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='应用实例租约与构建心跳';
 
 CREATE TABLE cart_item_selections (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '餐篮项成员选择ID',
@@ -91,7 +91,7 @@ CREATE TABLE cart_item_selections (
   UNIQUE KEY uk_cart_item_selections_item_user (cart_item_id,user_id),
   KEY idx_cart_item_selections_user (user_id),
   CONSTRAINT ck_cart_item_selections_quantity CHECK ((quantity > 0))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='餐篮项成员选择表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='餐篮项成员选择表';
 
 CREATE TABLE cart_items (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '餐篮项ID',
@@ -105,7 +105,7 @@ CREATE TABLE cart_items (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (id),
   UNIQUE KEY uk_cart_items_cart_dish (cart_id,dish_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='餐篮菜品明细表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='餐篮菜品明细表';
 
 CREATE TABLE carts (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '餐篮ID',
@@ -125,7 +125,7 @@ CREATE TABLE carts (
   UNIQUE KEY uk_carts_active_cart (active_cart_key),
   KEY idx_carts_family_user_date_slot (family_id,user_id,service_date,meal_slot_id,status),
   KEY idx_carts_merchant_date (merchant_id,service_date,status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户当日餐篮表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户当日餐篮表';
 
 CREATE TABLE command_idempotency (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '命令幂等记录ID',
@@ -143,7 +143,7 @@ CREATE TABLE command_idempotency (
   PRIMARY KEY (id),
   UNIQUE KEY uk_command_idempotency_scope (actor_user_id,family_id,operation,request_id),
   KEY idx_command_idempotency_state_updated (state,updated_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='持久命令幂等记录';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='持久命令幂等记录';
 
 CREATE TABLE dish_categories (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '菜品分类ID',
@@ -156,7 +156,7 @@ CREATE TABLE dish_categories (
   PRIMARY KEY (id),
   UNIQUE KEY uk_dish_categories_merchant_name (merchant_id,name),
   KEY idx_dish_categories_merchant_enabled_sort (merchant_id,enabled,sort_order)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商户菜品分类表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='商户菜品分类表';
 
 CREATE TABLE dish_cooking_steps (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '制作步骤ID',
@@ -173,7 +173,7 @@ CREATE TABLE dish_cooking_steps (
   image_urls json DEFAULT NULL COMMENT '有序步骤图片地址，最多五张',
   PRIMARY KEY (id),
   UNIQUE KEY uk_dish_cooking_steps_dish_step (dish_id,step_no)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='菜品制作步骤表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='菜品制作步骤表';
 
 CREATE TABLE dish_ingredients (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '菜品食材记录ID',
@@ -184,7 +184,7 @@ CREATE TABLE dish_ingredients (
   calc_type varchar(20) NOT NULL COMMENT '计算方式：FIXED/PER_PERSON/NO_PURCHASE',
   PRIMARY KEY (id),
   KEY idx_dish_ingredients_dish (dish_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='菜品食材明细表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='菜品食材明细表';
 
 CREATE TABLE dish_review_submissions (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '菜品审核提交ID',
@@ -203,7 +203,7 @@ CREATE TABLE dish_review_submissions (
   UNIQUE KEY uk_dish_review_pending_target (pending_target_key),
   KEY idx_dish_review_status_time (status,submitted_at),
   KEY idx_dish_review_merchant (merchant_id,status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='菜品审核提交表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='菜品审核提交表';
 
 CREATE TABLE dish_template_categories (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '平台模板分类ID',
@@ -217,7 +217,7 @@ CREATE TABLE dish_template_categories (
   UNIQUE KEY uk_dish_template_categories_code (code),
   UNIQUE KEY uk_dish_template_categories_name (name),
   KEY idx_dish_template_categories_enabled_sort (enabled,sort_order)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板分类表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='平台菜品模板分类表';
 
 CREATE TABLE dish_template_change_requests (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '模板菜品修改申请ID',
@@ -243,7 +243,7 @@ CREATE TABLE dish_template_change_requests (
   KEY idx_dish_template_change_merchant_time (merchant_id,status,submitted_at,id),
   KEY idx_dish_template_change_template_time (template_id,status,submitted_at,id),
   CONSTRAINT chk_dish_template_change_status CHECK ((status in (_utf8mb4'PENDING',_utf8mb4'APPROVED',_utf8mb4'REJECTED',_utf8mb4'WITHDRAWN')))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台模板菜品修改审核申请';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='平台模板菜品修改审核申请';
 
 CREATE TABLE dish_template_cooking_steps (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '模板制作步骤ID',
@@ -262,7 +262,7 @@ CREATE TABLE dish_template_cooking_steps (
   UNIQUE KEY uk_dish_template_cooking_steps_template_step (template_id,step_no),
   UNIQUE KEY uk_dish_template_cooking_steps_item_key (item_key),
   KEY idx_dish_template_cooking_steps_component (component_template_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板制作步骤表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='平台菜品模板制作步骤表';
 
 CREATE TABLE dish_template_image_assets (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '模板内部图片资产ID',
@@ -290,7 +290,7 @@ CREATE TABLE dish_template_image_assets (
   KEY idx_dish_template_image_assets_status (asset_status,id),
   CONSTRAINT chk_dish_template_image_asset_status CHECK ((asset_status in (_utf8mb4'INTERNAL_REVIEW',_utf8mb4'PUBLISHED',_utf8mb4'REJECTED'))),
   CONSTRAINT chk_template_image_asset_rejection CHECK ((((asset_status = _utf8mb4'REJECTED') and (rejection_reason is not null) and (char_length(trim(rejection_reason)) > 0)) or ((asset_status <> _utf8mb4'REJECTED') and (rejection_reason is null))))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板内部图片审核资产表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='平台菜品模板内部图片审核资产表';
 
 CREATE TABLE dish_template_ingredients (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '平台模板食材明细ID',
@@ -312,7 +312,7 @@ CREATE TABLE dish_template_ingredients (
   UNIQUE KEY uk_dish_template_ingredients_source_line (source_line_key),
   KEY idx_dish_template_ingredients_template_sort (template_id,sort_order),
   CONSTRAINT chk_template_ingredient_quantity_state CHECK ((((quantity_status = _utf8mb4'VERIFIED') and (quantity > 0) and (unit is not null) and (char_length(trim(unit)) > 0) and (calc_type in (_utf8mb4'FIXED',_utf8mb4'PER_PERSON'))) or ((quantity_status in (_utf8mb4'SOURCE_BATCH',_utf8mb4'MISSING')) and (quantity is null) and (unit is null) and (calc_type is null)) or ((quantity_status = _utf8mb4'NOT_APPLICABLE') and (quantity is null) and (unit is null) and (calc_type is null))))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板食材明细表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='平台菜品模板食材明细表';
 
 CREATE TABLE dish_template_name_aliases (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '模板名称别名ID',
@@ -325,7 +325,7 @@ CREATE TABLE dish_template_name_aliases (
   UNIQUE KEY uk_dish_template_name_aliases_normalized (normalized_alias_name),
   KEY idx_dish_template_name_aliases_template (template_id,id),
   CONSTRAINT chk_dish_template_name_alias_type CHECK ((alias_type in (_utf8mb4'LOCAL_PREVIOUS_NAME',_utf8mb4'SOURCE_TITLE_VARIANT',_utf8mb4'MANUAL')))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板名称别名表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='平台菜品模板名称别名表';
 
 CREATE TABLE dish_template_source_records (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '模板来源记录ID',
@@ -344,7 +344,7 @@ CREATE TABLE dish_template_source_records (
   UNIQUE KEY uk_dish_template_source_records_key (source_key),
   KEY idx_dish_template_source_records_template (template_id,record_type,id),
   CONSTRAINT chk_dish_template_source_record_type CHECK ((record_type in (_utf8mb4'PRIMARY',_utf8mb4'SOURCE_ALIAS',_utf8mb4'PATH_RENAME')))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板来源记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='平台菜品模板来源记录表';
 
 CREATE TABLE dish_templates (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '平台菜品模板ID',
@@ -388,7 +388,7 @@ CREATE TABLE dish_templates (
   CONSTRAINT chk_dish_template_source_type CHECK ((source_type in (_utf8mb4'COOK_LIKE_HOC',_utf8mb4'LOCAL_EXTENSION'))),
   CONSTRAINT chk_dish_template_type CHECK ((template_type in (_utf8mb4'DISH',_utf8mb4'COMPONENT'))),
   CONSTRAINT chk_template_image_rights CHECK ((((image_rights_status in (_utf8mb4'UNDECLARED',_utf8mb4'NONE')) and (image_url is null)) or ((image_rights_status = _utf8mb4'DECLARED') and (image_url is not null) and (image_source_url is not null) and (image_author is not null) and (image_license is not null))))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台菜品模板表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='平台菜品模板表';
 
 CREATE TABLE dishes (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '菜品ID',
@@ -416,7 +416,7 @@ CREATE TABLE dishes (
   KEY idx_dishes_merchant_name (merchant_id,name),
   KEY idx_dishes_merchant_featured (merchant_id,featured_at),
   KEY idx_dishes_merchant_status_deleted (merchant_id,status,deleted_at,id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商户菜品主表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='商户菜品主表';
 
 CREATE TABLE email_verification_records (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '邮箱验证记录ID',
@@ -432,7 +432,7 @@ CREATE TABLE email_verification_records (
   PRIMARY KEY (id),
   KEY idx_email_verification_user (user_id,email,status,expires_at),
   KEY idx_email_verification_rate (email,request_ip,created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='邮箱绑定验证码记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='邮箱绑定验证码记录表';
 
 CREATE TABLE families (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '家庭ID',
@@ -450,7 +450,7 @@ CREATE TABLE families (
   PRIMARY KEY (id),
   KEY idx_families_merchant_status (merchant_id,status),
   KEY idx_families_featured_dish (featured_dish_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭主表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭主表';
 
 CREATE TABLE family_addresses (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '地址ID',
@@ -463,7 +463,7 @@ CREATE TABLE family_addresses (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (id),
   KEY idx_family_addresses_family_default (family_id,is_default)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭共享地址表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭共享地址表';
 
 CREATE TABLE family_applications (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '家庭创建申请ID',
@@ -484,7 +484,7 @@ CREATE TABLE family_applications (
   PRIMARY KEY (id),
   KEY idx_family_applications_status_time (status,created_at),
   KEY idx_family_applications_applicant (applicant_user_id,status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭创建申请表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭创建申请表';
 
 CREATE TABLE family_cart_migration_sources (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '餐篮迁移源记录ID',
@@ -498,7 +498,7 @@ CREATE TABLE family_cart_migration_sources (
   PRIMARY KEY (id),
   UNIQUE KEY uk_family_cart_migration_source (batch_id,source_cart_id),
   KEY idx_family_cart_migration_sources_target (target_cart_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭餐篮迁移来源追踪';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭餐篮迁移来源追踪';
 
 CREATE TABLE family_invitation_codes (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '家庭安全邀请码ID',
@@ -513,7 +513,7 @@ CREATE TABLE family_invitation_codes (
   PRIMARY KEY (id),
   UNIQUE KEY uk_invitation_code_hash (code_hash),
   UNIQUE KEY uk_invitation_code_active_family (active_family_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭安全邀请码表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭安全邀请码表';
 
 CREATE TABLE family_invitations (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '家庭邀请码记录ID',
@@ -528,7 +528,7 @@ CREATE TABLE family_invitations (
   PRIMARY KEY (id),
   UNIQUE KEY uk_family_invitations_code (code),
   KEY idx_family_invitations_family_status (family_id,status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭明文邀请记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭明文邀请记录表';
 
 CREATE TABLE family_membership_requests (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '家庭邀请或申请ID',
@@ -551,7 +551,7 @@ CREATE TABLE family_membership_requests (
   KEY idx_membership_requests_family_status (family_id,status),
   KEY idx_membership_requests_target_status (target_user_id,status),
   KEY idx_membership_requests_applicant_status (applicant_user_id,status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭邀请与加入申请表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭邀请与加入申请表';
 
 CREATE TABLE family_menu_items (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '家庭菜单项ID',
@@ -565,7 +565,7 @@ CREATE TABLE family_menu_items (
   PRIMARY KEY (id),
   UNIQUE KEY uk_family_menu_family_dish (family_id,dish_id),
   KEY idx_family_menu_family_enabled_sort (family_id,enabled,sort_order)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭专属菜单配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭专属菜单配置表';
 
 CREATE TABLE family_user_relations (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '家庭用户关系ID',
@@ -587,7 +587,7 @@ CREATE TABLE family_user_relations (
   UNIQUE KEY uk_family_relation_active_owner (active_owner_family_id),
   KEY idx_family_relation_family_status (family_id,status),
   KEY idx_family_relation_user_history (user_id,joined_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭用户关系表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭用户关系表';
 
 CREATE TABLE family_wallet_cutover_state (
   scope_key varchar(100) NOT NULL COMMENT '规范化切换范围',
@@ -600,7 +600,7 @@ CREATE TABLE family_wallet_cutover_state (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (scope_key)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='持久切换与维护状态';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='持久切换与维护状态';
 
 CREATE TABLE family_wallet_ledgers (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '家庭钱包流水ID',
@@ -628,7 +628,7 @@ CREATE TABLE family_wallet_ledgers (
   CONSTRAINT ck_family_wallet_ledgers_available_before CHECK ((available_before >= 0)),
   CONSTRAINT ck_family_wallet_ledgers_frozen_after CHECK ((frozen_after >= 0)),
   CONSTRAINT ck_family_wallet_ledgers_frozen_before CHECK ((frozen_before >= 0))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭共享钱包流水';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭共享钱包流水';
 
 CREATE TABLE family_wallet_migration_anomalies (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '迁移异常ID',
@@ -641,7 +641,7 @@ CREATE TABLE family_wallet_migration_anomalies (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (id),
   KEY idx_family_wallet_migration_anomalies_batch (batch_id,resolved,anomaly_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭钱包迁移异常与报告';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭钱包迁移异常与报告';
 
 CREATE TABLE family_wallet_migration_batches (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '迁移批次ID',
@@ -659,7 +659,7 @@ CREATE TABLE family_wallet_migration_batches (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (id),
   KEY idx_family_wallet_migration_batches_status (status,created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭钱包迁移批次';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭钱包迁移批次';
 
 CREATE TABLE family_wallet_migration_families (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '迁移家庭进度ID',
@@ -671,7 +671,7 @@ CREATE TABLE family_wallet_migration_families (
   PRIMARY KEY (id),
   UNIQUE KEY uk_family_wallet_migration_family (batch_id,family_id),
   KEY idx_family_wallet_migration_family_status (batch_id,status,family_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭钱包迁移逐家庭进度';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭钱包迁移逐家庭进度';
 
 CREATE TABLE family_wallet_migration_runner_lease (
   scope_key varchar(100) NOT NULL COMMENT '全局迁移运行器租约范围',
@@ -684,7 +684,7 @@ CREATE TABLE family_wallet_migration_runner_lease (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (scope_key),
   KEY idx_family_wallet_runner_lease_expiry (lease_expires_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭钱包迁移运行器排他租约';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭钱包迁移运行器排他租约';
 
 CREATE TABLE family_wallet_migration_sources (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '钱包迁移源账户记录ID',
@@ -699,7 +699,7 @@ CREATE TABLE family_wallet_migration_sources (
   PRIMARY KEY (id),
   UNIQUE KEY uk_family_wallet_migration_source (batch_id,source_user_id),
   KEY idx_family_wallet_migration_sources_family (batch_id,family_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭钱包迁移源账户追踪';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭钱包迁移源账户追踪';
 
 CREATE TABLE family_wallet_order_holds (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '订单资金冻结记录ID',
@@ -725,7 +725,7 @@ CREATE TABLE family_wallet_order_holds (
   CONSTRAINT ck_family_wallet_order_holds_refunded CHECK ((refunded_amount >= 0)),
   CONSTRAINT ck_family_wallet_order_holds_released CHECK ((released_amount >= 0)),
   CONSTRAINT ck_family_wallet_order_holds_remaining CHECK ((remaining_frozen_amount >= 0))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭钱包订单冻结状态';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭钱包订单冻结状态';
 
 CREATE TABLE family_wallets (
   family_id bigint NOT NULL COMMENT '钱包所属家庭ID',
@@ -737,7 +737,7 @@ CREATE TABLE family_wallets (
   PRIMARY KEY (family_id),
   CONSTRAINT ck_family_wallets_available CHECK ((available_amount >= 0)),
   CONSTRAINT ck_family_wallets_frozen CHECK ((frozen_amount >= 0))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭共享钱包';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭共享钱包';
 
 CREATE TABLE file_assets (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '文件资产ID',
@@ -754,7 +754,7 @@ CREATE TABLE file_assets (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (id),
   KEY idx_file_assets_owner_type (owner_type,owner_id,file_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='文件资产表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='文件资产表';
 
 CREATE TABLE meal_slots (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '餐次ID',
@@ -768,7 +768,7 @@ CREATE TABLE meal_slots (
   PRIMARY KEY (id),
   UNIQUE KEY uk_meal_slots_family_name (family_id,name),
   KEY idx_meal_slots_family_enabled_sort (family_id,enabled,sort_order)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭餐次配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭餐次配置表';
 
 CREATE TABLE member_wallets (
   user_id bigint NOT NULL COMMENT '钱包所属用户ID',
@@ -776,7 +776,7 @@ CREATE TABLE member_wallets (
   frozen_amount decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '冻结金额',
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户钱包账户表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户钱包账户表';
 
 CREATE TABLE merchant_applications (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '商户申请ID',
@@ -791,7 +791,7 @@ CREATE TABLE merchant_applications (
   PRIMARY KEY (id),
   KEY idx_merchant_applications_user_status (user_id,status),
   KEY idx_merchant_applications_status_time (status,created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商户入驻申请表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='商户入驻申请表';
 
 CREATE TABLE merchant_ingredients (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '商户食材字典ID',
@@ -804,7 +804,7 @@ CREATE TABLE merchant_ingredients (
   PRIMARY KEY (id),
   UNIQUE KEY uk_merchant_ingredients_merchant_name (merchant_id,name),
   KEY idx_merchant_ingredients_merchant_category (merchant_id,category,name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商户食材字典表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='商户食材字典表';
 
 CREATE TABLE merchant_invitation_codes (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '商户邀请码ID',
@@ -818,7 +818,7 @@ CREATE TABLE merchant_invitation_codes (
   PRIMARY KEY (id),
   UNIQUE KEY uk_merchant_invitation_hash (code_hash),
   KEY idx_merchant_invitation_active (merchant_id,status,expires_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商户邀请码表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='商户邀请码表';
 
 CREATE TABLE merchant_user_relations (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '商户用户关系ID',
@@ -833,7 +833,7 @@ CREATE TABLE merchant_user_relations (
   UNIQUE KEY uk_merchant_user_role (merchant_id,user_id,merchant_role),
   KEY idx_merchant_user_user_status (user_id,status),
   KEY idx_merchant_user_merchant_status (merchant_id,status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商户用户关系表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='商户用户关系表';
 
 CREATE TABLE merchants (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '商户ID',
@@ -845,7 +845,7 @@ CREATE TABLE merchants (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (id),
   KEY idx_merchants_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商户主表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='商户主表';
 
 CREATE TABLE notification_dispatches (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '通知下发记录ID',
@@ -859,7 +859,7 @@ CREATE TABLE notification_dispatches (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (id),
   KEY idx_notification_dispatches_notification_channel (notification_id,channel,send_status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='通知下发记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='通知下发记录表';
 
 CREATE TABLE notifications (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '通知ID',
@@ -874,7 +874,7 @@ CREATE TABLE notifications (
   PRIMARY KEY (id),
   KEY idx_notifications_receiver_read (receiver_type,receiver_id,read_at),
   KEY idx_notifications_scope_receiver_read (receiver_scope,receiver_id,read_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='通知主表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='通知主表';
 
 CREATE TABLE order_delivery_snapshots (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '配送快照ID',
@@ -884,7 +884,7 @@ CREATE TABLE order_delivery_snapshots (
   address_text varchar(255) DEFAULT NULL COMMENT '配送地址快照',
   PRIMARY KEY (id),
   UNIQUE KEY uk_order_delivery_snapshots_order (order_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='订单配送地址快照表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='订单配送地址快照表';
 
 CREATE TABLE order_item_selections (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '订单项成员选择快照ID',
@@ -899,7 +899,7 @@ CREATE TABLE order_item_selections (
   UNIQUE KEY uk_order_item_selections_item_user (order_item_id,user_id),
   KEY idx_order_item_selections_user (user_id),
   CONSTRAINT ck_order_item_selections_quantity CHECK ((quantity > 0))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='订单项成员选择快照表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='订单项成员选择快照表';
 
 CREATE TABLE order_items (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '订单项ID',
@@ -914,7 +914,7 @@ CREATE TABLE order_items (
   PRIMARY KEY (id),
   KEY idx_order_items_order_user (order_id,owner_user_id),
   KEY idx_order_items_dish (dish_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='订单菜品明细表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='订单菜品明细表';
 
 CREATE TABLE order_member_charges (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '订单用户费用分摊ID',
@@ -932,7 +932,7 @@ CREATE TABLE order_member_charges (
   PRIMARY KEY (id),
   UNIQUE KEY uk_order_user_charges (order_id,user_id),
   KEY idx_order_charges_user_status (user_id,status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='订单用户分摊与结算表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='订单用户分摊与结算表';
 
 CREATE TABLE orders (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '订单ID',
@@ -960,7 +960,7 @@ CREATE TABLE orders (
   KEY idx_orders_merchant_status_date (merchant_id,status,service_date),
   KEY idx_orders_family_date_status (family_id,service_date,status),
   KEY idx_orders_submitter_date (submitter_user_id,service_date)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='家庭点餐订单表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='家庭点餐订单表';
 
 CREATE TABLE password_reset_records (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '密码重置记录ID',
@@ -976,7 +976,7 @@ CREATE TABLE password_reset_records (
   PRIMARY KEY (id),
   KEY idx_password_reset_email (email,status,expires_at),
   KEY idx_password_reset_rate (request_ip,created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='密码找回记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='密码找回记录表';
 
 CREATE TABLE purchase_list_items (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '采购项ID',
@@ -993,7 +993,7 @@ CREATE TABLE purchase_list_items (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (id),
   KEY idx_purchase_items_list_checked (purchase_list_id,checked)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='采购单明细表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='采购单明细表';
 
 CREATE TABLE purchase_lists (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '采购单ID',
@@ -1006,7 +1006,7 @@ CREATE TABLE purchase_lists (
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (id),
   KEY idx_purchase_lists_merchant_date_slot (merchant_id,service_date,meal_slot_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='采购汇总单表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='采购汇总单表';
 
 CREATE TABLE security_audit_logs (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '安全审计日志ID',
@@ -1019,7 +1019,7 @@ CREATE TABLE security_audit_logs (
   PRIMARY KEY (id),
   KEY idx_security_audit_user_time (user_id,created_at),
   KEY idx_security_audit_action_time (action,created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='安全审计日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='安全审计日志表';
 
 CREATE TABLE system_settings (
   id bigint NOT NULL COMMENT '固定主键，始终为1',
@@ -1047,7 +1047,7 @@ CREATE TABLE system_settings (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='系统配置表';
 
 CREATE TABLE temp_purchase_items (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '临时采购项ID',
@@ -1065,7 +1065,7 @@ CREATE TABLE temp_purchase_items (
   PRIMARY KEY (id),
   KEY idx_temp_purchase_items_merchant_date (merchant_id,service_date),
   KEY idx_temp_purchase_items_merchant_family (merchant_id,family_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商户临时采购项表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='商户临时采购项表';
 
 CREATE TABLE user_role_relations (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '平台角色关系ID',
@@ -1076,7 +1076,7 @@ CREATE TABLE user_role_relations (
   PRIMARY KEY (id),
   UNIQUE KEY uk_user_platform_role (user_id,role_code),
   KEY idx_user_role_status (user_id,status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户平台角色关系表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户平台角色关系表';
 
 CREATE TABLE user_sessions (
   id varchar(64) NOT NULL COMMENT '会话ID',
@@ -1092,7 +1092,7 @@ CREATE TABLE user_sessions (
   PRIMARY KEY (id),
   KEY idx_user_sessions_user_status (user_id,status),
   KEY idx_user_sessions_expire (status,expires_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户登录会话表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户登录会话表';
 
 CREATE TABLE users (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '用户ID',
@@ -1117,7 +1117,7 @@ CREATE TABLE users (
   UNIQUE KEY uk_users_email (email),
   UNIQUE KEY uk_users_wechat_open_id (wechat_open_id),
   KEY idx_users_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一用户表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='统一用户表';
 
 CREATE TABLE wallet_ledgers (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '钱包流水ID',
@@ -1134,7 +1134,7 @@ CREATE TABLE wallet_ledgers (
   PRIMARY KEY (id),
   KEY idx_wallet_ledgers_user_created (user_id,created_at),
   KEY idx_wallet_ledgers_order (order_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户钱包流水表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户钱包流水表';
 
 CREATE TABLE wechat_authorization_records (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '微信授权记录ID',
@@ -1147,4 +1147,4 @@ CREATE TABLE wechat_authorization_records (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (id),
   UNIQUE KEY uk_wechat_credential_hash (credential_hash)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='微信短期授权记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='微信短期授权记录表';
