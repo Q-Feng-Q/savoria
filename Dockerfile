@@ -13,19 +13,24 @@ COPY backend/ ./
 RUN mvn -B -DskipTests clean package
 
 FROM eclipse-temurin:17-jre-alpine
-RUN apk add --no-cache curl tzdata \
+RUN apk add --no-cache curl nginx tini tzdata \
     && addgroup -g 10001 -S app \
     && adduser -u 10001 -S -D -H -G app app \
     && mkdir -p /app /data/uploads/dish-template-assets /data/feedback-private /data/dish-template-assets/private \
-    && chown -R app:app /app /data
+        /tmp/nginx/client-body /tmp/nginx/proxy /tmp/nginx/fastcgi /tmp/nginx/uwsgi /tmp/nginx/scgi \
+    && chown -R app:app /app /data /tmp/nginx
 
 COPY --from=builder --chown=10001:10001 /workspace/backend/target/family-kitchen-backend-*.jar /app/app.jar
 COPY --chown=10001:10001 cloudrun-entrypoint.sh /app/cloudrun-entrypoint.sh
+COPY --chown=10001:10001 cloudrun-nginx.conf /etc/nginx/nginx.conf
 
-RUN chmod 0555 /app/cloudrun-entrypoint.sh
+RUN chmod 0555 /app/cloudrun-entrypoint.sh \
+    && nginx -t
 
 ENV TZ=Asia/Shanghai \
     PORT=8080 \
+    SERVER_ADDRESS=0.0.0.0 \
+    SERVER_PORT=8081 \
     FAMILY_KITCHEN_FILE_STORAGE_LOCAL_ROOT=/data/uploads \
     FAMILY_KITCHEN_FEEDBACK_PRIVATE_ROOT=/data/feedback-private \
     FAMILY_KITCHEN_DISH_TEMPLATE_ASSETS_PRIVATE_ROOT=/data/dish-template-assets/private \
@@ -36,6 +41,6 @@ USER 10001:10001
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=300s --retries=5 \
-  CMD curl --fail --silent --show-error --max-time 3 "http://127.0.0.1:${PORT}/public/system-settings" >/dev/null || exit 1
+  CMD curl --fail --silent --show-error --max-time 3 "http://127.0.0.1:${PORT}/healthz" >/dev/null || exit 1
 
-ENTRYPOINT ["/app/cloudrun-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/app/cloudrun-entrypoint.sh"]

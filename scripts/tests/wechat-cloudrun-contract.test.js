@@ -6,19 +6,23 @@ const test = require('node:test');
 const root = path.resolve(__dirname, '..', '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('cloudrun image builds only the backend and listens on the injected port', () => {
+test('cloudrun image exposes nginx on 8080 and runs Spring Boot on 8081', () => {
   const dockerfile = read('Dockerfile');
   assert.match(dockerfile, /FROM maven:3\.9[^\n]+ AS builder/i);
   assert.match(dockerfile, /COPY backend\/pom\.xml/);
   assert.match(dockerfile, /COPY backend\//);
   assert.match(dockerfile, /mvn -B -DskipTests clean package/);
   assert.match(dockerfile, /FROM eclipse-temurin:17-jre-alpine/i);
+  assert.match(dockerfile, /apk add --no-cache[^\n]*curl[^\n]*nginx[^\n]*tini/);
   assert.match(dockerfile, /USER 10001:10001/);
   assert.match(dockerfile, /EXPOSE 8080/);
   assert.match(dockerfile, /HEALTHCHECK/);
-  assert.doesNotMatch(dockerfile, /mysql-server|nginx|admin-web/);
+  assert.doesNotMatch(dockerfile, /mysql-server|admin-web/);
   assert.match(dockerfile, /COPY --chown=10001:10001 cloudrun-entrypoint\.sh \/app\/cloudrun-entrypoint\.sh/);
-  assert.match(dockerfile, /ENTRYPOINT \["\/app\/cloudrun-entrypoint\.sh"\]/);
+  assert.match(dockerfile, /COPY --chown=10001:10001 cloudrun-nginx\.conf \/etc\/nginx\/nginx\.conf/);
+  assert.match(dockerfile, /SERVER_ADDRESS=0\.0\.0\.0/);
+  assert.match(dockerfile, /SERVER_PORT=8081/);
+  assert.match(dockerfile, /ENTRYPOINT \["\/sbin\/tini", "--", "\/app\/cloudrun-entrypoint\.sh"\]/);
 
   assert.ok(fs.existsSync(path.join(root, 'cloudrun-entrypoint.sh')));
   const entrypoint = read('cloudrun-entrypoint.sh');
@@ -34,7 +38,16 @@ test('cloudrun image builds only the backend and listens on the injected port', 
   ]) {
     assert.match(entrypoint, new RegExp(variable));
   }
-  assert.match(entrypoint, /exec java -jar \/app\/app\.jar/);
+  assert.match(entrypoint, /java -jar \/app\/app\.jar &/);
+  assert.match(entrypoint, /nginx -g 'daemon off;' &/);
+  assert.match(entrypoint, /Java process exited unexpectedly/);
+  assert.match(entrypoint, /Nginx process exited unexpectedly/);
+
+  const nginx = read('cloudrun-nginx.conf');
+  assert.match(nginx, /listen 0\.0\.0\.0:8080/);
+  assert.match(nginx, /proxy_pass http:\/\/127\.0\.0\.1:8081/);
+  assert.match(nginx, /location = \/healthz/);
+  assert.match(nginx, /proxy_pass http:\/\/127\.0\.0\.1:8081\/public\/system-settings/);
 
   const attributes = read('.gitattributes');
   assert.match(attributes, /^\*\.sh text eol=lf$/m);
@@ -46,6 +59,8 @@ test('cloudrun config is safe for repository use and targets the Spring port', (
   assert.equal(config.customLogs, 'stdout');
   assert.deepEqual(config.envParams, {
     PORT: '8080',
+    SERVER_ADDRESS: '0.0.0.0',
+    SERVER_PORT: '8081',
     MYSQL_DATABASE: 'family_kitchen',
     FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_USERNAME: 'admin',
     FAMILY_KITCHEN_WECHAT_APP_ID: 'wx092b0184d87bf822'
