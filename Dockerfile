@@ -20,6 +20,9 @@ RUN apk add --no-cache curl tzdata \
     && chown -R app:app /app /data
 
 COPY --from=builder --chown=10001:10001 /workspace/backend/target/family-kitchen-backend-*.jar /app/app.jar
+COPY --chown=10001:10001 cloudrun-entrypoint.sh /app/cloudrun-entrypoint.sh
+
+RUN chmod 0555 /app/cloudrun-entrypoint.sh
 
 ENV TZ=Asia/Shanghai \
     PORT=8080 \
@@ -32,7 +35,7 @@ ENV TZ=Asia/Shanghai \
 USER 10001:10001
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=5 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=300s --retries=5 \
   CMD curl --fail --silent --show-error --max-time 3 "http://127.0.0.1:${PORT}/public/system-settings" >/dev/null || exit 1
 
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["/app/cloudrun-entrypoint.sh"]

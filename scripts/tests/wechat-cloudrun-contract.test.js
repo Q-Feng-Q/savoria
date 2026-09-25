@@ -17,13 +17,40 @@ test('cloudrun image builds only the backend and listens on the injected port', 
   assert.match(dockerfile, /EXPOSE 8080/);
   assert.match(dockerfile, /HEALTHCHECK/);
   assert.doesNotMatch(dockerfile, /mysql-server|nginx|admin-web/);
+  assert.match(dockerfile, /COPY --chown=10001:10001 cloudrun-entrypoint\.sh \/app\/cloudrun-entrypoint\.sh/);
+  assert.match(dockerfile, /ENTRYPOINT \["\/app\/cloudrun-entrypoint\.sh"\]/);
+
+  assert.ok(fs.existsSync(path.join(root, 'cloudrun-entrypoint.sh')));
+  const entrypoint = read('cloudrun-entrypoint.sh');
+  for (const variable of [
+    'MYSQL_ADDRESS',
+    'MYSQL_DATABASE',
+    'MYSQL_USERNAME',
+    'MYSQL_PASSWORD',
+    'FAMILY_KITCHEN_JWT_SECRET',
+    'FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_PASSWORD',
+    'FAMILY_KITCHEN_WECHAT_APP_ID',
+    'FAMILY_KITCHEN_WECHAT_APP_SECRET'
+  ]) {
+    assert.match(entrypoint, new RegExp(variable));
+  }
+  assert.match(entrypoint, /exec java -jar \/app\/app\.jar/);
+
+  const attributes = read('.gitattributes');
+  assert.match(attributes, /^\*\.sh text eol=lf$/m);
 });
 
 test('cloudrun config is safe for repository use and targets the Spring port', () => {
   const config = JSON.parse(read('container.config.json'));
   assert.equal(config.containerPort, 8080);
   assert.equal(config.customLogs, 'stdout');
-  assert.deepEqual(config.envParams, {});
+  assert.deepEqual(config.envParams, {
+    PORT: '8080',
+    MYSQL_DATABASE: 'family_kitchen',
+    FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_USERNAME: 'admin',
+    FAMILY_KITCHEN_WECHAT_APP_ID: 'wx092b0184d87bf822'
+  });
+  assert.ok(config.initialDelaySeconds >= 300);
   assert.equal(JSON.stringify(config).includes('PASSWORD'), false);
   assert.equal(JSON.stringify(config).includes('SECRET'), false);
 });
@@ -31,11 +58,14 @@ test('cloudrun config is safe for repository use and targets the Spring port', (
 test('runtime configuration accepts cloud mysql variables and keeps secrets external', () => {
   const yaml = read('backend/src/main/resources/application.yml');
   assert.match(yaml, /port:\s*\$\{PORT:8080\}/);
-  assert.match(yaml, /\$\{MYSQL_ADDRESS:/);
-  assert.match(yaml, /username:\s*\$\{MYSQL_USERNAME:/);
-  assert.match(yaml, /password:\s*\$\{MYSQL_PASSWORD:/);
-  assert.match(yaml, /app-id:\s*"\$\{FAMILY_KITCHEN_WECHAT_APP_ID:/);
-  assert.match(yaml, /app-secret:\s*"\$\{FAMILY_KITCHEN_WECHAT_APP_SECRET:/);
+  assert.match(yaml, /\$\{MYSQL_ADDRESS\}/);
+  assert.match(yaml, /username:\s*\$\{MYSQL_USERNAME\}/);
+  assert.match(yaml, /password:\s*\$\{MYSQL_PASSWORD\}/);
+  assert.match(yaml, /secret:\s*\$\{FAMILY_KITCHEN_JWT_SECRET\}/);
+  assert.match(yaml, /password:\s*\$\{FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_PASSWORD\}/);
+  assert.match(yaml, /app-id:\s*"\$\{FAMILY_KITCHEN_WECHAT_APP_ID\}"/);
+  assert.match(yaml, /app-secret:\s*"\$\{FAMILY_KITCHEN_WECHAT_APP_SECRET\}"/);
+  assert.doesNotMatch(yaml, /192\.168\.|MYSQL_PASSWORD:[^}\r\n]+|FAMILY_KITCHEN_JWT_SECRET:[^}\r\n]+/);
   assert.doesNotMatch(yaml, /app-secret:\s*"[a-zA-Z0-9]{16,}"/);
   const dockerfile = read('Dockerfile');
   assert.match(dockerfile, /FAMILY_KITCHEN_FILE_STORAGE_LOCAL_ROOT=\/data\/uploads/);

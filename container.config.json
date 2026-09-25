@@ -16,7 +16,12 @@
       "PolicyThreshold": 70
     }
   ],
-  "envParams": {},
+  "envParams": {
+    "PORT": "8080",
+    "MYSQL_DATABASE": "family_kitchen",
+    "FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_USERNAME": "admin",
+    "FAMILY_KITCHEN_WECHAT_APP_ID": "wx092b0184d87bf822"
+  },
   "customLogs": "stdout",
-  "initialDelaySeconds": 120
+  "initialDelaySeconds": 300
 }

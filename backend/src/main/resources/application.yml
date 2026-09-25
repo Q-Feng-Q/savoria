@@ -13,9 +13,9 @@ spring:
   application:
     name: family-kitchen-backend
   datasource:
-    url: jdbc:mysql://${MYSQL_ADDRESS:127.0.0.1:3306}/${MYSQL_DATABASE:family_kitchen}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
-    username: ${MYSQL_USERNAME:root}
-    password: ${MYSQL_PASSWORD:}
+    url: jdbc:mysql://${MYSQL_ADDRESS}/${MYSQL_DATABASE}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   flyway:
     enabled: true
@@ -57,13 +57,13 @@ family-kitchen:
     public-root: ${FAMILY_KITCHEN_DISH_TEMPLATE_ASSETS_PUBLIC_ROOT:./uploads/dish-template-assets}
     public-url-prefix: /uploads/dish-template-assets
   jwt:
-    secret: ${FAMILY_KITCHEN_JWT_SECRET:}
+    secret: ${FAMILY_KITCHEN_JWT_SECRET}
     expires-in-seconds: 7200
   auth:
     bootstrap-admin:
-      username: admin
+      username: ${FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_USERNAME:admin}
       display-name: 系统管理员
-      password: ${FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_PASSWORD:}
+      password: ${FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_PASSWORD}
   wechat:
-    app-id: "${FAMILY_KITCHEN_WECHAT_APP_ID:}"
-    app-secret: "${FAMILY_KITCHEN_WECHAT_APP_SECRET:}"
+    app-id: "${FAMILY_KITCHEN_WECHAT_APP_ID}"
+    app-secret: "${FAMILY_KITCHEN_WECHAT_APP_SECRET}"
