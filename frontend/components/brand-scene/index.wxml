@@ -3,7 +3,7 @@
   <view wx:if="{{image}}" class="brand-scene__scrim"></view>
   <view class="brand-scene__copy">
     <text class="brand-scene__eyebrow">暖暖动物私厨</text>
-    <text class="brand-scene__title">{{title}}</text>
+    <text class="brand-scene__title">{{title || brandName}}</text>
     <text wx:if="{{subtitle}}" class="brand-scene__subtitle">{{subtitle}}</text>
     <slot></slot>
   </view>

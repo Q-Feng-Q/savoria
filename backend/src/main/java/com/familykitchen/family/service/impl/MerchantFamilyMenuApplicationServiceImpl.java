@@ -9,6 +9,7 @@ import com.familykitchen.family.model.dto.SaveFamilyMenuRequest;
 import com.familykitchen.family.model.vo.FamilyMenuItemView;
 import com.familykitchen.family.service.MerchantFamilyMenuApplicationService;
 import com.familykitchen.dish.service.DishApplicationService;
+import com.familykitchen.dish.model.entity.DishEntity;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,8 +59,10 @@ public class MerchantFamilyMenuApplicationServiceImpl implements MerchantFamilyM
   @Override
   @Transactional
   public void saveMenu(CurrentUserContext user, Long familyId, SaveFamilyMenuRequest request) {
+    familyMapper.lockMerchantForMenu(user.merchantId());
     requireFamily(user.merchantId(), familyId);
-    for (SaveFamilyMenuRequest.MenuItem item : request.items()) requireDish(user.merchantId(), item.dishId());
+    lockAndValidateDishes(user.merchantId(), request.items().stream()
+        .map(SaveFamilyMenuRequest.MenuItem::dishId).toList());
     familyMapper.deleteFamilyMenu(familyId);
     for (SaveFamilyMenuRequest.MenuItem item : request.items()) {
       familyMapper.insertFamilyMenuItem(
@@ -82,8 +85,10 @@ public class MerchantFamilyMenuApplicationServiceImpl implements MerchantFamilyM
   @Override
   @Transactional
   public void copyMenu(CurrentUserContext user, Long familyId, CopyFamilyMenuRequest request) {
+    familyMapper.lockMerchantForMenu(user.merchantId());
     requireFamily(user.merchantId(), familyId);
     requireFamily(user.merchantId(), request.sourceFamilyId());
+    lockAndValidateDishes(user.merchantId(), familyMapper.selectFamilyMenuDishIds(request.sourceFamilyId()));
     familyMapper.deleteFamilyMenu(familyId);
     familyMapper.copyFamilyMenu(familyId, request.sourceFamilyId());
   }
@@ -104,9 +109,14 @@ public class MerchantFamilyMenuApplicationServiceImpl implements MerchantFamilyM
     }
   }
 
-  private void requireDish(Long merchantId, Long dishId) {
-    if (familyMapper.countDishOwnership(merchantId, dishId) == 0) {
-      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "菜单菜品不存在或不属于当前商户");
+  private void lockAndValidateDishes(Long merchantId, List<Long> dishIds) {
+    List<Long> sortedIds = dishIds == null ? List.of() : dishIds.stream().distinct().sorted().toList();
+    if (sortedIds.isEmpty()) return;
+    List<DishEntity> locked = familyMapper.selectOwnedDishesForUpdate(merchantId, sortedIds);
+    if (locked == null || locked.size() != sortedIds.size()
+        || !locked.stream().map(DishEntity::getId).sorted().toList().equals(sortedIds)
+        || locked.stream().anyMatch(item -> "deleted".equalsIgnoreCase(item.getStatus()))) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "菜单菜品不存在、不属于当前商户或已删除");
     }
   }
 }

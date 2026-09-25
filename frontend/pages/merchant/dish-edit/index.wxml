@@ -1,13 +1,23 @@
-<view class="warm-page editor-page">
+<view class="merchant-story warm-page editor-page">
   <view class="editor-head"><text class="eyebrow">菜品管理</text><text class="editor-title">{{editTitle}}</text></view>
   <page-state wx:if="{{phase === 'loading' || phase === 'error'}}" phase="{{phase}}" title="菜品信息" description="{{errorMessage}}" bind:retry="retryLoad" />
   <view wx:else class="editor-content">
     <view class="form-section">
       <text class="section-title">基本信息</text>
-      <view class="field"><text class="label">菜名</text><input value="{{dish.name}}" data-field="name" bindinput="bindField" disabled="{{saving || uploading}}" /></view>
-      <view class="field"><text class="label">分类</text><picker range="{{dishCategories}}" value="{{categoryIndex}}" bindchange="bindCategory" disabled="{{saving || uploading}}"><view class="picker-control">{{selectedCategoryLabel}}</view></picker></view>
-      <view class="field"><text class="label">描述</text><textarea value="{{dish.description}}" data-field="description" bindinput="bindField" disabled="{{saving || uploading}}" /></view>
-      <view class="field"><text class="label">基础价格</text><input type="digit" value="{{dish.basePrice}}" data-field="basePrice" bindinput="bindField" disabled="{{saving || uploading}}" /></view>
+      <view class="field"><text class="label">菜名</text><input value="{{dish.name}}" data-field="name" bindinput="bindField" disabled="{{saving || uploading || stepUploading}}" /></view>
+      <view class="field"><text class="label">分类</text><picker class="editor-picker" range="{{dishCategories}}" value="{{categoryIndex}}" bindchange="bindCategory" disabled="{{saving || uploading || stepUploading}}"><view class="picker-control">{{selectedCategoryLabel}}</view></picker></view>
+      <view class="field"><text class="label">描述</text><textarea value="{{dish.description}}" data-field="description" bindinput="bindField" disabled="{{saving || uploading || stepUploading}}" /></view>
+      <view class="field">
+        <text class="label">菜品类型</text>
+        <picker class="editor-picker" range="{{productTypes}}" range-key="label" value="{{dish.productType === 'NOURISHMENT' ? 1 : 0}}" bindchange="bindProductType" disabled="{{saving || uploading || stepUploading}}"><view class="picker-control">{{dish.productType === 'NOURISHMENT' ? '滋补食品' : '普通菜品'}} · 点击选择</view></picker>
+      </view>
+      <view wx:if="{{dish.productType === 'NOURISHMENT'}}">
+        <text class="muted">每项最多 1000 字，未填写则不展示。请填写食品特点与食用提示，勿填写疾病治疗或疗效保证。</text>
+        <view class="field"><text class="label">滋补介绍（选填）</text><textarea value="{{dish.nourishmentDescription}}" data-field="nourishmentDescription" bindinput="bindField" maxlength="1000" disabled="{{saving || uploading || stepUploading}}" placeholder="未填写则不展示" /></view>
+        <view class="field"><text class="label">食用建议（选填）</text><textarea value="{{dish.servingAdvice}}" data-field="servingAdvice" bindinput="bindField" maxlength="1000" disabled="{{saving || uploading || stepUploading}}" placeholder="未填写则不展示" /></view>
+        <view class="field"><text class="label">注意事项（选填）</text><textarea value="{{dish.precautions}}" data-field="precautions" bindinput="bindField" maxlength="1000" disabled="{{saving || uploading || stepUploading}}" placeholder="未填写则不展示" /></view>
+      </view>
+      <view class="field"><text class="label">基础价格</text><input type="digit" value="{{dish.basePrice}}" data-field="basePrice" bindinput="bindField" disabled="{{saving || uploading || stepUploading}}" /></view>
     </view>
     <view class="form-section">
       <text class="section-title">菜品图片</text>
@@ -16,20 +26,20 @@
     <view class="form-section">
       <view class="section-head"><text class="section-title">原材料</text><view class="text-action" bindtap="openIngredientLibrary" aria-role="button" aria-label="打开食材库" hover-class="ui-button--pressed">食材库</view></view>
       <block wx:for="{{dish.ingredients}}" wx:key="id"><view class="line-row"><view><text class="strong">{{item.name}}</text><text class="muted">{{item.quantity}}{{item.unit}} · {{item.calculationType}}</text></view><view class="text-action" data-index="{{index}}" bindtap="removeIngredient" aria-role="button" aria-label="删除原材料" hover-class="ui-button--pressed">删除</view></view></block>
-      <picker range="{{ingredients}}" range-key="name" value="{{ingredientIndex}}" bindchange="bindIngredient" disabled="{{saving || uploading}}"><view class="picker-control">{{selectedIngredientName}}</view></picker>
-      <input type="digit" value="{{newIngredientQuantity}}" bindinput="bindQuantity" placeholder="用量" disabled="{{saving || uploading}}" />
-      <picker range="{{calculationTypes}}" range-key="label" value="{{calculationIndex}}" bindchange="bindCalculation" disabled="{{saving || uploading}}"><view class="picker-control">{{selectedCalculationLabel}}</view></picker>
+      <picker class="editor-picker" range="{{ingredients}}" range-key="name" value="{{ingredientIndex}}" bindchange="bindIngredient" disabled="{{saving || uploading || stepUploading}}"><view class="picker-control">{{selectedIngredientName}}</view></picker>
+      <input type="digit" value="{{newIngredientQuantity}}" bindinput="bindQuantity" placeholder="用量" disabled="{{saving || uploading || stepUploading}}" />
+      <picker class="editor-picker" range="{{calculationTypes}}" range-key="label" value="{{calculationIndex}}" bindchange="bindCalculation" disabled="{{saving || uploading || stepUploading}}"><view class="picker-control">{{selectedCalculationLabel}}</view></picker>
       <view class="ui-button secondary-action" bindtap="addIngredient" aria-role="button" aria-label="添加原材料" hover-class="ui-button--pressed">添加原材料</view>
     </view>
     <view class="form-section">
       <text class="section-title">制作步骤</text>
       <view wx:if="{{!hasCookingSteps}}" class="empty-copy">尚未添加制作步骤</view>
-      <block wx:for="{{dish.cookingSteps}}" wx:key="index"><view class="line-row"><view><text class="strong">{{index + 1}}. {{item.title}}</text><text class="muted">{{item.content}}</text><text wx:if="{{item.heatLevel || item.temperatureText || item.durationSeconds}}" class="muted">{{item.heatLevel}} {{item.temperatureText}} {{item.durationSeconds ? item.durationSeconds + ' 秒' : ''}}</text></view><view class="text-action" data-index="{{index}}" bindtap="removeCookingStep" aria-role="button" aria-label="删除步骤" hover-class="ui-button--pressed">删除</view></view></block>
-      <input value="{{stepTitle}}" bindinput="bindStepTitle" placeholder="步骤标题" disabled="{{saving || uploading}}" />
-      <textarea value="{{stepContent}}" bindinput="bindStepContent" placeholder="步骤内容" disabled="{{saving || uploading}}" />
+      <block wx:for="{{dish.cookingSteps}}" wx:key="index"><view class="line-row"><view><text class="strong">{{index + 1}}. {{item.title}}</text><text class="muted">{{item.content}}</text><text wx:if="{{item.heatLevel || item.temperatureText || item.durationSeconds}}" class="muted">{{item.heatLevel}} {{item.temperatureText}} {{item.durationSeconds ? item.durationSeconds + ' 秒' : ''}}</text></view><view class="text-action" data-index="{{index}}" bindtap="removeCookingStep" aria-role="button" aria-label="删除步骤" hover-class="ui-button--pressed">删除</view></view><step-images images="{{item.imageUrls}}" editable="{{true}}" disabled="{{saving || uploading || stepUploading}}" data-index="{{index}}" bind:change="onStepImagesChange" bind:busy="onStepImagesBusy" /></block>
+      <input value="{{stepTitle}}" bindinput="bindStepTitle" placeholder="步骤标题" disabled="{{saving || uploading || stepUploading}}" />
+      <textarea value="{{stepContent}}" bindinput="bindStepContent" placeholder="步骤内容" disabled="{{saving || uploading || stepUploading}}" />
       <view class="ui-button secondary-action" bindtap="addCookingStep" aria-role="button" aria-label="添加制作步骤" hover-class="ui-button--pressed">添加制作步骤</view>
     </view>
     <view class="form-section"><text class="section-title">上架状态</text><view class="ui-button status-action" bindtap="toggleStatus" aria-role="button" aria-label="{{statusLabel}}" hover-class="ui-button--pressed">{{statusLabel}}</view></view>
   </view>
 </view>
-<view wx:if="{{phase === 'ready'}}" class="safe-action-bar"><view class="ui-button save-action" bindtap="saveDish" aria-role="button" aria-label="保存菜品" hover-class="ui-button--pressed">{{saving ? '保存中' : '保存菜品'}}</view></view>
+<view wx:if="{{phase === 'ready'}}" class="safe-action-bar merchant-story-bar"><view class="ui-button save-action" bindtap="saveDish" aria-role="button" aria-label="保存菜品" hover-class="ui-button--pressed">{{saving ? '保存中' : '保存菜品'}}</view></view>

@@ -4,3 +4,5 @@
 
 @media (min-width:700px){.family-manage-page{--fm-primary:#9f4f3d;--fm-ink:#4f392f;--fm-positive:#55705c;--fm-danger:#a63f35;--fm-secondary-border:#9b765f;padding-left:48rpx;padding-right:48rpx}.manage-section{padding:36rpx}.manage-title{font-size:48rpx}}
 .section-quiet-action,.mini-action{min-height:88rpx}
+
+@import "../../../styles/storybook-subpages.wxss";

@@ -14,6 +14,24 @@ function isMerchantSession(session) {
     || (session.merchantAdminScopes || []).includes('merchant'));
 }
 
+function expireCurrentSession() {
+  const session = sessionStore.getSession();
+  if (!session) return false;
+  if (session.userId !== undefined && session.userId !== null) {
+    sessionStore.markRequiresLogin(session.userId, true);
+  }
+  sessionStore.clearSession();
+  wx.reLaunch({ url: '/pages/auth/entry/index' });
+  return true;
+}
+
+function isUnauthorizedError(error) {
+  return Boolean(error && (
+    error.code === 40101 || error.code === 401
+    || error.statusCode === 401 || error.status === 401
+  ));
+}
+
 function requireSession(options = {}) {
   const session = sessionStore.getSession();
   if (!session) {
@@ -21,9 +39,19 @@ function requireSession(options = {}) {
     return null;
   }
 
+  if (session.requiresLogin || !session.accessToken) {
+    expireCurrentSession();
+    return null;
+  }
+
   if (options.merchantOnly && !isMerchantSession(session)) {
     wx.showToast({ title: '当前身份无权限', icon: 'none' });
     wx.redirectTo({ url: '/pages/account/account-management/index' });
+    return null;
+  }
+
+  if (options.familyOnly && !session.familyId) {
+    redirectBySession(session);
     return null;
   }
 
@@ -51,9 +79,8 @@ function redirectBySession(session) {
 
 function resolveApiErrorMessage(error, fallbackMessage = '请求失败，请稍后再试') {
   if (!error) return fallbackMessage;
-  if (error.code === 40101) {
-    sessionStore.clearSession();
-    wx.reLaunch({ url: '/pages/auth/entry/index' });
+  if (isUnauthorizedError(error)) {
+    expireCurrentSession();
     return '登录已失效，请重新进入';
   }
   return error.message || fallbackMessage;

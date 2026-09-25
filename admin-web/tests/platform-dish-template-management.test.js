@@ -18,7 +18,7 @@ test('platform template API covers management and controlled image review', () =
 test('platform template routes and menu are restricted to platform administrators', () => {
   const router = read('src/router/index.js');
   const config = read('ui-config.js');
-  const layout = read('src/layouts/AdminLayout.vue');
+  const layout = read('src/workspaces.js');
   assert.match(router, /PlatformDishTemplatesView/);
   assert.match(router, /PlatformDishTemplateDetailView/);
   assert.match(router, /path: 'platform-dish-templates'/);

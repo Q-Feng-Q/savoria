@@ -11,6 +11,7 @@ const factories = {
   auth: require('../services/auth').createAuthService,
   cart: require('../services/cart').createCartService,
   family: require('../services/family').createFamilyService,
+  feedback: require('../services/feedback').createFeedbackService,
   files: require('../services/files').createFilesService,
   merchant: require('../services/merchant').createMerchantService,
   notifications: require('../services/notifications').createNotificationsService,
@@ -76,6 +77,7 @@ const parameterNames = (fn) => {
 const argumentFor = (name, index) => {
   const clean = name.replace(/^_/, '')
   if (/filePath/i.test(clean)) return 'D:/contract/image.png'
+  if (clean === 'page') return 2
   if (/templateIds/i.test(clean)) return [901, 902]
   if (/featured/i.test(clean)) return true
   if (/(^id$|Id$)/.test(clean)) return 901 + index
@@ -115,6 +117,10 @@ for (const [serviceName, factory] of Object.entries(factories)) {
       captured.push({ kind: 'request', pathname, options })
       return { code: 0, data: { contract: true } }
     },
+    download: async (options) => {
+      captured.push({ kind: 'download', options })
+      return { statusCode: 200, tempFilePath: '/private/contract.png' }
+    },
     upload: async (options) => {
       captured.push({ kind: 'upload', options })
       return { statusCode: 200, data: JSON.stringify({ code: 0, data: { url: '/uploads/contract.png' } }) }
@@ -124,16 +130,22 @@ for (const [serviceName, factory] of Object.entries(factories)) {
   for (const [functionName, fn] of Object.entries(service)) {
     captured.length = 0
     const names = parameterNames(fn)
-    const args = names.map(argumentFor)
+    let args = names.map(argumentFor)
+    if (serviceName === 'merchant' && functionName === 'getDishes') args = [{ scope: 'deleted' }]
+    if (serviceName === 'merchant' && ['batchDeleteDishes', 'batchRestoreDishes'].includes(functionName)) {
+      args = [{ dishIds: [901, 902] }]
+    }
     await fn.apply(service, args)
     if (captured.length !== 1) throw new Error(`${serviceName}.${functionName} captured ${captured.length} calls`)
     const call = captured[0]
     const pathname = call.kind === 'request'
       ? call.pathname
       : new URL(call.options.url).pathname
-    const route = normalizeRoute(pathname, names, args)
+    const publicPathname = call.kind !== 'request' && !pathname.startsWith('/api/')
+      ? `/api${pathname}` : pathname
+    const route = normalizeRoute(publicPathname, names, args)
     const backendRoute = route.replace(/^\/api(?=\/)/, '')
-    const method = call.kind === 'upload' ? 'POST' : call.options.method
+    const method = call.kind === 'upload' ? 'POST' : call.kind === 'download' ? 'GET' : call.options.method
     const handlers = routes.filter((candidate) => candidate.method === method && candidate.route === backendRoute)
     if (handlers.length !== 1) {
       throw new Error(`${serviceName}.${functionName}: ${method} ${backendRoute} matched ${handlers.length} controllers`)

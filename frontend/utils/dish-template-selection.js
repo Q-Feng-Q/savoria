@@ -1,3 +1,4 @@
+const { buildNourishmentSections } = require('./nourishment');
 function normalizeIds(ids) {
   return Array.from(new Set((ids || []).map(Number).filter(Number.isFinite))).slice(0, 100);
 }
@@ -10,7 +11,7 @@ function createDishTemplateSelection(initialIds = []) {
   return {
     toggle(item) {
       const id = Number(item && item.templateId);
-      if (!Number.isFinite(id) || item.imported) return state();
+      if (!Number.isFinite(id) || item.imported || item.importable === false) return state();
       if (selectedIds.includes(id)) selectedIds = selectedIds.filter(value => value !== id);
       else if (selectedIds.length < 100) selectedIds.push(id);
       return state(selectedIds.length >= 100);
@@ -19,7 +20,7 @@ function createDishTemplateSelection(initialIds = []) {
       let limitReached = false;
       for (const item of items || []) {
         const id = Number(item.templateId);
-        if (!Number.isFinite(id) || item.imported || selectedIds.includes(id)) continue;
+        if (!Number.isFinite(id) || item.imported || item.importable === false || selectedIds.includes(id)) continue;
         if (selectedIds.length >= 100) { limitReached = true; break; }
         selectedIds.push(id);
       }
@@ -45,6 +46,9 @@ function decorateTemplateRows(rows, selectedIds = [], imageResolver = (value) =>
   const selected = new Set((selectedIds || []).map(Number));
   return (rows || []).map((item) => {
     const rawImageUrl = item.imageUrl || '';
+    const importable = typeof item.importable === 'boolean' ? item.importable
+      : item.dataStatus === 'READY' && item.procurementReady === true
+        && item.referencePrice !== null && item.referencePrice !== undefined;
     return {
       ...item,
       imageUrl: imageResolver(rawImageUrl),
@@ -53,7 +57,9 @@ function decorateTemplateRows(rows, selectedIds = [], imageResolver = (value) =>
       tagsText: (item.tasteTags || []).join(' · '),
       priceText: templatePriceText(item.referencePrice),
       sourceLabel: SOURCE_LABELS[item.sourceType] || item.sourceCategory || '平台菜谱',
-      stepsLabel: item.missingSteps ? '步骤待补充' : '含制作步骤'
+      stepsLabel: item.missingSteps ? '步骤待补充' : '含制作步骤',
+      importable,
+      readinessLabel: importable ? '可导入' : '待完善后导入'
     };
   });
 }
@@ -78,6 +84,7 @@ function decorateTemplateDetail(detail = {}, imageResolver = (value) => value ||
   return {
     ...row,
     descriptionText: detail.description || '暂无菜谱简介',
+    nourishmentSections: buildNourishmentSections(detail),
     tasteText: (detail.tasteTags || []).join(' · '),
     mealText: (detail.mealTags || []).map((value) => ({
       BREAKFAST: '早餐', LUNCH: '午餐', DINNER: '晚餐'

@@ -32,6 +32,36 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /** 验证平台模板编辑和图片审核的权限、并发与状态边界。 */
 @ExtendWith(MockitoExtension.class)
 class AdminDishTemplateServiceTest {
+  @Test void legacyTemplateStepPreservesImagesByStableItemKey() {
+    when(mapper.selectTemplateForUpdate(8L)).thenReturn(template(8L, 3L));
+    when(mapper.selectCategoryForUpdate(2L)).thenReturn(category());
+    when(evaluator.evaluate(any(), any(), any())).thenReturn(
+        new DishTemplateProcurementReadinessEvaluator.EvaluationResult(true, List.of(), List.of()));
+    when(mapper.updateAdminTemplate(any(), any())).thenReturn(1);
+    var old = new com.familykitchen.dish.model.entity.DishTemplateCookingStepEntity();
+    old.setItemKey("step-1"); old.setImageUrls(List.of("/uploads/images/old.jpg"));
+    when(mapper.selectTemplateCookingSteps(8L)).thenReturn(List.of(old));
+    service.update(admin, 8L, request(3L));
+    var saved = org.mockito.ArgumentCaptor.forClass(com.familykitchen.dish.model.entity.DishTemplateCookingStepEntity.class);
+    verify(mapper).insertTemplateCookingStep(saved.capture());
+    assertEquals(old.getImageUrls(), saved.getValue().getImageUrls());
+  }
+  @Test void templateNourishmentPreservesNullClearsBlankAndSurvivesNormalSwitch() throws Exception {
+    DishTemplateEntity existing = template(8L, 3L);
+    existing.setProductType("NOURISHMENT"); existing.setNourishmentDescription("保留介绍"); existing.setServingAdvice("旧建议");
+    when(mapper.selectTemplateForUpdate(8L)).thenReturn(existing);
+    when(mapper.selectCategoryForUpdate(2L)).thenReturn(category());
+    when(evaluator.evaluate(any(), any(), any())).thenReturn(
+        new DishTemplateProcurementReadinessEvaluator.EvaluationResult(true, List.of(), List.of()));
+    when(mapper.updateAdminTemplate(any(), any())).thenReturn(1);
+    ObjectMapper json = new ObjectMapper();
+    com.fasterxml.jackson.databind.node.ObjectNode body = json.valueToTree(request(3L));
+    body.put("productType", "NORMAL").put("servingAdvice", "   ");
+    service.update(admin, 8L, json.treeToValue(body, AdminDishTemplateUpdateRequest.class));
+    assertEquals("NORMAL", existing.getProductType());
+    assertEquals("保留介绍", existing.getNourishmentDescription());
+    org.junit.jupiter.api.Assertions.assertNull(existing.getServingAdvice());
+  }
   @Mock private DishTemplateMapper mapper;
   @Mock private DishTemplateProcurementReadinessEvaluator evaluator;
   @Mock private DishTemplateImageStorageService storage;

@@ -67,4 +67,16 @@ public interface DishReviewMapper {
    * @return 统计Pending的结果
    */
   int countPending(@Param("merchantId") Long merchantId,@Param("dishId") Long dishId);
+
+  /** Rejects pending review submissions for logically deleted dishes.
+   * @param merchantId merchant identifier
+   * @param dishIds deleted dish identifiers
+   * @param reviewedBy operator user identifier
+   * @param reason rejection reason
+   * @return affected row count
+   */
+  int rejectPendingForDeletedDishes(@Param("merchantId") Long merchantId,
+                                    @Param("dishIds") List<Long> dishIds,
+                                    @Param("reviewedBy") Long reviewedBy,
+                                    @Param("reason") String reason);
 }

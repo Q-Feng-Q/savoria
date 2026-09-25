@@ -1,5 +1,5 @@
-<view class="warm-page warm-state-host accounts-page">
-  <view class="accounts-head">
+<view class="story-page story-subpage warm-page warm-state-host accounts-page">
+  <view class="accounts-head"><view class="story-subhead-art"><image class="story-art__atlas story-art__atlas--family" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
     <text class="accounts-title">账号与身份</text>
     <text class="accounts-note">选择账号后，再进入家庭端或商户端。</text>
   </view>

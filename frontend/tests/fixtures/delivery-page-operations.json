@@ -1,4 +1,7 @@
 {
+  "pages/account/feedback-list/index": ["feedback.list"],
+  "pages/account/feedback-create/index": ["feedback.submit", "feedback.uploadImage"],
+  "pages/account/feedback-detail/index": ["feedback.detail", "feedback.downloadImage"],
   "pages/auth/entry/index": [
     "user.getContext"
   ],
@@ -33,7 +36,9 @@
     "user.getContext"
   ],
   "pages/family/home/index": [
-    "family.getHome"
+    "cart.getCart",
+    "family.getHome",
+    "orders.listOrders"
   ],
   "pages/ordering/menu/index": [
     "cart.getCart",
@@ -46,6 +51,7 @@
     "orders.submitOrder"
   ],
   "pages/ordering/orders/index": [
+    "family.getMenuItems",
     "orders.listOrders"
   ],
   "pages/account/profile/index": [
@@ -104,6 +110,8 @@
     "merchant.getOrderDetail"
   ],
   "pages/merchant/merchant-dishes/index": [
+    "merchant.batchDeleteDishes",
+    "merchant.batchRestoreDishes",
     "merchant.getDishCategories",
     "merchant.getDishes",
     "merchant.getIngredients",

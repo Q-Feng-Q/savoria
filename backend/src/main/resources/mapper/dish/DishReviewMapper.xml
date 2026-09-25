@@ -25,4 +25,10 @@
     review_reason=#{reason},reviewed_at=NOW() WHERE id=#{id} AND status='PENDING'</update>
   <update id="reject">UPDATE dish_review_submissions SET status='REJECTED',reviewed_by=#{reviewedBy},
     review_reason=#{reason},reviewed_at=NOW() WHERE id=#{id} AND status='PENDING'</update>
+  <update id="rejectPendingForDeletedDishes">
+    UPDATE dish_review_submissions
+    SET status='REJECTED',reviewed_by=#{reviewedBy},review_reason=#{reason},reviewed_at=NOW()
+    WHERE merchant_id=#{merchantId} AND status='PENDING' AND target_dish_id IN
+    <foreach collection="dishIds" item="dishId" open="(" separator="," close=")">#{dishId}</foreach>
+  </update>
 </mapper>

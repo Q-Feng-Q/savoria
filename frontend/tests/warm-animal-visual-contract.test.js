@@ -19,12 +19,12 @@ test('home hero uses the generated warm animal kitchen artwork', () => {
   const wxml = read('pages/family/home/index.wxml')
   const wxss = read('pages/family/home/index.wxss')
 
-  assert.match(wxml, /animal-kitchen-hero\.webp/)
+  assert.match(wxml, /approved-story-atlas\.jpg/)
   assert.match(wxml, /crew\.chefRecommendationLabel/)
   assert.match(wxml, /crew\.helperLabel/)
   assert.match(wxml, /crew\.tasterLabel/)
   assert.doesNotMatch(wxml, /小熊|兔子帮厨|橘猫试吃员/)
-  assert.match(wxss, /animal-breathe/)
+  assert.match(wxss, /approved-storybook\.wxss/)
 })
 
 test('home recommendations use a detail-enabled swiper with indicators and a bounded next-card peek', () => {
@@ -43,7 +43,7 @@ test('ordering menu exposes a lightweight chef recommendation label', () => {
   const wxml = read('pages/ordering/menu/index.wxml')
   const wxss = read('pages/ordering/menu/index.wxss')
 
-  assert.match(wxml, /wx:if="\{\{item\.featured\}\}"[^>]+class="menu-featured-tag"[^>]*>主厨推荐</)
+  assert.match(wxml, /wx:if="\{\{dish\.featured\}\}"[^>]+class="menu-featured-tag"[^>]*>主厨推荐</)
   assert.match(wxss, /\.menu-featured-tag\s*\{[^}]*background:[^;}]+;?[^}]*font-size:/s)
 })
 
@@ -53,7 +53,7 @@ test('shared brand and account surfaces use the mascot trio', () => {
   const menu = read('pages/ordering/menu/index.wxml')
 
   assert.match(brandScene, /animal-mascot-trio\.webp/)
-  assert.match(profile, /animal-mascot-trio\.webp/)
+  assert.match(profile, /approved-story-atlas\.jpg/)
   assert.match(profile, /crew\.tasterWelcomeLabel/)
   assert.match(menu, /crew\.helperLabel/)
 })

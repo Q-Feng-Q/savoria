@@ -1,0 +1,20 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const source = fs.readFileSync(path.join(__dirname, '../src/workspaces.js'), 'utf8');
+const load = () => import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+test('merchant has five workspaces and platform adds user feedback as sixth', async () => {
+  const { visibleWorkspaces, workspaceForPath } = await load();
+  const merchant = visibleWorkspaces(false, true);
+  assert.equal(merchant.length, 5);
+  assert.equal(workspaceForPath('/ingredients', merchant).key, 'dishes');
+  assert.equal(workspaceForPath('/menus', merchant).key, 'families');
+  assert.equal(workspaceForPath('/users', merchant), undefined);
+  const platform = visibleWorkspaces(true, false);
+  assert.equal(platform.length, 6);
+  assert.equal(workspaceForPath('/platform-feedback', merchant), undefined);
+  assert.equal(workspaceForPath('/platform-feedback', platform).key, 'feedback');
+  assert.equal(workspaceForPath('/platform-dish-templates/42', platform).key, 'templates');
+  assert.equal(workspaceForPath('/family-applications', platform).key, 'reviews');
+});

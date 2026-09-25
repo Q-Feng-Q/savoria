@@ -12,6 +12,12 @@ function trimTrailingSlash(value) {
   return String(value || '').replace(/\/+$/, '');
 }
 
+function normalizeBackendPath(pathname) {
+  const value = String(pathname || '');
+  if (value === '/api') return '/';
+  return value.startsWith('/api/') ? value.slice(4) : value;
+}
+
 function normalizeError(statusCode, payload) {
   const error = new Error((payload && payload.message) || `request failed with status ${statusCode}`);
   error.code = payload && payload.code ? payload.code : statusCode;
@@ -72,7 +78,7 @@ function createApiClient(options = {}) {
       header.Authorization = `Bearer ${token}`;
     }
 
-    const backendPath = pathname === '/api' ? '/' : (pathname.startsWith('/api/') ? pathname.slice(4) : pathname);
+    const backendPath = normalizeBackendPath(pathname);
     const response = await requestAdapter({
       ...requestOptions,
       url: `${baseUrl}${backendPath}`,
@@ -90,5 +96,6 @@ function createApiClient(options = {}) {
 
 module.exports = {
   buildAuthHeaders,
-  createApiClient
+  createApiClient,
+  normalizeBackendPath
 };

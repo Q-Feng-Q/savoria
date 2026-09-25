@@ -127,11 +127,12 @@ class DishApplicationServiceUpdateTest {
     imported.setName("豆角焖面");
     imported.setBasePrice(BigDecimal.TEN);
     imported.setStatus("active");
-    when(mapper.selectDishes(2L)).thenReturn(List.of(imported));
+    when(mapper.selectDishes(2L, "available")).thenReturn(List.of(imported));
 
     DishView view = new DishApplicationServiceImpl(mapper, mock(SystemSettingService.class),
         mock(DishReviewService.class), mock(MerchantDishMutationLock.class), mock(FamilyMapper.class)).dishes(
-        new CurrentUserContext(1L, 2L, null, null, null, Set.of("MERCHANT_ADMIN"), Set.of())).get(0);
+        new CurrentUserContext(1L, 2L, null, null, null, Set.of("MERCHANT_ADMIN"), Set.of()),
+        "available").get(0);
 
     org.junit.jupiter.api.Assertions.assertEquals(5L, view.sourceTemplateId());
     org.junit.jupiter.api.Assertions.assertTrue(view.templateImported());

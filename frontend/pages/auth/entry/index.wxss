@@ -1,3 +1,5 @@
+@import "../../../styles/storybook-auth.wxss";
+
 .entry-page {
   min-height: 100vh;
   padding: 26rpx 26rpx 64rpx;

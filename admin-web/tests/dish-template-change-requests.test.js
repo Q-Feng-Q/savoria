@@ -19,7 +19,7 @@ test('PC client exposes merchant submit/history and platform review endpoints', 
 test('PC routes and navigation expose merchant applications and platform review', () => {
   const router = read('src/router/index.js');
   const config = read('ui-config.js');
-  const layout = read('src/layouts/AdminLayout.vue');
+  const layout = read('src/workspaces.js');
 
   assert.match(router, /DishTemplateChangesView/);
   assert.match(router, /DishTemplateChangeReviewsView/);
@@ -35,13 +35,15 @@ test('merchant template market supports opening a full change request editor', (
   const utility = read('src/utils/dish-template-changes.js');
   assert.match(view, /申请修改/);
   assert.match(view, /submitDishTemplateChange/);
-  assert.doesNotMatch(view, /imageSourceUrl|imageAuthor|imageLicense|uploadTemplateImage/);
+  assert.match(view, /uploadTemplateImage/);
+  assert.match(view, /图片使用权/);
+  assert.doesNotMatch(view, /imageSourceUrl|imageAuthor|imageLicense/);
   assert.match(view, /ingredientCategory/);
   assert.match(view, /mealTags/);
   assert.match(view, /cookingSteps/);
   assert.match(view, /quantityStatus/);
   assert.match(utility, /schemaVersion:\s*2/);
-  assert.doesNotMatch(utility, /imageUrl:\s*text\(form\.imageUrl\)/);
+  assert.match(utility, /imageUrl:\s*text\(form\.imageUrl\)/);
 });
 
 test('merchant dish management can submit an imported dish without building a template snapshot', () => {
@@ -67,4 +69,5 @@ test('platform review shows both snapshots, stale warning and explicit decisions
   assert.match(comparison, /制作步骤对比/);
   assert.match(comparison, /baseSteps/);
   assert.match(comparison, /targetSteps/);
+  assert.match(comparison, /图片对比/);
 });

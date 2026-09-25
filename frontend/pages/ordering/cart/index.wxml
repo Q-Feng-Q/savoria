@@ -1,26 +1,25 @@
-<view class="warm-page warm-state-host cart-page">
+<view class="warm-page warm-state-host cart-page story-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="餐篮暂时没准备好" description="{{errorMessage || '正在同步全家的选择'}}" illustration="orders" bind:retry="load" />
   <block wx:else>
-    <view class="cart-head">
-      <text class="cart-head__kicker">家庭共享餐篮 · 仅限今天</text>
-      <text class="cart-head__title">确认今天的菜</text>
-      <text class="cart-head__note">{{context.member.name}} · {{context.family.name}} · 家庭钱包统一结算</text>
+    <view class="story-brand cart-head">
+      <view class="story-art"><image class="story-art__atlas" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
+      <view class="story-brand__copy"><brand-logo size="standard" /><text class="story-brand__tagline">让家常菜 · 温暖每一餐</text></view>
     </view>
 
     <view class="checkout-section time-section">
-      <view class="section-line"><text>预计用餐时间</text><text>{{serviceDate}}</text></view>
+      <view class="story-heading"><image class="story-leaf story-icon" src="/assets/ui/story/calendar-green.png" /><text>预计用餐时间</text></view>
       <view wx:if="{{bookingEnded}}" class="booking-ended">今天已停止预约，请明天再来</view>
-      <picker wx:else mode="selector" range="{{expectedMealTimeOptions}}" range-key="label" value="{{expectedMealTimeIndex}}" bindchange="bindExpectedMealTime">
-        <view class="picker-text expected-time-picker">{{expectedMealTimeText}}<text>修改</text></view>
-      </picker>
+      <view wx:else class="time-content"><picker class="time-picker" mode="selector" range="{{expectedMealTimeOptions}}" range-key="label" value="{{expectedMealTimeIndex}}" bindchange="bindExpectedMealTime">
+        <view class="expected-time-picker"><image class="time-clock story-icon" src="/assets/ui/story/clock-orange.png" /><view><text class="time-date">{{expectedMealDateText}}</text><text class="time-value">{{expectedMealClockText}}</text></view><text class="time-chevron">›</text></view>
+      </picker><text class="time-quote">按时开饭\n一家人都在\n就是最好的时光</text></view>
     </view>
 
-    <view class="checkout-section">
-      <view class="section-line"><text>交付方式</text><text>提交前可随时修改</text></view>
-      <view class="delivery-row"><view wx:for="{{deliveryOptions}}" wx:key="key" class="ui-button delivery-option {{item.activeClass}} {{item.disabled ? 'is-disabled' : ''}}" data-mode="{{item.key}}" data-disabled="{{item.disabled}}" aria-disabled="{{item.disabled}}" bindtap="selectDelivery" aria-role="button" aria-label="{{item.label}}" hover-class="ui-button--pressed" hover-stay-time="80">{{item.label}}</view></view>
-      <label wx:if="{{context.family.addresses.length}}" class="cart-field"><text>地址簿</text><picker range="{{addressOptions}}" range-key="label" value="{{addressIndex}}" bindchange="bindAddress"><view class="picker-text">{{addressOptions[addressIndex] ? addressOptions[addressIndex].label : '请选择地址'}}</view></picker></label>
-      <view wx:if="{{currentAddress}}" class="address-line"><text>{{currentAddress.contactName}} · {{currentAddress.phone}}</text><text>{{currentAddress.address}}</text></view>
-      <label class="cart-field"><text>整单备注</text><textarea value="{{cart.note}}" placeholder="不要香菜、孩子也吃……" bindblur="bindNote" /></label>
+    <view class="checkout-section fulfillment-section">
+      <view class="story-heading"><image class="story-leaf story-icon" src="/assets/ui/story/truck-green.png" /><text>取餐方式</text></view>
+      <view class="delivery-row"><view wx:for="{{displayDeliveryOptions}}" wx:key="key" class="delivery-option {{item.activeClass}} {{item.disabled ? 'is-disabled' : ''}}" data-mode="{{item.key}}" data-disabled="{{item.disabled}}" aria-disabled="{{item.disabled}}" bindtap="selectDelivery" aria-role="button" aria-label="{{item.label}}" hover-class="story-tap--pressed" hover-stay-time="80"><image class="delivery-option__icon" src="/assets/ui/story/{{item.icon}}-{{item.activeClass ? 'green' : 'ink'}}.png" /><text>{{item.label}}</text></view></view>
+      <label wx:if="{{familyDeliveryEnabled && context.family.addresses.length && deliveryMode === 'DELIVERY'}}" class="cart-field address-field"><text class="address-label">⌖ 配送地址</text><picker class="address-picker" range="{{addressOptions}}" range-key="label" value="{{addressIndex}}" bindchange="bindAddress"><view class="address-line"><image class="address-pin story-icon" src="/assets/ui/story/pin-green.png" /><view class="address-copy"><text class="address-main">{{currentAddress ? currentAddress.address : '请选择配送地址'}}</text><text class="address-contact">{{currentAddress ? currentAddress.contactName + '  ' + currentAddress.phone : '从家庭地址簿中选择'}}</text></view><text class="address-chevron">›</text><text class="address-book">▦ 地址簿</text></view></picker></label>
+      <view wx:if="{{!familyDeliveryEnabled}}" class="delivery-disabled-note"><text class="delivery-notice-icon">!</text><view><text class="delivery-notice-title">家庭暂未开启配送，仅支持自取</text><text class="delivery-notice-copy">期待很快与您在餐桌相见～</text></view></view>
+      <view wx:else class="delivery-warm-note"><text class="delivery-note-leaf">❧</text><text>{{deliveryMode === 'DELIVERY' ? '美味正在路上，用食物，把温暖送到家' : '先在一起，好好吃饭，期待您的到来'}}</text></view>
     </view>
 
     <view class="selected-section">
@@ -32,12 +31,13 @@
             <view class="cart-row__copy">
               <view class="cart-row__title"><text class="cart-row__name">{{row.dishName}}</text><text class="cart-total-badge">共 × {{row.totalQuantity}}</text></view>
               <text class="cart-row__meta">¥{{row.price}} / 份 · 小计 ¥{{row.amount}}</text>
+              <text wx:if="{{!row.available}}" class="cart-item-warning">{{row.unavailableReason}}</text>
               <textarea data-id="{{row.id}}" value="{{row.note}}" placeholder="我选的这道菜备注" bindblur="bindItemNote" />
             </view>
             <view class="cart-stepper">
               <view data-id="{{row.id}}" data-delta="-1" bindtap="changeCount" class="ui-button" aria-role="button" aria-label="减少我的数量" hover-class="ui-button--pressed" hover-stay-time="80">−</view>
               <view class="my-count"><text>我选</text><text>{{row.myQuantity}}</text></view>
-              <view data-id="{{row.id}}" data-delta="1" bindtap="changeCount" class="ui-button" aria-role="button" aria-label="增加我的数量" hover-class="ui-button--pressed" hover-stay-time="80">＋</view>
+              <view data-id="{{row.id}}" data-delta="1" bindtap="changeCount" class="ui-button {{!row.available ? 'is-disabled' : ''}}" aria-role="button" aria-label="增加我的数量" aria-disabled="{{!row.available}}" hover-class="ui-button--pressed" hover-stay-time="80">＋</view>
             </view>
           </view>
           <view wx:if="{{row.hasSelectionDetails}}" class="ui-button selection-toggle" data-id="{{row.id}}" bindtap="toggleSelectionDetails" aria-role="button" aria-label="查看选择明细" hover-class="ui-button--pressed" hover-stay-time="80">{{expandedDishIds[row.id] ? '收起选择明细' : '查看谁选了这道菜'}}</view>
@@ -47,7 +47,9 @@
         </view>
       </block>
     </view>
+    <view class="checkout-section remark-section"><label class="cart-field"><text>整单备注</text><textarea class="cart-order-remark" value="{{cart.note}}" placeholder="口味、忌口或其他叮嘱……" bindblur="bindNote" /></label></view>
     <view wx:if="{{warningText}}" class="cart-warning">{{warningText}}</view>
+    <view class="story-footer"><view class="story-art"><image class="story-art__atlas story-art__atlas--footer" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-footer__copy">{{brandName}}\n把平凡的日子，过成温暖的诗</text></view>
     <bottom-action-bar summary="{{'合计 ¥' + totals.totalAmount}}" primaryText="提交订单" disabled="{{!canSubmit || mutationBusy}}" bind:primary="submitOrder"><text slot="summary" class="bottom-note">订单将从家庭钱包统一冻结并扣款</text></bottom-action-bar>
   </block>
 </view>

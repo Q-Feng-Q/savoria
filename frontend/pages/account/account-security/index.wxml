@@ -1,4 +1,4 @@
-<view class="warm-page warm-page--form warm-state-host warm-submit-state security-page">
+<view class="story-page story-subpage warm-page warm-page--form warm-state-host warm-submit-state security-page"><view class="story-subhead"><view class="story-subhead-art"><image class="story-art__atlas story-art__atlas--family" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-subhead__title">账户与安全</text><text class="story-subhead__note">安心守护每一次相聚</text></view>
   <page-state wx:if="{{loading}}" phase="loading" title="正在加载账户安全信息" />
   <block wx:else>
     <view class="security-group">
@@ -30,4 +30,3 @@
     </view>
   </block>
 </view>
-

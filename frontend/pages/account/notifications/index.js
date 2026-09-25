@@ -14,7 +14,7 @@ function buildNotificationContext(session) {
   return {
     merchant: {
       id: session.merchantId,
-      name: session.roleTemplate === 'merchant_admin' ? '商户工作台' : '食光知味'
+      name: session.roleTemplate === 'merchant_admin' ? '商户工作台' : '账号通知'
     },
     family: session.familyId ? { id: session.familyId, name: '当前家庭' } : null,
     member: session.memberId ? { id: session.memberId, name: '当前成员' } : null

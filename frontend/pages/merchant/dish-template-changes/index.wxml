@@ -1,4 +1,4 @@
-<view class="warm-page changes-page">
+<view class="merchant-story warm-page changes-page">
   <view class="changes-head"><view><text class="eyebrow">TEMPLATE REVIEW</text><text class="changes-title">模板修改申请</text><text class="changes-copy">跟踪系统模板修改进度，待审核申请可在详情中撤回。</text></view></view>
   <view class="search-row"><input value="{{keyword}}" bindinput="inputKeyword" bindconfirm="search" confirm-type="search" placeholder="搜索模板菜名" /><view class="search-action" bindtap="search" aria-role="button" aria-label="搜索模板修改申请" hover-class="ui-button--pressed">搜索</view></view>
   <scroll-view class="status-strip" scroll-x show-scrollbar="false"><view class="status-inner"><view wx:for="{{filters}}" wx:key="value" class="status-filter {{status === item.value ? 'status-filter--active' : ''}}" data-value="{{item.value}}" bindtap="chooseStatus" aria-role="button" aria-label="筛选{{item.label}}申请" hover-class="ui-button--pressed">{{item.label}}</view></view></scroll-view>

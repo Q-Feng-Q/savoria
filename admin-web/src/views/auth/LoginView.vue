@@ -2,8 +2,9 @@
   <div class="login-shell">
     <section class="login-panel">
       <div class="login-copy">
+        <BrandLogo variant="large" />
         <span class="login-kicker">SHI GUANG ZHI WEI</span>
-        <h1>食光知味商户后台</h1>
+        <h1>{{ branding.siteName }}商户后台</h1>
         <p>登录页只保留账号密码输入。接口地址统一从配置文件读取，登录后进入订单、菜品、家庭和采购管理。</p>
       </div>
 
@@ -32,6 +33,8 @@ import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { getAdminLandingRoute } from '../../config';
 import { useAuthStore } from '../../stores/auth';
+import BrandLogo from '../../components/BrandLogo.vue';
+import { branding } from '../../stores/branding';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -57,3 +60,4 @@ async function handleLogin() {
   }
 }
 </script>
+<style scoped>.login-copy h1 { overflow-wrap: anywhere; }</style>

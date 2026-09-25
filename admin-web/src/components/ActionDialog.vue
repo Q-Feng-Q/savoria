@@ -3,7 +3,7 @@
     <Transition name="dialog-fade">
       <div v-if="visible" class="action-dialog-layer" @click.self="cancel">
         <section class="action-dialog" role="dialog" aria-modal="true" :aria-labelledby="titleId">
-          <span class="page-eyebrow">{{ danger ? '请谨慎确认' : '食光知味工作台' }}</span>
+          <span class="page-eyebrow">{{ danger ? '请谨慎确认' : `${branding.siteName}工作台` }}</span>
           <h3 :id="titleId">{{ title }}</h3>
           <p v-if="message">{{ message }}</p>
           <label v-if="mode === 'prompt'" class="form-field action-dialog__field">
@@ -27,6 +27,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { ACTION_DIALOG_EVENT } from '../utils/dialog';
+import { branding } from '../stores/branding';
 
 const visible = ref(false);
 const mode = ref('confirm');

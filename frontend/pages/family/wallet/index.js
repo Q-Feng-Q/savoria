@@ -21,7 +21,7 @@ Page({
   retryLoad() { return this.load(); },
 
   async load() {
-    const session = requireSession();
+    const session = requireSession({ familyOnly: true });
     if (!session) return;
     const loadToken = this.identityLoad.begin(session);
     this.setData({ phase: 'loading', errorMessage: '', balanceCards: [], latestTransactions: [], context: null });

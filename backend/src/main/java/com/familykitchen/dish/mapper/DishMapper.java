@@ -14,6 +14,8 @@ import org.apache.ibatis.annotations.Param;
  */
 @Mapper
 public interface DishMapper {
+  List<DishEntity> selectDishesByProductType(@Param("merchantId") Long merchantId,
+      @Param("scope") String scope, @Param("productType") String productType);
 
   /**
    * 新增菜品并回填数据库生成的菜品 ID。
@@ -27,9 +29,11 @@ public interface DishMapper {
    * 查询商户菜品，商户推荐菜按推荐时间和菜品 ID 确定性优先排列。
    *
    * @param merchantId 商户标识
+   * @param scope available 或 deleted 查询范围
    * @return 查询Dishes的结果
    */
-  List<DishEntity> selectDishes(@Param("merchantId") Long merchantId);
+  List<DishEntity> selectDishes(@Param("merchantId") Long merchantId,
+                                @Param("scope") String scope);
 
   /**
    * 查询菜品。
@@ -55,6 +59,32 @@ public interface DishMapper {
    */
   DishEntity selectDishForUpdate(@Param("merchantId") Long merchantId,
                                  @Param("dishId") Long dishId);
+
+  /** Locks all requested owned dishes in ascending id order.
+   * @param merchantId merchant identifier
+   * @param dishIds sorted dish identifiers
+   * @return locked owned dishes
+   */
+  List<DishEntity> selectDishesForUpdate(@Param("merchantId") Long merchantId,
+                                         @Param("dishIds") List<Long> dishIds);
+
+  /** Marks currently non-deleted dishes deleted while preserving prior audit values.
+   * @param merchantId merchant identifier
+   * @param dishIds dish identifiers
+   * @param deletedBy operator user identifier
+   * @return affected row count
+   */
+  int markDishesDeleted(@Param("merchantId") Long merchantId,
+                        @Param("dishIds") List<Long> dishIds,
+                        @Param("deletedBy") Long deletedBy);
+
+  /** Restores currently deleted dishes to inactive without enabling family menus.
+   * @param merchantId merchant identifier
+   * @param dishIds dish identifiers
+   * @return affected row count
+   */
+  int restoreDeletedDishes(@Param("merchantId") Long merchantId,
+                           @Param("dishIds") List<Long> dishIds);
 
   /**
    * Counts only active, currently featured dishes for the merchant.

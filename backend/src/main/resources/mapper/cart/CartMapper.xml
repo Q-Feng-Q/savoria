@@ -22,8 +22,27 @@
     <result property="quantity" column="quantity"/><result property="itemRemark" column="item_remark"/>
   </resultMap>
 
+  <select id="selectFamilyMerchant" resultType="long">
+    select merchant_id from families where id=#{familyId}
+  </select>
+  <select id="lockMerchantForCart" resultType="long">
+    select id from merchants where id=#{merchantId} for update
+  </select>
+  <select id="lockDishesForCart" resultType="long">
+    select id from dishes
+    where merchant_id=#{merchantId} and id in
+    <foreach collection="dishIds" item="dishId" open="(" separator="," close=")">#{dishId}</foreach>
+    order by id asc for update
+  </select>
+  <select id="lockFamilyMenuItemsForCart" resultType="long">
+    select dish_id from family_menu_items
+    where family_id=#{familyId} and dish_id in
+    <foreach collection="dishIds" item="dishId" open="(" separator="," close=")">#{dishId}</foreach>
+    order by dish_id asc for update
+  </select>
+
   <select id="lockFamilyForCart" resultType="long">
-    select id from families where id=#{familyId} for update
+    select merchant_id from families where id=#{familyId} for update
   </select>
   <select id="selectFamilyActiveCart" resultMap="CartMap">
     select id,merchant_id,family_id,user_id,meal_slot_id,service_date,expected_meal_time,remark,status,version
@@ -45,8 +64,8 @@
     update carts set version=version+1 where id=#{cartId} and family_id=#{familyId} and status='active' and version=#{version}
   </update>
   <update id="submitFamilyCart">
-    update carts set status=''submitted'',version=version+1
-    where id=#{cartId} and family_id=#{familyId} and status=''active'' and version=#{version}
+    update carts set status='submitted',version=version+1
+    where id=#{cartId} and family_id=#{familyId} and status='active' and version=#{version}
   </update>
   <update id="updateExpectedMealTime">update carts set expected_meal_time=#{expectedMealTime} where id=#{cartId}</update>
 
@@ -58,6 +77,8 @@
     <result property="price" column="price"/>
     <result property="quantity" column="quantity"/>
     <result property="itemRemark" column="item_remark"/>
+    <result property="available" column="available"/>
+    <result property="unavailableReason" column="unavailable_reason"/>
   </resultMap>
 
   <select id="selectActiveCart" resultMap="CartMap">
@@ -96,16 +117,25 @@
   </select>
 
   <select id="selectCartItems" resultMap="CartItemMap">
-    select id, cart_id, dish_id, dish_name_snapshot, price, quantity, item_remark
-    from cart_items
-    where cart_id = #{cartId}
-    order by id asc
+    select ci.id, ci.cart_id, ci.dish_id, ci.dish_name_snapshot, ci.price, ci.quantity, ci.item_remark,
+           (d.status = 'active' and coalesce(fmi.enabled, 0) = 1) as available,
+           case when d.status = 'deleted' then '菜品已删除，不可提交'
+                when d.id is null then '菜品已删除，不可提交'
+                when d.status &lt;&gt; 'active' then '菜品已下架，不可提交'
+                when coalesce(fmi.enabled, 0) &lt;&gt; 1 then '家庭菜单已停用，不可提交'
+                else null end as unavailable_reason
+    from cart_items ci
+    join carts c on c.id = ci.cart_id
+    left join dishes d on d.id = ci.dish_id and d.merchant_id = c.merchant_id
+    left join family_menu_items fmi on fmi.family_id = c.family_id and fmi.dish_id = ci.dish_id
+    where ci.cart_id = #{cartId}
+    order by ci.id asc
   </select>
   <select id="selectAvailableDishForUpdate" resultType="com.familykitchen.cart.model.entity.CartDishSnapshot">
     select d.id as dishId,d.name as dishName,coalesce(fmd.final_price,d.base_price) as price
     from family_menu_items fmd join dishes d on d.id=fmd.dish_id
     where fmd.family_id=#{familyId} and fmd.dish_id=#{dishId}
-      and fmd.enabled=1 and d.status=''active'' limit 1 for update
+      and fmd.enabled=1 and d.status='active' limit 1 for update
   </select>
   <select id="selectCartItemsForUpdate" resultMap="CartItemMap">
     select id, cart_id, dish_id, dish_name_snapshot, price, quantity, item_remark

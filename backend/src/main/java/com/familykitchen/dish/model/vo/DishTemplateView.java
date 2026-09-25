@@ -17,6 +17,7 @@ import java.util.List;
  * @param tasteTags 口味标签
  * @param mealTags 推荐餐次
  * @param sourceCategory 来源原始分类
+ * @param sourceType 来源类型
  * @param templateType 模板类型
  * @param dataStatus 数据完整状态
  * @param procurementReady 采购用量是否就绪
@@ -25,10 +26,22 @@ import java.util.List;
  * @param version 模板并发版本号
  * @param ingredientCount 食材数量
  * @param imported 当前商户是否已导入
+ * @param importable 当前模板是否具备直接导入条件
  */
 @Schema(description = "平台菜品模板列表项")
 public record DishTemplateView(Long templateId, String templateCode, Long categoryId, String categoryName,
     String name, String description, String imageUrl, BigDecimal referencePrice, List<String> tasteTags,
-    List<String> mealTags, String sourceCategory, String templateType, String dataStatus,
+    List<String> mealTags, String sourceCategory, String sourceType, String templateType, String dataStatus,
     boolean procurementReady, String imageRightsStatus, boolean missingSteps, Long version,
-    Integer ingredientCount, boolean imported) { }
+    Integer ingredientCount, boolean imported, boolean importable,
+    String productType, String nourishmentDescription, String servingAdvice, String precautions
+) {
+  /** Backward-compatible constructor for clients without nourishment fields. */
+  public DishTemplateView(Long templateId, String templateCode, Long categoryId, String categoryName,
+    String name, String description, String imageUrl, BigDecimal referencePrice, List<String> tasteTags,
+    List<String> mealTags, String sourceCategory, String sourceType, String templateType, String dataStatus,
+    boolean procurementReady, String imageRightsStatus, boolean missingSteps, Long version,
+    Integer ingredientCount, boolean imported, boolean importable) {
+    this(templateId, templateCode, categoryId, categoryName, name, description, imageUrl, referencePrice, tasteTags, mealTags, sourceCategory, sourceType, templateType, dataStatus, procurementReady, imageRightsStatus, missingSteps, version, ingredientCount, imported, importable, "NORMAL", null, null, null);
+  }
+ }

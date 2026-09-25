@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.familykitchen.feedback.FeedbackMapper">
+  <select id="lockUser" resultType="long">SELECT id FROM users WHERE id=#{owner} FOR UPDATE</select>
+  <sql id="projection">SELECT f.*,u.nickname AS owner_name FROM user_feedback f LEFT JOIN users u ON u.id=f.owner_user_id</sql>
+  <select id="find" resultType="com.familykitchen.feedback.FeedbackRow"><include refid="projection"/> WHERE f.id=#{id}</select>
+  <select id="lockFeedback" resultType="com.familykitchen.feedback.FeedbackRow">SELECT * FROM user_feedback WHERE id=#{id} FOR UPDATE</select>
+  <select id="byRequest" resultType="com.familykitchen.feedback.FeedbackRow">SELECT * FROM user_feedback WHERE owner_user_id=#{owner} AND request_id=#{requestId}</select>
+  <select id="countRecentFeedback" resultType="int">SELECT COUNT(*) FROM user_feedback WHERE owner_user_id=#{owner} AND created_at &gt;=#{since}</select>
+  <select id="countRecentImages" resultType="int">SELECT COUNT(*) FROM feedback_images WHERE owner_user_id=#{owner} AND created_at &gt;=#{since}</select>
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO user_feedback(owner_user_id,request_id,type,content,status,reply,version,created_at,updated_at) VALUES(#{ownerUserId},#{requestId},#{type},#{content},#{status},#{reply},#{version},#{createdAt},#{updatedAt})</insert>
+  <update id="update">UPDATE user_feedback SET status=#{status},reply=#{reply},handled_by=#{handledBy},version=version+1,updated_at=#{updatedAt} WHERE id=#{id} AND version=#{version}</update>
+  <sql id="filters"><where><if test="owner != null">f.owner_user_id=#{owner}</if><if test="type != null">AND f.type=#{type}</if><if test="status != null">AND f.status=#{status}</if></where></sql>
+  <select id="list" resultType="com.familykitchen.feedback.FeedbackRow"><include refid="projection"/><include refid="filters"/> ORDER BY f.created_at DESC,f.id DESC LIMIT #{limit} OFFSET #{offset}</select>
+  <select id="count" resultType="long">SELECT COUNT(*) FROM user_feedback f <include refid="filters"/></select>
+  <select id="images" resultType="com.familykitchen.feedback.FeedbackImage">SELECT * FROM feedback_images WHERE feedback_id=#{feedbackId} ORDER BY sort_order</select>
+  <select id="image" resultType="com.familykitchen.feedback.FeedbackImage">SELECT * FROM feedback_images WHERE id=#{id}</select>
+  <select id="imageByObject" resultType="com.familykitchen.feedback.FeedbackImage">SELECT * FROM feedback_images WHERE object_key=#{objectKey}</select>
+  <select id="lockImage" resultType="com.familykitchen.feedback.FeedbackImage">SELECT * FROM feedback_images WHERE id=#{id} FOR UPDATE</select>
+  <insert id="insertImage">INSERT INTO feedback_images(id,owner_user_id,object_key,mime,width,height,byte_size,created_at) VALUES(#{id},#{ownerUserId},#{objectKey},#{mime},#{width},#{height},#{byteSize},#{createdAt})</insert>
+  <update id="bind">UPDATE feedback_images SET feedback_id=#{feedbackId},sort_order=#{sortOrder} WHERE id=#{id} AND feedback_id IS NULL</update>
+  <select id="expired" resultType="string">SELECT id FROM feedback_images WHERE feedback_id IS NULL AND created_at &lt;=#{before} ORDER BY id LIMIT 200</select>
+  <delete id="deleteImage">DELETE FROM feedback_images WHERE id=#{id} AND feedback_id IS NULL</delete>
+  <insert id="history">INSERT INTO feedback_history(feedback_id,admin_id,from_status,to_status,reply,created_at) VALUES(#{feedbackId},#{adminId},#{fromStatus},#{toStatus},#{reply},#{now})</insert>
+  <select id="histories" resultType="map">SELECT id AS "historyId",admin_id AS "adminId",from_status AS "fromStatus",to_status AS "toStatus",reply,created_at AS "createdAt" FROM feedback_history WHERE feedback_id=#{feedbackId} ORDER BY id</select>
+</mapper>

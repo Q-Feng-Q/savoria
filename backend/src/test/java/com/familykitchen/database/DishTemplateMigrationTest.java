@@ -30,15 +30,15 @@ class DishTemplateMigrationTest {
   void migrationSeedsTheCompleteTemplateCatalog() throws Exception {
     String sql = Files.readString(CATALOG, StandardCharsets.UTF_8);
     assertEquals(9, countLines(sql, "INSERT INTO dish_template_categories "));
-    assertEquals(549, countLines(sql, "INSERT INTO dish_templates "));
-    assertEquals(1987, countLines(sql, "INSERT INTO dish_template_ingredients "));
+    assertEquals(552, countLines(sql, "INSERT INTO dish_templates "));
+    assertEquals(2004, countLines(sql, "INSERT INTO dish_template_ingredients "));
   }
 
   @Test
   void catalogPreservesReviewedImagesAndCookingSteps() throws Exception {
     String sql = Files.readString(CATALOG, StandardCharsets.UTF_8);
     assertEquals(179, countLines(sql, "INSERT INTO dish_template_image_assets "));
-    assertEquals(795, countLines(sql, "INSERT INTO dish_template_cooking_steps "));
+    assertEquals(807, countLines(sql, "INSERT INTO dish_template_cooking_steps "));
     assertTrue(sql.contains("'INTERNAL_REVIEW'"));
   }
 

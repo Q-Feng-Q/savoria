@@ -4,30 +4,15 @@ import { isPlatformAdminIdentity } from '../config';
 
 export function isMerchantAdminSession(session) {
   if (!session) return false;
-
   const actor = session.actor || {};
-
-  const hasMerchantRole =
-    session.roleTemplate === 'merchant_admin'
-    || actor.roleTemplate === 'merchant_admin'
-    || session.role === 'merchant_admin'
-    || actor.role === 'merchant_admin'
-    || (session.backendRoles || []).includes('merchant_admin')
-    || (actor.backendRoles || []).includes('merchant_admin')
-    || (session.roles || []).includes('merchant_admin')
-    || (actor.roles || []).includes('merchant_admin')
-    || (session.merchantAdminScopes || []).includes('merchant')
-    || (actor.merchantAdminScopes || []).includes('merchant');
-
-  if (hasMerchantRole) {
-    return true;
-  }
-
-  if (session.merchantId || actor.merchantId) {
-    return true;
-  }
-
-  return false;
+  const roles = [
+    session.roleTemplate, actor.roleTemplate, session.role, actor.role,
+    ...(session.backendRoles || []), ...(actor.backendRoles || []),
+    ...(session.roles || []), ...(actor.roles || [])
+  ].map(value => String(value || '').toLowerCase());
+  const scopes = [...(session.merchantAdminScopes || []), ...(actor.merchantAdminScopes || [])]
+    .map(value => String(value).toLowerCase());
+  return roles.includes('merchant_admin') || scopes.includes('merchant') || scopes.includes('merchant_admin');
 }
 
 export function isPlatformAdminSession(session) {

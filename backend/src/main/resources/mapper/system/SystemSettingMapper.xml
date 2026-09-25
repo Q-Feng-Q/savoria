@@ -4,6 +4,12 @@
   <resultMap id="settingMap" type="com.familykitchen.system.model.entity.SystemSettingDO">
     <id property="id" column="id"/><result property="siteName" column="site_name"/>
     <result property="siteLogoUrl" column="site_logo_url"/>
+    <result property="siteLogoSmallUrl" column="site_logo_small_url"/>
+    <result property="siteLogoLargeUrl" column="site_logo_large_url"/>
+    <result property="siteFaviconUrl" column="site_favicon_url"/>
+    <result property="siteLogoSmallSize" column="site_logo_small_size"/>
+    <result property="siteLogoSize" column="site_logo_size"/>
+    <result property="siteLogoLargeSize" column="site_logo_large_size"/>
     <result property="dishReviewEnabled" column="dish_review_enabled"/>
     <result property="maintenanceEnabled" column="maintenance_enabled"/>
     <result property="maintenanceMessage" column="maintenance_message"/>
@@ -16,14 +22,30 @@
     <result property="updatedBy" column="updated_by"/><result property="updatedAt" column="updated_at"/>
   </resultMap>
   <select id="selectCurrent" resultMap="settingMap">SELECT id,site_name,site_logo_url,dish_review_enabled,
+    site_logo_small_url,site_logo_large_url,site_favicon_url,site_logo_small_size,site_logo_size,site_logo_large_size,
     maintenance_enabled,maintenance_message,mobile_binding_enabled,email_binding_enabled,wechat_binding_enabled,
     smtp_host,smtp_port,smtp_username,smtp_password_ciphertext,smtp_tls_enabled,smtp_from,updated_by,updated_at
     FROM system_settings WHERE id=1</select>
   <update id="update">UPDATE system_settings SET site_name=#{siteName},site_logo_url=#{siteLogoUrl},
+    <include refid="optionalBrandFields"/>
     dish_review_enabled=#{dishReviewEnabled},maintenance_enabled=#{maintenanceEnabled},
     maintenance_message=#{maintenanceMessage},mobile_binding_enabled=#{mobileBindingEnabled},
     email_binding_enabled=#{emailBindingEnabled},wechat_binding_enabled=#{wechatBindingEnabled},
     smtp_host=#{smtpHost},smtp_port=#{smtpPort},smtp_username=#{smtpUsername},
     smtp_password_ciphertext=#{smtpPasswordCiphertext},smtp_tls_enabled=#{smtpTlsEnabled},smtp_from=#{smtpFrom},
     updated_by=#{updatedBy} WHERE id=1</update>
+  <sql id="optionalBrandFields">
+    <if test="siteLogoSmallUrl != null">site_logo_small_url=#{siteLogoSmallUrl},</if>
+    <if test="siteLogoLargeUrl != null">site_logo_large_url=#{siteLogoLargeUrl},</if>
+    <if test="siteFaviconUrl != null">site_favicon_url=#{siteFaviconUrl},</if>
+    <if test="siteLogoSmallSize != null">site_logo_small_size=#{siteLogoSmallSize},</if>
+    <if test="siteLogoSize != null">site_logo_size=#{siteLogoSize},</if>
+    <if test="siteLogoLargeSize != null">site_logo_large_size=#{siteLogoLargeSize},</if>
+  </sql>
+  <update id="updateBranding">UPDATE system_settings SET
+    <if test="siteName != null">site_name=#{siteName},</if>
+    <if test="siteLogoUrl != null">site_logo_url=#{siteLogoUrl},</if>
+    <include refid="optionalBrandFields"/>
+    updated_by=#{updatedBy} WHERE id=1
+  </update>
 </mapper>

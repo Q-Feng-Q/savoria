@@ -400,7 +400,8 @@ function buildApiMerchantDishesScene({ session, dishes = [], categories = [], im
   const categoryMap = new Map(categories.map((item) => [item.categoryId, item.name]));
   const featuredCount = dishes.filter((item) => Boolean(item.featured)).length;
   const dishRows = dishes.map((item, originalIndex) => {
-    const status = String(item.status || '').toLowerCase() === 'active' ? 'active' : 'inactive';
+    const rawStatus = String(item.status || '').toLowerCase();
+    const status = rawStatus === 'active' ? 'active' : (rawStatus === 'deleted' ? 'deleted' : 'inactive');
     const featured = Boolean(item.featured);
     const featuredDisabled = !featured && (status !== 'active' || featuredCount >= 5);
 
@@ -408,8 +409,9 @@ function buildApiMerchantDishesScene({ session, dishes = [], categories = [], im
       id: item.dishId,
       name: item.name,
       status,
-      statusText: status === 'active' ? '已上架' : '已下架',
+      statusText: status === 'active' ? '已上架' : (status === 'deleted' ? '已删除' : '已下架'),
       category: categoryMap.get(item.categoryId) || `分类 ${item.categoryId}`,
+      productType: item.productType || 'NORMAL',
       badge: item.description || '商户菜品',
       description: item.description || '暂无菜品说明',
       ingredientsText: `${(item.ingredients || []).length} 种原料`,
@@ -424,6 +426,9 @@ function buildApiMerchantDishesScene({ session, dishes = [], categories = [], im
       featuredAt: item.featuredAt ?? null,
       featuredLabel: featured ? '已推荐' : (featuredCount >= 5 ? '推荐已满' : '推荐'),
       featuredDisabled,
+      deletedAt: item.deletedAt || null,
+      deletedAtText: item.deletedAt ? String(item.deletedAt).replace('T', ' ').slice(0, 16) : '删除时间未知',
+      deletedByName: item.deletedByName || '未知操作人',
       originalIndex
     };
   }).sort((left, right) => {

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { branding } from './branding';
 import { loginWithAdminAccount, loginWithUserAccount, logoutAdmin, isPlatformAdminSession } from '../api/auth';
 import {
   getApiBaseUrl,
@@ -15,7 +16,7 @@ export const useAuthStore = defineStore('admin-auth', {
   getters: {
     isAuthenticated: (state) => Boolean(state.session),
     merchantName: (state) => {
-      if (!state.session) return '食光知味';
+      if (!state.session) return branding.siteName;
       if (isPlatformAdminSession(state.session)) return '平台管理后台';
       return state.session.roleTemplate === 'merchant_admin' ? '商户后台' : '后台';
     },

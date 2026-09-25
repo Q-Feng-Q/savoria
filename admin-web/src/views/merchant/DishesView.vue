@@ -2,6 +2,7 @@
   <div class="view-stack">
     <SectionCard title="分类与筛选" subtitle="先选分类，再维护菜品与制作流程">
       <div class="toolbar-grid">
+        <label class="form-field"><span>菜品类型</span><select v-model="productTypeFilter" @change="loadData"><option value="">全部类型</option><option value="NORMAL">普通菜品</option><option value="NOURISHMENT">滋补食品</option></select></label>
         <label class="form-field">
           <span>分类</span>
           <select v-model="categoryFilter">
@@ -50,6 +51,7 @@
               <tr v-for="item in filteredDishes" :key="item.dishId">
                 <td>
                   <strong>{{ item.name }}</strong>
+                  <ProductTypeBadge :value="item.productType" :template-type="item.templateType" />
                   <div class="table-sub">{{ item.description || '暂无描述' }}</div>
                 </td>
                 <td>{{ resolveCategoryName(item.categoryId) }}</td>
@@ -71,7 +73,9 @@
       </SectionCard>
 
       <SectionCard :title="editingDishId ? '编辑菜品' : '新建菜品'" subtitle="维护基础信息、原材料和制作步骤">
-        <form class="stack-form" @submit.prevent="submitDish">
+        <p v-if="editorLoading">正在加载菜品详情…</p>
+        <form v-if="!editorLoading" class="stack-form" @submit.prevent="submitDish">
+          <NourishmentFields :form="form" :disabled="saving" />
           <div class="form-grid two-columns">
             <label class="form-field">
               <span>菜名</span>
@@ -152,7 +156,7 @@
             <div class="editor-rows">
               <div v-for="(item, index) in form.cookingSteps" :key="`step-${index}`" class="editor-row step">
                 <input v-model.trim="item.title" type="text" placeholder="步骤标题" />
-                <textarea v-model.trim="item.content" placeholder="步骤内容" />
+                <textarea v-model.trim="item.content" placeholder="步骤内容" /><StepImages v-model="item.imageUrls" editable :disabled="saving || stepUploading" @busy="stepUploading = $event" />
                 <button class="text-button danger-text" type="button" @click="removeStepRow(index)">删除</button>
               </div>
             </div>
@@ -164,7 +168,7 @@
               :disabled="syncingDishId === editingDishId" @click="syncDishToTemplate({ dishId: editingDishId, name: form.name, sourceTemplateId: editingSourceTemplateId })">
               {{ syncingDishId === editingDishId ? '提交中...' : '同步模板' }}
             </button>
-            <button class="primary-button" type="submit">保存菜品</button>
+            <button class="primary-button" type="submit" :disabled="saving || stepUploading">{{ saving ? '保存中...' : '保存菜品' }}</button>
           </div>
         </form>
       </SectionCard>
@@ -173,11 +177,16 @@
 </template>
 
 <script setup>
+import StepImages from '../../components/StepImages.vue';
+import { validateDishStepImages } from '../../utils/step-images';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import AppEmpty from '../../components/AppEmpty.vue';
 import SectionCard from '../../components/SectionCard.vue';
 import StatusPill from '../../components/StatusPill.vue';
+import ProductTypeBadge from '../../components/ProductTypeBadge.vue';
+import NourishmentFields from '../../components/NourishmentFields.vue';
+import { foodInformation, validateFoodInformation } from '../../utils/dish-template-changes';
 import { promptAction } from '../../utils/dialog';
 import {
   createDishCategory,
@@ -193,12 +202,18 @@ import { listMerchantIngredients } from '../../api/ingredients';
 import { notify } from '../../utils/feedback';
 
 const loading = ref(false);
+const saving = ref(false);
+const stepUploading = ref(false);
+const editorLoading = ref(false);
+let editorGeneration = 0;
+let loadGeneration = 0;
 const router = useRouter();
 const dishes = ref([]);
 const categories = ref([]);
 const ingredientOptions = ref([]);
 const keyword = ref('');
 const categoryFilter = ref('');
+const productTypeFilter = ref('');
 const editingDishId = ref('');
 const editingSourceTemplateId = ref(null);
 const syncingDishId = ref(null);
@@ -206,6 +221,7 @@ const form = reactive(createDishForm());
 
 function createDishForm() {
   return {
+    ...foodInformation(),
     name: '',
     categoryId: '',
     description: '',
@@ -251,22 +267,27 @@ function syncIngredientMeta(item) {
 }
 
 async function loadData() {
+  const generation = ++loadGeneration;
   loading.value = true;
   try {
     const [dishRows, categoryRows, ingredientRows] = await Promise.all([
-      listMerchantDishes(),
+      listMerchantDishes({ productType: productTypeFilter.value }),
       listDishCategories(),
       listMerchantIngredients()
     ]);
+    if (generation !== loadGeneration) return;
     dishes.value = dishRows;
     categories.value = categoryRows;
     ingredientOptions.value = ingredientRows;
   } finally {
-    loading.value = false;
+    if (generation === loadGeneration) loading.value = false;
   }
 }
 
 function resetForm() {
+  if (stepUploading.value) return;
+  editorGeneration++;
+  editorLoading.value = false;
   editingDishId.value = '';
   editingSourceTemplateId.value = null;
   assignForm(createDishForm());
@@ -281,10 +302,16 @@ function openTemplateMarket() {
 }
 
 async function editDish(dishId) {
+  if (saving.value || stepUploading.value) return;
+  const generation = ++editorGeneration;
+  editorLoading.value = true;
   editingDishId.value = dishId;
+  try {
   const detail = await getMerchantDishDetail(dishId);
+  if (generation !== editorGeneration) return;
   editingSourceTemplateId.value = detail.sourceTemplateId || null;
   assignForm({
+    ...foodInformation(detail),
     name: detail.name,
     categoryId: detail.categoryId,
     description: detail.description,
@@ -294,6 +321,9 @@ async function editDish(dishId) {
     ingredients: detail.ingredients || [],
     cookingSteps: detail.cookingSteps || []
   });
+  } catch (error) {
+    if (generation === editorGeneration) { resetForm(); notify(error.message || '菜品加载失败', 'error'); }
+  } finally { if (generation === editorGeneration) editorLoading.value = false; }
 }
 
 function isImportedDish(dish) {
@@ -324,7 +354,11 @@ async function syncDishToTemplate(dish) {
 }
 
 async function submitDish() {
+  if (saving.value || stepUploading.value || editorLoading.value) return;
+  const validation = validateFoodInformation(form) || validateDishStepImages(form.cookingSteps);
+  if (validation) { notify(validation, 'error'); return; }
   const payload = {
+    ...foodInformation(form),
     name: form.name,
     categoryId: Number(form.categoryId),
     description: form.description,
@@ -332,19 +366,22 @@ async function submitDish() {
     basePrice: Number(form.basePrice || 0),
     ingredients: form.ingredients.filter((item) => item.ingredientName),
     cookingSteps: form.cookingSteps
-      .map((item, index) => ({ stepNo: index + 1, title: item.title, content: item.content }))
+      .map((item, index) => ({ ...item, stepNo: index + 1, title: item.title, content: item.content, imageUrls: [...(item.imageUrls || [])] }))
       .filter((item) => item.title || item.content),
     status: form.status
   };
 
-  if (editingDishId.value) {
-    await updateMerchantDish(editingDishId.value, payload);
-  } else {
-    await createMerchantDish(payload);
-  }
+  saving.value = true;
+  try {
+    if (editingDishId.value) {
+      await updateMerchantDish(editingDishId.value, payload);
+    } else {
+      await createMerchantDish(payload);
+    }
 
-  await loadData();
-  resetForm();
+    await loadData();
+    resetForm();
+  } finally { saving.value = false; }
 }
 
 async function handleUpload(event) {
@@ -366,10 +403,12 @@ function removeIngredientRow(index) {
 }
 
 function addStepRow() {
+  if (saving.value || stepUploading.value) return;
   form.cookingSteps.push({ title: '', content: '' });
 }
 
 function removeStepRow(index) {
+  if (saving.value || stepUploading.value) return;
   form.cookingSteps.splice(index, 1);
   if (!form.cookingSteps.length) {
     addStepRow();

@@ -20,6 +20,7 @@ test('app config exposes separate home and menu pages in the main tab flow', () 
     [
       { pagePath: 'pages/family/home/index', text: '首页' },
       { pagePath: 'pages/ordering/menu/index', text: '去点菜' },
+      { pagePath: 'pages/ordering/cart/index', text: '餐篮' },
       { pagePath: 'pages/ordering/orders/index', text: '订单进度' },
       { pagePath: 'pages/account/profile/index', text: '我的' }
     ]

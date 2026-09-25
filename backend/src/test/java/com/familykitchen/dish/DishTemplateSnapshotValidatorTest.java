@@ -16,6 +16,30 @@ import org.junit.jupiter.api.Test;
 
 /** 验证第二版审核快照的严格字段、可空数量和制作步骤规则。 */
 class DishTemplateSnapshotValidatorTest {
+  @Test void validatesOrderedStepImagesAndPreservesOmission() {
+    ObjectNode snapshot = validSnapshot();
+    ObjectNode step = (ObjectNode) snapshot.path("cookingSteps").get(0);
+    assertNull(validator.parseAndValidate(snapshot).cookingSteps().get(0).imageUrls());
+    step.putArray("imageUrls").add("/uploads/images/a.jpg").add("https://example.com/b.png");
+    assertEquals(java.util.List.of("/uploads/images/a.jpg", "https://example.com/b.png"),
+        validator.parseAndValidate(snapshot).cookingSteps().get(0).imageUrls());
+    step.putArray("imageUrls").add("file:///tmp/a.jpg");
+    assertThrows(BusinessException.class, () -> validator.parseAndValidate(snapshot));
+    var images = step.putArray("imageUrls");
+    for (int i = 0; i < 6; i++) images.add("/uploads/images/a.jpg");
+    assertThrows(BusinessException.class, () -> validator.parseAndValidate(snapshot));
+  }
+  @Test void nourishmentPreservesOmissionAndExplicitClearing() {
+    ObjectNode node = validSnapshot().put("productType", "NOURISHMENT")
+        .put("nourishmentDescription", "  食品\n特点  ").put("servingAdvice", "   ");
+    var result = validator.parseAndValidate(node);
+    assertEquals("NOURISHMENT", result.productType());
+    assertEquals("食品\n特点", result.nourishmentDescription());
+    assertEquals("", result.servingAdvice());
+    assertNull(result.precautions());
+    assertThrows(BusinessException.class, () -> validator.parseAndValidate(validSnapshot().put("productType", "")));
+    assertThrows(BusinessException.class, () -> validator.parseAndValidate(validSnapshot().put("precautions", "字".repeat(1001))));
+  }
   private ObjectMapper objectMapper;
   private DishTemplateSnapshotValidator validator;
 
@@ -36,14 +60,38 @@ class DishTemplateSnapshotValidatorTest {
   }
 
   @Test
+  void acceptsUploadedImageReferenceAndRightsConfirmation() {
+    ObjectNode snapshot = validSnapshot();
+    snapshot.put("imageUrl", "/uploads/images/dish.jpg");
+    snapshot.put("imageAssetId", 19L);
+    snapshot.put("imageRightsConfirmed", true);
+
+    DishTemplateSnapshotRequest result = validator.parseAndValidate(snapshot);
+
+    assertEquals("/uploads/images/dish.jpg", result.imageUrl());
+    assertEquals(19L, result.imageAssetId());
+    assertTrue(result.imageRightsConfirmed());
+  }
+
+  @Test
   void rejectsImageSourceAndDerivedServerFields() {
-    for (String field : new String[] {"imageUrl", "imageAuthor", "sourceType", "dataStatus",
+    for (String field : new String[] {"imageAuthor", "imageLicense", "sourceType", "dataStatus",
         "procurementReady", "templateType"}) {
       ObjectNode unsafe = validSnapshot().put(field, "forbidden");
       BusinessException error = assertThrows(BusinessException.class,
           () -> validator.parseAndValidate(unsafe));
       assertTrue(error.getMessage().contains("未知字段"), field);
     }
+  }
+
+  @Test
+  void requiresRightsConfirmationForUploadedImage() {
+    ObjectNode snapshot = validSnapshot();
+    snapshot.put("imageUrl", "/uploads/images/dish.jpg");
+    snapshot.put("imageAssetId", 19L);
+
+    assertEquals("更换模板图片前必须确认拥有合法使用权",
+        assertThrows(BusinessException.class, () -> validator.parseAndValidate(snapshot)).getMessage());
   }
 
   @Test

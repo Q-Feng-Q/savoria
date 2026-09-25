@@ -8,6 +8,7 @@ import com.familykitchen.dish.model.dto.DishCategoryRequest;
 import com.familykitchen.dish.model.dto.DishRequest;
 import com.familykitchen.dish.model.dto.DishStatusRequest;
 import com.familykitchen.dish.model.dto.DishMutationResult;
+import com.familykitchen.dish.model.dto.BatchDishMutationRequest;
 import com.familykitchen.dish.model.entity.DishCategoryEntity;
 import com.familykitchen.dish.model.entity.DishCookingStepEntity;
 import com.familykitchen.dish.model.entity.DishEntity;
@@ -15,14 +16,18 @@ import com.familykitchen.dish.model.entity.DishIngredientEntity;
 import com.familykitchen.dish.model.vo.DishCategoryView;
 import com.familykitchen.dish.model.vo.DishDetailView;
 import com.familykitchen.dish.model.vo.DishView;
+import com.familykitchen.dish.model.vo.BatchDishMutationResult;
 import com.familykitchen.dish.service.DishApplicationService;
 import com.familykitchen.dish.service.DishReviewService;
+import com.familykitchen.dish.service.NourishmentFields;
 import com.familykitchen.dish.service.MerchantDishMutationLock;
 import com.familykitchen.family.mapper.FamilyMapper;
 import com.familykitchen.system.service.SystemSettingService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,6 +72,7 @@ public class DishApplicationServiceImpl implements DishApplicationService {
   @Transactional
   public void setFeaturedDish(CurrentUserContext user, Long dishId, boolean featured) {
     DishEntity dish = mutationLock.lock(user.merchantId(), dishId);
+    requireNotDeleted(dish);
     if (!featured) {
       dishMapper.clearDishFeatured(user.merchantId(), dishId);
       return;
@@ -88,11 +94,82 @@ public class DishApplicationServiceImpl implements DishApplicationService {
    * 处理菜品。
    *
    * @param user 用户
+   * @param scope available 或 deleted 查询范围
    * @return 处理的结果
    */
   @Override
-  public List<DishView> dishes(CurrentUserContext user) {
-    return dishMapper.selectDishes(user.merchantId()).stream().map(DishApplicationServiceImpl::toDishView).toList();
+  public List<DishView> dishes(CurrentUserContext user, String scope) {
+    return dishes(user, scope, null);
+  }
+
+  @Override
+  public List<DishView> dishes(CurrentUserContext user, String scope, String productType) {
+    if (productType != null) NourishmentFields.type(productType, null);
+    String normalizedScope = scope == null || scope.isBlank() ? "available" : scope.trim().toLowerCase(Locale.ROOT);
+    if (!"available".equals(normalizedScope) && !"deleted".equals(normalizedScope)) {
+      throw new BusinessException(ErrorCode.BAD_REQUEST, "菜品查询范围仅支持 available 或 deleted");
+    }
+    return (productType == null ? dishMapper.selectDishes(user.merchantId(), normalizedScope)
+        : dishMapper.selectDishesByProductType(user.merchantId(), normalizedScope, productType)).stream()
+        .map(DishApplicationServiceImpl::toDishView).toList();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional
+  public BatchDishMutationResult bulkDelete(CurrentUserContext user, BatchDishMutationRequest request) {
+    List<Long> uniqueIds = validatedUniqueIds(request);
+    List<Long> sortedIds = uniqueIds.stream().sorted().toList();
+    dishMapper.lockMerchant(user.merchantId());
+    List<DishEntity> locked = dishMapper.selectDishesForUpdate(user.merchantId(), sortedIds);
+    requireCompleteBatch(sortedIds, locked);
+    List<Long> changedIds = locked.stream()
+        .filter(item -> !"deleted".equalsIgnoreCase(item.getStatus()))
+        .map(DishEntity::getId).toList();
+    if (!changedIds.isEmpty()) {
+      dishMapper.markDishesDeleted(user.merchantId(), changedIds, user.userId());
+    }
+    dishReviewService.rejectPendingForDeletedDishes(user.merchantId(), uniqueIds, user.userId());
+    familyMapper.disableDishesForMerchantFamilies(user.merchantId(), uniqueIds);
+    return mutationResult(request.dishIds().size(), uniqueIds.size(), changedIds.size());
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional
+  public BatchDishMutationResult bulkRestore(CurrentUserContext user, BatchDishMutationRequest request) {
+    List<Long> uniqueIds = validatedUniqueIds(request);
+    List<Long> sortedIds = uniqueIds.stream().sorted().toList();
+    dishMapper.lockMerchant(user.merchantId());
+    List<DishEntity> locked = dishMapper.selectDishesForUpdate(user.merchantId(), sortedIds);
+    requireCompleteBatch(sortedIds, locked);
+    List<Long> changedIds = locked.stream()
+        .filter(item -> "deleted".equalsIgnoreCase(item.getStatus()))
+        .map(DishEntity::getId).toList();
+    if (!changedIds.isEmpty()) {
+      dishMapper.restoreDeletedDishes(user.merchantId(), changedIds);
+    }
+    return mutationResult(request.dishIds().size(), uniqueIds.size(), changedIds.size());
+  }
+
+  private static List<Long> validatedUniqueIds(BatchDishMutationRequest request) {
+    List<Long> raw = request == null ? null : request.dishIds();
+    if (raw == null || raw.isEmpty() || raw.size() > 100
+        || raw.stream().anyMatch(id -> id == null || id <= 0)) {
+      throw new BusinessException(ErrorCode.BAD_REQUEST, "菜品 ID 列表须包含 1 至 100 个正整数");
+    }
+    return new ArrayList<>(new LinkedHashSet<>(raw));
+  }
+
+  private static void requireCompleteBatch(List<Long> requestedIds, List<DishEntity> locked) {
+    if (locked == null || locked.size() != requestedIds.size()
+        || !locked.stream().map(DishEntity::getId).sorted().toList().equals(requestedIds)) {
+      throw new BusinessException(ErrorCode.NOT_FOUND, "部分菜品不存在或不属于当前商户");
+    }
+  }
+
+  private static BatchDishMutationResult mutationResult(int requested, int unique, int changed) {
+    return new BatchDishMutationResult(requested, unique, changed, unique - changed);
   }
 
   /**
@@ -105,11 +182,13 @@ public class DishApplicationServiceImpl implements DishApplicationService {
   @Override
   @Transactional
   public DishView createDish(CurrentUserContext user, DishRequest request) {
+    DishEntity normalized = toEntity(user.merchantId(), null, request);
     requireCategory(user.merchantId(), request.categoryId());
     if(systemSettingService.dishReviewEnabled()){
       dishReviewService.submit(user.userId(),user.merchantId(),null,request);
       return new DishView(null,request.categoryId(),null,null,request.name(),request.description(),request.imageUrl(),
-          money(request.basePrice()),"PENDING_REVIEW", null, false, null, false);
+          money(request.basePrice()),"PENDING_REVIEW", null, false, null, false, null, null,
+          normalized.getProductType(), normalized.getNourishmentDescription(), normalized.getServingAdvice(), normalized.getPrecautions());
     }
     // 菜品主信息、食材配方和制作步骤放在同一事务中创建，避免出现半成品数据。
     DishEntity entity = toEntity(user.merchantId(), null, request);
@@ -145,9 +224,10 @@ public class DishApplicationServiceImpl implements DishApplicationService {
       dishReviewService.submit(user.userId(),user.merchantId(),dishId,request);
       return new DishMutationResult(DishMutationResult.Outcome.PENDING_REVIEW);
     }
-    mutationLock.lock(user.merchantId(), dishId);
+    DishEntity previous = requireNotDeleted(mutationLock.lock(user.merchantId(), dishId));
     requireCategory(user.merchantId(), request.categoryId());
     DishEntity entity = toEntity(user.merchantId(), dishId, request);
+    NourishmentFields.apply(entity, request, previous);
     dishMapper.updateDish(entity);
     replaceIngredients(dishId, request.ingredients());
     replaceCookingSteps(dishId, request.cookingSteps());
@@ -173,11 +253,12 @@ public class DishApplicationServiceImpl implements DishApplicationService {
           .map(item -> toCookingStepRequest(item))
           .toList();
       DishRequest snapshot = new DishRequest(current.getName(), current.getCategoryId(), current.getDescription(),
-          current.getImageUrl(), current.getBasePrice(), ingredients, steps, status);
+          current.getImageUrl(), current.getBasePrice(), ingredients, steps, status,
+          current.getProductType(), current.getNourishmentDescription(), current.getServingAdvice(), current.getPrecautions());
       dishReviewService.submit(user.userId(), user.merchantId(), dishId, snapshot);
       return new DishMutationResult(DishMutationResult.Outcome.PENDING_REVIEW);
     }
-    mutationLock.lock(user.merchantId(), dishId);
+    requireNotDeleted(mutationLock.lock(user.merchantId(), dishId));
     int updated = "inactive".equals(status)
         ? dishMapper.setDishInactiveAndClearFeatured(user.merchantId(), dishId)
         : dishMapper.updateDishStatus(user.merchantId(), dishId, status);
@@ -202,10 +283,12 @@ public class DishApplicationServiceImpl implements DishApplicationService {
       List<DishRequest.IngredientRequest> ingredients=dishMapper.selectDishIngredients(dishId).stream()
           .map(i->new DishRequest.IngredientRequest(i.getIngredientName(),i.getQuantity(),i.getUnit(),i.getCalcType())).toList();
       DishRequest snapshot=new DishRequest(current.getName(),current.getCategoryId(),current.getDescription(),
-          current.getImageUrl(),current.getBasePrice(),ingredients,steps,current.getStatus());
+          current.getImageUrl(),current.getBasePrice(),ingredients,steps,current.getStatus(),
+          current.getProductType(), current.getNourishmentDescription(), current.getServingAdvice(), current.getPrecautions());
       dishReviewService.submit(user.userId(),user.merchantId(),dishId,snapshot);
       return;
     }
+    requireNotDeleted(mutationLock.lock(user.merchantId(), dishId));
     replaceCookingSteps(dishId, steps);
   }
 
@@ -298,6 +381,16 @@ public class DishApplicationServiceImpl implements DishApplicationService {
     if (dish == null) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "未找到菜品");
     }
+    if ("deleted".equalsIgnoreCase(dish.getStatus())) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "菜品已删除");
+    }
+    return dish;
+  }
+
+  private static DishEntity requireNotDeleted(DishEntity dish) {
+    if ("deleted".equalsIgnoreCase(dish.getStatus())) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "菜品已删除");
+    }
     return dish;
   }
 
@@ -331,6 +424,7 @@ public class DishApplicationServiceImpl implements DishApplicationService {
    * 用最新制作步骤整体替换原步骤，保证顺序和内容与前端编辑结果一致。
    */
   private void replaceCookingSteps(Long dishId, List<DishRequest.CookingStepRequest> steps) {
+    steps = com.familykitchen.dish.service.CookingStepImages.resolveDish(steps, dishMapper.selectCookingSteps(dishId));
     dishMapper.deleteCookingSteps(dishId);
     if (steps == null) {
       return;
@@ -345,6 +439,7 @@ public class DishApplicationServiceImpl implements DishApplicationService {
       entity.setTemperatureText(item.temperatureText());
       entity.setHeatLevel(item.heatLevel());
       entity.setComponentTemplateId(item.componentTemplateId());
+      entity.setImageUrls(item.imageUrls());
       dishMapper.insertCookingStep(entity);
     }
   }
@@ -353,7 +448,7 @@ public class DishApplicationServiceImpl implements DishApplicationService {
   private static DishRequest.CookingStepRequest toCookingStepRequest(DishCookingStepEntity item) {
     return new DishRequest.CookingStepRequest(item.getStepNo(), item.getTitle(), item.getContent(),
         item.getDurationSeconds(), item.getTemperatureText(), item.getHeatLevel(),
-        item.getComponentTemplateId());
+        item.getComponentTemplateId(), item.getImageUrls());
   }
 
   /**
@@ -369,13 +464,15 @@ public class DishApplicationServiceImpl implements DishApplicationService {
     entity.setImageUrl(request.imageUrl());
     entity.setBasePrice(money(request.basePrice()));
     entity.setStatus(normalizeStatus(request.status()));
+    NourishmentFields.apply(entity, request, null);
     return entity;
   }
 
   /** Returns an immutable full request carrying the canonical persisted status. */
   private static DishRequest withNormalizedStatus(DishRequest request) {
     return new DishRequest(request.name(), request.categoryId(), request.description(), request.imageUrl(),
-        request.basePrice(), request.ingredients(), request.cookingSteps(), normalizeStatus(request.status()));
+        request.basePrice(), request.ingredients(), request.cookingSteps(), normalizeStatus(request.status()),
+        request.productType(), request.nourishmentDescription(), request.servingAdvice(), request.precautions());
   }
 
   /** Normalizes the two supported persisted dish states and rejects all other values. */
@@ -408,8 +505,8 @@ public class DishApplicationServiceImpl implements DishApplicationService {
         dishMapper.selectCookingSteps(dish.getId()).stream()
             .map(item -> new DishDetailView.CookingStepView(item.getStepNo(), item.getTitle(),
                 item.getContent(), item.getDurationSeconds(), item.getTemperatureText(),
-                item.getHeatLevel(), item.getComponentTemplateId()))
-            .toList()
+                item.getHeatLevel(), item.getComponentTemplateId(), item.getImageUrls()))
+            .toList(), dish.getProductType(), dish.getNourishmentDescription(), dish.getServingAdvice(), dish.getPrecautions()
     );
   }
 
@@ -430,7 +527,9 @@ public class DishApplicationServiceImpl implements DishApplicationService {
         entity.getSourceTemplateId(),
         entity.getSourceTemplateId() != null,
         entity.getFeaturedAt(),
-        entity.getFeaturedAt() != null
+        entity.getFeaturedAt() != null,
+        entity.getDeletedAt(),
+        entity.getDeletedByName(), entity.getProductType(), entity.getNourishmentDescription(), entity.getServingAdvice(), entity.getPrecautions()
     );
   }
 

@@ -1,9 +1,9 @@
-<view class="warm-page warm-page--management warm-state-host merchant-page">
+<view class="merchant-story warm-page warm-page--management warm-state-host merchant-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="orders" bind:retry="retryLoad" />
 
   <view wx:else class="merchant-overview">
     <view class="merchant-identity">
-      <view class="merchant-identity__copy">
+      <view class="merchant-identity__copy"><brand-logo size="small" />
         <text class="merchant-identity__eyebrow">商户工作台 · {{todayLabel}}</text>
         <text class="merchant-identity__name">{{context.merchant.name}}</text>
       </view>
@@ -19,6 +19,7 @@
     </view>
 
     <view class="merchant-focus">
+      <image class="merchant-focus__art" src="/assets/brand/scenes/merchant-cooking.webp" mode="aspectFill" aria-hidden="true" />
       <text class="merchant-focus__label">今日待处理</text>
       <view class="merchant-focus__metric">
         <text class="merchant-focus__value">{{todayCommand.activeOrderCount}}</text>
@@ -55,6 +56,7 @@
       <action-button class="merchant-quick-action" label="今日采购" tone="secondary" block bind:action="openPurchase" />
       <action-button class="merchant-quick-action" label="通知与提醒" tone="secondary" block bind:action="openNotifications" />
     </view>
+    <action-button label="BUG / 建议" tone="secondary" block bind:action="openFeedback" />
 
     <view wx:if="{{regionStates.menu.phase === 'error'}}" class="merchant-menu-state">
       <text>{{regionStates.menu.message}}</text>

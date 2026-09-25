@@ -100,6 +100,16 @@ public class MemberAuthServiceImpl implements MemberAuthService {
   @Override
   @Transactional
   public LoginResponse login(UserLoginRequest request) {
+    return passwordLogin(request, false);
+  }
+
+  @Override
+  @Transactional
+  public LoginResponse loginAdmin(UserLoginRequest request) {
+    return passwordLogin(request, true);
+  }
+
+  private LoginResponse passwordLogin(UserLoginRequest request, boolean backendOnly) {
     String identifier = request.username().trim().toLowerCase(Locale.ROOT);
     UserDO user = userMapper.findByLoginIdentifier(identifier);
     if (user == null || !"ACTIVE".equals(user.getStatus())
@@ -111,7 +121,7 @@ public class MemberAuthServiceImpl implements MemberAuthService {
       userMapper.updatePassword(user.getId(), passwordCodec.encode(request.password()), "BCRYPT");
     }
     userMapper.updateLastLogin(user.getId());
-    return loginResponse(user.getId());
+    return loginResponse(user.getId(), backendOnly);
   }
 
   /**
@@ -134,17 +144,25 @@ public class MemberAuthServiceImpl implements MemberAuthService {
   }
 
   private LoginResponse loginResponse(Long userId) {
-    String sessionId = sessionService.create(userId);
+    return loginResponse(userId, false);
+  }
+
+  private LoginResponse loginResponse(Long userId, boolean backendOnly) {
     AuthContextMapper.FamilyContext family = authContextMapper.findActiveFamily(userId);
     AuthContextMapper.MerchantContext merchant = authContextMapper.findActiveMerchant(userId);
     Set<String> roles = Set.copyOf(authContextMapper.findPlatformRoles(userId));
+    boolean platformAdmin = roles.stream().anyMatch(role -> "platform_admin".equalsIgnoreCase(role));
+    if (backendOnly && merchant == null && !platformAdmin) {
+      throw new BusinessException(ErrorCode.FORBIDDEN, "该用户没有后台权限");
+    }
+    String sessionId = sessionService.create(userId);
     Long merchantId = merchant != null ? merchant.merchantId() : (family == null ? null : family.merchantId());
     Long familyId = family == null ? null : family.familyId();
     String roleTemplate;
     if (merchant != null) roleTemplate = "merchant_admin";
     else if (family != null)
       roleTemplate = "OWNER".equals(family.familyRole()) || "ADMIN".equals(family.familyRole()) ? "admin" : "member";
-    else if (roles.contains("platform_admin")) roleTemplate = "platform_admin";
+    else if (platformAdmin) roleTemplate = "platform_admin";
     else roleTemplate = "user";
     Set<String> backendRoles = merchant == null ? roles : mergeRoles(roles, merchant.merchantRole());
     Set<String> scopes = merchant == null ? Set.of() : Set.of("merchant");

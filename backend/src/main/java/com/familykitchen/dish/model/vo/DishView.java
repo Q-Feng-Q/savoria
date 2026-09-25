@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
  * @param templateImported 是否由平台模板导入
  * @param featuredAt 商户推荐时间
  * @param featured 是否为商户推荐菜
+ * @param deletedAt 逻辑删除时间
+ * @param deletedByName 删除操作人显示名
  */
 public record DishView(
     Long dishId,
@@ -33,7 +35,29 @@ public record DishView(
     Long sourceTemplateId,
     boolean templateImported,
     LocalDateTime featuredAt,
-    boolean featured
+    boolean featured,
+    LocalDateTime deletedAt,
+    String deletedByName,
+    String productType, String nourishmentDescription, String servingAdvice, String precautions
 ) {
+  /** Backward-compatible constructor for clients without nourishment fields. */
+  public DishView(Long dishId,
+    Long categoryId,
+    String categoryName,
+    Integer categorySortOrder,
+    String name,
+    String description,
+    String imageUrl,
+    BigDecimal price,
+    String status,
+    Long sourceTemplateId,
+    boolean templateImported,
+    LocalDateTime featuredAt,
+    boolean featured,
+    LocalDateTime deletedAt,
+    String deletedByName) {
+    this(dishId, categoryId, categoryName, categorySortOrder, name, description, imageUrl, price, status, sourceTemplateId, templateImported, featuredAt, featured, deletedAt, deletedByName, "NORMAL", null, null, null);
+  }
+
 }
 

@@ -1,0 +1,37 @@
+@import "approved-storybook.wxss";
+.story-subpage { --sk-bg:#fff3d7; --sk-paper:#fff3dc; --sk-text:#51331f; --sk-ink:#647b3e; --sk-muted:#886b49; --sk-line:#dfc89c; --sk-line-soft:#edddba; --sk-accent:#df7739; --sk-sprout:#dce4bb; --sk-wheat:#f2deb0; min-height:100vh; padding:22rpx 24rpx calc(68rpx + env(safe-area-inset-bottom)); box-sizing:border-box; background:#fff3d7; color:#51331f; }
+.story-subpage .hero,.story-subpage .manage-hero,.story-subpage .accounts-head,.story-subpage .detail-head,.story-subpage .story-subhead { position:relative; overflow:hidden; min-height:186rpx; margin:0 0 28rpx; padding:30rpx 28rpx; border:0; border-radius:28rpx; background:#dce4bb; box-sizing:border-box; box-shadow:0 8rpx 20rpx rgba(151,108,41,.08); }
+.story-subpage .hero::before,.story-subpage .hero::after,.story-subpage .accounts-head::after { display:none; }
+.story-subpage .story-subhead-art { position:absolute; top:0; bottom:0; left:0; right:0; overflow:hidden; opacity:.75; pointer-events:none; }
+.story-subpage .story-subhead-art::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,rgba(220,228,187,.94),rgba(220,228,187,.7) 43%,rgba(220,228,187,0) 72%); }
+.story-subpage .eyebrow,.story-subpage .title,.story-subpage .subtitle,.story-subpage .manage-kicker,.story-subpage .manage-title,.story-subpage .manage-note,.story-subpage .accounts-title,.story-subpage .accounts-note,.story-subpage .detail-head__status,.story-subpage .detail-head__title,.story-subpage .detail-head__note,.story-subpage .story-subhead__title,.story-subpage .story-subhead__note { position:relative; display:block; max-width:65%; }
+.story-subpage .address-summary,.story-subpage .selection-box { border-radius:18rpx; background:#f8ebca; color:#715236; }
+.story-subpage .hero > text,.story-subpage .manage-hero > text,.story-subpage .accounts-head > text,.story-subpage .detail-head > text,.story-subpage .story-subhead > text { position:relative; display:block; max-width:65%; }
+.story-subpage .title,.story-subpage .manage-title,.story-subpage .accounts-title,.story-subpage .detail-head__title,.story-subpage .story-subhead__title { color:#51331f; font-family:"STKaiti","KaiTi",serif; font-size:40rpx; line-height:1.35; font-weight:800; }
+.story-subpage .subtitle,.story-subpage .manage-note,.story-subpage .accounts-note,.story-subpage .detail-head__note,.story-subpage .story-subhead__note { margin-top:12rpx; color:#697447; font-size:22rpx; line-height:1.7; }
+.story-subpage .eyebrow,.story-subpage .manage-kicker { color:#657743; font-size:20rpx; letter-spacing:1rpx; }
+.story-subpage .panel,.story-subpage .manage-section,.story-subpage .security-group,.story-subpage .account-item,.story-subpage .path-section,.story-subpage .summary-card,.story-subpage.order-detail .detail-section { margin-bottom:22rpx; padding:26rpx; border:2rpx solid #efddb7; border-radius:26rpx; background:linear-gradient(110deg,#fff6e2,#fff0d1); box-shadow:0 8rpx 20rpx rgba(151,108,41,.08); }
+.story-subpage .list { gap:0; }
+.story-subpage .section-title,.story-subpage .manage-section__title,.story-subpage .security-title,.story-subpage .path-section__title { color:#51331f; font-size:30rpx; line-height:1.5; font-weight:800; }
+.story-subpage .field,.story-subpage .account-field,.story-subpage .start-field { display:block; margin:0 0 26rpx; }
+.story-subpage .label,.story-subpage .field-label,.story-subpage .account-field > text,.story-subpage .start-field > text { display:block; margin:0 0 12rpx; color:#715236; font-size:24rpx; font-weight:700; }
+.story-subpage input,.story-subpage textarea,.story-subpage .owner-picker { width:100%; min-width:0; padding:20rpx; border:2rpx solid #e4cca2; border-radius:18rpx; background:#fff6e2; color:#51331f; font-size:25rpx; line-height:1.6; box-sizing:border-box; }
+.story-subpage input { height:88rpx; min-height:88rpx; }
+.story-subpage textarea { height:170rpx; }
+.story-subpage .button,.story-subpage .block-action,.story-subpage .profile-action--primary,.story-subpage .transfer-action { border:2rpx solid #dc7137; border-radius:22rpx; background:#df7739; color:#fff6df; box-shadow:0 6rpx 14rpx rgba(170,89,31,.1); }
+.story-subpage .button.secondary,.story-subpage .section-link,.story-subpage .section-quiet-action,.story-subpage .profile-action:not(.profile-action--primary),.story-subpage .mini-action { border:2rpx solid #a2b375; border-radius:18rpx; background:#e2e7c5; color:#4f6533; }
+.story-subpage .mini-action--primary,.story-subpage .identity-action.is-active,.story-subpage .mode-switch .is-active { border-color:#647b3e; background:#647b3e; color:#fff6df; }
+.story-subpage .identity-action { border:2rpx solid #a2b375; border-radius:18rpx; color:#4f6533; background:#e5e9cf; }
+.story-subpage .current-badge { background:#e2e7c5; color:#4f6533; }
+.story-subpage .account-item.is-current { border:2rpx solid #94a866; background:linear-gradient(110deg,#ecedcf,#dce4bb); }
+.story-subpage .danger-action { border:2rpx solid #c87c5d; border-radius:18rpx; color:#a54b32; background:#fce3cc; }
+.story-subpage .manage-section--danger { border-color:#e7c5a4; background:#fbeacf; }
+.story-subpage .empty,.story-subpage .owner-empty { border-radius:22rpx; background:#f6e9c9; color:#886b49; }
+.story-subpage .summary-strip { gap:14rpx; }
+.story-subpage .summary-card { min-width:0; padding:22rpx 16rpx; }
+.story-subpage .summary-value { color:#a95328; font-size:40rpx; }
+.story-subpage .notify-card.unread { border-left:6rpx solid #8c9e60; }
+.story-subpage .notify-tag,.story-subpage .address-tag { background:#e4e8c9; color:#5c733b; }
+.story-subpage .account-form-avatar { border:3rpx solid #9bab72; background:#e1e6c4; color:#546b39; box-shadow:none; border-radius:50%; transform:none; }
+.story-subpage .manage-shell { max-width:720px; margin:0 auto; }
+@media(max-width:360px) { .story-subpage { padding-left:18rpx; padding-right:18rpx; } .story-subpage .panel,.story-subpage .manage-section,.story-subpage .security-group,.story-subpage .account-item { padding:20rpx; } .story-subpage .summary-value { font-size:34rpx; } }

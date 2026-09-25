@@ -1,0 +1,10 @@
+<view wx:if="{{editable || previews.length}}" class="step-gallery">
+  <text wx:if="{{editable}}" class="step-gallery__hint">步骤图片（{{previews.length}}/5）· 选填，单张最多 4MB</text>
+  <view class="step-gallery__grid">
+    <view wx:for="{{previews}}" wx:key="index" class="step-gallery__item">
+      <image class="step-gallery__image" src="{{item}}" mode="aspectFill" data-index="{{index}}" bindtap="preview" aria-label="预览步骤图片" />
+      <view wx:if="{{editable}}" class="step-gallery__remove {{disabled || busy ? 'step-gallery__disabled' : ''}}" data-index="{{index}}" bindtap="remove" aria-role="button" aria-label="删除第{{index + 1}}张图片">删除</view>
+    </view>
+    <view wx:if="{{editable && previews.length < 5}}" class="step-gallery__add {{disabled || busy ? 'step-gallery__disabled' : ''}}" bindtap="choose" aria-role="button" aria-label="添加步骤图片">{{busy ? '上传中…' : '＋ 添加图片'}}</view>
+  </view>
+</view>

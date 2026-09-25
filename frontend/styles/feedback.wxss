@@ -1,0 +1,24 @@
+@import "storybook-subpages.wxss";
+.feedback-page .feedback-heading { margin:16rpx 0 10rpx; font-size:40rpx; font-weight:700; color:#51331f; }
+.feedback-note { display:block; color:#806342; font-size:24rpx; line-height:1.7; }
+.feedback-section { margin:32rpx 0; }
+.feedback-label { display:block; margin-bottom:16rpx; font-size:28rpx; font-weight:700; }
+.feedback-types { display:flex; gap:16rpx; }
+.feedback-type { flex:1; min-width:0; padding:22rpx 12rpx; text-align:center; border:2rpx solid #c4bd91; border-radius:18rpx; color:#665239; background:#f6e7c4; font-size:26rpx; }
+.feedback-type.is-active { color:#fff4dc; background:#637b3d; border-color:#637b3d; }
+.feedback-page textarea { height:330rpx; width:100%; background:#fff0d0; }
+.feedback-count { display:block; margin-top:10rpx; text-align:right; font-size:22rpx; color:#806342; }
+.feedback-images { display:flex; flex-wrap:wrap; gap:16rpx; margin-top:20rpx; }
+.feedback-image { width:calc((100% - 32rpx) / 3); min-width:0; }
+.feedback-image image { display:block; width:100%; height:170rpx; border-radius:14rpx; background:#efdfbd; }
+.feedback-image-action { min-height:72rpx; display:flex; align-items:center; justify-content:center; font-size:23rpx; color:#874c2b; text-align:center; }
+.feedback-image-state { display:block; text-align:center; font-size:22rpx; line-height:1.6; color:#5a7138; }
+.feedback-warning { margin:22rpx 0; padding:22rpx; color:#843f21; background:#f9dfbc; border-radius:18rpx; font-size:24rpx; line-height:1.7; }
+.feedback-row { margin:24rpx 0; padding:26rpx; border-radius:22rpx; background:#f9e9c6; border:1rpx solid #e7cea1; }
+.feedback-row-head { display:flex; justify-content:space-between; gap:16rpx; align-items:center; font-size:26rpx; }
+.feedback-status { padding:8rpx 16rpx; border-radius:24rpx; color:#4c632f; background:#dfe6be; font-size:22rpx; flex-shrink:0; }
+.feedback-content { display:block; margin:22rpx 0; font-size:28rpx; line-height:1.85; white-space:pre-wrap; word-break:break-all; }
+.feedback-summary { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.feedback-reply { border-top:2rpx solid #dac395; margin-top:32rpx; padding-top:28rpx; }
+.feedback-footer { margin-top:32rpx; }
+.feedback-pressed { opacity:.75; }

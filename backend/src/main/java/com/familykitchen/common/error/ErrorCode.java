@@ -10,6 +10,8 @@ public enum ErrorCode {
   FORBIDDEN(40301),
   /** 请求的业务资源不存在。 */
   NOT_FOUND(40401),
+  /** 上传文件超过允许大小。 */
+  UPLOAD_TOO_LARGE(41301),
   /** 资源当前状态不允许执行操作。 */
   STATE_CONFLICT(40901),
   /** 用户已加入家庭，不能重复加入。 */

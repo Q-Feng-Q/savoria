@@ -1,4 +1,4 @@
-<view class="warm-page warm-page--management warm-state-host family-detail-page">
+<view class="merchant-story warm-page warm-page--management warm-state-host family-detail-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="orders" bind:retry="retryLoad" />
 
   <view wx:else class="detail-content">

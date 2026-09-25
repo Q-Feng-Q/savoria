@@ -1,7 +1,7 @@
-<view class="warm-page warm-state-host page notifications-page">
+<view class="story-page story-subpage warm-page warm-state-host page notifications-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="通知中心" description="{{errorMessage || '正在同步最新消息'}}" illustration="orders" bind:retry="retryLoad" />
   <view wx:if="{{phase === 'ready'}}">
-  <view class="hero notify-hero">
+  <view class="hero notify-hero"><view class="story-subhead-art"><image class="story-art__atlas story-art__atlas--family" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
     <text class="eyebrow">{{actorType === 'merchant' ? '商户消息' : '账号通知'}}</text>
     <text class="title">通知中心</text>
     <text class="subtitle">{{actorType === 'merchant' ? '接单、采购和余额提醒都会收在这里。' : '家庭申请、邀请、订单和配送变化都会在这里提醒。'}}</text>

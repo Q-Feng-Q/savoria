@@ -2,6 +2,8 @@
   margin-top: 28rpx;
 }
 
+@import "../../../styles/storybook-subpages.wxss";
+
 .ledger-title,
 .ledger-note,
 .ledger-time,

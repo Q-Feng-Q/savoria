@@ -10,6 +10,8 @@ import com.familykitchen.dish.model.dto.DishRequest;
 import com.familykitchen.dish.model.dto.DishStatusRequest;
 import com.familykitchen.dish.model.dto.DishMutationResult;
 import com.familykitchen.dish.model.dto.DishFeaturedRequest;
+import com.familykitchen.dish.model.dto.BatchDishMutationRequest;
+import com.familykitchen.dish.model.vo.BatchDishMutationResult;
 import com.familykitchen.dish.model.dto.DishRequest.CookingStepRequest;
 import com.familykitchen.dish.service.DishApplicationService;
 import com.familykitchen.dish.model.vo.DishCategoryView;
@@ -30,6 +32,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -41,6 +44,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/merchant")
 @Tag(name = "商户端-菜品", description = "商户菜品、制作步骤与分类管理接口")
 public class DishController {
+  public ApiResponse<List<DishView>> dishes(HttpServletRequest request, String scope) {
+    return dishes(request, scope, null);
+  }
 
   private final CurrentUserProvider currentUserProvider;
   private final DishApplicationService dishApplicationService;
@@ -99,13 +105,41 @@ public class DishController {
    * 处理菜品相关的 HTTP 请求。
    *
    * @param request 请求参数
+   * @param scope available 或 deleted 查询范围
    * @return 处理的结果
    */
   @GetMapping("/dishes")
   @Operation(summary = "查询菜品列表", description = "查询当前商户可管理的菜品列表。")
-  public ApiResponse<List<DishView>> dishes(HttpServletRequest request) {
+  public ApiResponse<List<DishView>> dishes(HttpServletRequest request,
+                                             @RequestParam(defaultValue = "available") String scope,
+                                             @RequestParam(required = false) String productType) {
     CurrentUserContext user = requireMerchant(request);
-    return ApiResponse.ok(dishApplicationService.dishes(user));
+    return ApiResponse.ok(productType == null ? dishApplicationService.dishes(user, scope)
+        : dishApplicationService.dishes(user, scope, productType));
+  }
+
+  /** Logically deletes a merchant-scoped dish batch.
+   * @param request HTTP request containing the current merchant identity
+   * @param body validated dish identifiers
+   * @return truthful mutation counts
+   */
+  @PostMapping("/dishes/batch-delete")
+  @Operation(summary = "批量删除菜品", description = "逻辑删除选中菜品并停用全部家庭菜单关联。")
+  public ApiResponse<BatchDishMutationResult> batchDelete(
+      HttpServletRequest request, @Valid @RequestBody BatchDishMutationRequest body) {
+    return ApiResponse.ok(dishApplicationService.bulkDelete(requireMerchant(request), body));
+  }
+
+  /** Restores a merchant-scoped dish batch to inactive.
+   * @param request HTTP request containing the current merchant identity
+   * @param body validated dish identifiers
+   * @return truthful mutation counts
+   */
+  @PostMapping("/dishes/batch-restore")
+  @Operation(summary = "批量恢复菜品", description = "恢复到未上架状态，不自动恢复家庭菜单。")
+  public ApiResponse<BatchDishMutationResult> batchRestore(
+      HttpServletRequest request, @Valid @RequestBody BatchDishMutationRequest body) {
+    return ApiResponse.ok(dishApplicationService.bulkRestore(requireMerchant(request), body));
   }
 
   /**

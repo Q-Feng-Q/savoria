@@ -39,12 +39,14 @@ test('merchant service exposes the complete template change request workflow', a
   assert.equal(calls[4].pathname, '/api/merchant/dish-template-change-requests/9/withdraw');
 });
 
-test('template snapshot v2 keeps editable data and strips server-owned fields', () => {
+test('template snapshot v2 carries an uploaded image reference but strips source metadata', () => {
   const snapshot = buildTemplateSnapshot({
     categoryId: 3,
     name: '豆角焖面',
     description: '北方家常焖面',
     imageUrl: '/images/dish-templates/dou-jiao-men-mian.jpg',
+    imageAssetId: 31,
+    imageRightsConfirmed: true,
     imageSourceUrl: 'https://example.com/source',
     imageAuthor: '作者',
     imageLicense: '授权使用',
@@ -58,10 +60,18 @@ test('template snapshot v2 keeps editable data and strips server-owned fields', 
   });
 
   assert.deepEqual(snapshot, {
+    productType: 'NORMAL',
+    nourishmentDescription: '',
+    servingAdvice: '',
+    precautions: '',
     schemaVersion: 2,
     categoryId: 3,
     name: '豆角焖面',
     description: '北方家常焖面',
+    imageUrl: '/images/dish-templates/dou-jiao-men-mian.jpg',
+    imageAssetId: 31,
+    removeImage: false,
+    imageRightsConfirmed: true,
     referencePrice: 18.5,
     tasteTags: ['咸香', '家常'],
     mealTags: ['LUNCH', 'DINNER'],
@@ -74,11 +84,11 @@ test('template snapshot v2 keeps editable data and strips server-owned fields', 
       componentMultiplier: null, sortOrder: 1
     }],
     cookingSteps: [{
-      itemId: 'step-1', stepNo: 1, title: '焖制', content: '小火焖熟',
+      itemId: 'step-1', stepNo: 1, title: '焖制', content: '小火焖熟', imageUrls: [],
       durationSeconds: 600, temperatureText: null, heatLevel: '小火', componentTemplateId: null
     }]
   });
-  assert.equal('imageUrl' in snapshot, false);
+  assert.equal(snapshot.imageUrl, '/images/dish-templates/dou-jiao-men-mian.jpg');
   assert.equal('imageSourceUrl' in snapshot, false);
   assert.equal('dataStatus' in snapshot, false);
   assert.equal(validateTemplateSnapshot(snapshot), '');
@@ -136,7 +146,9 @@ test('mini program registers submit, list and detail pages with discoverable ent
   assert.match(market, /修改申请/);
   assert.match(merchantDishes, /同步模板/);
   const editor = fs.readFileSync(path.join(root, 'pages/merchant/dish-template-change-edit/index.wxml'), 'utf8');
-  assert.doesNotMatch(editor, /更换图片|图片来源页面|图片授权|form\.imageUrl/);
+  assert.match(editor, /更换图片/);
+  assert.match(editor, /图片使用权/);
+  assert.match(editor, /form\.imagePreviewUrl/);
   assert.match(editor, /制作步骤/);
   const changeDetail = fs.readFileSync(path.join(root, 'pages/merchant/dish-template-change-detail/index.wxml'), 'utf8');
   assert.match(changeDetail, /制作步骤对比/);

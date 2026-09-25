@@ -1,3 +1,5 @@
+@import "../../../styles/storybook-merchant.wxss";
+
 .purchase-page { min-height: 100vh; box-sizing: border-box; padding-bottom: 64rpx; }
 .purchase-heading { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; padding: 10rpx 0 26rpx; border-bottom: 2rpx solid var(--sk-line-soft); }
 .purchase-eyebrow, .purchase-title, .ingredient-name, .ingredient-quantity, .source-status, .source-dishes, .breakdown-line { display: block; }

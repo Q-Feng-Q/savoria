@@ -1,0 +1,7 @@
+<view class="brand-lockup brand-lockup--{{size}} {{stacked ? 'brand-lockup--stacked' : ''}}">
+  <view class="brand-lockup__mark" style="width:{{logoSize}}rpx;max-width:100%;">
+    <image wx:if="{{logoSrc}}" class="brand-lockup__image" style="height:{{logoSize}}rpx;" src="{{logoSrc}}" mode="aspectFit" binderror="onImageError" aria-label="{{brandName}} Logo" />
+    <text wx:else class="brand-lockup__fallback" aria-label="{{brandName}}">栀</text>
+  </view>
+  <text wx:if="{{showName}}" class="brand-lockup__name">{{brandName}}</text>
+</view>

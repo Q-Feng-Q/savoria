@@ -1,3 +1,5 @@
+@import "../../../styles/storybook-merchant.wxss";
+
 .editor-page { padding-bottom: calc(180rpx + env(safe-area-inset-bottom)); background: #fffaf4; }
 .editor-head { padding: 28rpx 0 22rpx; border-bottom: 2rpx solid #e9ddd1; }
 .eyebrow, .editor-title, .section-title, .strong, .muted { display: block; }
@@ -25,3 +27,7 @@ textarea { width: 100%; min-height: 160rpx; }
 .safe-action-bar { position: fixed; right: auto; bottom: 0; left: 50%; width: 100%; max-width: 720px; padding: 18rpx 28rpx calc(18rpx + env(safe-area-inset-bottom)); border-top: 2rpx solid #e2d6ca; background: rgba(255,250,244,.97); box-sizing: border-box; transform: translateX(-50%); z-index: 20; }
 .save-action { border-radius: 16rpx; background: #e87561; color: #fff; font-weight: 900; }
 @media (max-width: 320px) { .image-row { align-items: stretch; } .line-row { align-items: flex-start; } }
+
+/* The inner control owns the border and warm fill; picker is only a trigger. */
+.merchant-story.editor-page .editor-picker { display: block; width: 100%; min-height: 0; padding: 0; border: 0; background: transparent; box-sizing: border-box; }
+.merchant-story.editor-page .editor-picker .picker-control { width: 100%; background: #fff7e4; }

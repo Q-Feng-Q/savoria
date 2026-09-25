@@ -1,0 +1,19 @@
+@import "approved-storybook.wxss";
+.warm-page.auth-story { --sk-paper:#fff0d1; --action-primary-bg:#df7739; min-height:100vh; padding:16rpx 24rpx calc(48rpx + env(safe-area-inset-bottom)); background:#fff3d7; box-sizing:border-box; }
+.auth-story .auth-brand-scene { min-height:240rpx; height:auto; margin:0 -24rpx; }
+.auth-story .story-brand__copy { padding:40rpx 0 0 28rpx; width:52%; }
+.auth-story .story-brand__name { font-size:58rpx; }
+.auth-story .story-brand__tagline { font-size:23rpx; letter-spacing:1rpx; }
+.auth-story .entry-form,.auth-story .register-form { margin-top:16rpx; padding:30rpx; border:2rpx solid #e9d3a9; border-radius:28rpx; background:linear-gradient(110deg,#fff6e2,#fff0d1); box-shadow:0 10rpx 24rpx rgba(151,108,41,.09); }
+.auth-story .entry-form__title,.auth-story .register-form__title { display:block; color:#51331f; font-family:"KaiTi",serif; font-size:38rpx; font-weight:800; line-height:1.4; }
+.auth-story .entry-form__note { color:#886b49; font-size:23rpx; }
+.auth-story .entry-field,.auth-story .register-field { display:block; margin-top:26rpx; margin-bottom:0; }
+.auth-story .entry-field text,.auth-story .register-field text { color:#715236; font-size:24rpx; }
+.auth-story .entry-field input,.auth-story .register-field input { width:100%; height:90rpx; padding:0 22rpx; border:2rpx solid #dec59a; border-radius:18rpx; background:#fff7e4; color:#51331f; font-size:26rpx; }
+.auth-story .entry-field__head .entry-recovery { color:#5c733b; }
+.auth-story .entry-login-hint,.auth-story .register-note { display:block; margin:22rpx 0; padding:18rpx; border-radius:18rpx; background:#e3e8c7; color:#5a6f3d; font-size:22rpx; line-height:1.65; }
+.auth-story .entry-actions { grid-template-columns:minmax(0,1fr); gap:16rpx; margin-top:24rpx; }
+.auth-story .entry-actions action-button { width:100%; min-width:0; }
+.auth-story .auth-footnote { display:block; padding:28rpx 12rpx 0; color:#94764f; font-family:"KaiTi",serif; font-size:24rpx; line-height:1.6; text-align:center; }
+@media(max-width:360px) { .warm-page.auth-story { padding-left:18rpx; padding-right:18rpx; } .auth-story .entry-form,.auth-story .register-form { padding:24rpx; } .auth-story .auth-brand-scene { min-height:210rpx; margin:0 -18rpx; } .auth-story .story-brand__copy { padding-top:32rpx; } .auth-story .story-brand__name { font-size:52rpx; } }
+@media(orientation:landscape) { .auth-story .auth-brand-scene { min-height:160rpx; } .auth-story .story-brand__copy { padding-top:18rpx; } }

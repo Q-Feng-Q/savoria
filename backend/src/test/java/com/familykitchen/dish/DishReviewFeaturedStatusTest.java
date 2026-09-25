@@ -30,6 +30,31 @@ import org.mockito.InOrder;
 
 /** Review approval must share the same merchant-to-dish mutation lock. */
 class DishReviewFeaturedStatusTest {
+  @Test void reviewSubmissionAndApprovalPreserveOmittedAndApplyExplicitBlank() throws Exception {
+    DishReviewMapper reviews = mock(DishReviewMapper.class);
+    DishMapper dishes = mock(DishMapper.class);
+    MerchantDishMutationLock lock = mock(MerchantDishMutationLock.class);
+    ObjectMapper json = new ObjectMapper();
+    DishEntity existing = new DishEntity(); existing.setProductType("NOURISHMENT");
+    existing.setNourishmentDescription("原介绍"); existing.setServingAdvice("原建议");
+    when(lock.lock(2L, 8L)).thenReturn(existing);
+    DishRequest request = new DishRequest("汤", 3L, null, null, BigDecimal.TEN, List.of(), List.of(), "active",
+        null, null, "  ", null);
+    var service = new DishReviewServiceImpl(reviews, dishes, json, mock(SystemAuditMapper.class), lock, mock(FamilyMapper.class));
+    DishReviewSubmissionDO submitted = service.submit(1L, 2L, 8L, request);
+    org.junit.jupiter.api.Assertions.assertEquals("NOURISHMENT", json.readTree(submitted.getSnapshotJson()).path("productType").asText());
+    submitted.setId(7L);
+    when(reviews.selectById(7L)).thenReturn(submitted);
+    when(reviews.approve(7L, 99L, "ok")).thenReturn(1);
+    when(dishes.countCategoryOwnership(2L, 3L)).thenReturn(1);
+    when(dishes.updateDish(any())).thenReturn(1);
+    service.approve(7L, 99L, "ok");
+    var saved = org.mockito.ArgumentCaptor.forClass(DishEntity.class);
+    verify(dishes).updateDish(saved.capture());
+    org.junit.jupiter.api.Assertions.assertEquals("NOURISHMENT", saved.getValue().getProductType());
+    org.junit.jupiter.api.Assertions.assertEquals("原介绍", saved.getValue().getNourishmentDescription());
+    org.junit.jupiter.api.Assertions.assertNull(saved.getValue().getServingAdvice());
+  }
 
   @Test
   void existingDishApprovalLocksAndRevalidatesBeforeApplyingInactiveSnapshot() throws Exception {

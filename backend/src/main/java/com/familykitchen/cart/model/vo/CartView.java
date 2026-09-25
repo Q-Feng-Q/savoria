@@ -37,9 +37,12 @@ public record CartView(LocalDateTime serverNow,LocalDate serverDate,
    * @param currentMemberQuantity current member quantity
    * @param currentMemberRemark current member remark
    * @param selections member attribution details
+   * @param available whether the item can still be submitted
+   * @param unavailableReason user-readable unavailable reason
    */
   public record CartItemView(Long itemId,Long dishId,String dishName,BigDecimal price,int quantity,
-      int currentMemberQuantity,String currentMemberRemark,List<SelectionView> selections) {}
+      int currentMemberQuantity,String currentMemberRemark,List<SelectionView> selections,
+      boolean available,String unavailableReason) {}
   /**
    * Member attribution detail.
    *

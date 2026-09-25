@@ -108,6 +108,14 @@ public class FamilyOrderApplicationServiceImpl implements FamilyOrderApplication
   }
 
   private Long submitOnce(CurrentUserContext user,SubmitOrderRequest request){
+    CartEntity snapshot=carts.selectFamilyCart(request.cartId(),user.familyId());
+    if(snapshot==null)throw new BusinessException(ErrorCode.NOT_FOUND,"餐篮不存在");
+    List<Long> dishIds=carts.selectCartItems(snapshot.getId()).stream()
+        .map(CartItemEntity::getDishId).distinct().sorted().toList();
+    if(dishIds.isEmpty())throw new BusinessException(ErrorCode.BUSINESS_INVALID,"餐篮为空");
+    carts.lockMerchantForCart(snapshot.getMerchantId());
+    carts.lockDishesForCart(snapshot.getMerchantId(),dishIds);
+    carts.lockFamilyMenuItemsForCart(user.familyId(),dishIds);
     CartEntity cart=carts.selectFamilyCartForUpdate(request.cartId(),user.familyId());
     if(cart==null)throw new BusinessException(ErrorCode.NOT_FOUND,"餐篮不存在");
     if(!"active".equalsIgnoreCase(cart.getStatus()))
@@ -118,6 +126,9 @@ public class FamilyOrderApplicationServiceImpl implements FamilyOrderApplication
     times.requireValid(cart.getExpectedMealTime());
     List<CartItemEntity> cartItems=carts.selectCartItemsForUpdate(cart.getId());
     if(cartItems.isEmpty())throw new BusinessException(ErrorCode.BUSINESS_INVALID,"餐篮为空");
+    List<Long> lockedDishIds=cartItems.stream().map(CartItemEntity::getDishId)
+        .distinct().sorted().toList();
+    if(!lockedDishIds.equals(dishIds))throw conflict("餐篮内容已变化，请刷新后重新确认");
 
     Map<Long,List<CartItemSelectionEntity>> selected=new LinkedHashMap<>();
     Set<Long> participantIds=new LinkedHashSet<>();
@@ -136,7 +147,7 @@ public class FamilyOrderApplicationServiceImpl implements FamilyOrderApplication
 
     List<CheckoutItem> checkoutItems=new ArrayList<>();
     for(CartItemEntity item:cartItems){
-      CartDishSnapshot current=carts.selectAvailableDishForUpdate(user.familyId(),item.getDishId());
+      CartDishSnapshot current=carts.selectAvailableDish(user.familyId(),item.getDishId());
       if(current==null)throw new BusinessException(ErrorCode.BUSINESS_INVALID,
           "菜品已下架或不再属于家庭菜单："+item.getDishNameSnapshot());
       List<CheckoutItem.MemberSelection> snapshots=selected.get(item.getId()).stream()

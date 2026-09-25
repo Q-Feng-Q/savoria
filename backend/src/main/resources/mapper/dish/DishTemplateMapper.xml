@@ -9,6 +9,8 @@
     <id property="id" column="id"/><result property="templateCode" column="template_code"/>
     <result property="categoryId" column="category_id"/><result property="categoryName" column="category_name"/>
     <result property="name" column="name"/><result property="description" column="description"/>
+    <result property="productType" column="product_type"/><result property="nourishmentDescription" column="nourishment_description"/>
+    <result property="servingAdvice" column="serving_advice"/><result property="precautions" column="precautions"/>
     <result property="imageUrl" column="image_url"/><result property="imageSourceUrl" column="image_source_url"/>
     <result property="imageAuthor" column="image_author"/><result property="imageLicense" column="image_license"/>
     <result property="referencePrice" column="reference_price"/><result property="tasteTags" column="taste_tags"/>
@@ -43,6 +45,7 @@
     <result property="content" column="content"/><result property="sourceText" column="source_text"/>
     <result property="durationSeconds" column="duration_seconds"/><result property="temperatureText" column="temperature_text"/>
     <result property="heatLevel" column="heat_level"/><result property="componentTemplateId" column="component_template_id"/>
+    <result property="imageUrls" column="image_urls" typeHandler="com.familykitchen.dish.mapper.StringListJsonTypeHandler"/>
   </resultMap>
   <resultMap id="TemplateSourceRecordMap" type="com.familykitchen.dish.model.entity.DishTemplateSourceRecordEntity">
     <id property="id" column="id"/><result property="templateId" column="template_id"/>
@@ -70,7 +73,7 @@
     <result property="updatedAt" column="updated_at"/>
   </resultMap>
   <sql id="TemplateColumns">
-    t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.image_url,
+    t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.product_type,t.nourishment_description,t.serving_advice,t.precautions,t.image_url,
     t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
     t.template_type,t.source_type,t.source_key,t.source_url,t.source_revision,t.source_category,
     t.source_yield_text,t.data_status,t.procurement_ready,t.image_rights_status,
@@ -81,8 +84,12 @@
   <sql id="MerchantEligibleTemplateFilter">
     t.template_type='DISH' and t.data_status='READY' and t.procurement_ready=1 and t.reference_price is not null and t.enabled=1
   </sql>
+  <sql id="MerchantVisibleTemplateFilter">
+    t.template_type='DISH' and t.enabled=1
+  </sql>
   <sql id="TemplateFilters">
-    <include refid="MerchantEligibleTemplateFilter"/>
+    <include refid="MerchantVisibleTemplateFilter"/>
+    <if test="_parameter.containsKey('productType') and productType != null">and coalesce(t.product_type, 'NORMAL')=#{productType}</if>
     <if test="categoryId != null">and t.category_id=#{categoryId}</if>
     <if test="keyword != null and keyword != ''">and t.name like concat('%',#{keyword},'%')</if>
     <if test="imported != null and imported">and d.id is not null</if>
@@ -90,6 +97,7 @@
   </sql>
   <sql id="AdminTemplateFilters">
     1=1
+    <if test="_parameter.containsKey('productType') and productType != null">and t.template_type='DISH' and coalesce(t.product_type, 'NORMAL')=#{productType}</if>
     <if test="keyword != null and keyword != ''">and t.name like concat('%',#{keyword},'%')</if>
     <if test="sourceType != null and sourceType != ''">and t.source_type=#{sourceType}</if>
     <if test="templateType != null and templateType != ''">and t.template_type=#{templateType}</if>
@@ -105,6 +113,7 @@
   </select>
   <select id="countTemplates" resultType="long">
     select count(*) from dish_templates t
+    join dish_template_categories c on c.id=t.category_id and c.enabled=1
     left join dishes d on d.source_template_id=t.id and d.merchant_id = #{merchantId}
     where <include refid="TemplateFilters"/>
   </select>
@@ -119,7 +128,7 @@
     select <include refid="TemplateColumns"/> from dish_templates t
     join dish_template_categories c on c.id=t.category_id and c.enabled=1
     left join dishes d on d.source_template_id=t.id and d.merchant_id = #{merchantId}
-    where t.id=#{templateId} and <include refid="MerchantEligibleTemplateFilter"/>
+    where t.id=#{templateId} and <include refid="MerchantVisibleTemplateFilter"/>
   </select>
   <select id="selectAdminTemplates" resultMap="TemplateMap">
     select <include refid="TemplateColumns"/> from dish_templates t
@@ -128,7 +137,8 @@
     order by c.sort_order,t.sort_order,t.id
   </select>
   <select id="countAdminTemplates" resultType="long">
-    select count(*) from dish_templates t where <include refid="AdminTemplateFilters"/>
+    select count(*) from dish_templates t join dish_template_categories c on c.id=t.category_id
+    where <include refid="AdminTemplateFilters"/>
   </select>
   <select id="selectAdminTemplatesPage" resultMap="TemplateMap">
     select <include refid="TemplateColumns"/> from dish_templates t
@@ -143,7 +153,7 @@
     where t.id=#{templateId}
   </select>
   <select id="selectTemplateForUpdate" resultMap="TemplateMap">
-    select t.id,t.template_code,t.category_id,null category_name,t.name,t.description,t.image_url,
+    select t.id,t.template_code,t.category_id,null category_name,t.name,t.description,t.product_type,t.nourishment_description,t.serving_advice,t.precautions,t.image_url,
       t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
       t.template_type,t.source_type,t.source_key,t.source_url,t.source_revision,t.source_category,
       t.source_yield_text,t.data_status,t.procurement_ready,t.image_rights_status,
@@ -152,7 +162,7 @@
     from dish_templates t where t.id=#{templateId} for update
   </select>
   <select id="selectEligibleTemplateForUpdate" resultMap="TemplateMap">
-    select t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.image_url,
+    select t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.product_type,t.nourishment_description,t.serving_advice,t.precautions,t.image_url,
       t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
       t.template_type,t.source_type,t.source_key,t.source_url,t.source_revision,t.source_category,
       t.source_yield_text,t.data_status,t.procurement_ready,t.image_rights_status,
@@ -173,7 +183,7 @@
   </select>
   <select id="selectTemplateCookingSteps" resultMap="TemplateCookingStepMap">
     select id,item_key,template_id,step_no,title,content,source_text,duration_seconds,temperature_text,
-      heat_level,component_template_id
+      heat_level,component_template_id,image_urls
     from dish_template_cooking_steps where template_id=#{templateId} order by step_no,id
   </select>
   <select id="selectTemplateSourceRecords" resultMap="TemplateSourceRecordMap">
@@ -204,7 +214,7 @@
     from dish_template_image_assets where id=#{assetId} for update
   </select>
   <select id="selectTemplatesByIds" resultMap="TemplateMap">
-    select t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.image_url,
+    select t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.product_type,t.nourishment_description,t.serving_advice,t.precautions,t.image_url,
       t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
       t.template_type,t.source_type,t.source_key,t.source_url,t.source_revision,t.source_category,
       t.source_yield_text,t.data_status,t.procurement_ready,t.image_rights_status,
@@ -215,7 +225,7 @@
     order by t.id
   </select>
   <select id="selectAllEnabledTemplates" resultMap="TemplateMap">
-    select t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.image_url,
+    select t.id,t.template_code,t.category_id,c.name category_name,t.name,t.description,t.product_type,t.nourishment_description,t.serving_advice,t.precautions,t.image_url,
       t.image_source_url,t.image_author,t.image_license,t.reference_price,t.taste_tags,t.meal_tags,
       t.template_type,t.source_type,t.source_key,t.source_url,t.source_revision,t.source_category,
       t.source_yield_text,t.data_status,t.procurement_ready,t.image_rights_status,
@@ -247,8 +257,8 @@
   </insert>
   <insert id="insertImportedDishIgnore" parameterType="com.familykitchen.dish.model.entity.DishEntity"
       useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-    insert ignore into dishes (merchant_id,category_id,name,description,image_url,base_price,source_template_id,status)
-    values (#{merchantId},#{categoryId},#{name},#{description},#{imageUrl},#{basePrice},#{sourceTemplateId},#{status})
+    insert ignore into dishes (merchant_id,category_id,name,description,product_type,nourishment_description,serving_advice,precautions,image_url,base_price,source_template_id,status)
+    values (#{merchantId},#{categoryId},#{name},#{description},#{productType},#{nourishmentDescription},#{servingAdvice},#{precautions},#{imageUrl},#{basePrice},#{sourceTemplateId},#{status})
   </insert>
   <select id="selectImportedDishId" resultType="long">
     select id from dishes where merchant_id=#{merchantId} and source_template_id=#{templateId} limit 1
@@ -276,9 +286,9 @@
   <insert id="insertTemplateCookingStep" parameterType="com.familykitchen.dish.model.entity.DishTemplateCookingStepEntity"
       useGeneratedKeys="true" keyProperty="id" keyColumn="id">
     insert into dish_template_cooking_steps
-      (item_key,template_id,step_no,title,content,source_text,duration_seconds,temperature_text,heat_level,component_template_id)
+      (item_key,template_id,step_no,title,content,source_text,duration_seconds,temperature_text,heat_level,component_template_id,image_urls)
     values (#{itemKey},#{templateId},#{stepNo},#{title},#{content},#{sourceText},#{durationSeconds},
-      #{temperatureText},#{heatLevel},#{componentTemplateId})
+      #{temperatureText},#{heatLevel},#{componentTemplateId},#{imageUrls,typeHandler=com.familykitchen.dish.mapper.StringListJsonTypeHandler})
   </insert>
   <delete id="deleteTemplateSourceRecords">
     delete from dish_template_source_records where template_id=#{templateId}
@@ -317,9 +327,14 @@
   </update>
   <update id="updateAdminTemplate">
     update dish_templates set category_id=#{template.categoryId},name=#{template.name},
+      product_type=#{template.productType},nourishment_description=#{template.nourishmentDescription},
+      serving_advice=#{template.servingAdvice},precautions=#{template.precautions},
       description=#{template.description},reference_price=#{template.referencePrice},
       taste_tags=#{template.tasteTags},meal_tags=#{template.mealTags},sort_order=#{template.sortOrder},
       enabled=#{template.enabled},
+      image_url=#{template.imageUrl},image_source_url=#{template.imageSourceUrl},
+      image_author=#{template.imageAuthor},image_license=#{template.imageLicense},
+      image_rights_status=#{template.imageRightsStatus},
       data_status=#{template.dataStatus},procurement_ready=#{template.procurementReady},version=version+1
     where id=#{template.id} and version=#{expectedVersion}
   </update>
@@ -339,4 +354,28 @@
       reviewed_at=current_timestamp,rejection_reason=#{reason}
     where id=#{assetId} and asset_status='INTERNAL_REVIEW'
   </update>
+  <select id="countTemplatesByProductType" resultType="long">
+    select count(*) from dish_templates t
+    join dish_template_categories c on c.id=t.category_id and c.enabled=1
+    left join dishes d on d.source_template_id=t.id and d.merchant_id = #{merchantId}
+    where <include refid="TemplateFilters"/>
+  </select>
+  <select id="selectTemplatesByProductType" resultMap="TemplateMap">
+    select <include refid="TemplateColumns"/> from dish_templates t
+    join dish_template_categories c on c.id=t.category_id and c.enabled=1
+    left join dishes d on d.source_template_id=t.id and d.merchant_id = #{merchantId}
+    where <include refid="TemplateFilters"/>
+    order by c.sort_order,t.sort_order,t.id limit #{offset},#{pageSize}
+  </select>
+  <select id="countAdminTemplatesByProductType" resultType="long">
+    select count(*) from dish_templates t join dish_template_categories c on c.id=t.category_id
+    where <include refid="AdminTemplateFilters"/>
+  </select>
+  <select id="selectAdminTemplatesPageByProductType" resultMap="TemplateMap">
+    select <include refid="TemplateColumns"/> from dish_templates t
+    join dish_template_categories c on c.id=t.category_id
+    left join dishes d on 1=0
+    where <include refid="AdminTemplateFilters"/>
+    order by c.sort_order,t.sort_order,t.id limit #{offset},#{pageSize}
+  </select>
 </mapper>

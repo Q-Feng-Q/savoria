@@ -9,12 +9,17 @@ const {
 } = require('../utils/dish-template-selection');
 const { createMerchantService } = require('../services/merchant');
 
-test('template selection ignores imported items and caps selection at 100', () => {
+test('template selection ignores imported and incomplete items and caps selection at 100', () => {
   const selection = createDishTemplateSelection();
-  const rows = Array.from({ length: 102 }, (_, index) => ({ templateId: index + 1, imported: index === 0 }));
+  const rows = Array.from({ length: 103 }, (_, index) => ({
+    templateId: index + 1,
+    imported: index === 0,
+    importable: index !== 1
+  }));
   const result = selection.selectPage(rows);
   assert.equal(result.selectedIds.length, 100);
   assert.equal(result.selectedIds.includes(1), false);
+  assert.equal(result.selectedIds.includes(2), false);
   assert.equal(result.limitReached, true);
 });
 
@@ -39,6 +44,8 @@ test('template view models keep null image and price explicit', () => {
   assert.equal(rows[0].priceText, '价格待完善');
   assert.equal(rows[0].sourceLabel, 'CookLikeHOC');
   assert.equal(rows[0].stepsLabel, '步骤待补充');
+  assert.equal(rows[0].importable, false);
+  assert.equal(rows[0].readinessLabel, '待完善后导入');
 
   const detail = decorateTemplateDetail({
     imageUrl: null,
@@ -247,6 +254,7 @@ test('merchant dish editing preserves imported cooking step facts', () => {
       }]
     });
     assert.deepEqual(payload.cookingSteps[0], {
+      imageUrls: [],
       stepNo: 1, title: '焖制', content: '盖盖焖熟', durationSeconds: 600,
       temperatureText: '保持微沸', heatLevel: '小火', componentTemplateId: 9
     });
@@ -382,5 +390,26 @@ test('reset refresh owns the pagination lock and ignores an older load-more resu
 test('successful imports clear row checkmarks before attempting refresh', () => {
   const root = path.resolve(__dirname, '..');
   const source = fs.readFileSync(path.join(root, 'pages/merchant/dish-templates/index.js'), 'utf8');
-  assert.equal((source.match(/this\.syncSelection\(this\.selection\.clear\(\)\)/g) || []).length, 3);
+  assert.equal((source.match(/this\.syncSelection\(this\.selection\.clear\(\)\)/g) || []).length, 4);
+});
+
+test('type filter resets selection and is sent for every template page', async () => {
+  const calls = [];
+  await withTemplatePage({
+    merchant: {
+      getDishTemplateCategories: async () => [],
+      getDishTemplates: async (query) => { calls.push(query); return { page: query.page, total: 2, items: [{ templateId: query.page, productType: 'NOURISHMENT' }] }; }
+    },
+    wxMock: {},
+    run: async (page) => {
+      page.selection.selectPage([{ templateId: 8, importable: true }]);
+      page.syncSelection(page.selection.snapshot());
+      await page.changeProductType({ detail: { value: 2 } });
+      assert.deepEqual(page.data.selectedIds, []);
+      assert.equal(page.data.page, 1);
+      await page.loadMore();
+      assert.deepEqual(calls.map((item) => [item.productType, item.page]), [['NOURISHMENT', 1], ['NOURISHMENT', 2]]);
+      assert.equal(page.data.items.length, 2);
+    }
+  });
 });

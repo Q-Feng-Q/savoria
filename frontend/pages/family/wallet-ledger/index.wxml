@@ -1,7 +1,7 @@
-<view class="warm-page warm-state-host page wallet-ledger-page">
+<view class="story-page story-subpage warm-page warm-state-host page wallet-ledger-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="家庭钱包流水" description="{{errorMessage || '正在读取余额变动记录'}}" illustration="wallet" bind:retry="retryLoad" />
   <view wx:if="{{phase === 'ready'}}">
-  <view class="hero">
+  <view class="hero"><view class="story-subhead-art"><image class="story-art__atlas story-art__atlas--family" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
     <text class="eyebrow">家庭钱包</text>
     <text class="title">家庭钱包流水</text>
     <text class="subtitle">商户调整、订单冻结、释放和正式扣减都会留在这里。</text>

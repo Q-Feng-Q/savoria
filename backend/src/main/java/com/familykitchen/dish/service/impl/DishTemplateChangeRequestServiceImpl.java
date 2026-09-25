@@ -34,6 +34,8 @@ import com.familykitchen.dish.model.vo.DishTemplateChangeSubmitView;
 import com.familykitchen.dish.service.DishTemplateChangeRequestService;
 import com.familykitchen.dish.service.DishTemplateSnapshotValidator;
 import com.familykitchen.dish.service.DishTemplateProcurementReadinessEvaluator;
+import com.familykitchen.file.mapper.FileAssetMapper;
+import com.familykitchen.file.model.entity.FileAssetDO;
 import com.familykitchen.notification.mapper.NotificationPersistenceMapper;
 import com.familykitchen.notification.model.entity.NotificationDO;
 import java.util.List;
@@ -60,6 +62,7 @@ public class DishTemplateChangeRequestServiceImpl implements DishTemplateChangeR
   private final DishTemplateChangeRequestMapper requestMapper;
   private final DishTemplateMapper templateMapper;
   private final DishMapper dishMapper;
+  private final FileAssetMapper fileAssetMapper;
   private final NotificationPersistenceMapper notificationMapper;
   private final ObjectMapper objectMapper;
   private final DishTemplateSnapshotValidator snapshotValidator;
@@ -70,18 +73,21 @@ public class DishTemplateChangeRequestServiceImpl implements DishTemplateChangeR
    * @param requestMapper 审核申请持久化 Mapper
    * @param templateMapper 模板菜品与食材 Mapper
    * @param dishMapper 商户菜品、配方与食材字典 Mapper
+   * @param fileAssetMapper 上传文件资产 Mapper
    * @param notificationMapper 站内通知 Mapper
    * @param objectMapper JSON 序列化组件
    * @param snapshotValidator 完整快照校验器
    * @param procurementEvaluator 采购就绪状态判定器
    */
   public DishTemplateChangeRequestServiceImpl(DishTemplateChangeRequestMapper requestMapper,
-      DishTemplateMapper templateMapper, DishMapper dishMapper, NotificationPersistenceMapper notificationMapper,
+      DishTemplateMapper templateMapper, DishMapper dishMapper, FileAssetMapper fileAssetMapper,
+      NotificationPersistenceMapper notificationMapper,
       ObjectMapper objectMapper, DishTemplateSnapshotValidator snapshotValidator,
       DishTemplateProcurementReadinessEvaluator procurementEvaluator) {
     this.requestMapper = requestMapper;
     this.templateMapper = templateMapper;
     this.dishMapper = dishMapper;
+    this.fileAssetMapper = fileAssetMapper;
     this.notificationMapper = notificationMapper;
     this.objectMapper = objectMapper;
     this.snapshotValidator = snapshotValidator;
@@ -104,6 +110,7 @@ public class DishTemplateChangeRequestServiceImpl implements DishTemplateChangeR
     if (template == null || !Boolean.TRUE.equals(template.getEnabled())) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "模板菜品不存在或已停用");
     }
+    target = resolveSubmittedImage(user, template, target);
     List<DishTemplateIngredientEntity> ingredients = templateMapper.selectTemplateIngredients(templateId);
     List<DishTemplateCookingStepEntity> steps = templateMapper.selectTemplateCookingSteps(templateId);
     return persistSubmission(user, template, target, submitNote, ingredients, steps);
@@ -122,6 +129,9 @@ public class DishTemplateChangeRequestServiceImpl implements DishTemplateChangeR
 
     DishEntity dish = dishMapper.selectDish(user.merchantId(), dishId);
     if (dish == null) throw new BusinessException(ErrorCode.NOT_FOUND, "菜品不存在或无权操作");
+    if ("deleted".equalsIgnoreCase(dish.getStatus())) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "菜品已删除");
+    }
     if (dish.getSourceTemplateId() == null) {
       throw badRequest("该菜品不是从平台模板导入，不能申请同步");
     }
@@ -150,6 +160,8 @@ public class DishTemplateChangeRequestServiceImpl implements DishTemplateChangeR
       List<DishTemplateIngredientEntity> templateIngredients,
       List<DishTemplateCookingStepEntity> templateSteps) {
     Long templateId = template.getId();
+    target = fillNourishmentForSubmission(template, target);
+    target = resolveStepImages(templateId, target, templateSteps);
     requireEnabledCategory(target.categoryId());
     List<DishTemplateIngredientEntity> targetIngredients = target.ingredients().stream()
         .map(item -> toIngredient(templateId, item)).toList();
@@ -215,12 +227,14 @@ public class DishTemplateChangeRequestServiceImpl implements DishTemplateChangeR
             ? "dish:" + dish.getId() + ":step:" + index : "template-step:" + item.getSourceTemplateStepId();
         steps.add(new DishTemplateCookingStepSnapshotRequest(itemId, index + 1, item.getTitle(),
             item.getContent(), item.getDurationSeconds(), item.getTemperatureText(), item.getHeatLevel(),
-            item.getComponentTemplateId()));
+            item.getComponentTemplateId(), item.getImageUrls()));
       }
     }
     return new DishTemplateSnapshotRequest(2, template.getCategoryId(), dish.getName(), dish.getDescription(),
-        dish.getBasePrice(), readTags(template.getTasteTags()), readTags(template.getMealTags()),
-        template.getSortOrder(), template.getEnabled(), List.copyOf(ingredients), List.copyOf(steps));
+        template.getImageUrl(), null, false, false, dish.getBasePrice(),
+        readTags(template.getTasteTags()), readTags(template.getMealTags()),
+        template.getSortOrder(), template.getEnabled(), List.copyOf(ingredients), List.copyOf(steps),
+        dish.getProductType(), snapshotText(dish.getNourishmentDescription()), snapshotText(dish.getServingAdvice()), snapshotText(dish.getPrecautions()));
   }
 
   private static void putCategory(Map<String, String> target, String name, String category) {
@@ -307,7 +321,10 @@ public class DishTemplateChangeRequestServiceImpl implements DishTemplateChangeR
     if (currentVersion != application.getBaseTemplateVersion()) {
       throw conflict("模板菜品已发生变化，请重新提交");
     }
-    DishTemplateSnapshotRequest target = readSnapshot(application.getSnapshotJson());
+    DishTemplateSnapshotRequest target = preserveCurrentImageForLegacySnapshot(
+        current, readSnapshot(application.getSnapshotJson()));
+    target = resolveStepImages(application.getTemplateId(), target,
+        templateMapper.selectTemplateCookingSteps(application.getTemplateId()));
     requireEnabledCategory(target.categoryId());
     DishTemplateEntity replacement = applyEditableFields(current, target);
     List<DishTemplateIngredientEntity> targetIngredients = target.ingredients().stream()
@@ -391,12 +408,14 @@ public class DishTemplateChangeRequestServiceImpl implements DishTemplateChangeR
           : item.getItemKey();
       cookingSteps.add(new DishTemplateCookingStepSnapshotRequest(itemId, index + 1, item.getTitle(),
           item.getContent(), item.getDurationSeconds(), item.getTemperatureText(), item.getHeatLevel(),
-          item.getComponentTemplateId()));
+          item.getComponentTemplateId(), item.getImageUrls()));
     }
     return new DishTemplateSnapshotRequest(2, template.getCategoryId(), template.getName(),
-        template.getDescription(), template.getReferencePrice(), readTags(template.getTasteTags()),
+        template.getDescription(), template.getImageUrl(), null, false, false,
+        template.getReferencePrice(), readTags(template.getTasteTags()),
         readTags(template.getMealTags()), template.getSortOrder(), template.getEnabled(),
-        List.copyOf(items), List.copyOf(cookingSteps));
+        List.copyOf(items), List.copyOf(cookingSteps), template.getProductType(),
+        snapshotText(template.getNourishmentDescription()), snapshotText(template.getServingAdvice()), snapshotText(template.getPrecautions()));
   }
 
   private DishTemplateChangeDetailView toDetail(DishTemplateChangeRequestDO entity) {
@@ -448,11 +467,83 @@ public class DishTemplateChangeRequestServiceImpl implements DishTemplateChangeR
   }
 
   private DishTemplateEntity applyEditableFields(DishTemplateEntity entity, DishTemplateSnapshotRequest source) {
+    com.familykitchen.dish.service.NourishmentFields.apply(entity, source.productType(), source.nourishmentDescription(), source.servingAdvice(), source.precautions());
     entity.setCategoryId(source.categoryId()); entity.setName(source.name());
     entity.setDescription(source.description()); entity.setReferencePrice(source.referencePrice());
     entity.setTasteTags(writeTags(source.tasteTags())); entity.setMealTags(writeTags(source.mealTags()));
     entity.setSortOrder(source.sortOrder()); entity.setEnabled(source.enabled());
+    if (!java.util.Objects.equals(entity.getImageUrl(), source.imageUrl())) {
+      entity.setImageUrl(source.imageUrl());
+      if (source.imageUrl() == null) {
+        entity.setImageSourceUrl(null); entity.setImageAuthor(null); entity.setImageLicense(null);
+        entity.setImageRightsStatus("NONE");
+      } else {
+        entity.setImageSourceUrl(source.imageUrl()); entity.setImageAuthor("商户上传");
+        entity.setImageLicense("提交者确认拥有合法使用权并授权平台使用");
+        entity.setImageRightsStatus("DECLARED");
+      }
+    }
     return entity;
+  }
+
+  /**
+   * 将客户端图片变更规范化为可审核的确定目标值。
+   * <p>旧客户端未提交图片字段时保留模板原图；新图必须引用当前账号刚上传并登记的图片资产。</p>
+   */
+  private DishTemplateSnapshotRequest resolveSubmittedImage(CurrentUserContext user,
+      DishTemplateEntity template, DishTemplateSnapshotRequest source) {
+    String imageUrl = source.imageUrl();
+    Long imageAssetId = source.imageAssetId();
+    boolean removeImage = Boolean.TRUE.equals(source.removeImage());
+    boolean rightsConfirmed = Boolean.TRUE.equals(source.imageRightsConfirmed());
+    if (removeImage) {
+      imageUrl = null;
+      imageAssetId = null;
+      rightsConfirmed = false;
+    } else if (imageAssetId != null) {
+      FileAssetDO asset = fileAssetMapper.selectOwnedImage(imageAssetId, user.userId());
+      if (asset == null) throw badRequest("所选图片不存在或不属于当前账号，请重新上传");
+      if (!rightsConfirmed) throw badRequest("更换模板图片前必须确认拥有合法使用权");
+      imageUrl = asset.getUrl();
+    } else {
+      if (imageUrl != null && !java.util.Objects.equals(imageUrl, template.getImageUrl())) {
+        throw badRequest("更换模板图片请先通过图片上传接口上传");
+      }
+      imageUrl = template.getImageUrl();
+      rightsConfirmed = false;
+    }
+    return new DishTemplateSnapshotRequest(source.schemaVersion(), source.categoryId(), source.name(),
+        source.description(), imageUrl, imageAssetId, removeImage, rightsConfirmed,
+        source.referencePrice(), source.tasteTags(), source.mealTags(), source.sortOrder(), source.enabled(),
+        source.ingredients(), source.cookingSteps(), source.productType(), source.nourishmentDescription(), source.servingAdvice(), source.precautions());
+  }
+
+  /** 兼容图片字段上线前创建的待审核快照，未显式删除或替换时始终保留当前模板图片。 */
+  private DishTemplateSnapshotRequest preserveCurrentImageForLegacySnapshot(DishTemplateEntity template,
+      DishTemplateSnapshotRequest source) {
+    if (source.imageUrl() != null || source.imageAssetId() != null || Boolean.TRUE.equals(source.removeImage())) {
+      return source;
+    }
+    return new DishTemplateSnapshotRequest(source.schemaVersion(), source.categoryId(), source.name(),
+        source.description(), template.getImageUrl(), null, false, false,
+        source.referencePrice(), source.tasteTags(), source.mealTags(), source.sortOrder(), source.enabled(),
+        source.ingredients(), source.cookingSteps(), source.productType(), source.nourishmentDescription(), source.servingAdvice(), source.precautions());
+  }
+
+  private static String snapshotText(String value) { return value == null ? "" : value; }
+
+  /** Fill only new submissions, never rewrite a stored legacy snapshot or its baseline. */
+  private DishTemplateSnapshotRequest fillNourishmentForSubmission(DishTemplateEntity template, DishTemplateSnapshotRequest source) {
+    DishTemplateEntity merged = new DishTemplateEntity();
+    merged.setTemplateType(template.getTemplateType());
+    merged.setProductType(template.getProductType());
+    merged.setNourishmentDescription(template.getNourishmentDescription());
+    merged.setServingAdvice(template.getServingAdvice()); merged.setPrecautions(template.getPrecautions());
+    com.familykitchen.dish.service.NourishmentFields.apply(merged, source.productType(), source.nourishmentDescription(), source.servingAdvice(), source.precautions());
+    return new DishTemplateSnapshotRequest(source.schemaVersion(), source.categoryId(), source.name(), source.description(),
+        source.imageUrl(), source.imageAssetId(), source.removeImage(), source.imageRightsConfirmed(), source.referencePrice(),
+        source.tasteTags(), source.mealTags(), source.sortOrder(), source.enabled(), source.ingredients(), source.cookingSteps(),
+        merged.getProductType(), snapshotText(merged.getNourishmentDescription()), snapshotText(merged.getServingAdvice()), snapshotText(merged.getPrecautions()));
   }
 
   private static DishTemplateIngredientEntity toIngredient(Long templateId,
@@ -475,7 +566,20 @@ public class DishTemplateChangeRequestServiceImpl implements DishTemplateChangeR
     entity.setStepNo(source.stepNo()); entity.setTitle(source.title()); entity.setContent(source.content());
     entity.setDurationSeconds(source.durationSeconds()); entity.setTemperatureText(source.temperatureText());
     entity.setHeatLevel(source.heatLevel()); entity.setComponentTemplateId(source.componentTemplateId());
+    entity.setImageUrls(source.imageUrls());
     return entity;
+  }
+
+  private static DishTemplateSnapshotRequest resolveStepImages(Long templateId, DishTemplateSnapshotRequest source,
+      List<DishTemplateCookingStepEntity> current) {
+    var steps = source.cookingSteps().stream().map(s -> new DishTemplateCookingStepSnapshotRequest(
+        s.itemId(), s.stepNo(), s.title(), s.content(), s.durationSeconds(), s.temperatureText(), s.heatLevel(),
+        s.componentTemplateId(), com.familykitchen.dish.service.CookingStepImages.resolveTemplate(
+            templateId, s.itemId(), s.imageUrls(), current))).toList();
+    return new DishTemplateSnapshotRequest(source.schemaVersion(), source.categoryId(), source.name(), source.description(),
+        source.imageUrl(), source.imageAssetId(), source.removeImage(), source.imageRightsConfirmed(), source.referencePrice(),
+        source.tasteTags(), source.mealTags(), source.sortOrder(), source.enabled(), source.ingredients(), steps,
+        source.productType(), source.nourishmentDescription(), source.servingAdvice(), source.precautions());
   }
 
   private String writeTags(List<String> values) {

@@ -3,6 +3,22 @@
     PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.familykitchen.family.mapper.FamilyMapper">
+  <select id="lockMerchantForMenu" resultType="long">
+    select id from merchants where id = #{merchantId} for update
+  </select>
+
+  <select id="selectOwnedDishesForUpdate" resultType="com.familykitchen.dish.model.entity.DishEntity">
+    select id, merchant_id, status, deleted_at, deleted_by
+    from dishes
+    where merchant_id = #{merchantId} and id in
+    <foreach collection="dishIds" item="dishId" open="(" separator="," close=")">#{dishId}</foreach>
+    order by id asc
+    for update
+  </select>
+
+  <select id="selectFamilyMenuDishIds" resultType="long">
+    select dish_id from family_menu_items where family_id = #{familyId} order by dish_id asc
+  </select>
   <resultMap id="FamilyRecordMap" type="com.familykitchen.family.model.entity.FamilyRecord">
     <id property="familyId" column="family_id"/>
     <result property="familyName" column="family_name"/>
@@ -170,7 +186,10 @@
            coalesce(fmi.enabled, 0) as enabled,
            coalesce(fmi.sort_order, 2147483647) as sortOrder,
            d.featured_at as featuredAt,
-           (d.featured_at is not null) as featured
+           (d.featured_at is not null) as featured,
+           coalesce(d.product_type, 'NORMAL') as productType,
+           d.nourishment_description as nourishmentDescription,
+           d.serving_advice as servingAdvice, d.precautions as precautions
     from families f
     join dishes d on d.merchant_id = f.merchant_id
     join dish_categories dc on dc.id = d.category_id and dc.merchant_id = d.merchant_id
@@ -308,4 +327,12 @@
     where f.merchant_id = #{merchantId} and f.status = 'active'
     on duplicate key update enabled = 1
   </insert>
+
+  <update id="disableDishesForMerchantFamilies">
+    update family_menu_items fmi
+    join families f on f.id = fmi.family_id
+    set fmi.enabled = 0
+    where f.merchant_id = #{merchantId} and fmi.dish_id in
+    <foreach collection="dishIds" item="dishId" open="(" separator="," close=")">#{dishId}</foreach>
+  </update>
 </mapper>

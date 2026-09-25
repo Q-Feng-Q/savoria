@@ -14,6 +14,9 @@
     "pages/ordering/orders/index",
     "pages/account/profile/index",
     "pages/account/notifications/index",
+    "pages/account/feedback-list/index",
+    "pages/account/feedback-create/index",
+    "pages/account/feedback-detail/index",
     "pages/family/addresses/index",
     "pages/family/address-edit/index",
     "pages/family/wallet/index",
@@ -39,45 +42,53 @@
     "pages/merchant/ingredient-edit/index"
   ],
   "window": {
-    "navigationBarTitleText": "食光知味",
+    "navigationBarTitleText": "食光栀味",
     "navigationBarBackgroundColor": "#fff4e4",
     "navigationBarTextStyle": "black",
     "backgroundColor": "#fff4e4"
   },
   "tabBar": {
-    "color": "#8b7969",
-    "selectedColor": "#77977d",
-    "backgroundColor": "#fffdf7",
+    "color": "#806746",
+    "selectedColor": "#df7739",
+    "backgroundColor": "#fff3d7",
     "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/family/home/index",
-        "iconPath": "assets/ui/tab-home.png",
-        "selectedIconPath": "assets/ui/tab-home-active.png",
+        "iconPath": "assets/ui/story/home-ink.png",
+        "selectedIconPath": "assets/ui/story/home-orange.png",
         "text": "首页"
       },
       {
         "pagePath": "pages/ordering/menu/index",
-        "iconPath": "assets/ui/tab-menu.png",
-        "selectedIconPath": "assets/ui/tab-menu-active.png",
+        "iconPath": "assets/ui/story/menu-ink.png",
+        "selectedIconPath": "assets/ui/story/menu-orange.png",
         "text": "去点菜"
       },
       {
+        "pagePath": "pages/ordering/cart/index",
+        "iconPath": "assets/ui/story/basket-ink.png",
+        "selectedIconPath": "assets/ui/story/basket-orange.png",
+        "text": "餐篮"
+      },
+      {
         "pagePath": "pages/ordering/orders/index",
-        "iconPath": "assets/ui/tab-orders.png",
-        "selectedIconPath": "assets/ui/tab-orders-active.png",
+        "iconPath": "assets/ui/story/orders-ink.png",
+        "selectedIconPath": "assets/ui/story/orders-orange.png",
         "text": "订单进度"
       },
       {
         "pagePath": "pages/account/profile/index",
-        "iconPath": "assets/ui/tab-profile.png",
-        "selectedIconPath": "assets/ui/tab-profile-active.png",
+        "iconPath": "assets/ui/story/profile-ink.png",
+        "selectedIconPath": "assets/ui/story/profile-orange.png",
         "text": "我的"
       }
     ]
   },
   "style": "v2",
   "usingComponents": {
+    "step-images": "/components/step-images/index",
+    "brand-logo": "/components/brand-logo/index",
     "page-state": "/components/page-state/index",
     "brand-scene": "/components/brand-scene/index",
     "action-button": "/components/action-button/index",

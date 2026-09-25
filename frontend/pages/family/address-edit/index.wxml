@@ -1,7 +1,7 @@
-<view class="warm-page warm-page--form warm-state-host warm-submit-state page address-edit-page">
+<view class="story-page story-subpage warm-page warm-page--form warm-state-host warm-submit-state page address-edit-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="地址信息" description="{{errorMessage || '正在读取地址信息'}}" bind:retry="retryLoad" />
   <view wx:if="{{phase === 'ready'}}">
-  <view class="hero">
+  <view class="hero"><view class="story-subhead-art"><image class="story-art__atlas story-art__atlas--family" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
     <text class="eyebrow">地址信息</text>
     <text class="title">{{id ? '编辑地址' : '新增地址'}}</text>
     <text class="subtitle">下单时默认带出这里保存的配送信息。</text>

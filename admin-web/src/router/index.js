@@ -21,6 +21,7 @@ import PlatformFamiliesView from '../views/platform/PlatformFamiliesView.vue';
 import DishReviewsView from '../views/platform/DishReviewsView.vue';
 import SystemSettingsView from '../views/platform/SystemSettingsView.vue';
 import UsersView from '../views/platform/UsersView.vue';
+import FeedbackView from '../views/platform/FeedbackView.vue';
 import MerchantsView from '../views/platform/MerchantsView.vue';
 import DishTemplateChangeReviewsView from '../views/platform/DishTemplateChangeReviewsView.vue';
 import PlatformDishTemplatesView from '../views/platform/DishTemplatesView.vue';
@@ -130,6 +131,10 @@ const routes = [
       {
         path: 'platform-merchants', name: 'platform-merchants', component: MerchantsView,
         meta: { title: '商户管理', subtitle: '维护私厨商户、负责人与私密邀请码', requiresPlatformAdmin: true }
+      },
+      {
+        path: 'platform-feedback', name: 'platform-feedback', component: FeedbackView,
+        meta: { title: '用户反馈', subtitle: '处理用户 BUG 与建议，查看图文和处理历史', requiresPlatformAdmin: true }
       },
       {
         path: 'users', name: 'users', component: UsersView,

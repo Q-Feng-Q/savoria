@@ -29,8 +29,24 @@ public record DishDetailView(
     Long sourceTemplateId,
     boolean templateImported,
     List<IngredientView> ingredients,
-    List<CookingStepView> cookingSteps
+    List<CookingStepView> cookingSteps,
+    String productType, String nourishmentDescription, String servingAdvice, String precautions
 ) {
+  /** Backward-compatible constructor for clients without nourishment fields. */
+  public DishDetailView(Long dishId,
+    Long categoryId,
+    String name,
+    String description,
+    String imageUrl,
+    BigDecimal price,
+    String status,
+    Long sourceTemplateId,
+    boolean templateImported,
+    List<IngredientView> ingredients,
+    List<CookingStepView> cookingSteps) {
+    this(dishId, categoryId, name, description, imageUrl, price, status, sourceTemplateId, templateImported, ingredients, cookingSteps, "NORMAL", null, null, null);
+  }
+
 
   /**
    * 封装返回给调用方的食材数据。
@@ -66,8 +82,16 @@ public record DishDetailView(
       Integer durationSeconds,
       String temperatureText,
       String heatLevel,
-      Long componentTemplateId
+      Long componentTemplateId,
+      List<String> imageUrls
   ) {
+    public CookingStepView {
+      imageUrls = imageUrls == null ? List.of() : List.copyOf(imageUrls);
+    }
+    public CookingStepView(int stepNo, String title, String content, Integer durationSeconds,
+        String temperatureText, String heatLevel, Long componentTemplateId) {
+      this(stepNo, title, content, durationSeconds, temperatureText, heatLevel, componentTemplateId, List.of());
+    }
   }
 }
 

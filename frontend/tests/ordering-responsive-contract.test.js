@@ -19,3 +19,9 @@ test('shared cart controls expose semantics and disabled states', () => {
   assert.match(cartWxml, /bottom-action-bar/);
   assert.doesNotMatch(cartWxml, /<button\b/i);
 });
+
+test('family delivery toggle controls address selection', () => {
+  assert.match(cartWxml, /familyDeliveryEnabled/);
+  assert.match(cartWxml, /delivery-disabled-note/);
+  assert.match(cartWxml, /familyDeliveryEnabled && context\.family\.addresses\.length/);
+});

@@ -51,6 +51,21 @@ class FreshDatabaseMigrationTest {
   }
 
   @Test
+  void freshSchemaIncludesStepImagesOnceInEachStepTable() throws Exception {
+    String schema = Files.readString(MIGRATION_DIR.resolve("V1__init_schema.sql"),
+        StandardCharsets.UTF_8);
+    Matcher tables = CREATE_TABLE.matcher(schema);
+    Set<String> expected = new HashSet<>(Set.of("dish_cooking_steps", "dish_template_cooking_steps"));
+    while (tables.find()) {
+      if (expected.remove(tables.group(1))) {
+        assertTrue(tables.group(2).contains("image_urls json DEFAULT NULL COMMENT"), tables.group(1));
+        assertEquals(1, Pattern.compile("\\bimage_urls\\b").matcher(tables.group(2)).results().count());
+      }
+    }
+    assertTrue(expected.isEmpty(), "Both step tables must exist");
+  }
+
+  @Test
   void baselineScriptsContainOnlyTheirOwnedStatementTypes() throws Exception {
     String schema = Files.readString(MIGRATION_DIR.resolve("V1__init_schema.sql"),
         StandardCharsets.UTF_8).toLowerCase();

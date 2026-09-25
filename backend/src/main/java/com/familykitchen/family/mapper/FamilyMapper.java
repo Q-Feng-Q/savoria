@@ -5,6 +5,7 @@ import com.familykitchen.family.model.entity.FamilyMemberRecord;
 import com.familykitchen.family.model.entity.FamilyRecord;
 import com.familykitchen.family.model.vo.FamilyMenuItemView;
 import com.familykitchen.family.model.vo.FamilyHomeResponse;
+import com.familykitchen.dish.model.entity.DishEntity;
 import java.math.BigDecimal;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
@@ -15,6 +16,26 @@ import org.apache.ibatis.annotations.Param;
  */
 @Mapper
 public interface FamilyMapper {
+
+  /** Locks a merchant before family-menu mutations.
+   * @param merchantId merchant identifier
+   * @return locked merchant identifier, or null
+   */
+  Long lockMerchantForMenu(@Param("merchantId") Long merchantId);
+
+  /** Locks owned dishes in ascending identifier order.
+   * @param merchantId merchant identifier
+   * @param dishIds sorted dish identifiers
+   * @return locked owned dishes
+   */
+  List<DishEntity> selectOwnedDishesForUpdate(@Param("merchantId") Long merchantId,
+                                               @Param("dishIds") List<Long> dishIds);
+
+  /** Lists dish identifiers currently referenced by a family menu.
+   * @param familyId family identifier
+   * @return referenced dish identifiers
+   */
+  List<Long> selectFamilyMenuDishIds(@Param("familyId") Long familyId);
 
   /**
    * 查询家庭。
@@ -280,4 +301,12 @@ public interface FamilyMapper {
    */
   int enableDishForActiveFamilies(@Param("merchantId") Long merchantId,
                                   @Param("dishId") Long dishId);
+
+  /** Disables selected dishes for every family owned by the merchant.
+   * @param merchantId merchant identifier
+   * @param dishIds dish identifiers
+   * @return affected row count
+   */
+  int disableDishesForMerchantFamilies(@Param("merchantId") Long merchantId,
+                                        @Param("dishIds") List<Long> dishIds);
 }

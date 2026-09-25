@@ -5,7 +5,7 @@ const { createRequestId } = require('../../../utils/action-request');
 const { requireSession, showApiError } = require('../../../utils/page-api');
 const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
-Page({
+const { withBranding } = require('../../../utils/branding'); Page(withBranding({
   identityLoad: createIdentityLoadGuard(),
   data: { deliveryOptions: [], addressOptions: [], addressIndex: 0, groupedItems: [], totals: {}, warningText: '',
     canSubmit: false, cart: {}, context: null, currentAddress: null, serviceDate: '', deliveryMode: 'PICKUP',
@@ -13,7 +13,7 @@ Page({
     phase: 'loading', errorMessage: '' },
   onShow() { this.load(); },
   async load() {
-    const session = requireSession();
+    const session = requireSession({ familyOnly: true });
     if (!session) return;
     const loadToken = this.identityLoad.begin(session);
     const runtime = createApiRuntime();
@@ -38,7 +38,7 @@ Page({
       addresses: this.source.addresses, deliveryMode: this.data.deliveryMode || 'PICKUP', addressId: this.data.addressId });
     const expectedMealTimeIndex = Math.max(0, scene.expectedMealTimeOptions
       .findIndex((option) => option.value === scene.expectedMealTime));
-    this.setData({ ...scene, expectedMealTimeIndex, deliveryMode: this.data.deliveryMode || 'PICKUP',
+    this.setData({ ...scene, expectedMealTimeIndex,
       addressId: scene.currentAddress ? scene.currentAddress.id : null });
   },
   async mutate(method, payload, fallback) {
@@ -86,7 +86,11 @@ Page({
   },
   changeCount(event) {
     const row = this.findCartRow(event.currentTarget.dataset.id); if (!row) return;
-    const target = Math.max(0, Number(row.myQuantity || 0) + Number(event.currentTarget.dataset.delta || 0));
+    const delta = Number(event.currentTarget.dataset.delta || 0);
+    if (delta > 0 && !row.available) {
+      wx.showToast({ title: row.unavailableReason || '菜品当前不可增加', icon: 'none' }); return;
+    }
+    const target = Math.max(0, Number(row.myQuantity || 0) + delta);
     return this.mutate('setItemQuantity', { dishId: row.dishId, quantity: target, itemRemark: row.note || '' }, '更新数量失败');
   },
   toggleSelectionDetails(event) {
@@ -110,4 +114,4 @@ Page({
       showApiError(error, '提交订单失败');
     } finally { this.setData({ mutationBusy: false }); }
   }
-});
+}));

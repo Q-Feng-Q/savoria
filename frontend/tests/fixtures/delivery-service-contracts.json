@@ -831,6 +831,96 @@
     }
   },
   {
+    "key": "feedback.detail",
+    "service": "feedback",
+    "function": "detail",
+    "kind": "request",
+    "args": [
+      901
+    ],
+    "method": "GET",
+    "path": "/api/feedback/901",
+    "route": "/api/feedback/{id}",
+    "backendRoute": "/feedback/{id}",
+    "controllerClass": "FeedbackController",
+    "controllerFqcn": "com.familykitchen.feedback.FeedbackController",
+    "controllerMethod": "detail",
+    "scope": "account"
+  },
+  {
+    "key": "feedback.downloadImage",
+    "service": "feedback",
+    "function": "downloadImage",
+    "kind": "download",
+    "args": [
+      901
+    ],
+    "method": "GET",
+    "path": "/feedback/images/901",
+    "route": "/api/feedback/images/{id}",
+    "backendRoute": "/feedback/images/{id}",
+    "controllerClass": "FeedbackController",
+    "controllerFqcn": "com.familykitchen.feedback.FeedbackController",
+    "controllerMethod": "image",
+    "scope": "account"
+  },
+  {
+    "key": "feedback.list",
+    "service": "feedback",
+    "function": "list",
+    "kind": "request",
+    "args": [
+      2
+    ],
+    "method": "GET",
+    "path": "/api/feedback?page=2&pageSize=20",
+    "route": "/api/feedback",
+    "backendRoute": "/feedback",
+    "controllerClass": "FeedbackController",
+    "controllerFqcn": "com.familykitchen.feedback.FeedbackController",
+    "controllerMethod": "list",
+    "scope": "account"
+  },
+  {
+    "key": "feedback.submit",
+    "service": "feedback",
+    "function": "submit",
+    "kind": "request",
+    "args": [
+      {
+        "contractField": "contract-value"
+      }
+    ],
+    "method": "POST",
+    "path": "/api/feedback",
+    "route": "/api/feedback",
+    "backendRoute": "/feedback",
+    "controllerClass": "FeedbackController",
+    "controllerFqcn": "com.familykitchen.feedback.FeedbackController",
+    "controllerMethod": "create",
+    "scope": "account",
+    "data": {
+      "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "feedback.uploadImage",
+    "service": "feedback",
+    "function": "uploadImage",
+    "kind": "upload",
+    "args": [
+      "D:/contract/image.png"
+    ],
+    "method": "POST",
+    "path": "/feedback/images",
+    "route": "/api/feedback/images",
+    "backendRoute": "/feedback/images",
+    "controllerClass": "FeedbackController",
+    "controllerFqcn": "com.familykitchen.feedback.FeedbackController",
+    "controllerMethod": "upload",
+    "scope": "account"
+  },
+  {
     "key": "files.uploadImage",
     "service": "files",
     "function": "uploadImage",
@@ -839,7 +929,7 @@
       "D:/contract/image.png"
     ],
     "method": "POST",
-    "path": "/api/files/images",
+    "path": "/files/images",
     "route": "/api/files/images",
     "backendRoute": "/files/images",
     "controllerClass": "FileController",
@@ -891,6 +981,62 @@
     "scope": "merchant",
     "data": {
       "contractField": "contract-value"
+    }
+  },
+  {
+    "key": "merchant.batchDeleteDishes",
+    "service": "merchant",
+    "function": "batchDeleteDishes",
+    "kind": "request",
+    "args": [
+      {
+        "dishIds": [
+          901,
+          902
+        ]
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/dishes/batch-delete",
+    "route": "/api/merchant/dishes/batch-delete",
+    "backendRoute": "/merchant/dishes/batch-delete",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "batchDelete",
+    "scope": "merchant",
+    "data": {
+      "dishIds": [
+        901,
+        902
+      ]
+    }
+  },
+  {
+    "key": "merchant.batchRestoreDishes",
+    "service": "merchant",
+    "function": "batchRestoreDishes",
+    "kind": "request",
+    "args": [
+      {
+        "dishIds": [
+          901,
+          902
+        ]
+      }
+    ],
+    "method": "POST",
+    "path": "/api/merchant/dishes/batch-restore",
+    "route": "/api/merchant/dishes/batch-restore",
+    "backendRoute": "/merchant/dishes/batch-restore",
+    "controllerClass": "DishController",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "batchRestore",
+    "scope": "merchant",
+    "data": {
+      "dishIds": [
+        901,
+        902
+      ]
     }
   },
   {
@@ -1093,9 +1239,13 @@
     "service": "merchant",
     "function": "getDishes",
     "kind": "request",
-    "args": [],
+    "args": [
+      {
+        "scope": "deleted"
+      }
+    ],
     "method": "GET",
-    "path": "/api/merchant/dishes",
+    "path": "/api/merchant/dishes?scope=deleted",
     "route": "/api/merchant/dishes",
     "backendRoute": "/merchant/dishes",
     "controllerClass": "DishController",

@@ -1,4 +1,4 @@
-<view class="warm-page dishes-page">
+<view class="merchant-story warm-page dishes-page">
   <view class="page-head">
     <view>
       <text class="eyebrow">菜品工作台</text>
@@ -12,8 +12,13 @@
   </view>
 
   <view class="tools">
+    <view class="scope-row" aria-label="菜品视图">
+      <view class="scope-tab {{scope === 'available' ? 'scope-tab--active' : ''}}" bindtap="selectScope" data-scope="available" aria-role="button" aria-label="查看在用菜品" aria-disabled="{{mutationBusy}}" hover-class="ui-button--pressed">在用菜品</view>
+      <view class="scope-tab {{scope === 'deleted' ? 'scope-tab--active' : ''}}" bindtap="selectScope" data-scope="deleted" aria-role="button" aria-label="查看菜品回收站" aria-disabled="{{mutationBusy}}" hover-class="ui-button--pressed">回收站</view>
+    </view>
     <input class="search-input" value="{{query}}" bindinput="bindSearch" placeholder="搜索菜名、分类或状态" aria-label="搜索菜品" />
-    <view class="filter-row">
+    <picker class="filter" range="{{productTypes}}" range-key="label" value="{{productTypeIndex}}" bindchange="changeProductType" disabled="{{mutationBusy}}"><text>{{productTypes[productTypeIndex].label}} ▾</text></picker>
+    <view wx:if="{{scope === 'available'}}" class="filter-row">
       <view class="filter {{statusFilter === 'all' ? 'filter--active' : ''}}" data-status="all" bindtap="selectStatusFilter" aria-role="button" aria-label="全部菜品" hover-class="ui-button--pressed">全部</view>
       <view class="filter {{statusFilter === 'active' ? 'filter--active' : ''}}" data-status="active" bindtap="selectStatusFilter" aria-role="button" aria-label="已上架菜品" hover-class="ui-button--pressed">已上架</view>
       <view class="filter {{statusFilter === 'inactive' ? 'filter--active' : ''}}" data-status="inactive" bindtap="selectStatusFilter" aria-role="button" aria-label="已下架菜品" hover-class="ui-button--pressed">已下架</view>
@@ -22,22 +27,38 @@
   </view>
 
   <page-state wx:if="{{phase === 'loading' || phase === 'error'}}" phase="{{phase}}" title="菜品加载中" description="{{errorMessage}}" bind:retry="retryLoad" />
-  <page-state wx:elif="{{phase === 'empty'}}" phase="empty" title="还没有菜品" description="新增第一道菜，或先整理食材库。" />
+  <page-state wx:elif="{{phase === 'empty'}}" phase="empty" title="{{scope === 'deleted' ? '回收站为空' : '还没有菜品'}}" description="{{scope === 'deleted' ? '已删除的菜品会保留在这里，便于恢复和审计。' : '新增第一道菜，或先整理食材库。'}}" />
   <view wx:else class="dish-list">
+    <view class="batch-toolbar">
+      <view class="selection-control {{mutationBusy ? 'control--disabled' : ''}}" bindtap="toggleSelectAllVisible" aria-role="checkbox" aria-checked="{{allVisibleSelected}}" aria-label="全选当前列表" aria-disabled="{{mutationBusy}}" hover-class="selection-control--pressed">
+        <view class="check-box {{allVisibleSelected ? 'check-box--checked' : ''}}">{{allVisibleSelected ? '✓' : ''}}</view>
+        <text>全选当前列表</text>
+      </view>
+      <text class="selection-count">已选 {{selectedDishIds.length}} 项</text>
+      <view wx:if="{{scope === 'available'}}" class="batch-action batch-action--danger {{!selectedDishIds.length || mutationBusy ? 'control--disabled' : ''}}" bindtap="batchDeleteSelected" aria-role="button" aria-label="批量删除已选菜品" aria-disabled="{{!selectedDishIds.length || mutationBusy}}" aria-busy="{{mutationBusy}}" hover-class="ui-button--pressed">{{mutationBusy ? '处理中' : '批量删除'}}</view>
+      <view wx:else class="batch-action batch-action--restore {{!selectedDishIds.length || mutationBusy ? 'control--disabled' : ''}}" bindtap="batchRestoreSelected" aria-role="button" aria-label="批量恢复已选菜品" aria-disabled="{{!selectedDishIds.length || mutationBusy}}" aria-busy="{{mutationBusy}}" hover-class="ui-button--pressed">{{mutationBusy ? '处理中' : '批量恢复'}}</view>
+    </view>
     <view wx:if="{{!filteredDishRows.length}}" class="local-empty">没有符合当前条件的菜品</view>
     <block wx:for="{{filteredDishRows}}" wx:key="id">
-      <view class="dish-row">
+      <view class="dish-row {{scope === 'deleted' ? 'dish-row--deleted' : ''}}">
+        <view class="dish-selector {{item.selected ? 'dish-selector--selected' : ''}} {{mutationBusy ? 'control--disabled' : ''}}" data-id="{{item.id}}" bindtap="toggleSelectDish" aria-role="checkbox" aria-checked="{{item.selected}}" aria-label="选择{{item.name}}" aria-disabled="{{mutationBusy}}" hover-class="dish-selector--pressed">
+          <view class="check-box {{item.selected ? 'check-box--checked' : ''}}">{{item.selected ? '✓' : ''}}</view>
+        </view>
         <image class="dish-thumb" src="{{item.imageUrl}}" mode="aspectFill" />
         <view class="dish-main">
           <view class="dish-heading"><text class="dish-name">{{item.name}}</text><text class="dish-price">{{item.priceText}}</text></view>
-          <text class="dish-meta">{{item.category}} · {{item.statusText}}</text>
+          <text class="dish-meta">{{item.productType === 'NOURISHMENT' ? '滋补食品 · ' : ''}}{{item.category}} · {{item.statusText}}</text>
           <text class="dish-description">{{item.description}}</text>
+          <view wx:if="{{scope === 'deleted'}}" class="delete-audit">
+            <text>由 {{item.deletedByName}} 删除</text>
+            <text>{{item.deletedAtText}}</text>
+          </view>
         </view>
-        <view class="row-actions">
+        <view wx:if="{{scope === 'available'}}" class="row-actions">
           <view class="row-action" data-id="{{item.id}}" bindtap="openEditDish" aria-role="button" aria-label="编辑{{item.name}}" hover-class="ui-button--pressed">编辑</view>
           <view wx:if="{{item.templateImported}}" class="row-action row-action--sync {{syncBusyDishMap[item.id] ? 'row-action--busy' : ''}}" data-id="{{item.id}}" bindtap="syncToTemplate" aria-role="button" aria-label="申请将{{item.name}}同步到系统模板" aria-disabled="{{syncBusyDishMap[item.id]}}" aria-busy="{{syncBusyDishMap[item.id]}}" hover-class="ui-button--pressed">{{syncBusyDishMap[item.id] ? '提交中' : '同步模板'}}</view>
-          <view class="row-action row-action--featured {{item.featuredDisabled ? 'row-action--disabled' : ''}} {{busyDishMap[item.id] ? 'row-action--busy' : ''}}" data-id="{{item.id}}" bindtap="toggleFeatured" aria-role="button" aria-label="{{item.featuredLabel}}{{item.name}}" aria-disabled="{{item.featuredDisabled || busyDishMap[item.id]}}" aria-busy="{{busyDishMap[item.id]}}" hover-class="ui-button--pressed">{{busyDishMap[item.id] ? '处理中' : item.featuredLabel}}</view>
-          <view class="row-action row-action--status {{busyDishMap[item.id] ? 'row-action--busy' : ''}}" data-id="{{item.id}}" bindtap="toggleStatus" aria-role="button" aria-label="{{item.toggleLabel}}{{item.name}}" aria-disabled="{{busyDishMap[item.id]}}" aria-busy="{{busyDishMap[item.id]}}" hover-class="ui-button--pressed">{{busyDishMap[item.id] ? '处理中' : item.toggleLabel}}</view>
+          <view class="row-action row-action--featured {{item.featuredDisabled ? 'row-action--disabled' : ''}} {{busyDishMap[item.id] ? 'row-action--busy' : ''}}" data-id="{{item.id}}" bindtap="toggleFeatured" aria-role="button" aria-label="{{item.featuredLabel}}{{item.name}}" aria-disabled="{{item.featuredDisabled || mutationBusy || busyDishMap[item.id]}}" aria-busy="{{mutationBusy}}" hover-class="ui-button--pressed">{{busyDishMap[item.id] ? '处理中' : item.featuredLabel}}</view>
+          <view class="row-action row-action--status {{busyDishMap[item.id] ? 'row-action--busy' : ''}}" data-id="{{item.id}}" bindtap="toggleStatus" aria-role="button" aria-label="{{item.toggleLabel}}{{item.name}}" aria-disabled="{{mutationBusy || busyDishMap[item.id]}}" aria-busy="{{mutationBusy}}" hover-class="ui-button--pressed">{{busyDishMap[item.id] ? '处理中' : item.toggleLabel}}</view>
         </view>
       </view>
     </block>

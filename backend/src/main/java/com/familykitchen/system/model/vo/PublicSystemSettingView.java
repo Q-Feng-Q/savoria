@@ -17,5 +17,7 @@ public record PublicSystemSettingView(
     String maintenanceMessage,
     boolean mobileBindingEnabled,
     boolean emailBindingEnabled,
-    boolean wechatBindingEnabled
+    boolean wechatBindingEnabled,
+    String siteLogoSmallUrl, String siteLogoLargeUrl, String siteFaviconUrl,
+    Integer siteLogoSmallSize, Integer siteLogoSize, Integer siteLogoLargeSize
 ) {}

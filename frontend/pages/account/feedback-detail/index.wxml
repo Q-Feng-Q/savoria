@@ -1,0 +1,18 @@
+<view class="story-subpage warm-page feedback-page">
+  <view class="feedback-heading">反馈详情</view>
+  <view wx:if="{{error}}" class="feedback-warning"><text>{{error}}</text><action-button label="重试" tone="secondary" bind:action="load" /></view>
+  <text wx:if="{{loading}}" class="feedback-note">正在读取…</text>
+  <view wx:if="{{detail}}" class="feedback-section">
+    <view class="feedback-row-head"><text>{{detail.typeLabel}}</text><text class="feedback-status">{{detail.statusLabel}}</text></view>
+    <text class="feedback-note">{{detail.timeLabel}}</text>
+    <text class="feedback-content" selectable>{{detail.content}}</text>
+    <view class="feedback-images">
+      <view wx:for="{{images}}" wx:key="imageId" class="feedback-image">
+        <image wx:if="{{item.path}}" src="{{item.path}}" mode="aspectFill" data-path="{{item.path}}" bindtap="preview" aria-label="预览反馈图片" />
+        <view wx:elif="{{item.failed}}" class="feedback-image-action" data-id="{{item.imageId}}" bindtap="retryImage" aria-role="button">图片加载失败，重试</view>
+        <text wx:else class="feedback-note">图片读取中…</text>
+      </view>
+    </view>
+    <view class="feedback-reply"><text class="feedback-label">平台回复</text><text class="feedback-content" selectable>{{detail.reply || '暂未回复，处理后会在这里显示。'}}</text></view>
+  </view>
+</view>

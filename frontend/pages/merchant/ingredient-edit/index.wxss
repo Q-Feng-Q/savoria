@@ -1,3 +1,5 @@
+@import "../../../styles/storybook-merchant.wxss";
+
 .ingredient-page { padding-bottom: calc(180rpx + env(safe-area-inset-bottom)); background: #fffaf4; }
 .editor-head, .form-section { padding: 28rpx 0; border-bottom: 2rpx solid #e9ddd1; }
 .eyebrow, .editor-title, .editor-copy, .section-title, .strong, .muted, .reference { display: block; }

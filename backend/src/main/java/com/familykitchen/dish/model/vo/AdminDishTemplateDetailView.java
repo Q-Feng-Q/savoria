@@ -42,7 +42,20 @@ public record AdminDishTemplateDetailView(Long templateId, String templateCode, 
     String templateType, String dataStatus, boolean procurementReady, String imageRightsStatus,
     Integer sortOrder, boolean enabled, Long version, List<DishTemplateSourceRecordEntity> sourceRecords,
     List<DishTemplateNameAliasEntity> nameAliases, List<DishTemplateIngredientEntity> ingredients,
+    List<DishTemplateCookingStepEntity> cookingSteps, List<InternalAssetReview> internalAssetReviews,
+    String productType, String nourishmentDescription, String servingAdvice, String precautions
+) {
+  /** Backward-compatible constructor for clients without nourishment fields. */
+  public AdminDishTemplateDetailView(Long templateId, String templateCode, Long categoryId,
+    String categoryName, String name, String description, String imageUrl, BigDecimal referencePrice,
+    List<String> tasteTags, List<String> mealTags, String sourceType, String sourceCategory,
+    String templateType, String dataStatus, boolean procurementReady, String imageRightsStatus,
+    Integer sortOrder, boolean enabled, Long version, List<DishTemplateSourceRecordEntity> sourceRecords,
+    List<DishTemplateNameAliasEntity> nameAliases, List<DishTemplateIngredientEntity> ingredients,
     List<DishTemplateCookingStepEntity> cookingSteps, List<InternalAssetReview> internalAssetReviews) {
+    this(templateId, templateCode, categoryId, categoryName, name, description, imageUrl, referencePrice, tasteTags, mealTags, sourceType, sourceCategory, templateType, dataStatus, procurementReady, imageRightsStatus, sortOrder, enabled, version, sourceRecords, nameAliases, ingredients, cookingSteps, internalAssetReviews, "NORMAL", null, null, null);
+  }
+
   /**
    * 内部图片审核摘要，只暴露受控资源ID。
    * @param assetId 受控图片资源ID

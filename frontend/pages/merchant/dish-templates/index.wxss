@@ -1,3 +1,5 @@
+@import "../../../styles/storybook-merchant.wxss";
+
 .template-page { padding-bottom: calc(170rpx + env(safe-area-inset-bottom)); }
 .template-head { display:flex; align-items:center; justify-content:space-between; gap:20rpx; padding: 18rpx 4rpx 28rpx; }
 .template-head-copy { min-width:0; }
@@ -33,6 +35,7 @@
 .check-control { display:flex; align-items:center; justify-content:center; width:46rpx; height:46rpx; flex:none; border:3rpx solid #b9cdbd; border-radius:12rpx; color:white; font-size:28rpx; font-weight:900; }
 .check-control--active { border-color:#54ac74; background:#54ac74; }
 .imported-label { flex:none; color:#8c7a69; font-size:22rpx; }
+.pending-label { flex:none; color:#ad6d2b; font-size:21rpx; font-weight:800; }
 .selection-bar { position:fixed; z-index:20; left:24rpx; right:24rpx; bottom:calc(24rpx + env(safe-area-inset-bottom)); display:flex; align-items:center; justify-content:space-between; min-height:112rpx; padding:18rpx 20rpx 18rpx 28rpx; box-sizing:border-box; border:2rpx solid #eadfce; border-radius:30rpx; background:rgba(255,253,248,.98); box-shadow:0 18rpx 48rpx rgba(97,72,43,.18); }
 .selection-copy { display:flex; gap:18rpx; align-items:center; }
 .selection-count { color:#33251b; font-size:27rpx; font-weight:900; }

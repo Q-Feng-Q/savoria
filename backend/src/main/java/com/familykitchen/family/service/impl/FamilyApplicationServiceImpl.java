@@ -265,7 +265,9 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
         null,
         false,
         item.featuredAt(),
-        item.featured()
+        item.featured(),
+        null,
+        null, item.productType(), item.nourishmentDescription(), item.servingAdvice(), item.precautions()
       ))
       .toList();
   }
@@ -283,6 +285,9 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
     if (dish == null) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "未找到菜品");
     }
+    if ("deleted".equalsIgnoreCase(dish.getStatus())) {
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID, "菜品已删除");
+    }
     return new DishDetailView(
       dish.getId(),
       dish.getCategoryId(),
@@ -296,7 +301,11 @@ public class FamilyApplicationServiceImpl implements FamilyApplicationService {
       dishMapper.selectDishIngredients(dish.getId()).stream()
         .map(item -> new DishDetailView.IngredientView(item.getIngredientName(), money(item.getQuantity()), item.getUnit(), item.getCalcType()))
         .toList(),
-      List.of()
+      dishMapper.selectCookingSteps(dish.getId()).stream()
+        .map(item -> new DishDetailView.CookingStepView(item.getStepNo(), item.getTitle(), item.getContent(),
+            item.getDurationSeconds(), item.getTemperatureText(), item.getHeatLevel(),
+            item.getComponentTemplateId(), item.getImageUrls())).toList(),
+      dish.getProductType(), dish.getNourishmentDescription(), dish.getServingAdvice(), dish.getPrecautions()
     );
   }
 

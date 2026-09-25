@@ -1,4 +1,4 @@
-<view class="warm-page warm-page--management warm-state-host family-menu-page">
+<view class="merchant-story warm-page warm-page--management warm-state-host family-menu-page">
   <page-state wx:if="{{phase === 'loading' || phase === 'error'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="cart" bind:retry="retryLoad" />
 
   <view wx:else class="menu-content">
@@ -11,31 +11,47 @@
     <view class="selector-section">
       <text class="selector-label">当前家庭</text>
       <picker range="{{familyOptions}}" range-key="label" value="{{familyIndex}}" bindchange="bindFamily">
-        <view class="selector-control" aria-role="button" aria-label="选择当前家庭">{{currentFamilyName}}</view>
+        <view class="selector-control {{mutationBusy ? 'is-disabled' : ''}}" aria-role="button" aria-label="选择当前家庭" aria-disabled="{{mutationBusy}}" aria-busy="{{mutationBusy}}">{{currentFamilyName}}</view>
       </picker>
       <text class="selector-label source-label">来源家庭</text>
       <picker wx:if="{{sourceFamilyOptions.length}}" range="{{sourceFamilyOptions}}" range-key="label" value="{{sourceFamilyIndex}}" bindchange="bindSourceFamily">
         <view class="selector-control" aria-role="button" aria-label="选择来源家庭">{{sourceFamilyOptions[sourceFamilyIndex].label}}</view>
       </picker>
       <text wx:else class="empty-source">没有其他家庭可作为复制来源。</text>
-      <view wx:if="{{sourceFamilyOptions.length}}" class="ui-button copy-action {{saving ? 'is-disabled' : ''}}" bindtap="copyFromFamily" aria-role="button" aria-label="复制来源家庭菜单" aria-disabled="{{saving}}" aria-busy="{{saving}}" hover-class="ui-button--pressed" hover-stay-time="80">{{saving ? '处理中…' : '复制来源家庭菜单'}}</view>
+      <view wx:if="{{sourceFamilyOptions.length}}" class="ui-button copy-action {{mutationBusy ? 'is-disabled' : ''}}" bindtap="copyFromFamily" aria-role="button" aria-label="复制来源家庭菜单" aria-disabled="{{mutationBusy}}" aria-busy="{{mutationBusy}}" hover-class="ui-button--pressed" hover-stay-time="80">{{mutationBusy ? '处理中…' : '复制来源家庭菜单'}}</view>
     </view>
 
     <page-state wx:if="{{phase === 'empty'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="cart" bind:retry="retryLoad" />
     <view wx:else class="menu-list">
+      <view class="bulk-toolbar">
+        <view class="menu-checkbox select-all {{allSelected ? 'is-checked' : ''}} {{mutationBusy ? 'is-disabled' : ''}}" bindtap="toggleSelectAll" aria-role="checkbox" aria-checked="{{allSelected}}" aria-disabled="{{mutationBusy}}" aria-busy="{{mutationBusy}}" aria-label="全选当前菜品" hover-class="menu-checkbox--pressed" hover-stay-time="80">
+          <text class="checkbox-mark">{{allSelected ? '✓' : ''}}</text>
+          <text>全选当前列表</text>
+        </view>
+        <text class="selection-summary">已选 {{selectedCount}} 项</text>
+        <view class="bulk-actions">
+          <view class="ui-button bulk-enable {{mutationBusy || selectedCount === 0 ? 'is-disabled' : ''}}" bindtap="enableSelected" aria-role="button" aria-label="批量启用所选菜品" aria-disabled="{{mutationBusy || selectedCount === 0}}" aria-busy="{{mutationBusy}}" hover-class="ui-button--pressed" hover-stay-time="80">批量启用（{{selectedCount}}）</view>
+          <view class="ui-button enable-all {{mutationBusy ? 'is-disabled' : ''}}" bindtap="enableAll" aria-role="button" aria-label="一键启用全部菜品" aria-disabled="{{mutationBusy}}" aria-busy="{{mutationBusy}}" hover-class="ui-button--pressed" hover-stay-time="80">一键启用全部</view>
+        </view>
+      </view>
       <block wx:for="{{menuRows}}" wx:key="id">
         <view class="menu-row">
-          <view class="menu-row__copy">
-            <text class="menu-name">{{item.name}}</text>
-            <text class="menu-meta">{{item.category}} · 基础价 {{item.basePriceText}}</text>
-            <text class="menu-state">{{item.enabledText}}</text>
+          <view class="menu-row__main">
+            <view class="menu-checkbox row-checkbox {{selectedDishMap[item.id] ? 'is-checked' : ''}} {{mutationBusy ? 'is-disabled' : ''}}" data-id="{{item.id}}" bindtap="toggleSelection" aria-role="checkbox" aria-checked="{{selectedDishMap[item.id]}}" aria-disabled="{{mutationBusy}}" aria-busy="{{mutationBusy}}" aria-label="选择{{item.name}}" hover-class="menu-checkbox--pressed" hover-stay-time="80">
+              <text class="checkbox-mark">{{selectedDishMap[item.id] ? '✓' : ''}}</text>
+            </view>
+            <view class="menu-row__copy">
+              <text class="menu-name">{{item.name}}</text>
+              <text class="menu-meta">{{item.category}} · 基础价 {{item.basePriceText}}</text>
+              <text class="menu-state">{{item.enabledText}}</text>
+            </view>
           </view>
           <view class="row-controls">
-            <view class="ui-button toggle-action {{rowBusyMap[item.id] ? 'is-disabled' : ''}}" data-id="{{item.id}}" bindtap="toggleDish" aria-role="button" aria-label="切换菜品启用状态" aria-disabled="{{rowBusyMap[item.id]}}" aria-busy="{{rowBusyMap[item.id]}}" hover-class="ui-button--pressed" hover-stay-time="80">{{rowBusyMap[item.id] ? '处理中…' : (item.enabled ? '停用' : '启用')}}</view>
+            <view class="ui-button toggle-action {{mutationBusy ? 'is-disabled' : ''}}" data-id="{{item.id}}" bindtap="toggleDish" aria-role="button" aria-label="切换菜品启用状态" aria-disabled="{{mutationBusy}}" aria-busy="{{mutationBusy}}" hover-class="ui-button--pressed" hover-stay-time="80">{{mutationBusy ? '处理中…' : (item.enabled ? '停用' : '启用')}}</view>
             <view class="price-controls">
-              <view class="ui-button price-action {{rowBusyMap[item.id] ? 'is-disabled' : ''}}" data-id="{{item.id}}" data-delta="-1" bindtap="changePrice" aria-role="button" aria-label="降低家庭价" aria-disabled="{{rowBusyMap[item.id]}}" aria-busy="{{rowBusyMap[item.id]}}" hover-class="ui-button--pressed" hover-stay-time="80">−</view>
+              <view class="ui-button price-action {{mutationBusy ? 'is-disabled' : ''}}" data-id="{{item.id}}" data-delta="-1" bindtap="changePrice" aria-role="button" aria-label="降低家庭价" aria-disabled="{{mutationBusy}}" aria-busy="{{mutationBusy}}" hover-class="ui-button--pressed" hover-stay-time="80">−</view>
               <view class="price-readout"><text>{{item.finalPriceText}}</text><text class="price-label">家庭价</text></view>
-              <view class="ui-button price-action {{rowBusyMap[item.id] ? 'is-disabled' : ''}}" data-id="{{item.id}}" data-delta="1" bindtap="changePrice" aria-role="button" aria-label="提高家庭价" aria-disabled="{{rowBusyMap[item.id]}}" aria-busy="{{rowBusyMap[item.id]}}" hover-class="ui-button--pressed" hover-stay-time="80">+</view>
+              <view class="ui-button price-action {{mutationBusy ? 'is-disabled' : ''}}" data-id="{{item.id}}" data-delta="1" bindtap="changePrice" aria-role="button" aria-label="提高家庭价" aria-disabled="{{mutationBusy}}" aria-busy="{{mutationBusy}}" hover-class="ui-button--pressed" hover-stay-time="80">+</view>
             </view>
           </view>
         </view>

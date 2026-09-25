@@ -22,6 +22,7 @@ import java.util.List;
  * @param tasteTags 口味标签
  * @param mealTags 推荐餐次
  * @param sourceCategory 来源原始分类
+ * @param sourceType 来源类型
  * @param templateType 模板类型
  * @param dataStatus 数据完整状态
  * @param procurementReady 采购用量是否就绪
@@ -30,6 +31,7 @@ import java.util.List;
  * @param enabled 模板是否启用
  * @param version 模板并发版本号
  * @param imported 当前商户是否已导入
+ * @param importable 当前模板是否具备直接导入条件
  * @param ingredients 模板食材明细
  * @param cookingSteps 按序排列的制作步骤
  */
@@ -37,6 +39,20 @@ import java.util.List;
 public record DishTemplateDetailView(Long templateId, String templateCode, Long categoryId, String categoryName,
     String name, String description, String imageUrl, String imageSourceUrl, String imageAuthor,
     String imageLicense, BigDecimal referencePrice, List<String> tasteTags, List<String> mealTags,
-    String sourceCategory, String templateType, String dataStatus, boolean procurementReady,
+    String sourceCategory, String sourceType, String templateType, String dataStatus, boolean procurementReady,
     String imageRightsStatus, Integer sortOrder, boolean enabled, Long version, boolean imported,
-    List<DishTemplateIngredientEntity> ingredients, List<DishTemplateCookingStepEntity> cookingSteps) { }
+    boolean importable,
+    List<DishTemplateIngredientEntity> ingredients, List<DishTemplateCookingStepEntity> cookingSteps,
+    String productType, String nourishmentDescription, String servingAdvice, String precautions
+) {
+  /** Backward-compatible constructor for clients without nourishment fields. */
+  public DishTemplateDetailView(Long templateId, String templateCode, Long categoryId, String categoryName,
+    String name, String description, String imageUrl, String imageSourceUrl, String imageAuthor,
+    String imageLicense, BigDecimal referencePrice, List<String> tasteTags, List<String> mealTags,
+    String sourceCategory, String sourceType, String templateType, String dataStatus, boolean procurementReady,
+    String imageRightsStatus, Integer sortOrder, boolean enabled, Long version, boolean imported,
+    boolean importable,
+    List<DishTemplateIngredientEntity> ingredients, List<DishTemplateCookingStepEntity> cookingSteps) {
+    this(templateId, templateCode, categoryId, categoryName, name, description, imageUrl, imageSourceUrl, imageAuthor, imageLicense, referencePrice, tasteTags, mealTags, sourceCategory, sourceType, templateType, dataStatus, procurementReady, imageRightsStatus, sortOrder, enabled, version, imported, importable, ingredients, cookingSteps, "NORMAL", null, null, null);
+  }
+ }

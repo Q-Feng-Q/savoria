@@ -25,12 +25,12 @@ test('family home uses a cartoon story hero and task-led service dock', () => {
   const wxml = read('pages/family/home/index.wxml')
   const wxss = read('pages/family/home/index.wxss')
 
-  assert.match(wxml, /home-story/)
-  assert.match(wxml, /home-story__mascot/)
-  assert.match(wxml, /today-board/)
-  assert.match(wxml, /service-dock/)
-  assert.match(wxss, /var\(--sk-wheat\)/)
-  assert.match(wxss, /home-rise/)
+  assert.match(wxml, /story-brand/)
+  assert.match(wxml, /story-art__atlas/)
+  assert.match(wxml, /home-family-sheet/)
+  assert.match(wxml, /home-service-list/)
+  assert.match(wxss, /approved-storybook\.wxss/)
+  assert.match(wxss, /home-dish-photo/)
 })
 
 test('ordering and profile surfaces share the redesigned hierarchy', () => {
@@ -52,6 +52,7 @@ test('shared rows use the warm paper interaction language', () => {
   const action = read('components/action-button/index.wxss')
 
   assert.match(dish, /var\(--sk-paper\)/)
-  assert.match(order, /var\(--sk-paper\)/)
+  assert.match(order, /border-radius:\s*28rpx/)
+  assert.doesNotMatch(order, /border-radius:\s*0[;}]/)
   assert.match(action, /var\(--sk-accent\)/)
 })

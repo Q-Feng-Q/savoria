@@ -19,6 +19,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -35,6 +36,13 @@ import org.slf4j.LoggerFactory;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+  /** 上传在 multipart 解析阶段被拒绝时也返回可操作的客户端提示。 */
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  ResponseEntity<ApiResponse<Void>> handleUploadTooLarge(MaxUploadSizeExceededException exception) {
+    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+        .body(ApiResponse.error(ErrorCode.UPLOAD_TOO_LARGE.code(), "图片过大：单张不能超过 4 MiB，请压缩后重新上传"));
+  }
   private static final Map<String, String> PARAMETER_LABELS = Map.ofEntries(
       Map.entry("name", "名称"), Map.entry("familyName", "家庭名称"),
       Map.entry("newMerchantName", "私厨名称"), Map.entry("merchantMode", "私厨关联方式"),

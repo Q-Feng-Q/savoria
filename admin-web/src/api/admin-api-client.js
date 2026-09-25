@@ -86,10 +86,12 @@ export function createAdminApiClient(options = {}) {
       throw new Error('fetch is not available');
     }
 
+    const session = getSession();
+    const identity = JSON.stringify(session);
     const headers = Object.assign(
       {},
       requestOptions.headers || {},
-      buildAdminAuthHeaders(getSession())
+      buildAdminAuthHeaders(session)
     );
 
     const response = await fetchAdapter(joinApiUrl(baseUrl, pathname), {
@@ -100,7 +102,7 @@ export function createAdminApiClient(options = {}) {
 
     if (!response.ok || !payload || payload.code !== 0) {
       const error = normalizeError(response.status, payload);
-      if (error.status === 401 || error.code === 40101) {
+      if ((error.status === 401 || error.code === 40101) && JSON.stringify(getSession()) === identity) {
         onAuthError(error);
       }
       throw error;

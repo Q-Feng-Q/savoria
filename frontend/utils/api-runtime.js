@@ -10,6 +10,7 @@ const { createPurchaseService } = require('../services/purchase');
 const { createFilesService } = require('../services/files');
 const { createUserService } = require('../services/user');
 const { createSystemService } = require('../services/system');
+const { createFeedbackService } = require('../services/feedback');
 
 function resolveApp(app) {
   if (app) return app;
@@ -58,6 +59,7 @@ function createApiRuntime(options = {}) {
     auth: createAuthService({ request }),
     user: createUserService({ request }),
     system: createSystemService({ request }),
+    feedback: createFeedbackService({ request, baseUrl, getSession: () => sessionStore.getSession(), upload: options.upload, download: options.download }),
     family: createFamilyService({ request }),
     cart: createCartService({ request }),
     orders: createOrdersService({ request }),

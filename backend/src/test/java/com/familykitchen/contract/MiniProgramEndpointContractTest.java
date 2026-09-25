@@ -56,7 +56,7 @@ class MiniProgramEndpointContractTest {
       assertNotNull(input, "missing mini-program-api-contract.json");
       List<EndpointContract> contracts = objectMapper.readValue(
           input, new TypeReference<List<EndpointContract>>() { });
-      assertEquals(118, contracts.size());
+      assertEquals(125, contracts.size());
       Set<String> operationKeys = new HashSet<>();
       for (EndpointContract contract : contracts) {
         assertTrue(operationKeys.add(contract.operation()), contract.operation());
@@ -105,7 +105,7 @@ class MiniProgramEndpointContractTest {
 
   private boolean insideBoundary(String route) {
     return Stream.of("/auth", "/users/me", "/family", "/merchant",
-        "/notifications", "/files", "/public/system-settings")
+        "/notifications", "/files", "/feedback", "/public/system-settings")
         .anyMatch(route::startsWith)
         && !route.startsWith("/admin")
         && !route.startsWith("/merchant/members");

@@ -1,3 +1,4 @@
+const { PRODUCT_TYPES } = require('../../../utils/nourishment');
 const { createApiRuntime } = require('../../../utils/api-runtime');
 const {
   createDishTemplateSelection,
@@ -13,6 +14,7 @@ function mapTemplateRows(runtime, rows, selectedIds) {
 
 Page({
   data: {
+    productType: '', productTypeIndex: 0, productTypes: [{ value: '', label: '全部类型' }, ...PRODUCT_TYPES],
     categories: [{ categoryId: '', name: '全部' }], categoryId: '', keyword: '', imported: '',
     items: [], page: 1, pageSize: 20, total: 0, selectedIds: [], loading: true,
     loadingMore: false, refreshing: false, hasMore: true, importing: false, importingAll: false,
@@ -34,7 +36,7 @@ Page({
       const [categoryRows, result] = await Promise.all([
         runtime.merchant.getDishTemplateCategories(),
         runtime.merchant.getDishTemplates({
-          categoryId: this.data.categoryId, keyword: this.data.keyword,
+          productType: this.data.productType || undefined, categoryId: this.data.categoryId, keyword: this.data.keyword,
           imported: this.data.imported, page, pageSize: this.data.pageSize
         })
       ]);
@@ -68,7 +70,7 @@ Page({
     try {
       const runtime = createApiRuntime();
       const result = await runtime.merchant.getDishTemplates({
-        categoryId: this.data.categoryId,
+        productType: this.data.productType || undefined, categoryId: this.data.categoryId,
         keyword: this.data.keyword,
         imported: this.data.imported,
         page: nextPage,
@@ -91,6 +93,14 @@ Page({
     } finally {
       if (generation === this._listGeneration) this.setData({ loadingMore: false });
     }
+  },
+  changeProductType(event) {
+    if (this.isImportBusy()) return;
+    const index = Number(event.detail.value), option = this.data.productTypes[index];
+    if (!option) return;
+    this.syncSelection(this.selection.clear());
+    this.setData({ productType: option.value, productTypeIndex: index });
+    return this.load({ reset: true });
   },
   chooseCategory(event) { this.setData({ categoryId: event.currentTarget.dataset.id }); this.load({ reset: true }); },
   inputKeyword(event) { this.setData({ keyword: event.detail.value }); },

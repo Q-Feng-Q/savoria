@@ -26,7 +26,7 @@ Page({
   retryLoad() { return this.load(); },
 
   async load() {
-    const session = requireSession();
+    const session = requireSession({ familyOnly: true });
     if (!session) return;
     this.setData({ phase: 'loading', errorMessage: '' });
 

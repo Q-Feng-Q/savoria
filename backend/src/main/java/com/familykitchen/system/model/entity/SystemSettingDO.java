@@ -2,6 +2,20 @@ package com.familykitchen.system.model.entity;
 import java.time.LocalDateTime;
 /** 平台唯一系统配置的持久化实体，包含绑定开关和加密后的 SMTP 凭据。 */
 public class SystemSettingDO {
+  private String siteLogoSmallUrl, siteLogoLargeUrl, siteFaviconUrl;
+  private Integer siteLogoSmallSize, siteLogoSize, siteLogoLargeSize;
+  public String getSiteLogoSmallUrl(){return siteLogoSmallUrl;}
+  public void setSiteLogoSmallUrl(String v){siteLogoSmallUrl=v;}
+  public String getSiteLogoLargeUrl(){return siteLogoLargeUrl;}
+  public void setSiteLogoLargeUrl(String v){siteLogoLargeUrl=v;}
+  public String getSiteFaviconUrl(){return siteFaviconUrl;}
+  public void setSiteFaviconUrl(String v){siteFaviconUrl=v;}
+  public Integer getSiteLogoSmallSize(){return siteLogoSmallSize;}
+  public void setSiteLogoSmallSize(Integer v){siteLogoSmallSize=v;}
+  public Integer getSiteLogoSize(){return siteLogoSize;}
+  public void setSiteLogoSize(Integer v){siteLogoSize=v;}
+  public Integer getSiteLogoLargeSize(){return siteLogoLargeSize;}
+  public void setSiteLogoLargeSize(Integer v){siteLogoLargeSize=v;}
   /**
    * 固定配置记录主键。
    */

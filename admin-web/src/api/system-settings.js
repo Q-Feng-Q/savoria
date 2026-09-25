@@ -1,6 +1,9 @@
 import { request } from './http';
 
 export const getSystemSettings = () => request('/api/admin/system-settings', { method: 'GET' });
+export const updateBrandingSettings = (payload) => request('/api/admin/system-settings/branding', {
+  method: 'PATCH', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' }
+});
 export const updateSystemSettings = (payload) => request('/api/admin/system-settings', {
   method: 'PUT', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' }
 });

@@ -16,4 +16,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "模板审核快照制作步骤")
 public record DishTemplateCookingStepSnapshotRequest(String itemId, Integer stepNo, String title,
     String content, Integer durationSeconds, String temperatureText, String heatLevel,
-    Long componentTemplateId) { }
+    Long componentTemplateId, java.util.List<String> imageUrls) {
+  public DishTemplateCookingStepSnapshotRequest(String itemId, Integer stepNo, String title,
+      String content, Integer durationSeconds, String temperatureText, String heatLevel,
+      Long componentTemplateId) {
+    this(itemId, stepNo, title, content, durationSeconds, temperatureText, heatLevel, componentTemplateId, null);
+  }
+}

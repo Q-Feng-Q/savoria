@@ -1,4 +1,4 @@
-<view class="warm-page detail-page">
+<view class="merchant-story warm-page detail-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="模板菜品详情" description="{{errorMessage || '正在读取模板'}}" bind:retry="retryLoad" />
   <block wx:if="{{phase === 'ready'}}">
     <image wx:if="{{detail.hasImage}}" class="detail-image" src="{{detail.imageUrl}}" mode="aspectFill" />
@@ -10,13 +10,17 @@
       <view class="detail-meta"><text>{{detail.priceText}}</text><text wx:if="{{detail.tasteText}}">{{detail.tasteText}}</text><text wx:if="{{detail.mealText}}">{{detail.mealText}}</text></view>
       <view class="source-line"><text>{{detail.sourceLabel}}</text><text>{{detail.dataStatus === 'READY' ? '采购数据完整' : '数据待完善'}}</text></view>
     </view>
+    <view wx:for="{{detail.nourishmentSections}}" wx:key="key">
+      <text class="section-title">{{item.label}}</text>
+      <view class="step-empty"><text space="nbsp">{{item.text}}</text></view>
+    </view>
     <text class="section-title">默认食材</text>
     <view class="ingredient-list">
       <view wx:for="{{detail.ingredients}}" wx:key="id" class="ingredient-row"><view><text>{{item.ingredientName}}</text><text class="ingredient-category">{{item.ingredientCategory}}</text></view><text>{{item.quantityText}}</text></view>
     </view>
     <text class="section-title">制作步骤</text>
     <view wx:if="{{detail.hasCookingSteps}}" class="step-list">
-      <view wx:for="{{detail.cookingSteps}}" wx:key="stepNo" class="step-row"><text class="step-number">{{item.stepNo}}</text><view><text class="step-title">{{item.titleText}}</text><text class="step-content">{{item.content}}</text><text wx:if="{{item.heatLevel || item.temperatureText || item.durationSeconds}}" class="step-meta">{{item.heatLevel}} {{item.temperatureText}} {{item.durationSeconds ? item.durationSeconds + ' 秒' : ''}}</text></view></view>
+      <view wx:for="{{detail.cookingSteps}}" wx:key="stepNo" class="step-row"><text class="step-number">{{item.stepNo}}</text><view><text class="step-title">{{item.titleText}}</text><text class="step-content">{{item.content}}</text><step-images images="{{item.imageUrls}}" /><text wx:if="{{item.heatLevel || item.temperatureText || item.durationSeconds}}" class="step-meta">{{item.heatLevel}} {{item.temperatureText}} {{item.durationSeconds ? item.durationSeconds + ' 秒' : ''}}</text></view></view>
     </view>
     <view wx:else class="step-empty">制作步骤待补充，仍可申请完善模板。</view>
     <view class="source-note">图片信息：{{detail.imageCreditText}}</view>

@@ -1,4 +1,4 @@
-<view class="warm-page warm-page--management warm-state-host detail-page">
+<view class="merchant-story warm-page warm-page--management warm-state-host detail-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="orders" bind:retry="retryLoad" />
 
   <view wx:else class="detail-content">
@@ -56,7 +56,7 @@
     </view>
   </view>
 
-  <view wx:if="{{phase === 'ready'}}" class="safe-action-bar">
+  <view wx:if="{{phase === 'ready'}}" class="safe-action-bar merchant-story-bar">
     <view wx:if="{{scene.canAdvance}}" class="ui-button primary-action" bindtap="advanceOrder" aria-role="button" aria-label="{{scene.nextActionText}}" aria-disabled="{{mutationBusy}}" hover-class="ui-button--pressed">{{mutationBusy ? '处理中' : scene.nextActionText}}</view>
     <view wx:if="{{scene.canReject}}" class="ui-button quiet-action" bindtap="rejectOrder" aria-role="button" aria-label="拒单" aria-disabled="{{mutationBusy}}" hover-class="ui-button--pressed">拒单</view>
     <view wx:if="{{scene.canCancel}}" class="ui-button quiet-action" bindtap="cancelOrder" aria-role="button" aria-label="取消订单" aria-disabled="{{mutationBusy}}" hover-class="ui-button--pressed">取消</view>

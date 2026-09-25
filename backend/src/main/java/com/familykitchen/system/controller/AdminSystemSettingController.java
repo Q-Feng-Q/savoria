@@ -5,6 +5,8 @@ import com.familykitchen.common.error.ErrorCode;
 import com.familykitchen.common.security.CurrentUserContext;
 import com.familykitchen.common.security.CurrentUserProvider;
 import com.familykitchen.system.model.dto.SystemSettingRequest;
+import com.familykitchen.system.model.dto.BrandSettingRequest;
+import org.springframework.web.bind.annotation.PatchMapping;
 import com.familykitchen.system.model.dto.TestEmailRequest;
 import com.familykitchen.system.model.vo.SystemSettingView;
 import com.familykitchen.system.service.SystemSettingService;
@@ -59,4 +61,7 @@ public class AdminSystemSettingController {
     requireAdmin(request);mail.sendTestMail(body.recipient());return ApiResponse.ok();}
   private CurrentUserContext requireAdmin(HttpServletRequest request){CurrentUserContext user=users.require(request);
     if(!user.hasPlatformBackendAccess())throw new BusinessException(ErrorCode.FORBIDDEN,"无平台管理员权限");return user;}
+  @PatchMapping("/branding") @Operation(summary="更新品牌标识")
+  public ApiResponse<SystemSettingView> updateBranding(HttpServletRequest request,@Valid @RequestBody BrandSettingRequest body){
+    CurrentUserContext user=requireAdmin(request);return ApiResponse.ok(service.updateBranding(user.userId(),body));}
 }

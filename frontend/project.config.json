@@ -3,6 +3,10 @@
   "packOptions": {
     "ignore": [
       {
+        "value": "scripts",
+        "type": "folder"
+      },
+      {
         "value": "tests",
         "type": "folder"
       },
@@ -16,6 +20,34 @@
       },
       {
         "value": "package.json",
+        "type": "file"
+      },
+      {
+        "value": "assets/brand/scenes/auth-welcome.png",
+        "type": "file"
+      },
+      {
+        "value": "assets/brand/scenes/auth-welcome.webp",
+        "type": "file"
+      },
+      {
+        "value": "assets/brand/animal-kitchen-hero.webp",
+        "type": "file"
+      },
+      {
+        "value": "assets/brand/characters-atlas.webp",
+        "type": "file"
+      },
+      {
+        "value": "assets/brand/empty-states-atlas.webp",
+        "type": "file"
+      },
+      {
+        "value": "assets/brand/scenes/empty-cart.webp",
+        "type": "file"
+      },
+      {
+        "value": "assets/brand/scenes/merchant-dishes.webp",
         "type": "file"
       }
     ],
@@ -48,7 +80,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "latest",
-  "appid": "wx4bb1c85a59044bfb",
+  "appid": "wx092b0184d87bf822",
   "projectname": "ShiGuangZhiWei",
   "condition": {},
   "editorSetting": {

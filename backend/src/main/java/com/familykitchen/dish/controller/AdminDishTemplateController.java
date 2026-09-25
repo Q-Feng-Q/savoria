@@ -73,9 +73,10 @@ public class AdminDishTemplateController {
       @RequestParam(required = false) String templateType, @RequestParam(required = false) String dataStatus,
       @RequestParam(required = false) String sourceCategory,
       @RequestParam(required = false) Boolean missingImage,
-      @RequestParam(required = false) Boolean missingSteps) {
+      @RequestParam(required = false) Boolean missingSteps,
+      @RequestParam(required = false) String productType) {
     return ApiResponse.ok(service.page(user(request), new AdminDishTemplateQuery(page, pageSize, keyword,
-        sourceType, templateType, dataStatus, sourceCategory, missingImage, missingSteps)));
+        sourceType, templateType, dataStatus, sourceCategory, missingImage, missingSteps, productType)));
   }
 
   /**

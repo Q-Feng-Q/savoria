@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 /**
  * 模板审核快照的严格解析与第二版业务校验器。
  *
- * <p>独立严格Reader会拒绝图片、来源身份、模板类型、派生状态和其他未知字段，
+ * <p>独立严格Reader会拒绝图片来源身份、模板类型、派生状态和其他未知字段，
  * 避免商户通过审核快照修改服务端所有数据。</p>
  */
 @Component
@@ -73,13 +73,34 @@ public class DishTemplateSnapshotValidator {
     Long categoryId = positive(source.categoryId(), "模板分类ID必须为正整数");
     String name = text(source.name(), 100, "菜品名称");
     String description = optionalText(source.description(), 255, "菜品简介");
+    String imageUrl = optionalText(source.imageUrl(), 500, "模板图片地址");
+    Long imageAssetId = source.imageAssetId();
+    if (imageAssetId != null) positive(imageAssetId, "图片文件ID必须为正整数");
+    boolean removeImage = Boolean.TRUE.equals(source.removeImage());
+    boolean imageRightsConfirmed = Boolean.TRUE.equals(source.imageRightsConfirmed());
+    if (removeImage && (imageUrl != null || imageAssetId != null)) {
+      throw bad("删除模板图片时不能同时提交新图片");
+    }
+    if (imageAssetId != null && !imageRightsConfirmed) {
+      throw bad("更换模板图片前必须确认拥有合法使用权");
+    }
     BigDecimal price = amount(source.referencePrice(), true, "参考价格");
     List<String> tastes = tags(source.tasteTags(), 10, null, "口味标签");
     List<String> meals = tags(source.mealTags(), 3, MEAL_TAGS, "推荐餐次");
     Integer sortOrder = sortOrder(source.sortOrder(), "模板排序值");
     if (source.enabled() == null) throw bad("启用状态不能为空");
-    return new DishTemplateSnapshotRequest(2, categoryId, name, description, price, tastes, meals,
-        sortOrder, source.enabled(), ingredients(source.ingredients()), steps(source.cookingSteps()));
+    return new DishTemplateSnapshotRequest(2, categoryId, name, description, imageUrl, imageAssetId,
+        removeImage, imageRightsConfirmed, price, tastes, meals,
+        sortOrder, source.enabled(), ingredients(source.ingredients()), steps(source.cookingSteps()),
+        source.productType() == null ? null : NourishmentFields.type(source.productType(), null),
+        nourishmentText(source.nourishmentDescription()), nourishmentText(source.servingAdvice()), nourishmentText(source.precautions()));
+  }
+
+  // Empty is an explicit clearing instruction; null is an omitted legacy field.
+  private static String nourishmentText(String value) {
+    if (value == null) return null;
+    String normalized = NourishmentFields.text(value, null);
+    return normalized == null ? "" : normalized;
   }
 
   private List<DishTemplateIngredientSnapshotRequest> ingredients(
@@ -142,7 +163,7 @@ public class DishTemplateSnapshotValidator {
       result.add(new DishTemplateCookingStepSnapshotRequest(itemId, item.stepNo(),
           optionalText(item.title(), 100, "步骤标题"), text(item.content(), 20_000, "步骤内容"),
           item.durationSeconds(), optionalText(item.temperatureText(), 100, "温度说明"),
-          optionalText(item.heatLevel(), 50, "火候说明"), componentId));
+          optionalText(item.heatLevel(), 50, "火候说明"), componentId, CookingStepImages.validate(item.imageUrls())));
     }
     return List.copyOf(result);
   }

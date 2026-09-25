@@ -8,8 +8,14 @@ function createMerchantService({ request }) {
     async updateProfile(payload) {
       return unwrapData(await request('/api/merchant/profile', { method: 'PUT', data: payload }));
     },
-    async getDishes() {
-      return unwrapData(await request('/api/merchant/dishes', { method: 'GET' }));
+    async getDishes(params = {}) {
+      return unwrapData(await request(`/api/merchant/dishes${createQueryString(params)}`, { method: 'GET' }));
+    },
+    async batchDeleteDishes(payload) {
+      return unwrapData(await request('/api/merchant/dishes/batch-delete', { method: 'POST', data: payload }));
+    },
+    async batchRestoreDishes(payload) {
+      return unwrapData(await request('/api/merchant/dishes/batch-restore', { method: 'POST', data: payload }));
     },
     async getDishDetail(dishId) {
       return unwrapData(await request(`/api/merchant/dishes/${dishId}`, { method: 'GET' }));

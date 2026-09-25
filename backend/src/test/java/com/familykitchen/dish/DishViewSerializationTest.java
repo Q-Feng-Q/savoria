@@ -24,7 +24,8 @@ class DishViewSerializationTest {
   void jacksonSerializesRecommendationFieldsAlongsideExistingDishFields() throws Exception {
     LocalDateTime featuredAt = LocalDateTime.of(2026, 8, 15, 9, 30);
     DishView view = new DishView(8L, 2L, "热菜", 20, "番茄炒蛋", "家常菜", "/dish.png",
-        new BigDecimal("16.00"), "active", 4L, true, featuredAt, true);
+        new BigDecimal("16.00"), "active", 4L, true, featuredAt, true,
+        LocalDateTime.of(2026, 8, 16, 10, 0), "老祁");
     ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     JsonNode json = mapper.readTree(mapper.writeValueAsString(view));
@@ -38,6 +39,8 @@ class DishViewSerializationTest {
     assertTrue(json.get("templateImported").booleanValue());
     assertTrue(json.get("featured").booleanValue());
     assertNotNull(json.get("featuredAt"));
+    assertNotNull(json.get("deletedAt"));
+    assertEquals("老祁", json.get("deletedByName").textValue());
   }
 
   @Test
@@ -47,7 +50,7 @@ class DishViewSerializationTest {
         .collect(Collectors.toSet());
     assertTrue(components.containsAll(Set.of(
         "dishId", "categoryId", "categoryName", "categorySortOrder", "name", "description", "imageUrl", "price", "status",
-        "sourceTemplateId", "templateImported", "featuredAt", "featured")));
+        "sourceTemplateId", "templateImported", "featuredAt", "featured", "deletedAt", "deletedByName")));
 
     Schema<?> schema = ModelConverters.getInstance().read(DishView.class).get("DishView");
     assertNotNull(schema);

@@ -302,3 +302,28 @@
 .step-index{background:var(--sk-sprout);color:var(--sk-ink)}
 .detail-action-bar{border:2rpx solid var(--sk-ink);border-radius:32rpx 13rpx 32rpx 13rpx;background:rgba(255,252,244,.98)}
 @media(max-width:340px){.detail-fact{grid-template-columns:1fr;gap:8rpx;padding:18rpx 0}.detail-fact__value{line-height:1.65}.action-sub{max-width:360rpx;line-height:1.45}}
+
+@import "../../../styles/storybook-subpages.wxss";
+
+.story-subpage.dish-page { padding-top:22rpx; padding-bottom:calc(188rpx + env(safe-area-inset-bottom)); }
+.dish-page .detail-hero { display:flex; flex-direction:column; align-items:stretch; min-height:0; margin:0; padding:0; border:2rpx solid #ecd4a6; border-radius:28rpx; background:#fff0d1; }
+.dish-page .detail-hero::before { display:none; }
+.dish-page .detail-plate { position:relative; top:auto; right:auto; width:100%; height:380rpx; border:0; border-radius:0; box-shadow:none; background:#f3dfb9; }
+.dish-page .detail-copy { width:auto; padding:28rpx; }
+.dish-page .detail-title { margin-top:10rpx; font-family:"KaiTi",serif; font-size:44rpx; line-height:1.35; }
+.dish-page .detail-subtitle { font-size:25rpx; line-height:1.75; }
+.dish-page .tag { background:#e4e8c8; color:#5d733c; font-size:21rpx; }
+.dish-page .detail-meta { margin:18rpx 0 0; }
+.dish-page .detail-meta > view { display:flex; justify-content:space-between; align-items:center; border:2rpx solid #ecd4a6; border-radius:22rpx; background:#f9e6bc; }
+.dish-page .meta-value { margin:0; color:#c9642e; font-size:40rpx; }
+.dish-page .detail-section { margin-top:32rpx; }
+.dish-page .detail-section__head { padding:0 6rpx 16rpx; border:0; }
+.dish-page .detail-section__heading { color:#526936; font-size:32rpx; }
+.dish-page .detail-section__intro { color:#886b49; font-size:22rpx; }
+.dish-page .detail-section__body { margin-top:0; }
+.dish-page .ingredient-line { margin-bottom:12rpx; }
+.dish-page .strong { font-size:26rpx; }
+.dish-page .detail-action-bar { border:0; border-radius:26rpx; background:#513b29; }
+.dish-page .action-label { color:#fff4d9; }
+.dish-page .action-sub { color:#e3ceb0; font-size:20rpx; line-height:1.5; }
+.dish-page .detail-submit { min-width:132rpx; background:#e47a3d; color:#fff8e7; }

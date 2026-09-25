@@ -17,6 +17,20 @@ import org.apache.ibatis.annotations.Param;
 /** 平台菜品模板查询和商户导入 MyBatis Mapper。 */
 @Mapper
 public interface DishTemplateMapper {
+  long countTemplatesByProductType(@Param("merchantId") Long merchantId, @Param("categoryId") Long categoryId,
+      @Param("keyword") String keyword, @Param("imported") Boolean imported, @Param("productType") String productType);
+  List<DishTemplateEntity> selectTemplatesByProductType(@Param("merchantId") Long merchantId,
+      @Param("categoryId") Long categoryId, @Param("keyword") String keyword,
+      @Param("imported") Boolean imported, @Param("offset") int offset, @Param("pageSize") int pageSize, @Param("productType") String productType);
+  long countAdminTemplatesByProductType(@Param("keyword") String keyword, @Param("sourceType") String sourceType,
+      @Param("templateType") String templateType, @Param("dataStatus") String dataStatus,
+      @Param("sourceCategory") String sourceCategory, @Param("missingImage") Boolean missingImage,
+      @Param("missingSteps") Boolean missingSteps, @Param("productType") String productType);
+  List<DishTemplateEntity> selectAdminTemplatesPageByProductType(@Param("keyword") String keyword,
+      @Param("sourceType") String sourceType, @Param("templateType") String templateType,
+      @Param("dataStatus") String dataStatus, @Param("sourceCategory") String sourceCategory,
+      @Param("missingImage") Boolean missingImage, @Param("missingSteps") Boolean missingSteps,
+      @Param("offset") int offset, @Param("pageSize") int pageSize, @Param("productType") String productType);
   /**
    * 查询平台当前启用的模板分类。
    * @return 平台当前启用的模板分类

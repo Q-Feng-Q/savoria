@@ -1,4 +1,4 @@
-<view class="warm-page warm-page--management warm-state-host purchase-page">
+<view class="merchant-story warm-page warm-page--management warm-state-host purchase-page">
   <page-state wx:if="{{phase === 'loading' || phase === 'error'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="cart" bind:retry="retryLoad" />
 
   <view wx:else class="purchase-content">

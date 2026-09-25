@@ -2,6 +2,8 @@
   margin-top: 26rpx;
 }
 
+@import "../../../styles/storybook-subpages.wxss";
+
 .default-row {
   display: flex;
   align-items: center;

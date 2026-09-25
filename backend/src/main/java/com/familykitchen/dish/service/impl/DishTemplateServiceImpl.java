@@ -74,10 +74,13 @@ public class DishTemplateServiceImpl implements DishTemplateService {
   /** {@inheritDoc} */
   @Override
   public DishTemplatePageView page(CurrentUserContext user, DishTemplateQuery query) {
-    long total = templateMapper.countTemplates(user.merchantId(), query.categoryId(),
-        query.normalizedKeyword(), query.imported());
-    List<DishTemplateView> items = templateMapper.selectTemplates(user.merchantId(), query.categoryId(),
-        query.normalizedKeyword(), query.imported(), query.offset(), query.normalizedPageSize()).stream()
+    if (query.productType() != null) com.familykitchen.dish.service.NourishmentFields.type(query.productType(), null);
+    long total = query.productType() == null
+        ? templateMapper.countTemplates(user.merchantId(), query.categoryId(), query.normalizedKeyword(), query.imported())
+        : templateMapper.countTemplatesByProductType(user.merchantId(), query.categoryId(), query.normalizedKeyword(), query.imported(), query.productType());
+    List<DishTemplateView> items = (query.productType() == null
+        ? templateMapper.selectTemplates(user.merchantId(), query.categoryId(), query.normalizedKeyword(), query.imported(), query.offset(), query.normalizedPageSize())
+        : templateMapper.selectTemplatesByProductType(user.merchantId(), query.categoryId(), query.normalizedKeyword(), query.imported(), query.offset(), query.normalizedPageSize(), query.productType())).stream()
         .map(this::toView).toList();
     return new DishTemplatePageView(items, total, query.normalizedPage(), query.normalizedPageSize());
   }
@@ -91,11 +94,13 @@ public class DishTemplateServiceImpl implements DishTemplateService {
         template.getCategoryName(), template.getName(), template.getDescription(), template.getImageUrl(),
         template.getImageSourceUrl(), template.getImageAuthor(), template.getImageLicense(),
         template.getReferencePrice(), parseTags(template.getTasteTags()), parseTags(template.getMealTags()),
-        template.getSourceCategory(), template.getTemplateType(), template.getDataStatus(),
+        template.getSourceCategory(), template.getSourceType(), template.getTemplateType(), template.getDataStatus(),
         Boolean.TRUE.equals(template.getProcurementReady()), template.getImageRightsStatus(),
         template.getSortOrder(), Boolean.TRUE.equals(template.getEnabled()), template.getVersion(),
-        Boolean.TRUE.equals(template.getImported()), templateMapper.selectTemplateIngredients(templateId),
-        templateMapper.selectTemplateCookingSteps(templateId));
+        Boolean.TRUE.equals(template.getImported()), isImportable(template),
+        templateMapper.selectTemplateIngredients(templateId),
+        templateMapper.selectTemplateCookingSteps(templateId), template.getProductType(),
+        template.getNourishmentDescription(), template.getServingAdvice(), template.getPrecautions());
   }
 
   /** {@inheritDoc} */
@@ -109,7 +114,8 @@ public class DishTemplateServiceImpl implements DishTemplateService {
     Set<Long> foundIds = templates.stream().map(DishTemplateEntity::getId).collect(Collectors.toSet());
     List<Long> unavailable = requested.stream().filter(id -> !foundIds.contains(id)).toList();
     if (!unavailable.isEmpty()) {
-      throw new BusinessException(ErrorCode.NOT_FOUND, "模板菜品不存在或已停用：" + unavailable);
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID,
+          "以下模板不存在、已停用或采购数据尚未完善，暂不能导入：" + unavailable);
     }
     return importResolvedTemplates(user, templates);
   }
@@ -183,6 +189,9 @@ public class DishTemplateServiceImpl implements DishTemplateService {
     DishEntity dish = new DishEntity();
     dish.setMerchantId(merchantId); dish.setCategoryId(categoryId); dish.setName(template.getName());
     dish.setDescription(template.getDescription()); dish.setImageUrl(template.getImageUrl());
+    dish.setProductType(template.getProductType());
+    dish.setNourishmentDescription(template.getNourishmentDescription());
+    dish.setServingAdvice(template.getServingAdvice()); dish.setPrecautions(template.getPrecautions());
     dish.setBasePrice(template.getReferencePrice()); dish.setSourceTemplateId(template.getId()); dish.setStatus("active");
     return dish;
   }
@@ -245,6 +254,7 @@ public class DishTemplateServiceImpl implements DishTemplateService {
     target.setComponentTemplateId(stageComponentId == null
         ? source.getComponentTemplateId() : stageComponentId);
     target.setSourceNote(source.getSourceText());
+    target.setImageUrls(source.getImageUrls());
     return target;
   }
 
@@ -266,10 +276,20 @@ public class DishTemplateServiceImpl implements DishTemplateService {
     return new DishTemplateView(item.getId(), item.getTemplateCode(), item.getCategoryId(), item.getCategoryName(),
         item.getName(), item.getDescription(), item.getImageUrl(), item.getReferencePrice(),
         parseTags(item.getTasteTags()), parseTags(item.getMealTags()), item.getSourceCategory(),
-        item.getTemplateType(), item.getDataStatus(), Boolean.TRUE.equals(item.getProcurementReady()),
+        item.getSourceType(), item.getTemplateType(), item.getDataStatus(),
+        Boolean.TRUE.equals(item.getProcurementReady()),
         item.getImageRightsStatus(), Boolean.TRUE.equals(item.getMissingSteps()), item.getVersion(),
         item.getIngredientCount(),
-        Boolean.TRUE.equals(item.getImported()));
+        Boolean.TRUE.equals(item.getImported()), isImportable(item), item.getProductType(),
+        item.getNourishmentDescription(), item.getServingAdvice(), item.getPrecautions());
+  }
+
+  private static boolean isImportable(DishTemplateEntity template) {
+    return "DISH".equals(template.getTemplateType())
+        && "READY".equals(template.getDataStatus())
+        && Boolean.TRUE.equals(template.getProcurementReady())
+        && template.getReferencePrice() != null
+        && Boolean.TRUE.equals(template.getEnabled());
   }
 
   private List<String> parseTags(String json) {

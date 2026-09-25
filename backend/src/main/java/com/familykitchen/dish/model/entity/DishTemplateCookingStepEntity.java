@@ -9,6 +9,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @TableName("dish_template_cooking_steps")
 @Schema(description = "平台菜品模板制作步骤实体")
 public class DishTemplateCookingStepEntity {
+  private java.util.List<String> imageUrls;
+  public java.util.List<String> getImageUrls() { return imageUrls == null ? java.util.List.of() : imageUrls; }
+  public void setImageUrls(java.util.List<String> value) { imageUrls = value == null ? java.util.List.of() : java.util.List.copyOf(value); }
   /** 数据库主键。 */
   @TableId(value = "id", type = IdType.AUTO)
   private Long id;

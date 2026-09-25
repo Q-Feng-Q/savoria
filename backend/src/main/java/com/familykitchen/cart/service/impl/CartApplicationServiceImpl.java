@@ -82,11 +82,22 @@ public class CartApplicationServiceImpl implements CartApplicationService {
             + "&dish=" + request.dishId() + "&quantity=" + request.quantity()
             + "&remark=" + encoded(remark),
         () -> {
-          CartDishSnapshot dish = request.quantity() == 0
-              ? null : requireAvailableDish(user.familyId(), request.dishId());
+          lockDishAvailability(user, request.dishId());
+          CartDishSnapshot newCartDish = null;
+          if (request.quantity() > 0 && request.cartId() == null && request.cartVersion() == 0) {
+            newCartDish = requireAvailableDish(user.familyId(), request.dishId());
+          }
           CartEntity cart = requireMutableCart(user, request.cartId(), request.cartVersion());
+          CartItemEntity item = mapper.selectCartItem(cart.getId(), request.dishId());
+          CartItemSelectionEntity current = item == null ? null
+              : mapper.selectSelectionForUpdate(item.getId(), user.memberId());
+          int currentQuantity = current == null ? 0 : current.quantity;
+          CartDishSnapshot dish = request.quantity() > currentQuantity
+              ? newCartDish == null
+                  ? requireAvailableDish(user.familyId(), request.dishId()) : newCartDish
+              : null;
           bump(cart, request.cartVersion());
-          applySelection(cart, user.memberId(), request.dishId(), request.quantity(), remark, dish);
+          applySelection(cart, item, user.memberId(), request.dishId(), request.quantity(), remark, dish);
           return cart.getId();
         });
   }
@@ -161,12 +172,13 @@ public class CartApplicationServiceImpl implements CartApplicationService {
       if (requestedCartId != null || expectedVersion != 0) {
         submitted("餐篮已提交，请刷新后继续点餐");
       }
-      if (mapper.lockFamilyForCart(user.familyId()) == null) {
+      Long merchantId = mapper.lockFamilyForCart(user.familyId());
+      if (merchantId == null) {
         throw new BusinessException(ErrorCode.NOT_FOUND, "家庭不存在");
       }
       active = mapper.selectFamilyActiveCartForUpdate(user.familyId());
       if (active == null) {
-        active = createCart(user);
+        active = createCart(user, merchantId);
       }
     } else if (requestedCartId == null) {
       if (expectedVersion != 0 || version(active) != 0) {
@@ -185,9 +197,9 @@ public class CartApplicationServiceImpl implements CartApplicationService {
     return active;
   }
 
-  private CartEntity createCart(CurrentUserContext user) {
+  private CartEntity createCart(CurrentUserContext user, Long merchantId) {
     CartEntity created = new CartEntity();
-    created.setMerchantId(user.merchantId());
+    created.setMerchantId(merchantId);
     created.setFamilyId(user.familyId());
     created.setMemberId(null);
     created.setMealSlotId(null);
@@ -211,11 +223,12 @@ public class CartApplicationServiceImpl implements CartApplicationService {
     if (active != null) {
       return active;
     }
-    if (mapper.lockFamilyForCart(user.familyId()) == null) {
+    Long merchantId = mapper.lockFamilyForCart(user.familyId());
+    if (merchantId == null) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "家庭不存在");
     }
     active = mapper.selectFamilyActiveCartForUpdate(user.familyId());
-    return active == null ? createCart(user) : active;
+    return active == null ? createCart(user, merchantId) : active;
   }
 
   private void bump(CartEntity cart, long expectedVersion) {
@@ -229,9 +242,8 @@ public class CartApplicationServiceImpl implements CartApplicationService {
   }
 
   private void applySelection(
-      CartEntity cart, Long memberId, Long dishId, int quantity, String remark,
+      CartEntity cart, CartItemEntity item, Long memberId, Long dishId, int quantity, String remark,
       CartDishSnapshot dish) {
-    CartItemEntity item = mapper.selectCartItem(cart.getId(), dishId);
     if (item == null && quantity == 0) {
       return;
     }
@@ -244,7 +256,7 @@ public class CartApplicationServiceImpl implements CartApplicationService {
       item.setQuantity(quantity);
       item.setItemRemark(null);
       mapper.insertCartItem(item);
-    } else if (quantity > 0) {
+    } else if (quantity > 0 && dish != null) {
       item.setDishNameSnapshot(dish.dishName());
       item.setPrice(money(dish.price()));
     }
@@ -269,6 +281,17 @@ public class CartApplicationServiceImpl implements CartApplicationService {
       throw new BusinessException(ErrorCode.NOT_FOUND, "未找到可点菜品");
     }
     return dish;
+  }
+
+  private void lockDishAvailability(CurrentUserContext user, Long dishId) {
+    Long merchantId = mapper.selectFamilyMerchant(user.familyId());
+    if (merchantId == null || merchantId <= 0) merchantId = user.merchantId();
+    if (merchantId == null || merchantId <= 0)
+      throw new BusinessException(ErrorCode.NOT_FOUND, "家庭所属商户不存在");
+    mapper.lockMerchantForCart(merchantId);
+    List<Long> dishIds = List.of(dishId);
+    mapper.lockDishesForCart(merchantId, dishIds);
+    mapper.lockFamilyMenuItemsForCart(user.familyId(), dishIds);
   }
 
   private CartView buildView(CartEntity cart, Long currentMemberId) {
@@ -303,7 +326,8 @@ public class CartApplicationServiceImpl implements CartApplicationService {
         .toList();
     return new CartView.CartItemView(item.getId(), item.getDishId(),
         item.getDishNameSnapshot(), money(item.getPrice()), item.getQuantity(),
-        own == null ? 0 : own.quantity, own == null ? null : own.itemRemark, selections);
+        own == null ? 0 : own.quantity, own == null ? null : own.itemRemark, selections,
+        !Boolean.FALSE.equals(item.getAvailable()), item.getUnavailableReason());
   }
 
   private static long version(CartEntity cart) {
@@ -312,7 +336,7 @@ public class CartApplicationServiceImpl implements CartApplicationService {
 
   private static void requireFamilyMember(CurrentUserContext user) {
     if (user == null || user.userId() == null || user.familyId() == null
-        || user.memberId() == null || user.merchantId() == null) {
+        || user.memberId() == null) {
       throw new BusinessException(ErrorCode.FAMILY_NOT_JOINED, "当前账号尚未加入可点餐家庭");
     }
   }

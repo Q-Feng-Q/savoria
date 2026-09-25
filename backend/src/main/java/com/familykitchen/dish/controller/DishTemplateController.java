@@ -73,10 +73,11 @@ public class DishTemplateController {
       @RequestParam(required = false) String keyword,
       @RequestParam(required = false) Boolean imported,
       @RequestParam(defaultValue = "1") Integer page,
-      @RequestParam(defaultValue = "20") Integer pageSize) {
+      @RequestParam(defaultValue = "20") Integer pageSize,
+      @RequestParam(required = false) String productType) {
     CurrentUserContext user = requireMerchant(request);
     return ApiResponse.ok(templateService.page(user,
-        new DishTemplateQuery(categoryId, keyword, imported, page, pageSize)));
+        new DishTemplateQuery(categoryId, keyword, imported, page, pageSize, productType)));
   }
 
   /**

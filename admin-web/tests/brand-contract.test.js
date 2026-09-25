@@ -16,12 +16,12 @@ function collectSource(dir) {
   });
 }
 
-test('admin user-visible source uses 食光知味', () => {
+test('admin user-visible source uses 食光栀味', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const source = collectSource(path.join(root, 'src'))
     .map((file) => fs.readFileSync(file, 'utf8'))
     .join('\n');
 
-  assert.match(html, /<title>食光知味/);
+  assert.match(html, /<title>食光栀味/);
   assert.doesNotMatch(`${html}\n${source}`, /灶间私厨|家庭厨房|Kitchen Admin/);
 });

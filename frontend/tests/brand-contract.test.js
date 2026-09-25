@@ -17,8 +17,8 @@ function collectVisibleSource(dir) {
   });
 }
 
-test('user-visible mini program chrome uses 食光知味', () => {
-  assert.equal(app.window.navigationBarTitleText, '食光知味');
+test('mini program static title is fallback while visible branding is configured at runtime', () => {
+  assert.equal(app.window.navigationBarTitleText, require('../utils/branding').BRAND_NAME);
 
   const visibleText = collectVisibleSource(root)
     .map((file) => fs.readFileSync(file, 'utf8'))
@@ -50,6 +50,8 @@ test('warm animal brand assets are available to production pages', () => {
 
 test('shared mini program UI components are globally registered', () => {
   const components = {
+    'step-images': '/components/step-images/index',
+    'brand-logo': '/components/brand-logo/index',
     'page-state': '/components/page-state/index',
     'brand-scene': '/components/brand-scene/index',
     'action-button': '/components/action-button/index',
@@ -79,8 +81,8 @@ test('family portal uses warm animal composition without dashboard card soup', (
   const homeWxml = fs.readFileSync(path.join(root, 'pages', 'family', 'home', 'index.wxml'), 'utf8');
   const entryWxml = fs.readFileSync(path.join(root, 'pages', 'auth', 'entry', 'index.wxml'), 'utf8');
 
-  assert.match(homeWxml, /animal-kitchen-hero\.webp/);
-  assert.match(homeWxml, /home-story/);
+  assert.match(homeWxml, /approved-story-atlas\.jpg/);
+  assert.match(homeWxml, /story-brand/);
   assert.match(entryWxml, /brand-scene/);
   assert.doesNotMatch(homeWxml, /status-grid|flow-panel/);
 });

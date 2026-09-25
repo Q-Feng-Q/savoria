@@ -6,8 +6,7 @@ const { buildProfileMenuGroups } = require('../../../utils/profile-menu');
 const { switchAccountIdentity } = require('../../../utils/account-switching');
 const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
-Page({
-  identityLoad: createIdentityLoadGuard(),
+const { withBranding } = require('../../../utils/branding'); Page(withBranding({
   data: {
     summaryCards: [],
     memberCards: [],
@@ -30,6 +29,10 @@ Page({
     }]
   },
 
+  onLoad() {
+    this.identityLoad = createIdentityLoadGuard();
+  },
+
   onShow() {
     this.load();
   },
@@ -48,13 +51,10 @@ Page({
         runtime.user.getContext()
       ]);
       if (!this.identityLoad.isCurrent(loadToken)) return;
-      let homeData = null;
-      try {
-        homeData = await runtime.family.getHome();
-        if (!this.identityLoad.isCurrent(loadToken)) return;
-      } catch (error) {
-        if (identityContext.familyId) throw error;
-      }
+      const homeData = identityContext.familyId
+        ? await runtime.family.getHome()
+        : null;
+      if (!this.identityLoad.isCurrent(loadToken)) return;
       const effectiveIdentityContext = homeData && homeData.family
         ? {
           ...identityContext,
@@ -169,6 +169,7 @@ Page({
       addresses: () => this.openAddresses(),
       wallet: () => this.openWallet(),
       notifications: () => this.openNotifications(),
+      feedback: () => wx.navigateTo({ url: '/pages/account/feedback-list/index' }),
       merchant: () => this.openMerchant(),
       home:()=>this.openHome(),
       orders:()=>this.openOrders(),
@@ -192,4 +193,4 @@ Page({
       wx.reLaunch({ url: '/pages/auth/entry/index' });
     }
   }
-});
+}, { navigationTitle: true }));

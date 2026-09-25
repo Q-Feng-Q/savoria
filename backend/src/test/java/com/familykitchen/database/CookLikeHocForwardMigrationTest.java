@@ -37,13 +37,16 @@ class CookLikeHocForwardMigrationTest {
   void migrationContainsTheReviewedCompleteCatalog() throws Exception {
     String sql = Files.readString(CATALOG, StandardCharsets.UTF_8);
 
-    assertEquals(549, countLines(sql, "INSERT INTO dish_templates "));
-    assertEquals(336, countLines(sql, "INSERT INTO dish_template_source_records "));
-    assertEquals(1987, countLines(sql, "INSERT INTO dish_template_ingredients "));
-    assertEquals(795, countLines(sql, "INSERT INTO dish_template_cooking_steps "));
+    assertEquals(552, countLines(sql, "INSERT INTO dish_templates "));
+    assertEquals(339, countLines(sql, "INSERT INTO dish_template_source_records "));
+    assertEquals(2004, countLines(sql, "INSERT INTO dish_template_ingredients "));
+    assertEquals(807, countLines(sql, "INSERT INTO dish_template_cooking_steps "));
     assertEquals(179, countLines(sql, "INSERT INTO dish_template_image_assets "));
     assertTrue(sql.contains("'Q 弹虾滑馄饨'"));
-    assertTrue(sql.contains("'f7a91c2db0ce9b6a41eaf06e5ce64cbde5a831ed'"));
+    assertTrue(sql.contains("'dde5df039a5dc0ef49842cc2b385763d5e377573'"));
+    assertTrue(sql.contains("'红米糙米红薯饭'"));
+    assertTrue(sql.contains("'山药莲子鸡汤'"));
+    assertTrue(sql.contains("'金秋板栗烧鸡'"));
   }
 
   @Test

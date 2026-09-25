@@ -134,22 +134,27 @@ test('system dish import actions remain accessible and responsive across merchan
   assert.match(templates, /\.template-page\s*\{[^}]*env\(safe-area-inset-bottom\)/)
 })
 
-test('merchant dish featured and status actions keep vertical order and touch targets on compact phones', () => {
+test('merchant dish featured and status actions keep order and touch targets in the bottom row', () => {
   const markup = read('pages/merchant/merchant-dishes/index.wxml')
   const styles = read('pages/merchant/merchant-dishes/index.wxss')
-  const actions = markup.slice(markup.indexOf('<view class="row-actions">'), markup.indexOf('</view>\n      </view>', markup.indexOf('<view class="row-actions">')))
+  const actionsStart = markup.indexOf('class="row-actions"')
+  const actions = markup.slice(actionsStart, markup.indexOf('</view>\n      </view>', actionsStart))
+  assert.ok(actionsStart >= 0, 'available dish row actions exist')
   assert.ok(actions.indexOf('bindtap="toggleFeatured"') < actions.indexOf('bindtap="toggleStatus"'))
   assert.match(styles, /\.row-action--featured\s*\{[^}]*min-height:\s*88rpx/s)
   assert.match(styles, /\.row-action--status\s*\{[^}]*min-height:\s*88rpx/s)
-  const compact = styles.match(/@media\s*\(max-width:\s*320px\)\s*\{([\s\S]*)\}\s*$/)
-  assert.ok(compact, 'compact dish action breakpoint')
-  assert.match(compact[1], /\.row-actions\s*\{[^}]*flex-direction:\s*column/)
-  assert.doesNotMatch(compact[1], /\.row-actions\s*\{[^}]*flex-direction:\s*row/)
+  assert.match(styles, /\.merchant-story\.dishes-page \.row-actions\s*\{[^}]*grid-column:\s*1\s*\/\s*-1[^}]*flex-direction:\s*row/)
   assert.match(styles, /\.dish-row\s*\{[^}]*min-width:\s*0/)
   assert.match(styles, /\.row-actions\s*\{[^}]*min-width:\s*0/)
 })
 
-test('family menu responsive styles do not retain the removed featured controls', () => {
+test('family menu bulk toolbar wraps with accessible targets on compact phones', () => {
   const styles = read('pages/merchant/family-menu/index.wxss')
   assert.doesNotMatch(styles, /\.featured-(?:control|badge|action|disabled)\b/)
+  assert.match(styles, /\.bulk-toolbar\s*\{[^}]*display:\s*flex[^}]*flex-wrap:\s*wrap[^}]*min-width:\s*0/s)
+  assert.match(styles, /\.menu-checkbox\s*\{[^}]*min-width:\s*88rpx[^}]*min-height:\s*88rpx/s)
+  assert.match(styles, /\.bulk-actions\s*\{[^}]*min-width:\s*0[^}]*flex-wrap:\s*wrap/s)
+  const compact = styles.match(/@media\s*\(max-width:\s*320px\)\s*\{([\s\S]*)\}\s*$/)
+  assert.ok(compact, 'compact family menu breakpoint')
+  assert.match(compact[1], /\.bulk-actions\s*\{[^}]*flex-direction:\s*column/)
 })

@@ -2,11 +2,24 @@ const { createApiRuntime } = require('../../../utils/api-runtime');
 const { buildApiFamilyMenuScene } = require('../../../utils/merchant-scenes');
 const { requireSession, resolveApiErrorMessage } = require('../../../utils/page-api');
 
+function dishKey(value) { return String(value); }
+
+function deriveSelection(draft, selectedDishMap) {
+  const ids = new Set((draft || []).map((item) => dishKey(item.dishId)));
+  const selected = Object.keys(selectedDishMap || {}).filter((id) => ids.has(id) && selectedDishMap[id]);
+  return {
+    selectedDishMap: Object.fromEntries(selected.map((id) => [id, true])),
+    selectedCount: selected.length,
+    allSelected: ids.size > 0 && selected.length === ids.size
+  };
+}
+
 Page({
   data: {
     phase: 'loading', pageTitle: '正在读取家庭菜单', pageDescription: '请稍候',
     familyId: '', familyOptions: [], familyIndex: 0, sourceFamilyOptions: [], sourceFamilyIndex: 0,
-    menuRows: [], saving: false, rowBusyMap: {}, context: null, currentFamilyName: '未选择家庭'
+    menuRows: [], selectedDishMap: {}, selectedCount: 0, allSelected: false,
+    mutationBusy: false, context: null, currentFamilyName: '未选择家庭'
   },
 
   onLoad(query) { this.setData({ familyId: (query && query.familyId) || '' }); },
@@ -38,6 +51,9 @@ Page({
       this.setData({
         ...scene,
         familyId: currentFamilyId,
+        selectedDishMap: {},
+        selectedCount: 0,
+        allSelected: false,
         currentFamilyName: current ? current.label : '未选择家庭',
         phase: scene.menuRows.length ? 'ready' : 'empty',
         pageTitle: scene.menuRows.length ? '' : '暂无可配置菜品',
@@ -51,6 +67,31 @@ Page({
 
   retryLoad() { return this.load(); },
 
+  refreshSelection(selectedDishMap = this.data.selectedDishMap) {
+    const selection = deriveSelection(this.menuDraft, selectedDishMap);
+    this.setData(selection);
+    return selection;
+  },
+
+  toggleSelection(event) {
+    if (this.data.mutationBusy) return;
+    const id = dishKey(event.currentTarget.dataset.id);
+    if (!(this.menuDraft || []).some((item) => dishKey(item.dishId) === id)) return;
+    const selectedDishMap = { ...this.data.selectedDishMap };
+    if (selectedDishMap[id]) delete selectedDishMap[id];
+    else selectedDishMap[id] = true;
+    this.refreshSelection(selectedDishMap);
+  },
+
+  toggleSelectAll() {
+    if (this.data.mutationBusy) return;
+    if (this.data.allSelected) {
+      this.refreshSelection({});
+      return;
+    }
+    this.refreshSelection(Object.fromEntries((this.menuDraft || []).map((item) => [dishKey(item.dishId), true])));
+  },
+
   saveMenuDraft(draft = this.menuDraft) {
     return createApiRuntime().merchant.saveFamilyMenu(this.data.familyId, {
       items: (draft || []).map((item) => ({ ...item }))
@@ -58,39 +99,24 @@ Page({
   },
 
   async commitMenuDraft(nextDraft) {
-    const priorDraft = this.menuDraft || [];
-    this.menuDraft = nextDraft;
-    try {
-      await this.saveMenuDraft(nextDraft);
-    } catch (error) {
-      this.menuDraft = priorDraft;
-      throw error;
-    }
+    await this.saveMenuDraft(nextDraft);
     await this.load({ silent: true });
   },
 
-  async runSaving(task, fallback, rowBusyId = null) {
-    if (rowBusyId !== null && this.data.rowBusyMap[rowBusyId]) return;
-    if (rowBusyId === null && this.data.saving) return;
-    if (rowBusyId === null) this.setData({ saving: true });
-    else this.setData({ rowBusyMap: { ...this.data.rowBusyMap, [rowBusyId]: true } });
+  async runSaving(task, fallback) {
+    if (this.data.mutationBusy) return;
+    this.setData({ mutationBusy: true });
     try { await task(); }
     catch (error) { wx.showToast({ title: resolveApiErrorMessage(error, fallback), icon: 'none' }); }
-    finally {
-      if (rowBusyId === null) this.setData({ saving: false });
-      else {
-        const rowBusyMap = { ...this.data.rowBusyMap };
-        delete rowBusyMap[rowBusyId];
-        this.setData({ rowBusyMap });
-      }
-    }
+    finally { this.setData({ mutationBusy: false }); }
   },
 
-  bindFamily(event) {
-    if (this.data.saving || Object.keys(this.data.rowBusyMap).length) return;
+  async bindFamily(event) {
+    if (this.data.mutationBusy) return;
     const option = this.data.familyOptions[Number(event.detail.value || 0)];
     if (!option) return;
-    this.setData({ familyId: option.value }, () => this.load());
+    this.setData({ familyId: option.value, selectedDishMap: {}, selectedCount: 0, allSelected: false });
+    return this.load();
   },
 
   bindSourceFamily(event) { this.setData({ sourceFamilyIndex: Number(event.detail.value || 0) }); },
@@ -107,6 +133,35 @@ Page({
     }, '复制菜单失败');
   },
 
+  enableSelected() {
+    if (this.data.mutationBusy || !this.data.selectedCount) return;
+    const selected = this.data.selectedDishMap;
+    const nextDraft = (this.menuDraft || []).map((item) => ({
+      ...item,
+      enabled: selected[dishKey(item.dishId)] ? true : item.enabled
+    }));
+    return this.runSaving(async () => {
+      await this.saveMenuDraft(nextDraft);
+      await this.load({ silent: true });
+      wx.showToast({ title: '所选菜品已启用', icon: 'success' });
+    }, '批量启用失败');
+  },
+
+  enableAll() {
+    if (this.data.mutationBusy) return;
+    const draft = this.menuDraft || [];
+    if (!draft.length || draft.every((item) => item.enabled)) {
+      wx.showToast({ title: '全部菜品已启用', icon: 'none' });
+      return;
+    }
+    const nextDraft = draft.map((item) => ({ ...item, enabled: true }));
+    return this.runSaving(async () => {
+      await this.saveMenuDraft(nextDraft);
+      await this.load({ silent: true });
+      wx.showToast({ title: '全部菜品已启用', icon: 'success' });
+    }, '一键启用失败');
+  },
+
   toggleDish(event) {
     const dishId = Number(event.currentTarget.dataset.id || 0);
     const nextDraft = (this.menuDraft || []).map((item) => ({ ...item }));
@@ -115,7 +170,7 @@ Page({
     return this.runSaving(async () => {
       target.enabled = !target.enabled;
       await this.commitMenuDraft(nextDraft);
-    }, '更新菜单失败', dishId);
+    }, '更新菜单失败');
   },
 
   changePrice(event) {
@@ -127,6 +182,8 @@ Page({
     return this.runSaving(async () => {
       target.familyFinalPrice = Math.max(0, Number(target.familyFinalPrice || 0) + delta);
       await this.commitMenuDraft(nextDraft);
-    }, '更新价格失败', dishId);
+    }, '更新价格失败');
   }
 });
+
+module.exports = { dishKey, deriveSelection };

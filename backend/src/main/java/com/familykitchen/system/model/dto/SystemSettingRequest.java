@@ -4,6 +4,9 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import com.familykitchen.system.validation.BrandUrl;
+import com.familykitchen.system.validation.BrandSizeDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * 平台管理员更新系统配置的请求。
@@ -24,7 +27,7 @@ import jakarta.validation.constraints.Size;
  */
 public record SystemSettingRequest(
     @NotBlank @Size(max=100) String siteName,
-    @Size(max=500) String siteLogoUrl,
+    @BrandUrl @Size(max=500) String siteLogoUrl,
     boolean dishReviewEnabled,
     boolean maintenanceEnabled,
     @NotBlank @Size(max=500) String maintenanceMessage,
@@ -36,5 +39,20 @@ public record SystemSettingRequest(
     @Size(max=255) String smtpUsername,
     @Size(max=500) String smtpPassword,
     boolean smtpTlsEnabled,
-    @Size(max=255) String smtpFrom
-) {}
+    @Size(max=255) String smtpFrom,
+    @BrandUrl @Size(max=500) String siteLogoSmallUrl,
+    @BrandUrl @Size(max=500) String siteLogoLargeUrl,
+    @BrandUrl @Size(max=500) String siteFaviconUrl,
+    @JsonDeserialize(using=BrandSizeDeserializer.class) @Min(16) @Max(64) Integer siteLogoSmallSize,
+    @JsonDeserialize(using=BrandSizeDeserializer.class) @Min(24) @Max(120) Integer siteLogoSize,
+    @JsonDeserialize(using=BrandSizeDeserializer.class) @Min(48) @Max(160) Integer siteLogoLargeSize
+) {
+  public SystemSettingRequest(String siteName, String siteLogoUrl, boolean dishReviewEnabled,
+      boolean maintenanceEnabled, String maintenanceMessage, boolean mobileBindingEnabled,
+      boolean emailBindingEnabled, boolean wechatBindingEnabled, String smtpHost, Integer smtpPort,
+      String smtpUsername, String smtpPassword, boolean smtpTlsEnabled, String smtpFrom) {
+    this(siteName, siteLogoUrl, dishReviewEnabled, maintenanceEnabled, maintenanceMessage,
+        mobileBindingEnabled, emailBindingEnabled, wechatBindingEnabled, smtpHost, smtpPort,
+        smtpUsername, smtpPassword, smtpTlsEnabled, smtpFrom, null, null, null, null, null, null);
+  }
+}

@@ -17,11 +17,39 @@ import org.apache.ibatis.annotations.Param;
  */
 @Mapper
 public interface CartMapper {
+  /** Resolves the authoritative merchant for a family before canonical write locks.
+   * @param familyId family identifier
+   * @return merchant identifier, or null when the family is absent
+   */
+  Long selectFamilyMerchant(@Param("familyId") Long familyId);
+
+  /** Locks the merchant row before dish, menu, and cart rows.
+   * @param merchantId merchant identifier
+   * @return locked merchant identifier, or null when absent
+   */
+  Long lockMerchantForCart(@Param("merchantId") Long merchantId);
+
+  /** Locks target merchant dishes in ascending identifier order.
+   * @param merchantId merchant identifier
+   * @param dishIds sorted dish identifiers
+   * @return identifiers of locked owned dishes
+   */
+  List<Long> lockDishesForCart(@Param("merchantId") Long merchantId,
+      @Param("dishIds") List<Long> dishIds);
+
+  /** Locks target family-menu rows after their dishes.
+   * @param familyId family identifier
+   * @param dishIds sorted dish identifiers
+   * @return identifiers of locked family-menu rows
+   */
+  List<Long> lockFamilyMenuItemsForCart(@Param("familyId") Long familyId,
+      @Param("dishIds") List<Long> dishIds);
+
   /**
    * Locks the owning family row while an initial active cart is created.
    *
    * @param familyId family identifier
-   * @return locked family identifier, or null when missing
+   * @return locked family's merchant identifier, or null when missing
    */
   Long lockFamilyForCart(@Param("familyId") Long familyId);
 

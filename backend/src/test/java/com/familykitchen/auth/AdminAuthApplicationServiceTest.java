@@ -11,9 +11,10 @@ import com.familykitchen.auth.security.TokenService;
 import com.familykitchen.auth.service.AdminAuthApplicationService;
 import com.familykitchen.auth.service.SessionService;
 import com.familykitchen.auth.service.impl.AdminAuthApplicationServiceImpl;
+import com.familykitchen.auth.service.impl.MemberAuthServiceImpl;
+import com.familykitchen.auth.mapper.AuthContextMapper;
 import com.familykitchen.common.error.BusinessException;
 import com.familykitchen.user.mapper.UserMapper;
-import com.familykitchen.user.mapper.UserRoleMapper;
 import com.familykitchen.user.model.entity.UserDO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Proxy;
@@ -51,17 +52,17 @@ class AdminAuthApplicationServiceTest {
   private static AdminAuthApplicationService service(UserDO user, PasswordCodec codec,
       ObjectMapper json) {
     UserMapper users = proxy(UserMapper.class, (method, args) ->
-        "findByLoginIdentifier".equals(method) ? user : null);
-    UserRoleMapper roles = proxy(UserRoleMapper.class, (method, args) ->
-        "findActiveRoles".equals(method) ? List.of("platform_admin") : null);
+        "findByLoginIdentifier".equals(method) ? user : 0);
+    AuthContextMapper roles = proxy(AuthContextMapper.class, (method, args) ->
+        "findPlatformRoles".equals(method) ? List.of("platform_admin") : null);
     SessionService sessions = new SessionService() {
       public String create(Long userId) { return "test-session"; }
       public void requireActive(Long userId, String sessionId) { }
       public void revoke(Long userId, String sessionId) { }
       public void revokeAll(Long userId) { }
     };
-    return new AdminAuthApplicationServiceImpl(users, roles, codec,
-        new TokenService(json, "unit-test-secret", 7200L), sessions);
+    return new AdminAuthApplicationServiceImpl(new MemberAuthServiceImpl(users, codec,
+        new TokenService(json, "unit-test-secret", 7200L), null, sessions, roles, null));
   }
 
   private static UserDO buildUser(PasswordCodec codec) {
@@ -71,6 +72,7 @@ class AdminAuthApplicationServiceTest {
     user.setNickname("System Administrator");
     user.setPasswordHash(codec.encode("123456"));
     user.setStatus("ACTIVE");
+    user.setCredentialStatus("ACTIVE");
     return user;
   }
 

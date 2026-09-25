@@ -1,7 +1,22 @@
-<view class="warm-page warm-state-host orders-page">
+<view class="warm-page warm-state-host orders-page story-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="订单进度" description="{{errorMessage || '正在读取家庭订单'}}" illustration="orders" bind:retry="retryLoad" />
-  <view wx:if="{{phase === 'ready'}}">
-    <view class="orders-head orders-overview"><view><text>订单进度</text><text>{{context.family.name}}</text><text>{{context.member.name}}正在查看今天的预约和历史订单</text></view><view class="orders-overview__stamp"><text>{{orders.length}}</text><text>全部订单</text></view></view>
-    <view class="orders-list"><view class="orders-list__head"><text>最近订单</text><text>状态变化会及时通知</text></view><page-state wx:if="{{!orders.length}}" phase="empty" title="还没有订单" description="点好菜并提交后，进度会显示在这里" illustration="orders" /><order-row wx:for="{{orders}}" wx:key="id" order="{{item}}" bind:open="openOrderRow" /></view>
+  <view wx:if="{{phase === 'ready'}}" class="orders-shell">
+    <view class="orders-overview">
+      <view class="orders-banner"><view class="story-art"><image class="story-art__atlas story-art__atlas--family" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><view class="orders-banner-copy"><text class="orders-family">{{context.family.name}} ›</text><text class="orders-motto">“三餐四季 · {{brandName}}”</text></view></view>
+      <view class="orders-overview__sheet story-paper">
+        <view class="orders-count-row"><view><text class="orders-count-caption">本月订单</text><view><text class="orders-count-number">{{monthlyCount}}</text><text class="orders-count-unit">单</text></view></view><text class="orders-count-quote">一家人的味道\n从不缺席</text></view>
+        <view class="orders-status-summary orders-overview__metrics">
+          <view class="orders-metric orders-metric--pending" data-filter="pending" bindtap="selectStatus" aria-role="button"><image class="orders-metric-icon" src="/assets/ui/story/clock-cream.png" /><view><text class="orders-metric__value">{{pendingCount}}</text><text class="orders-metric__label">待处理</text></view></view>
+          <view class="orders-metric orders-metric--making" data-filter="preparing" bindtap="selectStatus" aria-role="button"><image class="orders-metric-icon" src="/assets/ui/story/pot-cream.png" /><view><text class="orders-metric__value">{{preparingCount}}</text><text class="orders-metric__label">制作中</text></view></view>
+          <view class="orders-metric orders-metric--done" data-filter="completed" bindtap="selectStatus" aria-role="button"><image class="orders-metric-icon" src="/assets/ui/story/check-cream.png" /><view><text class="orders-metric__value">{{completedCount}}</text><text class="orders-metric__label">已完成</text></view></view>
+        </view>
+      </view>
+    </view>
+    <view class="orders-filter"><view class="story-heading"><image class="story-leaf story-icon" src="/assets/ui/story/leaf-green.png" /><text>订单列表</text></view><picker class="orders-filter-picker" range="{{statusOptions}}" range-key="label" value="{{statusIndex}}" bindchange="changeStatusFilter"><view class="orders-filter-value">{{statusOptions[statusIndex].label}}⌄</view></picker></view>
+    <view class="orders-list-scroll">
+      <page-state wx:if="{{!visibleOrders.length}}" phase="empty" title="还没有这类订单" description="点好菜并提交后，进度会显示在这里" illustration="orders" />
+      <order-row wx:for="{{visibleOrders}}" wx:key="id" order="{{item}}" bind:open="openOrderRow" />
+    </view>
+    <view class="story-footer"><view class="story-art"><image class="story-art__atlas story-art__atlas--footer" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-footer__copy">好好吃饭\n就是一家人在一起</text></view>
   </view>
 </view>

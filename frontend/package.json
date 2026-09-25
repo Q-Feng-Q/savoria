@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "node dev-proxy.js",
     "proxy": "node dev-proxy.js",
-    "test": "node --test tests"
+    "test": "node --test tests",
+    "check:package": "node scripts/check-package-size.cjs"
   }
 }

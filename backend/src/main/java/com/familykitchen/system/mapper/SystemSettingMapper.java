@@ -20,4 +20,5 @@ public interface SystemSettingMapper {
    * @return 受影响行数
    */
   int update(SystemSettingDO setting);
+  int updateBranding(SystemSettingDO setting);
 }

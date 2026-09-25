@@ -33,7 +33,25 @@ public record FamilyMenuItemView(
     boolean enabled,
     int sortOrder,
     LocalDateTime featuredAt,
-    boolean featured
+    boolean featured,
+    String productType, String nourishmentDescription, String servingAdvice, String precautions
 ) {
+  /** Backward-compatible constructor for clients without nourishment fields. */
+  public FamilyMenuItemView(Long dishId,
+    Long categoryId,
+    String categoryName,
+    Integer categorySortOrder,
+    String dishName,
+    String description,
+    String imageUrl,
+    BigDecimal basePrice,
+    BigDecimal familyFinalPrice,
+    boolean enabled,
+    int sortOrder,
+    LocalDateTime featuredAt,
+    boolean featured) {
+    this(dishId, categoryId, categoryName, categorySortOrder, dishName, description, imageUrl, basePrice, familyFinalPrice, enabled, sortOrder, featuredAt, featured, "NORMAL", null, null, null);
+  }
+
 }
 

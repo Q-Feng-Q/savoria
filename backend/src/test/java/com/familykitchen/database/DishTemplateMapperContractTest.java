@@ -32,14 +32,25 @@ class DishTemplateMapperContractTest {
   }
 
   @Test
-  void merchantQueriesUseCompleteEligibilityPredicateWhileAdminQueriesDoNot() throws Exception {
+  void merchantMarketShowsAllEnabledDishesWhileImportsRemainStrictlyEligible() throws Exception {
     String xml = Files.readString(
         Path.of("src/main/resources/mapper/dish/DishTemplateMapper.xml"), StandardCharsets.UTF_8)
         .replaceAll("\\s+", " ");
     String predicate = "t.template_type='DISH' and t.data_status='READY' and "
         + "t.procurement_ready=1 and t.reference_price is not null and t.enabled=1";
+    String visiblePredicate = "t.template_type='DISH' and t.enabled=1";
     assertTrue(xml.contains("<sql id=\"MerchantEligibleTemplateFilter\"> " + predicate));
-    assertTrue(xml.contains("<include refid=\"MerchantEligibleTemplateFilter\"/>"));
+    assertTrue(xml.contains("<sql id=\"MerchantVisibleTemplateFilter\"> " + visiblePredicate));
+    String listQuery = xml.substring(xml.indexOf("id=\"selectTemplates\""),
+        xml.indexOf("</select>", xml.indexOf("id=\"selectTemplates\"")));
+    assertTrue(listQuery.contains("TemplateFilters"));
+    String listFilters = xml.substring(xml.indexOf("id=\"TemplateFilters\""),
+        xml.indexOf("</sql>", xml.indexOf("id=\"TemplateFilters\"")));
+    assertTrue(listFilters.contains("MerchantVisibleTemplateFilter"));
+    assertTrue(!listFilters.contains("MerchantEligibleTemplateFilter"));
+    String importQuery = xml.substring(xml.indexOf("id=\"selectTemplatesByIds\""),
+        xml.indexOf("</select>", xml.indexOf("id=\"selectTemplatesByIds\"")));
+    assertTrue(importQuery.contains("MerchantEligibleTemplateFilter"));
     assertTrue(xml.contains("id=\"selectAdminTemplates\""));
     String adminQuery = xml.substring(xml.indexOf("id=\"selectAdminTemplates\""),
         xml.indexOf("</select>", xml.indexOf("id=\"selectAdminTemplates\"")));

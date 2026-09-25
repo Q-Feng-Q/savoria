@@ -1,3 +1,12 @@
-<view class="ui-button warm-component warm-order-row order-row" bindtap="open" aria-role="button" aria-label="{{'查看订单：' + (order.familyName || order.title || order.orderNo || '家庭订单')}}" hover-class="ui-button--pressed" hover-stay-time="80"><view class="order-row__date"><text class="order-row__date-line">预计用餐</text><text class="order-row__date-line order-row__date-line--secondary">{{order.mealLabel || order.mealTypeText || order.mealSlotText}}</text></view><view class="order-row__body"><text class="order-row__title">{{order.familyName || order.title || order.orderNo || '家庭订单'}}</text><text class="order-row__note">{{order.summary || order.description || order.dishSummaryText}}</text></view><view class="order-row__status"><text class="order-row__status-text">{{order.statusText || order.statusLabel || order.status}}</text><text class="order-row__arrow">›</text></view></view>
-
-
+<view class="ui-button warm-component warm-order-row order-row" bindtap="open" aria-role="button" aria-label="{{'查看订单：' + (order.orderNo || '家庭订单')}}" hover-class="order-row--pressed" hover-stay-time="80">
+  <view class="order-row__head"><text class="order-row__number">{{order.orderNo || order.title}}</text><text class="order-row__badge order-row__badge--{{order.statusTone || 'pending'}}">{{order.statusLabel || order.statusText}}</text></view>
+  <view class="order-row__main">
+    <view class="order-row__date"><text class="order-row__day">{{order.dateText || order.serviceDate}}</text><view class="order-row__clock"><image class="order-row__clock-icon" src="/assets/ui/story/clock-orange.png" /><text>{{order.timeText || '时间未记录'}}</text></view></view>
+    <view class="order-row__body">
+      <view class="order-row__pictures"><image wx:for="{{order.previewImages}}" wx:key="key" class="order-row__picture" src="{{item.url}}" mode="aspectFill" /></view>
+      <text class="order-row__note">{{order.dishSummaryText || order.summary}}</text>
+      <view class="order-row__bottom"><text class="order-row__quantity">共 {{order.dishCount || 0}} 道菜 · {{order.quantity || 0}} 人份</text><text class="order-row__amount">{{order.amountText || order.chargeSummaryText}}</text></view>
+    </view>
+    <text class="order-row__arrow">›</text>
+  </view>
+</view>

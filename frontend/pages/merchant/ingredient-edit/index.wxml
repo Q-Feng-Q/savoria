@@ -1,4 +1,4 @@
-<view class="warm-page ingredient-page">
+<view class="merchant-story warm-page ingredient-page">
   <view class="editor-head"><text class="eyebrow">原材料管理</text><text class="editor-title">食材库</text><text class="editor-copy">查看引用关系并维护常用食材</text></view>
   <page-state wx:if="{{phase === 'loading' || phase === 'error'}}" phase="{{phase}}" title="食材库" description="{{errorMessage}}" bind:retry="retryLoad" />
   <view wx:else class="ingredient-workspace">
@@ -15,4 +15,4 @@
     </view>
   </view>
 </view>
-<view wx:if="{{phase === 'ready' || phase === 'empty'}}" class="safe-action-bar"><view class="ui-button save-action" bindtap="saveIngredient" aria-role="button" aria-label="保存食材" hover-class="ui-button--pressed">{{saving ? '保存中' : '保存食材'}}</view></view>
+<view wx:if="{{phase === 'ready' || phase === 'empty'}}" class="safe-action-bar merchant-story-bar"><view class="ui-button save-action" bindtap="saveIngredient" aria-role="button" aria-label="保存食材" hover-class="ui-button--pressed">{{saving ? '保存中' : '保存食材'}}</view></view>

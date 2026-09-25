@@ -3,27 +3,28 @@
     <button v-if="drawerOpen" class="sidebar-backdrop" type="button" aria-label="关闭菜单" @click="drawerOpen = false" />
     <aside class="admin-sidebar" :class="{ 'is-open': drawerOpen }">
       <div class="brand-lockup">
-        <span class="brand-kicker">SHI GUANG ZHI WEI</span>
-        <strong>食光知味</strong>
-        <p>商户高频经营工作台</p>
+        <BrandLogo variant="small" />
+        <span class="brand-kicker">厨房管理手账</span>
+        <strong class="brand-name">{{ branding.siteName }}</strong>
+        <p>{{ authStore.isPlatformAdmin ? '平台工作台' : '照看每一餐的日常' }}</p>
       </div>
 
       <nav class="sidebar-nav">
         <RouterLink
           v-for="item in navItems"
           :key="item.key"
-          :to="item.route"
+          :to="item.tabs[0].path"
           class="sidebar-link"
-          active-class="is-active"
+          :class="{ 'is-active': activeWorkspace?.key === item.key }"
         >
-          <span class="nav-icon" aria-hidden="true">{{ navIcons[item.icon] || '·' }}</span>
+          <img class="nav-story-icon" :src="storyIcons[item.icon]" alt="" />
           <span>{{ item.label }}</span>
         </RouterLink>
       </nav>
 
       <div class="sidebar-foot">
-        <span class="sidebar-caption">当前接口</span>
-        <strong>{{ authStore.apiBaseUrl }}</strong>
+        <span class="sidebar-caption brand-name">{{ branding.siteName }}</span>
+        <strong>认真做好每一餐</strong>
       </div>
     </aside>
 
@@ -33,18 +34,20 @@
         <div>
           <span class="page-eyebrow">今日经营 · {{ todayLabel }}</span>
           <h1>{{ currentTitle }}</h1>
-          <p>{{ currentSubtitle }}</p>
         </div>
         <div class="topbar-actions">
           <div class="merchant-chip">
             <span>{{ authStore.merchantName }}</span>
-            <strong>商户 #{{ authStore.session?.merchantId || '-' }}</strong>
+            <strong>{{ authStore.session?.nickname || authStore.session?.username || '已登录' }}</strong>
           </div>
           <button class="ghost-button" type="button" @click="handleLogout">退出登录</button>
         </div>
       </header>
 
       <main class="admin-content">
+        <nav v-if="activeWorkspace && activeWorkspace.tabs.length > 1" class="workspace-tabs" aria-label="工作区页面">
+          <RouterLink v-for="tab in activeWorkspace.tabs" :key="tab.path" :to="tab.path" :class="{ 'is-current': route.path === tab.path }" :aria-current="route.path === tab.path ? 'page' : undefined">{{ tab.label }}</RouterLink>
+        </nav>
         <RouterView />
       </main>
     </div>
@@ -54,19 +57,23 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
-import { ADMIN_NAV_ITEMS } from '../config';
+import { visibleWorkspaces, workspaceForPath } from '../workspaces';
 import { useAuthStore } from '../stores/auth';
+import BrandLogo from '../components/BrandLogo.vue';
+import { branding } from '../stores/branding';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
-const platformOnly = new Set(['platform-families', 'platform-merchants', 'users', 'dish-reviews', 'dish-template-change-reviews', 'platform-dish-templates', 'system-settings']);
-const navItems = computed(() => ADMIN_NAV_ITEMS.filter((item) => !platformOnly.has(item.key) || authStore.isPlatformAdmin));
+const navItems = computed(() => visibleWorkspaces(authStore.isPlatformAdmin, Boolean(authStore.session?.merchantId || authStore.session?.actor?.merchantId) || !authStore.isPlatformAdmin));
+const activeWorkspace = computed(() => workspaceForPath(route.path, navItems.value));
+const iconFiles = import.meta.glob('../../../frontend/assets/ui/story/*-green.png', { eager: true, query: '?url', import: 'default' });
+const storyIcons = Object.fromEntries(Object.entries(iconFiles).map(([path, url]) => [path.split('/').pop().replace('-green.png', ''), url]));
 const drawerOpen = ref(false);
 const navIcons = { home: '⌂', receipt: '单', dish: '味', leaf: '叶', users: '家', building: '全', settings: '设', clipboard: '审', layout: '菜', basket: '采', bell: '铃' };
 const todayLabel = new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' }).format(new Date());
 
-const currentTitle = computed(() => route.meta.title || '食光知味商户后台');
+const currentTitle = computed(() => activeWorkspace.value?.label || route.meta.title || `${branding.siteName}商户后台`);
 const currentSubtitle = computed(() => route.meta.subtitle || '商户高频经营工作台');
 
 onMounted(() => {
@@ -82,3 +89,4 @@ function handleLogout() {
   router.replace('/login');
 }
 </script>
+<style scoped>.brand-name { overflow-wrap: anywhere; max-width: 100%; }</style>

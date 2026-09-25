@@ -20,7 +20,11 @@ import java.util.Set;
 @Schema(description = "平台模板管理查询条件")
 public record AdminDishTemplateQuery(Integer page, Integer pageSize, String keyword, String sourceType,
     String templateType, String dataStatus, String sourceCategory, Boolean missingImage,
-    Boolean missingSteps) {
+    Boolean missingSteps, String productType) {
+  public AdminDishTemplateQuery(Integer page, Integer pageSize, String keyword, String sourceType,
+      String templateType, String dataStatus, String sourceCategory, Boolean missingImage, Boolean missingSteps) {
+    this(page, pageSize, keyword, sourceType, templateType, dataStatus, sourceCategory, missingImage, missingSteps, null);
+  }
   /** 支持的来源类型。 */ private static final Set<String> SOURCE_TYPES = Set.of("COOK_LIKE_HOC", "LOCAL_EXTENSION");
   /** 支持的模板类型。 */ private static final Set<String> TEMPLATE_TYPES = Set.of("DISH", "COMPONENT");
   /** 支持的数据完整状态。 */ private static final Set<String> DATA_STATUSES = Set.of(
@@ -31,6 +35,7 @@ public record AdminDishTemplateQuery(Integer page, Integer pageSize, String keyw
    * @return 已完成校验的当前查询对象
    */
   public AdminDishTemplateQuery validated() {
+    if (productType != null) com.familykitchen.dish.service.NourishmentFields.type(productType, null);
     checkEnum("sourceType", sourceType, SOURCE_TYPES);
     checkEnum("templateType", templateType, TEMPLATE_TYPES);
     checkEnum("dataStatus", dataStatus, DATA_STATUSES);

@@ -5,6 +5,8 @@ import com.familykitchen.dish.model.dto.DishCategoryRequest;
 import com.familykitchen.dish.model.dto.DishRequest;
 import com.familykitchen.dish.model.dto.DishStatusRequest;
 import com.familykitchen.dish.model.dto.DishMutationResult;
+import com.familykitchen.dish.model.dto.BatchDishMutationRequest;
+import com.familykitchen.dish.model.vo.BatchDishMutationResult;
 import com.familykitchen.dish.model.vo.DishCategoryView;
 import com.familykitchen.dish.model.vo.DishDetailView;
 import com.familykitchen.dish.model.vo.DishView;
@@ -29,9 +31,25 @@ public interface DishApplicationService {
    * 查询当前商户的菜品列表。
    *
    * @param user 当前登录用户上下文
+   * @param scope available 或 deleted 查询范围
    * @return 当前商户的菜品列表
    */
-  List<DishView> dishes(CurrentUserContext user);
+  List<DishView> dishes(CurrentUserContext user, String scope);
+  List<DishView> dishes(CurrentUserContext user, String scope, String productType);
+
+  /** Logically deletes an atomic merchant-scoped dish batch.
+   * @param user current merchant user
+   * @param request validated dish identifiers
+   * @return truthful mutation counts
+   */
+  BatchDishMutationResult bulkDelete(CurrentUserContext user, BatchDishMutationRequest request);
+
+  /** Restores an atomic merchant-scoped dish batch to inactive.
+   * @param user current merchant user
+   * @param request validated dish identifiers
+   * @return truthful mutation counts
+   */
+  BatchDishMutationResult bulkRestore(CurrentUserContext user, BatchDishMutationRequest request);
 
   /**
    * 创建平台默认商户范围内的菜品。

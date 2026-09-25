@@ -112,6 +112,7 @@
   {
     "operation": "cart.getCart",
     "pages": [
+      "pages/family/home/index",
       "pages/ordering/menu/index",
       "pages/ordering/cart/index",
       "pages/ordering/dish-detail/index"
@@ -309,7 +310,8 @@
   {
     "operation": "family.getMenuItems",
     "pages": [
-      "pages/ordering/menu/index"
+      "pages/ordering/menu/index",
+      "pages/ordering/orders/index"
     ],
     "method": "GET",
     "backendRoute": "/family/menu",
@@ -440,6 +442,56 @@
     "controllerMethod": "updateFamilyInfo"
   },
   {
+    "operation": "feedback.detail",
+    "pages": [
+      "pages/account/feedback-detail/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/feedback/{id}",
+    "controllerFqcn": "com.familykitchen.feedback.FeedbackController",
+    "controllerMethod": "detail"
+  },
+  {
+    "operation": "feedback.downloadImage",
+    "pages": [
+      "pages/account/feedback-detail/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/feedback/images/{id}",
+    "controllerFqcn": "com.familykitchen.feedback.FeedbackController",
+    "controllerMethod": "image"
+  },
+  {
+    "operation": "feedback.list",
+    "pages": [
+      "pages/account/feedback-list/index"
+    ],
+    "method": "GET",
+    "backendRoute": "/feedback",
+    "controllerFqcn": "com.familykitchen.feedback.FeedbackController",
+    "controllerMethod": "list"
+  },
+  {
+    "operation": "feedback.submit",
+    "pages": [
+      "pages/account/feedback-create/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/feedback",
+    "controllerFqcn": "com.familykitchen.feedback.FeedbackController",
+    "controllerMethod": "create"
+  },
+  {
+    "operation": "feedback.uploadImage",
+    "pages": [
+      "pages/account/feedback-create/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/feedback/images",
+    "controllerFqcn": "com.familykitchen.feedback.FeedbackController",
+    "controllerMethod": "upload"
+  },
+  {
     "operation": "files.uploadImage",
     "pages": [
       "shared/runtime/files"
@@ -468,6 +520,26 @@
     "backendRoute": "/merchant/orders/{orderId}/status",
     "controllerFqcn": "com.familykitchen.order.controller.MerchantOrderController",
     "controllerMethod": "advance"
+  },
+  {
+    "operation": "merchant.batchDeleteDishes",
+    "pages": [
+      "pages/merchant/merchant-dishes/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/dishes/batch-delete",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "batchDelete"
+  },
+  {
+    "operation": "merchant.batchRestoreDishes",
+    "pages": [
+      "pages/merchant/merchant-dishes/index"
+    ],
+    "method": "POST",
+    "backendRoute": "/merchant/dishes/batch-restore",
+    "controllerFqcn": "com.familykitchen.dish.controller.DishController",
+    "controllerMethod": "batchRestore"
   },
   {
     "operation": "merchant.cancelOrder",
@@ -995,6 +1067,7 @@
   {
     "operation": "orders.listOrders",
     "pages": [
+      "pages/family/home/index",
       "pages/ordering/orders/index"
     ],
     "method": "GET",

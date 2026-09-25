@@ -3,6 +3,8 @@
   margin-top: 24rpx;
 }
 
+@import "../../../styles/storybook-subpages.wxss";
+
 .address-name,
 .address-text {
   display: block;

@@ -1,6 +1,6 @@
-<view class="warm-page warm-state-host family-manage-page">
+<view class="story-page story-subpage warm-page warm-state-host family-manage-page">
   <view class="manage-shell">
-    <view class="manage-hero">
+    <view class="manage-hero"><view class="story-subhead-art"><image class="story-art__atlas story-art__atlas--family" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
       <text class="manage-kicker">FAMILY TABLE</text>
       <text class="manage-title">一家人的餐桌</text>
       <text class="manage-note">{{isOwner ? '你是家庭负责人，可以维护资料、邀请成员和移交负责人。' : (isAdmin ? '你是家庭管理员，可以维护资料并处理加入申请。' : '你是家庭成员，可以管理自己的家庭关系。')}}</text>

@@ -34,6 +34,8 @@ import com.familykitchen.dish.model.vo.DishTemplateChangeSubmitView;
 import com.familykitchen.dish.service.DishTemplateSnapshotValidator;
 import com.familykitchen.dish.service.DishTemplateProcurementReadinessEvaluator;
 import com.familykitchen.dish.service.impl.DishTemplateChangeRequestServiceImpl;
+import com.familykitchen.file.mapper.FileAssetMapper;
+import com.familykitchen.file.model.entity.FileAssetDO;
 import com.familykitchen.notification.mapper.NotificationPersistenceMapper;
 import com.familykitchen.notification.model.entity.NotificationDO;
 import java.math.BigDecimal;
@@ -51,10 +53,66 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /** 验证模板菜品修改申请的权限、锁顺序、租户隔离和状态流转。 */
 @ExtendWith(MockitoExtension.class)
 class DishTemplateChangeRequestServiceTest {
+  @Test void approvalAppliesNewFieldsButLegacySnapshotPreservesCurrentNourishment() throws Exception {
+    for (boolean legacy : new boolean[]{true, false}) {
+      org.mockito.Mockito.reset(requestMapper, templateMapper, notificationMapper);
+      DishTemplateChangeRequestDO application = pendingApplication();
+      if (!legacy) application.setSnapshotJson(targetSnapshot().put("productType", "NORMAL")
+          .put("nourishmentDescription", "  新介绍  ").put("servingAdvice", " ").toString());
+      String originalBase = application.getBaseSnapshotJson();
+      DishTemplateEntity current = template(5L, 3L, "旧汤", 4L);
+      current.setProductType("NOURISHMENT"); current.setNourishmentDescription("原介绍"); current.setServingAdvice("原建议");
+      when(requestMapper.selectForUpdate(88L)).thenReturn(application);
+      when(templateMapper.selectTemplateForUpdate(5L)).thenReturn(current);
+      var picturedStep = new com.familykitchen.dish.model.entity.DishTemplateCookingStepEntity();
+      picturedStep.setItemKey(targetSnapshot().at("/cookingSteps/0/itemId").asText());
+      picturedStep.setImageUrls(List.of("/uploads/images/template.jpg"));
+      when(templateMapper.selectTemplateCookingSteps(5L)).thenReturn(List.of(picturedStep));
+      when(templateMapper.selectCategoryForUpdate(2L)).thenReturn(category(2L, true));
+      when(templateMapper.updateAdminTemplate(any(), any())).thenReturn(1);
+      when(requestMapper.markApproved(88L, 1L, null)).thenReturn(1);
+      when(notificationMapper.insertNotificationEntity(any())).thenAnswer(call -> {
+        call.<NotificationDO>getArgument(0).setId(501L); return 1;
+      });
+      service.approve(platformAdmin(), 88L, new DishTemplateApproveRequest(null));
+      assertEquals(legacy ? "NOURISHMENT" : "NORMAL", current.getProductType());
+      assertEquals(legacy ? "原介绍" : "新介绍", current.getNourishmentDescription());
+      assertEquals(legacy ? "原建议" : null, current.getServingAdvice());
+      assertEquals(originalBase, application.getBaseSnapshotJson());
+      var savedStep = ArgumentCaptor.forClass(com.familykitchen.dish.model.entity.DishTemplateCookingStepEntity.class);
+      verify(templateMapper).insertTemplateCookingStep(savedStep.capture());
+      assertEquals(picturedStep.getImageUrls(), savedStep.getValue().getImageUrls());
+    }
+  }
+
+  @Test void componentSubmissionCannotAddNourishment() {
+    DishTemplateEntity component = template(5L, 3L, "配料", 4L); component.setTemplateType("COMPONENT");
+    when(templateMapper.selectTemplateForUpdate(5L)).thenReturn(component);
+    assertThrows(BusinessException.class, () -> service.submit(merchantAdmin, 5L,
+        new DishTemplateChangeSubmitRequest(null, targetSnapshot().put("productType", "NOURISHMENT"))));
+    verify(requestMapper, never()).insert(any());
+  }
+  @Test void newLegacySubmissionFillsNourishmentFromPersistedBaseline() throws Exception {
+    DishTemplateEntity source = template(5L, 3L, "旧汤", 4L);
+    source.setProductType("NOURISHMENT"); source.setNourishmentDescription("原介绍"); source.setServingAdvice("原建议");
+    when(templateMapper.selectTemplateForUpdate(5L)).thenReturn(source);
+    when(templateMapper.selectCategoryForUpdate(2L)).thenReturn(category(2L, true));
+    when(templateMapper.selectTemplateIngredients(5L)).thenReturn(List.of(ingredient("豆角")));
+    service.submit(merchantAdmin, 5L, new DishTemplateChangeSubmitRequest(null, targetSnapshot().put("servingAdvice", "   ")));
+    var saved = ArgumentCaptor.forClass(DishTemplateChangeRequestDO.class);
+    verify(requestMapper).insert(saved.capture());
+    var target = objectMapper.readTree(saved.getValue().getSnapshotJson());
+    var base = objectMapper.readTree(saved.getValue().getBaseSnapshotJson());
+    assertEquals("NOURISHMENT", target.path("productType").asText());
+    assertEquals("原介绍", target.path("nourishmentDescription").asText());
+    assertEquals("", target.path("servingAdvice").asText());
+    assertEquals("原建议", base.path("servingAdvice").asText());
+  }
 
   @Mock private DishTemplateChangeRequestMapper requestMapper;
   @Mock private DishTemplateMapper templateMapper;
   @Mock private DishMapper dishMapper;
+  @Mock private FileAssetMapper fileAssetMapper;
   @Mock private NotificationPersistenceMapper notificationMapper;
   @Mock private DishTemplateProcurementReadinessEvaluator procurementEvaluator;
 
@@ -65,7 +123,8 @@ class DishTemplateChangeRequestServiceTest {
   @BeforeEach
   void setUp() {
     objectMapper = new ObjectMapper();
-    service = new DishTemplateChangeRequestServiceImpl(requestMapper, templateMapper, dishMapper, notificationMapper,
+    service = new DishTemplateChangeRequestServiceImpl(requestMapper, templateMapper, dishMapper, fileAssetMapper,
+        notificationMapper,
         objectMapper, new DishTemplateSnapshotValidator(objectMapper), procurementEvaluator);
     lenient().when(procurementEvaluator.evaluate(any(), any(), any())).thenReturn(
         new DishTemplateProcurementReadinessEvaluator.EvaluationResult(true, List.of(), List.of()));
@@ -113,6 +172,48 @@ class DishTemplateChangeRequestServiceTest {
   }
 
   @Test
+  void submitRejectsImageAssetOwnedByAnotherUser() {
+    ObjectNode snapshot = targetSnapshot();
+    snapshot.put("imageUrl", "/uploads/images/new.jpg");
+    snapshot.put("imageAssetId", 31L);
+    snapshot.put("imageRightsConfirmed", true);
+    when(templateMapper.selectTemplateForUpdate(5L)).thenReturn(template(5L, 3L, "原菜名", 0L));
+    when(fileAssetMapper.selectOwnedImage(31L, 7L)).thenReturn(null);
+
+    BusinessException error = assertThrows(BusinessException.class, () -> service.submit(merchantAdmin, 5L,
+        new DishTemplateChangeSubmitRequest(null, snapshot)));
+
+    assertEquals("所选图片不存在或不属于当前账号，请重新上传", error.getMessage());
+    verify(requestMapper, never()).insert(any());
+  }
+
+  @Test
+  void submitStoresOwnedUploadedImageInTargetSnapshot() throws Exception {
+    ObjectNode snapshot = targetSnapshot();
+    snapshot.put("imageUrl", "/uploads/images/client-value.jpg");
+    snapshot.put("imageAssetId", 31L);
+    snapshot.put("imageRightsConfirmed", true);
+    DishTemplateEntity template = template(5L, 3L, "原菜名", 0L);
+    template.setImageUrl("/uploads/images/old.jpg");
+    FileAssetDO asset = new FileAssetDO();
+    asset.setId(31L); asset.setUrl("/uploads/images/server-value.jpg");
+    when(templateMapper.selectTemplateForUpdate(5L)).thenReturn(template);
+    when(fileAssetMapper.selectOwnedImage(31L, 7L)).thenReturn(asset);
+    when(templateMapper.selectCategoryForUpdate(2L)).thenReturn(category(2L, true));
+    when(templateMapper.selectTemplateIngredients(5L)).thenReturn(List.of(ingredient("豆角")));
+    when(requestMapper.insert(any())).thenAnswer(invocation -> {
+      DishTemplateChangeRequestDO value = invocation.getArgument(0); value.setId(89L); return 1;
+    });
+
+    service.submit(merchantAdmin, 5L, new DishTemplateChangeSubmitRequest(null, snapshot));
+
+    ArgumentCaptor<DishTemplateChangeRequestDO> stored = ArgumentCaptor.forClass(DishTemplateChangeRequestDO.class);
+    verify(requestMapper).insert(stored.capture());
+    assertEquals("/uploads/images/server-value.jpg",
+        objectMapper.readTree(stored.getValue().getSnapshotJson()).get("imageUrl").asText());
+  }
+
+  @Test
   void submitRejectsUnknownComponentBeforeCreatingReviewRequest() {
     ObjectNode snapshot = targetSnapshot();
     ((ObjectNode) snapshot.withArray("ingredients").get(0)).put("componentTemplateId", 999L)
@@ -133,6 +234,7 @@ class DishTemplateChangeRequestServiceTest {
   @Test
   void submitFromImportedDishUsesEditableMerchantFieldsAndOmitsTemplateOwnedFields() throws Exception {
     DishEntity dish = importedDish(8L, 5L);
+    dish.setProductType("NOURISHMENT"); dish.setPrecautions("注意食材过敏");
     when(dishMapper.selectDish(21L, 8L)).thenReturn(dish);
     when(dishMapper.selectDishIngredients(8L)).thenReturn(List.of(
         dishIngredient("豆角", "120.00"), dishIngredient("面条", "300.00"),
@@ -163,7 +265,9 @@ class DishTemplateChangeRequestServiceTest {
     assertEquals(2, snapshot.get("schemaVersion").asInt());
     assertEquals("商户豆角焖面", snapshot.get("name").asText());
     assertEquals("按家庭反馈调整", snapshot.get("description").asText());
-    assertTrue(!snapshot.has("imageUrl"));
+    assertEquals("NOURISHMENT", snapshot.path("productType").asText());
+    assertEquals("注意食材过敏", snapshot.path("precautions").asText());
+    assertEquals("/images/dish-templates/original.jpg", snapshot.get("imageUrl").asText());
     assertEquals(0, new BigDecimal("22.00").compareTo(snapshot.get("referencePrice").decimalValue()));
     assertEquals(3L, snapshot.get("categoryId").asLong());
     assertTrue(!snapshot.has("imageSourceUrl"));

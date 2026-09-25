@@ -59,4 +59,11 @@ public interface DishReviewService {
    * @param reason 原因
    */
   void reject(Long reviewId,Long adminUserId,String reason);
+
+  /** Rejects all pending versions for dishes being logically deleted.
+   * @param merchantId merchant identifier
+   * @param dishIds deleted dish identifiers
+   * @param actorId operator user identifier
+   */
+  void rejectPendingForDeletedDishes(Long merchantId, List<Long> dishIds, Long actorId);
 }

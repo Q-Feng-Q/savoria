@@ -5,7 +5,7 @@
       <div class="review-toolbar">
         <label class="form-field"><span>审核状态</span><select v-model="query.status" @change="load(1)"><option value="">全部状态</option><option v-for="(label, value) in TEMPLATE_CHANGE_STATUS" :key="value" :value="value">{{ label }}</option></select></label>
         <label class="form-field"><span>菜名关键词</span><input v-model.trim="query.keyword" type="search" @keyup.enter="load(1)" /></label>
-        <label class="form-field"><span>商户 ID</span><input v-model.trim="query.merchantId" type="number" min="1" /></label>
+        <label class="form-field"><span>商户</span><select v-model="query.merchantId" :disabled="merchantLoading" @change="load(1)"><option value="">全部商户</option><option v-for="merchant in merchants" :key="merchant.merchantId" :value="merchant.merchantId">{{ merchant.name }}</option></select><button v-if="merchantError" class="text-button" type="button" @click="loadMerchants">加载失败，重试</button></label>
         <button class="primary-button" type="button" @click="load(1)">查询</button>
       </div>
       <div v-if="loading" class="table-empty">正在加载模板修改申请...</div>
@@ -40,10 +40,18 @@ import SnapshotComparison from '../../components/SnapshotComparison.vue';
 import StatusPill from '../../components/StatusPill.vue';
 import { approveDishTemplateChange, getAdminDishTemplateChange, listAdminDishTemplateChanges, rejectDishTemplateChange } from '../../api/dish-template-changes';
 import { promptAction } from '../../utils/dialog';
+import { listAdminMerchants } from '../../api/admin-merchants';
 import { formatTemplateChangeTime, TEMPLATE_CHANGE_STATUS } from '../../utils/dish-template-changes';
 import { notify } from '../../utils/feedback';
 
 const loading = ref(false); const busy = ref(false); const detail = ref(null);
+const merchants = ref([]); const merchantLoading = ref(false); const merchantError = ref(false);
+async function loadMerchants() {
+  merchantLoading.value = true; merchantError.value = false;
+  try { merchants.value = await listAdminMerchants(); }
+  catch { merchantError.value = true; }
+  finally { merchantLoading.value = false; }
+}
 const query = reactive({ status: 'PENDING', keyword: '', merchantId: '' });
 const page = reactive({ items: [], total: 0, page: 1, pageSize: 20 });
 async function load(targetPage = 1) { loading.value = true; try { const result = await listAdminDishTemplateChanges({ ...query, page: targetPage, pageSize: page.pageSize }); Object.assign(page, { items: result.items || [], total: result.total || 0, page: result.page || targetPage, pageSize: result.pageSize || 20 }); } finally { loading.value = false; } }
@@ -51,7 +59,7 @@ async function openReview(requestId) { detail.value = await getAdminDishTemplate
 function closeReview() { detail.value = null; }
 async function approve() { if (detail.value.stale) return; const reason = await promptAction({ title: '通过模板修改申请', label: '审核意见（可选）', placeholder: '可留空', required: false, confirmText: '确认通过' }); if (reason === null) return; busy.value = true; try { await approveDishTemplateChange(detail.value.requestId, reason || ''); notify('已通过，平台模板已更新', 'success'); await load(page.page); detail.value = await getAdminDishTemplateChange(detail.value.requestId); } finally { busy.value = false; } }
 async function reject() { const reason = await promptAction({ title: '驳回模板修改申请', label: '驳回原因', placeholder: '请明确说明需要调整的内容', danger: true, required: true, confirmText: '确认驳回' }); if (!reason) return; busy.value = true; try { await rejectDishTemplateChange(detail.value.requestId, reason); notify('申请已驳回并通知商户', 'success'); await load(page.page); detail.value = await getAdminDishTemplateChange(detail.value.requestId); } finally { busy.value = false; } }
-onMounted(() => load(1));
+onMounted(() => { loadMerchants(); load(1); });
 </script>
 
 <style scoped>

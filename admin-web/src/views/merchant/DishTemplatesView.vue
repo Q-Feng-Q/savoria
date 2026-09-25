@@ -2,6 +2,7 @@
   <div class="template-workspace">
     <header class="template-toolbar">
       <div class="template-filters">
+        <label class="form-field compact-field"><span>菜品类型</span><select v-model="query.productType" @change="loadTemplates(1)"><option value="">全部类型</option><option value="NORMAL">普通菜品</option><option value="NOURISHMENT">滋补食品</option></select></label>
         <label class="form-field compact-field">
           <span>分类</span>
           <select v-model="query.categoryId" @change="loadTemplates(1)">
@@ -38,14 +39,14 @@
         <thead><tr><th class="select-column"></th><th>菜品</th><th>分类</th><th>口味</th><th>食材</th><th>参考价</th><th>状态</th><th>操作</th></tr></thead>
         <tbody>
           <tr v-for="item in page.items" :key="item.templateId" :class="{ imported: item.imported }">
-            <td><input type="checkbox" :checked="selectedIds.includes(item.templateId)" :disabled="item.imported" @change="toggle(item)" /></td>
+            <td><input type="checkbox" :checked="selectedIds.includes(item.templateId)" :disabled="item.imported || !item.importable" @change="toggle(item)" /></td>
             <td><div class="dish-cell"><img v-if="item.imageUrl" :src="resolveAssetUrl(item.imageUrl)" :alt="item.name" /><span v-else class="dish-image-empty">暂无图片</span><div><strong>{{ item.name }}</strong><span>{{ item.description || '暂无菜谱简介' }}</span><small>{{ item.sourceType === 'COOK_LIKE_HOC' ? 'CookLikeHOC' : '平台菜谱' }} · {{ item.missingSteps ? '步骤待补充' : '含制作步骤' }}</small></div></div></td>
-            <td>{{ item.categoryName }}</td>
+            <td>{{ item.categoryName }}<ProductTypeBadge :value="item.productType" :template-type="item.templateType" /></td>
             <td>{{ (item.tasteTags || []).join('、') || '家常' }}</td>
             <td>{{ item.ingredientCount }} 种</td>
             <td>{{ item.referencePrice == null ? '价格待完善' : `¥${item.referencePrice}` }}</td>
-            <td><span :class="item.imported ? 'status-imported' : 'status-ready'">{{ item.imported ? '已导入' : '可导入' }}</span></td>
-            <td><button class="text-button" type="button" @click="openChangeEditor(item.templateId)">申请修改</button></td>
+            <td><span :class="item.imported ? 'status-imported' : item.importable ? 'status-ready' : 'status-pending'">{{ item.imported ? '已导入' : item.importable ? '可导入' : '待完善后导入' }}</span></td>
+            <td><button class="text-button" type="button" @click="openDetail(item.templateId)">详情</button><button class="text-button" type="button" @click="openChangeEditor(item.templateId)">申请修改</button></td>
           </tr>
         </tbody>
       </table>
@@ -65,10 +66,17 @@
       </div>
     </footer>
 
+    <div v-if="selectedDetail" class="template-editor-layer" @click.self="selectedDetail = null">
+      <section class="template-editor-modal" role="dialog" aria-modal="true" aria-label="模板详情">
+        <header><h3>{{ selectedDetail.name }}<ProductTypeBadge :value="selectedDetail.productType" :template-type="selectedDetail.templateType" /></h3><button class="modal-close" type="button" aria-label="关闭" @click="selectedDetail = null">×</button></header>
+        <div class="editor-section"><p>{{ selectedDetail.description || '暂无菜谱简介' }}</p><NourishmentDetails :value="selectedDetail" /><section v-for="step in selectedDetail.cookingSteps || []" :key="step.stepNo" class="editor-section"><h4>{{step.stepNo}}. {{step.title || '制作步骤'}}</h4><p>{{step.content}}</p><StepImages :model-value="step.imageUrls || []" /></section></div>
+      </section>
+    </div>
     <div v-if="editorOpen" class="template-editor-layer" @click.self="closeChangeEditor">
       <section class="template-editor-modal" role="dialog" aria-modal="true">
         <header><div><span class="page-eyebrow">TEMPLATE CHANGE</span><h3>申请修改模板</h3><p>平台审核通过前不会修改系统模板，商户已导入菜品也不会跟随变化。</p></div><button class="modal-close" type="button" aria-label="关闭" @click="closeChangeEditor">×</button></header>
         <form v-if="editorForm" class="template-editor-body" @submit.prevent="submitChange">
+          <section class="editor-section"><NourishmentFields :form="editorForm" :disabled="editorSaving" /></section>
           <section class="editor-section"><h4>基本信息</h4><div class="editor-form-grid">
             <label class="form-field"><span>菜品名称</span><input v-model.trim="editorForm.name" maxlength="100" required /></label>
             <label class="form-field"><span>模板分类</span><select v-model="editorForm.categoryId" required><option v-for="category in categories" :key="category.categoryId" :value="category.categoryId">{{ category.name }}</option></select></label>
@@ -77,13 +85,14 @@
             <label class="form-field"><span>排序值</span><input v-model="editorForm.sortOrder" type="number" /></label>
             <label class="form-field editor-wide"><span>口味标签</span><input v-model.trim="editorForm.tasteTagsText" placeholder="家常，咸香" /></label>
             <fieldset class="meal-field editor-wide"><legend>推荐餐次</legend><label v-for="meal in meals" :key="meal.value"><input v-model="editorForm.mealTags" type="checkbox" :value="meal.value" />{{ meal.label }}</label><label><input v-model="editorForm.enabled" type="checkbox" />审核通过后启用</label></fieldset>
+            <div class="editor-wide"><span class="field-label">菜品图片</span><div class="editor-image-row"><img v-if="editorForm.imagePreviewUrl" :src="resolveAssetUrl(editorForm.imagePreviewUrl)" alt="待审核菜品图片" /><span v-else class="editor-image-empty">暂无图片</span><div class="image-editor-actions"><label class="ghost-button upload-label"><input type="file" accept="image/jpeg,image/png,image/webp" :disabled="editorUploading" @change="uploadTemplateImage" />{{ editorUploading ? '上传中...' : '更换图片' }}</label><button v-if="editorForm.imagePreviewUrl" class="text-button danger-text" type="button" @click="removeTemplateImage">删除图片</button></div></div><label v-if="editorForm.imageAssetId" class="image-rights"><input v-model="editorForm.imageRightsConfirmed" type="checkbox" /><span><b>图片使用权确认</b>我确认拥有该图片的合法使用权，并授权平台审核通过后用于模板菜品。</span></label></div>
           </div></section>
           <section class="editor-section"><div class="editor-section-head"><h4>食材清单</h4><button class="text-button" type="button" @click="addTemplateIngredient">+ 添加食材</button></div><div class="template-ingredient-list">
             <div v-for="(ingredient, index) in editorForm.ingredients" :key="ingredient.itemId" class="template-ingredient-row"><input v-model.trim="ingredient.ingredientName" placeholder="食材名称" required /><input v-model.trim="ingredient.ingredientCategory" placeholder="分类" required /><select v-model="ingredient.quantityStatus"><option v-for="(label, value) in quantityStatuses" :key="value" :value="value">{{ label }}</option></select><template v-if="ingredient.quantityStatus === 'VERIFIED'"><input v-model="ingredient.quantity" type="number" min="0.01" step="0.01" placeholder="用量" /><input v-model.trim="ingredient.unit" placeholder="单位" /><select v-model="ingredient.calcType"><option value="FIXED">固定消耗</option><option value="PER_PERSON">按人数</option></select></template><input v-else-if="ingredient.quantityStatus === 'SOURCE_BATCH'" v-model.trim="ingredient.sourceQuantityText" class="ingredient-span" placeholder="例如：原配方 2 人份" /><span v-else class="ingredient-span muted-copy">{{ quantityStatuses[ingredient.quantityStatus] }}</span><button class="text-button danger-text" type="button" @click="removeTemplateIngredient(index)">删除</button></div>
           </div></section>
-          <section class="editor-section"><div class="editor-section-head"><h4>制作步骤</h4><button class="text-button" type="button" @click="addCookingStep">+ 添加步骤</button></div><div class="step-editor-list"><div v-for="(step, index) in editorForm.cookingSteps" :key="step.itemId" class="step-editor-row"><strong>{{ index + 1 }}</strong><input v-model.trim="step.title" maxlength="100" placeholder="步骤标题（可选）" /><textarea v-model.trim="step.content" placeholder="制作过程" required /><input v-model="step.durationSeconds" type="number" min="0" placeholder="时长/秒" /><input v-model.trim="step.temperatureText" placeholder="温度" /><input v-model.trim="step.heatLevel" placeholder="火候" /><button class="text-button danger-text" type="button" @click="removeCookingStep(index)">删除</button></div><p v-if="!editorForm.cookingSteps.length" class="muted-copy">暂无制作步骤，可提交后续补充。</p></div></section>
+          <section class="editor-section"><div class="editor-section-head"><h4>制作步骤</h4><button class="text-button" type="button" @click="addCookingStep">+ 添加步骤</button></div><div class="step-editor-list"><div v-for="(step, index) in editorForm.cookingSteps" :key="step.itemId" class="step-editor-row"><strong>{{ index + 1 }}</strong><input v-model.trim="step.title" maxlength="100" placeholder="步骤标题（可选）" /><textarea v-model.trim="step.content" placeholder="制作过程" required /><StepImages v-model="step.imageUrls" editable :disabled="editorSaving || editorUploading || stepUploading" @busy="stepUploading = $event" /><input v-model="step.durationSeconds" type="number" min="0" placeholder="时长/秒" /><input v-model.trim="step.temperatureText" placeholder="温度" /><input v-model.trim="step.heatLevel" placeholder="火候" /><button class="text-button danger-text" type="button" @click="removeCookingStep(index)">删除</button></div><p v-if="!editorForm.cookingSteps.length" class="muted-copy">暂无制作步骤，可提交后续补充。</p></div></section>
           <section class="editor-section"><label class="form-field"><span>提交说明</span><textarea v-model.trim="submitNote" maxlength="500" placeholder="说明修改原因和主要变化" /></label></section>
-          <footer><button class="ghost-button" type="button" @click="closeChangeEditor">取消</button><button class="primary-button" type="submit" :disabled="editorSaving">{{ editorSaving ? '提交中...' : '提交审核' }}</button></footer>
+          <footer><button class="ghost-button" type="button" @click="closeChangeEditor">取消</button><button class="primary-button" type="submit" :disabled="editorSaving || editorUploading || stepUploading">{{ editorSaving ? '提交中...' : '提交审核' }}</button></footer>
         </form>
         <div v-else class="table-empty">正在加载模板详情...</div>
       </section>
@@ -95,8 +104,12 @@
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import AppEmpty from '../../components/AppEmpty.vue';
+import StepImages from '../../components/StepImages.vue'; import ProductTypeBadge from '../../components/ProductTypeBadge.vue';
+import NourishmentFields from '../../components/NourishmentFields.vue';
+import NourishmentDetails from '../../components/NourishmentDetails.vue';
 import { getDishTemplateDetail, importDishTemplates, listDishTemplateCategories, listDishTemplates } from '../../api/dishes';
 import { submitDishTemplateChange } from '../../api/dish-template-changes';
+import { uploadDishImage } from '../../api/files';
 import { getApiBaseUrl } from '../../api/http';
 import { buildTemplateSnapshot, createTemplateChangeForm, validateTemplateSnapshot } from '../../utils/dish-template-changes';
 import { notify } from '../../utils/feedback';
@@ -107,13 +120,17 @@ const selectedIds = ref([]);
 const loading = ref(false);
 const importing = ref(false);
 const editorOpen = ref(false);
+const selectedDetail = ref(null);
+async function openDetail(templateId) { selectedDetail.value = await getDishTemplateDetail(templateId); }
 const editorForm = ref(null);
 const editorTemplateId = ref(null);
-const editorSaving = ref(false);
+let editorGeneration = 0;
+const editorSaving = ref(false); const stepUploading = ref(false);
+const editorUploading = ref(false);
 const submitNote = ref('');
 const meals = [{ value: 'BREAKFAST', label: '早餐' }, { value: 'LUNCH', label: '午餐' }, { value: 'DINNER', label: '晚餐' }];
 const quantityStatuses = { VERIFIED: '已核定', SOURCE_BATCH: '原配方批量', MISSING: '用量待补', NOT_APPLICABLE: '无需采购' };
-const query = reactive({ categoryId: '', keyword: '', imported: '' });
+const query = reactive({ categoryId: '', keyword: '', imported: '', productType: '' });
 const page = reactive({ items: [], total: 0, page: 1, pageSize: 20 });
 
 function resolveAssetUrl(value) {
@@ -124,22 +141,25 @@ function resolveAssetUrl(value) {
   return `${String(base || '').replace(/\/api\/?$/, '').replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
+let loadGeneration = 0;
 async function loadTemplates(targetPage = 1) {
+  const generation = ++loadGeneration;
   loading.value = true;
   try {
     const result = await listDishTemplates({ ...query, page: targetPage, pageSize: page.pageSize });
+    if (generation !== loadGeneration) return;
     Object.assign(page, { items: result.items || [], total: result.total || 0, page: result.page || targetPage, pageSize: result.pageSize || 20 });
-  } finally { loading.value = false; }
+  } finally { if (generation === loadGeneration) loading.value = false; }
 }
 
 function toggle(item) {
-  if (item.imported) return;
+  if (item.imported || !item.importable) return;
   if (selectedIds.value.includes(item.templateId)) selectedIds.value = selectedIds.value.filter(id => id !== item.templateId);
   else if (selectedIds.value.length < 100) selectedIds.value = [...selectedIds.value, item.templateId];
 }
 
 function selectCurrentPage() {
-  const available = page.items.filter(item => !item.imported).map(item => item.templateId);
+  const available = page.items.filter(item => !item.imported && item.importable).map(item => item.templateId);
   selectedIds.value = Array.from(new Set([...selectedIds.value, ...available])).slice(0, 100);
 }
 
@@ -154,15 +174,20 @@ async function submitImport() {
 }
 
 async function openChangeEditor(templateId) {
+  if (editorSaving.value || editorUploading.value || stepUploading.value) return;
+  const generation = ++editorGeneration;
   editorOpen.value = true;
   editorTemplateId.value = templateId;
   submitNote.value = '';
   editorForm.value = null;
-  editorForm.value = createTemplateChangeForm(await getDishTemplateDetail(templateId));
+  const detail = await getDishTemplateDetail(templateId);
+  if (generation !== editorGeneration || !editorOpen.value) return;
+  editorForm.value = createTemplateChangeForm(detail);
 }
 
 function closeChangeEditor() {
-  if (editorSaving.value) return;
+  if (editorSaving.value || editorUploading.value || stepUploading.value) return;
+  editorGeneration++;
   editorOpen.value = false;
   editorForm.value = null;
 }
@@ -176,10 +201,31 @@ function removeTemplateIngredient(index) {
   editorForm.value.ingredients.splice(index, 1);
 }
 
-function addCookingStep() { editorForm.value.cookingSteps.push({ itemId: `step-new-${Date.now()}`, title: '', content: '', durationSeconds: '', temperatureText: '', heatLevel: '', componentTemplateId: '' }); }
-function removeCookingStep(index) { editorForm.value.cookingSteps.splice(index, 1); }
+function addCookingStep() { if (editorSaving.value || editorUploading.value || stepUploading.value) return; editorForm.value.cookingSteps.push({ itemId: `step-new-${Date.now()}`, title: '', content: '', durationSeconds: '', temperatureText: '', heatLevel: '', componentTemplateId: '' }); }
+function removeCookingStep(index) { if (editorSaving.value || editorUploading.value || stepUploading.value) return; editorForm.value.cookingSteps.splice(index, 1); }
+
+async function uploadTemplateImage(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = '';
+  if (!file || editorUploading.value || stepUploading.value || editorSaving.value) return;
+  editorUploading.value = true;
+  try {
+    const uploaded = await uploadDishImage(file);
+    editorForm.value.imageUrl = uploaded.url;
+    editorForm.value.imagePreviewUrl = uploaded.url;
+    editorForm.value.imageAssetId = uploaded.fileId;
+    editorForm.value.removeImage = false;
+    editorForm.value.imageRightsConfirmed = false;
+  } catch (error) { notify(error.message || '图片上传失败', 'error'); }
+  finally { editorUploading.value = false; }
+}
+
+function removeTemplateImage() {
+  Object.assign(editorForm.value, { imageUrl: '', imagePreviewUrl: '', imageAssetId: null, removeImage: true, imageRightsConfirmed: false });
+}
 
 async function submitChange() {
+  if (editorSaving.value || editorUploading.value || stepUploading.value || !editorForm.value) return;
   const targetSnapshot = buildTemplateSnapshot(editorForm.value);
   const validation = validateTemplateSnapshot(targetSnapshot);
   if (validation) { notify(validation, 'error'); return; }
@@ -202,12 +248,13 @@ onMounted(async () => {
 <style scoped>
 .template-workspace { display:grid; gap:18px; }
 .template-toolbar,.template-footer { display:flex; justify-content:space-between; align-items:end; gap:20px; padding:18px 22px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; }
-.template-filters { display:grid; grid-template-columns:180px minmax(240px,1fr) 160px auto; align-items:end; gap:14px; flex:1; }
+.template-filters { display:grid; grid-template-columns:repeat(2,minmax(120px,1fr)) minmax(180px,1.4fr) 120px auto; align-items:end; gap:14px; flex:1; }
 .compact-field { margin:0; }.search-button { min-height:42px; }.selection-tools,.pagination,.footer-actions { display:flex; align-items:center; gap:14px; white-space:nowrap; }
 .template-table-wrap { overflow:auto; background:#fff; border:1px solid #e5e7eb; border-radius:8px; }.template-table { min-width:980px; }.select-column { width:42px; }
 .dish-cell { display:flex; align-items:center; gap:14px; min-width:320px; }.dish-cell img { width:68px; height:68px; flex:none; object-fit:cover; border-radius:6px; background:#f3f4f6; }.dish-cell span { display:block; max-width:330px; margin-top:5px; color:#6b7280; font-size:12px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-tr.imported { opacity:.62; }.status-imported { color:#6b7280; }.status-ready { color:#287a4b; font-weight:700; }.template-empty { padding:70px; text-align:center; color:#6b7280; }
+tr.imported { opacity:.62; }.status-imported { color:#6b7280; }.status-ready { color:#287a4b; font-weight:700; }.status-pending { color:#a35f18; font-weight:700; }.template-empty { padding:70px; text-align:center; color:#6b7280; }
 @media (max-width: 900px) { .template-toolbar,.template-footer { align-items:stretch; flex-direction:column; }.template-filters { grid-template-columns:1fr 1fr; }.selection-tools { justify-content:space-between; }.footer-actions { margin-left:auto; } }
 .template-editor-layer{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:24px;background:rgba(26,34,29,.56);backdrop-filter:blur(4px)}.template-editor-modal{width:min(1080px,100%);max-height:calc(100vh - 48px);overflow:auto;border:1px solid var(--line);border-radius:18px;background:#fffdf8;box-shadow:0 28px 90px rgba(22,32,26,.28)}.template-editor-modal>header{position:sticky;top:0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;padding:22px 24px;border-bottom:1px solid var(--line);background:#fffaf0}.template-editor-modal h3{margin:5px 0;font-size:24px}.template-editor-modal header p{margin:0;color:var(--text-soft)}.template-editor-body{display:grid;gap:0}.editor-section{padding:20px 24px;border-bottom:1px solid var(--line)}.editor-section h4{margin:0 0 16px;font-size:17px}.editor-section-head{display:flex;align-items:center;justify-content:space-between}.editor-section-head h4{margin:0}.editor-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1}.editor-wide{grid-column:1/-1}.meal-field{display:flex;align-items:center;gap:18px;padding:12px 14px;border:1px solid var(--line);border-radius:10px}.meal-field legend{padding:0 6px;color:var(--text-soft);font-size:12px}.meal-field label{display:flex;align-items:center;gap:6px}.editor-image-row{display:flex;align-items:flex-start;gap:18px;margin-top:16px}.editor-image-row>img{width:180px;height:150px;flex:none;object-fit:cover;border-radius:8px;background:#f0ece4}.upload-label{display:inline-flex;align-items:center;cursor:pointer}.upload-label input{display:none}.template-ingredient-list{display:grid;gap:10px;margin-top:16px}.template-ingredient-row{display:grid;grid-template-columns:1.2fr 1fr .7fr .6fr 1fr auto;gap:8px}.template-ingredient-row input,.template-ingredient-row select{min-width:0;min-height:40px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:#fff}.template-editor-body>footer{position:sticky;bottom:0;display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;background:#fffaf0;border-top:1px solid var(--line)}@media(max-width:760px){.template-editor-layer{padding:10px}.template-editor-modal{max-height:calc(100vh - 20px)}.editor-form-grid{grid-template-columns:1fr}.editor-wide{grid-column:auto}.editor-image-row{flex-direction:column}.template-ingredient-row{grid-template-columns:1fr 1fr}.meal-field{align-items:flex-start;flex-wrap:wrap}}
 .dish-image-empty{display:grid;place-items:center;width:68px;height:68px;flex:none;border:1px dashed var(--line-strong);border-radius:6px;background:#f3f4f6;color:var(--text-soft);font-size:11px}.dish-cell small{display:block;margin-top:4px;color:var(--text-soft);font-size:11px}.ingredient-span{grid-column:4/7}.muted-copy{color:var(--text-soft);font-size:12px}.step-editor-list{display:grid;gap:10px;margin-top:16px}.step-editor-row{display:grid;grid-template-columns:32px 150px minmax(260px,1fr) 100px 110px 100px auto;gap:8px;align-items:start}.step-editor-row input,.step-editor-row textarea{min-width:0;min-height:40px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:#fff}.step-editor-row textarea{min-height:68px;resize:vertical}@media(max-width:920px){.step-editor-row{grid-template-columns:32px 1fr 1fr}.step-editor-row textarea{grid-column:2/4}.ingredient-span{grid-column:auto}}
+.field-label{display:block;margin-bottom:8px;color:var(--text-soft);font-size:12px;font-weight:700}.editor-image-empty{display:grid;place-items:center;width:180px;height:150px;flex:none;border:1px dashed var(--line-strong);border-radius:8px;background:#f0ece4;color:var(--text-soft)}.image-editor-actions{display:grid;justify-items:start;gap:12px}.image-rights{display:flex;align-items:flex-start;gap:10px;margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:#f4f8f3;color:var(--text-soft);font-size:12px;line-height:1.5}.image-rights span,.image-rights b{display:block}.image-rights b{color:var(--text);font-size:13px}
 </style>

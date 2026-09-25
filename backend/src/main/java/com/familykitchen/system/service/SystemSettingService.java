@@ -1,5 +1,6 @@
 package com.familykitchen.system.service;
 import com.familykitchen.system.model.dto.SystemSettingRequest;
+import com.familykitchen.system.model.dto.BrandSettingRequest;
 import com.familykitchen.system.model.vo.SystemSettingView;
 import com.familykitchen.system.model.vo.PublicSystemSettingView;
 /**
@@ -22,6 +23,7 @@ public interface SystemSettingService {
    * @return 更新后的脱敏配置
    */
   SystemSettingView update(Long operatorId,SystemSettingRequest request);
+  SystemSettingView updateBranding(Long operatorId,BrandSettingRequest request);
   /** 查询菜品审核开关。
    * @return 是否启用菜品审核 */
   boolean dishReviewEnabled();

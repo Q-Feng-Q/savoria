@@ -18,8 +18,8 @@ class DishTemplateRegionalExpansionTest {
   @Test
   void catalogContainsRegionalDishesAndReviewedLocalImages() throws Exception {
     String sql = Files.readString(MIGRATION, StandardCharsets.UTF_8);
-    assertEquals(549, countLines(sql, "INSERT INTO dish_templates "));
-    assertEquals(1987, countLines(sql, "INSERT INTO dish_template_ingredients "));
+    assertEquals(552, countLines(sql, "INSERT INTO dish_templates "));
+    assertEquals(2004, countLines(sql, "INSERT INTO dish_template_ingredients "));
     assertTrue(sql.contains("'豆角焖面'"));
     assertTrue(sql.contains("'武汉热干面'"));
     assertTrue(sql.contains("'东北锅包肉'"));

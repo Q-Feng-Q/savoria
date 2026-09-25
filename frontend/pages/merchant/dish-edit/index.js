@@ -1,6 +1,8 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
+const { validateStepImages } = require('../../../utils/step-images');
 const { requireSession, showApiError, resolveApiErrorMessage } = require('../../../utils/page-api');
 const { createDirtyForm } = require('../../../utils/dirty-form');
+const { PRODUCT_TYPES, nourishmentFields, validateNourishment } = require('../../../utils/nourishment');
 
 const calculationTypes = [
   { value: 'FIXED', label: '固定消耗' },
@@ -13,6 +15,8 @@ function clone(value) {
 }
 
 function validateDish(dish) {
+  const nourishmentError = validateNourishment(dish);
+  if (nourishmentError) return nourishmentError;
   if (!String(dish.name || '').trim()) return '请填写菜品名称';
   if (dish.categoryId === null || dish.categoryId === undefined || dish.categoryId === '') return '请选择菜品分类';
   if (dish.basePrice === null || dish.basePrice === undefined || String(dish.basePrice).trim() === '') return '请填写菜品价格';
@@ -25,6 +29,7 @@ function validateDish(dish) {
       || !Number.isFinite(quantity) || quantity < 0 || !['FIXED', 'PER_PERSON', 'NO_PURCHASE'].includes(calcType)) return '请检查原材料名称、单位、用量和计算方式';
   }
   if ((dish.cookingSteps || []).some((item) => !String(item.content || '').trim())) return '请填写制作步骤内容';
+  for (const step of dish.cookingSteps || []) { const error = validateStepImages(step.imageUrls); if (error) return error; }
   return '';
 }
 
@@ -33,12 +38,14 @@ function saveSuccessMessage(result) { return isPendingReviewResult(result) ? '�
 
 function buildDishPayload(dish) {
   return {
+    ...nourishmentFields(dish),
     name: String(dish.name || '').trim(), categoryId: dish.categoryId,
     description: String(dish.description || '').trim(), imageUrl: dish.imageUrl || '',
     basePrice: Number(dish.basePrice),
     ingredients: (dish.ingredients || []).map((item) => ({ ingredientName: String(item.name || item.ingredientName || '').trim(), quantity: Number(item.quantity), unit: String(item.unit || '').trim(), calcType: item.calcType || item.calculationType || 'FIXED' })),
     cookingSteps: (dish.cookingSteps || []).map((item, index) => ({
       stepNo: index + 1,
+      imageUrls: [...(item.imageUrls || [])],
       title: String(item.title || '').trim(),
       content: String(item.content || '').trim(),
       durationSeconds: item.durationSeconds === null || item.durationSeconds === undefined
@@ -58,8 +65,10 @@ Page({
     errorMessage: '',
     saving: false,
     uploading: false,
+    stepUploading: false,
     id: '',
     dish: null,
+    productTypes: PRODUCT_TYPES,
     ingredients: [],
     dishCategories: [],
     categoryIds: [],
@@ -94,6 +103,7 @@ Page({
   },
 
   onShow() {
+    if (this.data.stepUploading || this.data.uploading) return;
     if (this._hasLoaded && this._formDirty) return this.refreshIngredients();
     return this.load();
   },
@@ -131,6 +141,7 @@ Page({
 
       const categoryIds = dishCategories.map((item) => item.categoryId);
       const selectedDish = detail ? {
+        ...nourishmentFields(detail),
         dishId: detail.dishId,
         name: detail.name || '',
         categoryId: detail.categoryId || (categoryIds[0] || null),
@@ -150,6 +161,7 @@ Page({
         })),
         cookingSteps: (detail.cookingSteps || []).slice().sort((left, right) => Number(left.stepNo || 0) - Number(right.stepNo || 0))
       } : {
+        ...nourishmentFields(),
         name: '',
         categoryId: categoryIds[0] || null,
         description: '',
@@ -188,12 +200,28 @@ Page({
 
   retryLoad() { return this.load(); },
 
-  isMutationBusy() { return this.data.saving || this.data.uploading; },
+  isMutationBusy() { return this.data.saving || this.data.uploading || this.data.stepUploading; },
+
+  onStepImagesBusy(event) { this.setData({ stepUploading: event.detail.busy }); },
+  onStepImagesChange(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    if (!this.data.dish || !this.data.dish.cookingSteps[index]) return;
+    this.setData({ [`dish.cookingSteps[${index}].imageUrls`]: event.detail.images });
+    this.markDirty();
+  },
 
   bindField(event) {
     if (this.isMutationBusy()) return;
     const field = event.currentTarget.dataset.field;
     this.setData({ [`dish.${field}`]: event.detail.value });
+    this.markDirty();
+  },
+
+  bindProductType(event) {
+    if (this.isMutationBusy()) return;
+    const selected = PRODUCT_TYPES[Number(event.detail.value)];
+    if (!selected) return;
+    this.setData({ 'dish.productType': selected.value });
     this.markDirty();
   },
 
@@ -370,7 +398,7 @@ Page({
   },
 
   async saveDish() {
-    if (this.data.saving || this.data.uploading || !this.data.dish) return;
+    if (this.isMutationBusy() || !this.data.dish) return;
     const dish = clone(this.data.dish);
     const validationMessage = validateDish(dish);
     if (validationMessage) { wx.showToast({ title: validationMessage, icon: 'none' }); return; }

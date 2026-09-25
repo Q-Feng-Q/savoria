@@ -1,53 +1,46 @@
-<view class="warm-page warm-state-host home-page concept-page">
+<view class="warm-page warm-state-host home-page story-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="首页暂时没准备好" description="{{errorMessage || '厨房正在准备今天的家庭餐桌'}}" illustration="orders" bind:retry="load" />
   <block wx:else>
-    <view class="design-home-hero home-story warm-home-poster">
-      <image class="home-hero__scene home-story__scene warm-home-poster__scene" src="/assets/brand/animal-kitchen-hero.webp" mode="aspectFill" />
-      <view class="home-hero__veil home-story__veil warm-home-poster__veil"></view>
-      <view class="home-hero__copy home-story__copy warm-home-poster__copy">
-        <text class="home-hero__eyebrow home-story__brand">食光知味 · 暖暖动物私厨</text>
-        <text class="home-hero__title home-story__title">一家人的\n今日餐桌</text>
-        <text class="home-hero__note home-story__note">{{context.family.name}} · 小厨房，大满足</text>
-        <view class="ui-button home-hero__action home-story__action" bindtap="openMenu" aria-role="button" aria-label="去看看今天吃什么 →" hover-class="ui-button--pressed" hover-stay-time="80">去看看今天吃什么 <text>→</text></view>
+    <view class="story-brand home-brand-header">
+      <view class="story-art"><image class="story-art__atlas" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
+      <view class="story-brand__copy"><brand-logo size="standard" /><text class="story-brand__tagline">让家常菜 · 温暖每一餐\n就是最好的时光</text></view>
+    </view>
+    <view class="home-family-overview">
+      <view class="home-family-banner">
+        <view class="story-art"><image class="story-art__atlas story-art__atlas--family" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
+        <view class="home-family-copy"><text class="home-family-name">{{context.family.name}}<text class="home-family-chevron">›</text></text><text class="home-family-motto">“三餐四季 · {{brandName}}”</text><text class="home-crew-line">{{crew.chefLabel}} · {{crew.helperLabel}}</text></view>
       </view>
-      <view class="home-story__mascot warm-home-poster__status"><text>{{currentMemberName}}</text><text>正在开饭</text></view>
+      <view class="home-family-sheet story-paper">
+        <view class="home-time-row story-tap" data-key="cart" bindtap="openQuickEntry" aria-role="button" aria-label="打开餐篮设置预计用餐时间" hover-class="story-tap--pressed">
+          <view><text class="home-time-caption">今天预计开饭时间</text><view class="home-time-value"><image class="home-clock story-icon" src="/assets/ui/story/clock-orange.png" /><text>{{homeMealTime || '待预约'}}</text><text class="home-time-arrow">›</text></view><text class="home-time-note">打开餐篮，安排今天这一餐</text></view>
+          <text class="home-time-quote">一家人的味道\n从不缺席</text>
+        </view>
+        <view class="home-order-heading"><text>订单状态</text><view data-key="orders" bindtap="openQuickEntry" aria-role="button" class="home-all-orders">查看全部 ›</view></view>
+        <view class="home-order-metrics">
+          <view class="home-metric home-metric--pending" data-key="orders" bindtap="openQuickEntry" aria-role="button"><image class="home-metric-icon" src="/assets/ui/story/clock-cream.png" /><view><text class="home-metric-value">{{orderSummary.pendingCount}}</text><text class="home-metric-label">待处理</text></view></view>
+          <view class="home-metric home-metric--making" data-key="orders" bindtap="openQuickEntry" aria-role="button"><image class="home-metric-icon" src="/assets/ui/story/pot-cream.png" /><view><text class="home-metric-value">{{orderSummary.preparingCount}}</text><text class="home-metric-label">制作中</text></view></view>
+          <view class="home-metric home-metric--done" data-key="orders" bindtap="openQuickEntry" aria-role="button"><image class="home-metric-icon" src="/assets/ui/story/check-cream.png" /><view><text class="home-metric-value">{{orderSummary.completedCount}}</text><text class="home-metric-label">已完成</text></view></view>
+        </view>
+      </view>
     </view>
-
-    <view class="home-role-strip animal-crew sk-stagger-in">
-      <view class="home-role"><view class="home-role__badge home-role__badge--bear">熊</view><view><text>{{crew.chefLabel}}</text><text>商户负责人</text></view></view>
-      <view class="home-role"><view class="home-role__badge home-role__badge--rabbit">兔</view><view><text>{{crew.helperLabel}}</text><text>家庭管理员</text></view></view>
-      <view class="home-role"><view class="home-role__badge home-role__badge--cat">猫</view><view><text>{{crew.tasterLabel}}</text><text>家庭成员</text></view></view>
-    </view>
-
-    <view class="home-table-summary today-board sk-stagger-in">
-      <view class="home-summary__item today-board__item"><text>当前餐次</text><text>{{mealSummary.label}}</text><text>{{mealSummary.time}}</text></view>
-      <view class="home-summary__item today-board__item"><text>家庭餐篮</text><text>{{cartSummary.value}}</text><text>继续加菜</text></view>
-      <view class="home-summary__item today-board__item today-board__item--accent"><text>订单状态</text><text>{{orderSummary.statusLabel}}</text><text>及时提醒</text></view>
-    </view>
-
-    <swiper wx:if="{{featuredDishes.length}}" class="home-featured-swiper sk-stagger-in" autoplay="{{featuredAutoplay}}" circular="{{featuredCircular}}" indicator-dots="{{featuredIndicatorDots}}" interval="{{featuredInterval}}" next-margin="{{featuredNextMargin}}" indicator-color="rgba(90, 58, 46, .24)" indicator-active-color="#ed7657">
+    <view class="home-recommend-head"><view class="story-heading"><image class="story-leaf story-icon" src="/assets/ui/story/leaf-green.png" /><text>今日推荐</text></view><text class="home-recommend-by">{{crew.chefRecommendationLabel}}</text><view bindtap="openMenu" class="home-more" aria-role="button">更多 ›</view></view>
+    <swiper wx:if="{{featuredDishes.length}}" class="home-featured-swiper" autoplay="{{featuredAutoplay}}" circular="{{featuredCircular}}" indicator-dots="{{featuredIndicatorDots}}" interval="{{featuredInterval}}" next-margin="{{featuredNextMargin}}" indicator-color="#dec99c" indicator-active-color="#e87536">
       <swiper-item wx:for="{{featuredDishes}}" wx:key="id" class="home-featured-slide">
-        <view class="home-recommendation featured-story" data-id="{{item.id}}" bindtap="openDishDetail" aria-role="button" aria-label="查看{{item.name}}详情" hover-class="home-recommendation--pressed" hover-stay-time="80">
-          <view class="home-recommendation__copy featured-story__copy">
-            <text class="home-recommendation__eyebrow section-kicker">{{crew.chefRecommendationLabel}}</text>
-            <text class="home-recommendation__title featured-story__title">{{item.name}}</text>
-            <text class="home-recommendation__note featured-story__note">{{item.description}}</text>
-            <text class="home-recommendation__price featured-story__price">{{item.priceText}}</text>
-          </view>
-          <view class="home-recommendation__plate featured-story__plate"><image class="home-recommendation__image featured-story__image" src="{{item.imageUrl || '/assets/brand/dish-placeholder.png'}}" mode="aspectFill" /></view>
+        <view class="home-recommendation story-paper" data-id="{{item.id}}" bindtap="openDishDetail" aria-role="button" aria-label="查看{{item.name}}详情" hover-class="home-recommendation--pressed" hover-stay-time="80">
+          <view class="home-dish-photo"><image class="home-dish-image" src="{{item.imageUrl || '/assets/brand/dish-placeholder.png'}}" mode="aspectFill" /><text class="home-dish-ribbon">主厨推荐</text></view>
+          <view class="home-dish-copy"><text class="home-dish-name">{{item.name}}</text><text class="home-dish-note">{{item.description}}</text><text class="home-dish-price">{{item.priceText}}</text><view class="home-dish-action">♧ 去点这道菜</view><text class="home-taster-note">{{crew.tasterLabel}} · 一起尝尝</text></view>
         </view>
       </swiper-item>
     </swiper>
-
-    <view class="home-service-section service-section sk-stagger-in">
-      <view class="home-section-head section-heading"><view><text>家里常用</text><text>把今天的餐桌安排明白</text></view><text>{{dailyQuote}}</text></view>
-      <view class="home-service-list service-dock">
-        <view wx:for="{{quickEntries}}" wx:key="key" class="home-service-row service-link" data-key="{{item.key}}" aria-role="button" aria-label="{{item.label}}，{{item.note}}" hover-class="home-service-row--pressed" hover-stay-time="80" bindtap="openQuickEntry">
-          <view class="home-service-row__number service-link__mark">{{index + 1}}</view>
-          <view class="home-service-row__copy service-link__copy"><text class="home-service-row__label service-link__label">{{item.label}}</text><text class="home-service-row__note service-link__note">{{item.note}}</text></view>
-          <text class="home-service-row__arrow service-link__arrow">›</text>
+    <view wx:else class="home-empty-recommend story-paper" bindtap="openMenu" aria-role="button">今天的推荐正在准备，先去菜单看看 ›</view>
+    <view class="home-services story-paper">
+      <view class="home-service-heading"><view class="story-heading"><image class="story-leaf story-icon" src="/assets/ui/story/leaf-green.png" /><text>家庭常用</text></view><text class="home-service-motto">让生活有序，家更暖 ♥</text></view>
+      <view class="home-service-list">
+        <view wx:for="{{quickEntries}}" wx:key="key" class="ui-button home-service-row story-tap" data-key="{{item.key}}" bindtap="openQuickEntry" aria-role="button" aria-label="{{item.label}}，{{item.note}}" hover-class="story-tap--pressed">
+          <image class="home-service-icon" src="{{item.icon}}" mode="aspectFit" /><text class="home-service-label">{{item.label}}</text><text class="home-service-note">{{item.note}}</text>
         </view>
       </view>
     </view>
+    <view class="story-footer"><view class="story-art"><image class="story-art__atlas story-art__atlas--footer" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-footer__copy">好好吃饭\n就是一家人在一起</text></view>
   </block>
 </view>

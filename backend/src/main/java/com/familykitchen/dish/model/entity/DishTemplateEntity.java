@@ -11,6 +11,27 @@ import java.math.BigDecimal;
 @TableName("dish_templates")
 @Schema(description = "平台菜品模板实体")
 public class DishTemplateEntity {
+
+  @TableField("product_type")
+  private String productType;
+  public String getProductType() { return productType == null ? "NORMAL" : productType; }
+  public void setProductType(String value) { this.productType = value; }
+
+  @TableField("nourishment_description")
+  private String nourishmentDescription;
+  public String getNourishmentDescription() { return nourishmentDescription; }
+  public void setNourishmentDescription(String value) { this.nourishmentDescription = value; }
+
+  @TableField("serving_advice")
+  private String servingAdvice;
+  public String getServingAdvice() { return servingAdvice; }
+  public void setServingAdvice(String value) { this.servingAdvice = value; }
+
+  @TableField("precautions")
+  private String precautions;
+  public String getPrecautions() { return precautions; }
+  public void setPrecautions(String value) { this.precautions = value; }
+
   /** 数据库主键。 */
   @TableId(value = "id", type = IdType.AUTO)
   private Long id;

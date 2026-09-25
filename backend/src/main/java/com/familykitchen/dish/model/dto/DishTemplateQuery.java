@@ -16,7 +16,11 @@ public record DishTemplateQuery(
     @Schema(description = "菜名关键词") String keyword,
     @Schema(description = "是否已被当前商户导入") Boolean imported,
     @Schema(description = "页码，从1开始", defaultValue = "1") Integer page,
-    @Schema(description = "每页数量，最大100", defaultValue = "20") Integer pageSize) {
+    @Schema(description = "每页数量，最大100", defaultValue = "20") Integer pageSize,
+    String productType) {
+  public DishTemplateQuery(Long categoryId, String keyword, Boolean imported, Integer page, Integer pageSize) {
+    this(categoryId, keyword, imported, page, pageSize, null);
+  }
   /**
    * 规范化页码。
    * @return 规范化后从 1 开始的页码

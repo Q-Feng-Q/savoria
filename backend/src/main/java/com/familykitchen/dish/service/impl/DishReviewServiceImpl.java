@@ -10,6 +10,8 @@ import com.familykitchen.dish.model.entity.DishEntity;
 import com.familykitchen.dish.model.entity.DishIngredientEntity;
 import com.familykitchen.dish.model.entity.DishReviewSubmissionDO;
 import com.familykitchen.dish.service.DishReviewService;
+import com.familykitchen.dish.service.CookingStepImages;
+import com.familykitchen.dish.service.NourishmentFields;
 import com.familykitchen.dish.service.MerchantDishMutationLock;
 import com.familykitchen.family.mapper.FamilyMapper;
 import com.familykitchen.system.mapper.SystemAuditMapper;
@@ -52,10 +54,11 @@ public class DishReviewServiceImpl implements DishReviewService {
    */
   @Override @Transactional
   public DishReviewSubmissionDO submit(Long userId,Long merchantId,Long dishId,DishRequest request){
-    if(dishId!=null && reviewMapper.countPending(merchantId,dishId)>0)throw new BusinessException(ErrorCode.STATE_CONFLICT,"该菜品已有待审核版本");
-    if(dishId!=null){DishEntity current=dishMapper.selectDish(merchantId,dishId);
-      if(current==null)throw new BusinessException(ErrorCode.NOT_FOUND,"菜品不存在");
-      request=mergeCollections(dishId,request);}
+    if(dishId!=null){DishEntity current=mutationLock.lock(merchantId,dishId);
+      requireNotDeleted(current);
+      if(reviewMapper.countPending(merchantId,dishId)>0)throw new BusinessException(ErrorCode.STATE_CONFLICT,"该菜品已有待审核版本");
+      request=mergeNourishment(mergeCollections(dishId,request), current);}
+    else request=mergeNourishment(mergeCollections(null, request), null);
     DishReviewSubmissionDO e=new DishReviewSubmissionDO();e.setMerchantId(merchantId);e.setTargetDishId(dishId);
     e.setSubmissionType(dishId==null?"CREATE":"UPDATE");e.setSubmittedBy(userId);
     try{e.setSnapshotJson(json.writeValueAsString(request));}catch(Exception ex){throw new BusinessException(ErrorCode.BAD_REQUEST,"菜品审核快照生成失败");}
@@ -110,9 +113,13 @@ public class DishReviewServiceImpl implements DishReviewService {
     boolean newDish=dishId==null;
     DishEntity dish=entity(review.getMerchantId(),dishId,request);
     if(dishId==null){dishMapper.insertDish(dish);dishId=dish.getId();}else {
-      mutationLock.lock(review.getMerchantId(), dishId);
+      DishEntity current = mutationLock.lock(review.getMerchantId(), dishId);
+      requireNotDeleted(current);
+      request = mergeCollections(dishId, request);
+      NourishmentFields.apply(dish, request, current);
       if(dishMapper.updateDish(dish)==0)throw new BusinessException(ErrorCode.NOT_FOUND,"正式菜品不存在");
     }
+    if(newDish) request = mergeCollections(null, request);
     replaceIngredients(dishId,request.ingredients());replaceSteps(dishId,request.cookingSteps());
     if(reviewMapper.approve(id,adminId,reason)==0)throw new BusinessException(ErrorCode.DISH_REVIEW_STATE_CONFLICT,"审核状态已变化");
     if(newDish && "active".equals(dish.getStatus()))
@@ -132,28 +139,43 @@ public class DishReviewServiceImpl implements DishReviewService {
     if(reviewMapper.reject(id,adminId,reason.trim())==0)throw new BusinessException(ErrorCode.DISH_REVIEW_STATE_CONFLICT,"审核状态已变化");
     auditMapper.insert(adminId,"DISH_REVIEW_REJECT","审核记录="+id+"，原因="+reason.trim());
   }
+  /** {@inheritDoc} */
+  @Override @Transactional
+  public void rejectPendingForDeletedDishes(Long merchantId,List<Long> dishIds,Long actorId){
+    if(dishIds==null||dishIds.isEmpty())return;
+    reviewMapper.rejectPendingForDeletedDishes(merchantId,dishIds,actorId,"菜品已删除");
+  }
   private DishReviewSubmissionDO requirePending(Long id){DishReviewSubmissionDO e=reviewMapper.selectById(id);
     if(e==null)throw new BusinessException(ErrorCode.NOT_FOUND,"审核记录不存在");
     if(!"PENDING".equals(e.getStatus()))throw new BusinessException(ErrorCode.DISH_REVIEW_STATE_CONFLICT,"审核记录已处理");return e;}
+  private static void requireNotDeleted(DishEntity dish){
+    if("deleted".equalsIgnoreCase(dish.getStatus()))
+      throw new BusinessException(ErrorCode.BUSINESS_INVALID,"菜品已删除");}
   private DishRequest read(String value){try{return json.readValue(value,DishRequest.class);}catch(Exception e){throw new BusinessException(ErrorCode.SYSTEM_ERROR,"菜品审核快照无法读取");}}
   private static DishEntity entity(Long merchantId,Long id,DishRequest r){DishEntity e=new DishEntity();e.setId(id);e.setMerchantId(merchantId);
     e.setCategoryId(r.categoryId());e.setName(r.name());e.setDescription(r.description());e.setImageUrl(r.imageUrl());e.setBasePrice(r.basePrice());
     String status=r.status()==null?"inactive":r.status().trim().toLowerCase();
     if(!"active".equals(status)&&!"inactive".equals(status))throw new BusinessException(ErrorCode.BAD_REQUEST,"菜品状态仅支持 active 或 inactive");
-    e.setStatus(status);return e;}
+    e.setStatus(status);NourishmentFields.apply(e, r, null);return e;}
   private DishRequest mergeCollections(Long dishId,DishRequest r){
     List<DishRequest.IngredientRequest> ingredients=r.ingredients();
-    if(ingredients==null)ingredients=dishMapper.selectDishIngredients(dishId).stream()
+    if(ingredients==null)ingredients=(dishId == null ? List.<DishIngredientEntity>of() : dishMapper.selectDishIngredients(dishId)).stream()
       .map(i->new DishRequest.IngredientRequest(i.getIngredientName(),i.getQuantity(),i.getUnit(),i.getCalcType())).toList();
-    List<DishRequest.CookingStepRequest> steps=r.cookingSteps();
-    if(steps==null)steps=dishMapper.selectCookingSteps(dishId).stream()
-      .map(s->new DishRequest.CookingStepRequest(s.getStepNo(),s.getTitle(),s.getContent(),
-          s.getDurationSeconds(),s.getTemperatureText(),s.getHeatLevel(),s.getComponentTemplateId())).toList();
-    return new DishRequest(r.name(),r.categoryId(),r.description(),r.imageUrl(),r.basePrice(),ingredients,steps,r.status());}
+    List<DishRequest.CookingStepRequest> steps = CookingStepImages.resolveDish(r.cookingSteps(),
+        dishId == null ? List.of() : dishMapper.selectCookingSteps(dishId));
+    return new DishRequest(r.name(),r.categoryId(),r.description(),r.imageUrl(),r.basePrice(),ingredients,steps,r.status(),
+        r.productType(),r.nourishmentDescription(),r.servingAdvice(),r.precautions());}
+  private static DishRequest mergeNourishment(DishRequest r, DishEntity previous) {
+    DishEntity normalized = new DishEntity();
+    NourishmentFields.apply(normalized, r, previous);
+    return new DishRequest(r.name(),r.categoryId(),r.description(),r.imageUrl(),r.basePrice(),r.ingredients(),r.cookingSteps(),r.status(),
+        normalized.getProductType(), snapshotText(normalized.getNourishmentDescription()), snapshotText(normalized.getServingAdvice()), snapshotText(normalized.getPrecautions()));
+  }
+  private static String snapshotText(String value) { return value == null ? "" : value; }
   private void replaceIngredients(Long dishId,List<DishRequest.IngredientRequest> items){dishMapper.deleteDishIngredients(dishId);if(items==null)return;
     for(var item:items){DishIngredientEntity e=new DishIngredientEntity();e.setDishId(dishId);e.setIngredientName(item.ingredientName());e.setQuantity(item.quantity());e.setUnit(item.unit());e.setCalcType(item.calcType());dishMapper.insertDishIngredient(e);}}
   private void replaceSteps(Long dishId,List<DishRequest.CookingStepRequest> items){dishMapper.deleteCookingSteps(dishId);if(items==null)return;
     for(var item:items){DishCookingStepEntity e=new DishCookingStepEntity();e.setDishId(dishId);e.setStepNo(item.stepNo());e.setTitle(item.title());e.setContent(item.content());
       e.setDurationSeconds(item.durationSeconds());e.setTemperatureText(item.temperatureText());e.setHeatLevel(item.heatLevel());
-      e.setComponentTemplateId(item.componentTemplateId());dishMapper.insertCookingStep(e);}}
+      e.setComponentTemplateId(item.componentTemplateId());e.setImageUrls(item.imageUrls());dishMapper.insertCookingStep(e);}}
 }

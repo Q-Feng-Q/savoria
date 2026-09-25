@@ -1,4 +1,4 @@
-<view class="warm-page warm-page--management warm-state-host orders-page">
+<view class="merchant-story warm-page warm-page--management warm-state-host orders-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="{{pageTitle}}" description="{{pageDescription}}" illustration="orders" bind:retry="retryLoad" />
 
   <view wx:else class="orders-workbench">
@@ -16,7 +16,7 @@
         <view class="ui-button clear-family-filter" bindtap="clearFamilyFilter" aria-role="button" aria-label="清除家庭筛选" hover-class="ui-button--pressed" hover-stay-time="80">清除筛选</view>
       </view>
       <picker class="family-filter" range="{{familyOptions}}" range-key="label" value="{{familyIndex}}" bindchange="bindFamily">
-        <view class="filter-picker" aria-role="button" aria-label="筛选家庭">{{familyOptions[familyIndex].label}}</view>
+        <view class="filter-picker" aria-role="button" aria-label="筛选家庭"><text class="family-filter__label">{{familyOptions[familyIndex].label}}</text><text class="family-filter__arrow">⌄</text></view>
       </picker>
       <view class="status-filters" aria-label="订单状态筛选">
         <block wx:for="{{statusOptions}}" wx:key="value">

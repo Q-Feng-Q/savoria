@@ -30,8 +30,21 @@ public record DishRequest(
     @NotNull @DecimalMin("0.00") BigDecimal basePrice,
     List<@Valid IngredientRequest> ingredients,
     List<@Valid CookingStepRequest> cookingSteps,
-    String status
+    String status,
+    String productType, String nourishmentDescription, String servingAdvice, String precautions
 ) {
+  /** Backward-compatible constructor for clients without nourishment fields. */
+  public DishRequest(String name,
+    Long categoryId,
+    String description,
+    String imageUrl,
+    BigDecimal basePrice,
+    List<IngredientRequest> ingredients,
+    List<CookingStepRequest> cookingSteps,
+    String status) {
+    this(name, categoryId, description, imageUrl, basePrice, ingredients, cookingSteps, status, null, null, null, null);
+  }
+
 
   /**
    * 承载食材相关的请求参数。
@@ -67,8 +80,13 @@ public record DishRequest(
       @Min(0) Integer durationSeconds,
       @Size(max = 100) String temperatureText,
       @Size(max = 50) String heatLevel,
-      Long componentTemplateId
+      Long componentTemplateId,
+      @Size(max = 5) List<String> imageUrls
   ) {
+    public CookingStepRequest(int stepNo, String title, String content, Integer durationSeconds,
+        String temperatureText, String heatLevel, Long componentTemplateId) {
+      this(stepNo, title, content, durationSeconds, temperatureText, heatLevel, componentTemplateId, null);
+    }
 
     /**
      * 兼容只维护基础步骤文本的调用方。

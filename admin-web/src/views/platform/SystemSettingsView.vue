@@ -1,7 +1,8 @@
 <template>
   <div class="settings-workspace">
-    <header class="settings-header"><div><span class="page-eyebrow">PLATFORM SETTINGS</span><h2>平台配置</h2><p>统一管理账号绑定、邮件服务与平台运行策略。</p></div><button class="primary-button" :disabled="saving" @click="save">{{ saving ? '保存中...' : '保存全部配置' }}</button></header>
+    <header class="settings-header"><div><span class="page-eyebrow">PLATFORM SETTINGS</span><h2>平台配置</h2><p>统一管理账号绑定、邮件服务与平台运行策略。</p></div><button class="primary-button" :disabled="saving || brandSaving || loading" @click="save">{{ saving ? '保存中...' : '保存全部配置' }}</button></header>
     <form class="settings-layout" @submit.prevent="save">
+      <BrandSettings :model-value="form" :disabled="saving || loading" @update:model-value="Object.assign(form, $event)" @saving="brandSaving = $event" />
       <SectionCard title="账号绑定" subtitle="关闭后不会删除用户已有绑定">
         <div class="setting-switches">
           <label class="setting-switch"><span><strong>手机号绑定</strong><small>允许用户新增或换绑手机号</small></span><input v-model="form.mobileBindingEnabled" type="checkbox" /></label>
@@ -21,7 +22,7 @@
         </div>
       </SectionCard>
       <SectionCard title="站点与运行" subtitle="维护模式和菜品审核对全平台生效">
-        <div class="settings-grid"><label class="form-field"><span>站点名称</span><input v-model.trim="form.siteName" required /></label><label class="form-field"><span>Logo 地址</span><input v-model.trim="form.siteLogoUrl" /></label><label class="form-field settings-grid__wide"><span>维护提示</span><input v-model.trim="form.maintenanceMessage" required /></label></div>
+        <div class="settings-grid"><label class="form-field settings-grid__wide"><span>维护提示</span><input v-model.trim="form.maintenanceMessage" required /></label></div>
         <div class="setting-switches setting-switches--compact"><label class="setting-switch"><span><strong>菜品审核</strong></span><input v-model="form.dishReviewEnabled" type="checkbox" /></label><label class="setting-switch"><span><strong>维护模式</strong></span><input v-model="form.maintenanceEnabled" type="checkbox" /></label></div>
       </SectionCard>
       <p v-if="message" class="form-hint settings-message">{{ message }}</p>
@@ -31,11 +32,15 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
 import SectionCard from '../../components/SectionCard.vue';
+import BrandSettings from '../../components/BrandSettings.vue';
+import { BRAND_DEFAULTS, brandPayload, normalizeBranding } from '../../utils/branding';
+import { setBranding } from '../../stores/branding';
 import { getSystemSettings, updateSystemSettings, sendTestEmail } from '../../api/system-settings';
-const form=reactive({siteName:'食光知味',siteLogoUrl:'',dishReviewEnabled:true,maintenanceEnabled:false,maintenanceMessage:'系统维护中，请稍后再试',mobileBindingEnabled:true,emailBindingEnabled:true,wechatBindingEnabled:true,smtpHost:'',smtpPort:587,smtpUsername:'',smtpPassword:'',smtpPasswordConfigured:false,smtpTlsEnabled:true,smtpFrom:''});
+const form=reactive({...BRAND_DEFAULTS,dishReviewEnabled:true,maintenanceEnabled:false,maintenanceMessage:'系统维护中，请稍后再试',mobileBindingEnabled:true,emailBindingEnabled:true,wechatBindingEnabled:true,smtpHost:'',smtpPort:587,smtpUsername:'',smtpPassword:'',smtpPasswordConfigured:false,smtpTlsEnabled:true,smtpFrom:''});
 const saving=ref(false),testing=ref(false),testRecipient=ref(''),message=ref('');
-async function load(){Object.assign(form,await getSystemSettings());form.smtpPassword='';}
-async function save(){saving.value=true;message.value='';try{const result=await updateSystemSettings({...form,smtpPassword:form.smtpPassword||''});Object.assign(form,result);form.smtpPassword='';message.value='配置已保存';}finally{saving.value=false;}}
+const brandSaving=ref(false),loading=ref(true);
+async function load(){try{const result=await getSystemSettings();Object.assign(form,result,normalizeBranding(result));form.smtpPassword='';setBranding(result);loading.value=false;}catch(error){message.value=error?.message||'加载配置失败，请刷新后重试';}}
+async function save(){if(saving.value||brandSaving.value||loading.value)return;saving.value=true;message.value='';try{const result=await updateSystemSettings({...form,...brandPayload(form),smtpPassword:form.smtpPassword||''});Object.assign(form,result,normalizeBranding(result));setBranding(result);form.smtpPassword='';message.value='配置已保存';}catch(error){message.value=error?.message||'保存失败，输入已保留';}finally{saving.value=false;}}
 async function testMail(){testing.value=true;message.value='';try{await sendTestEmail(testRecipient.value);message.value='测试邮件已发送，请检查收件箱';}finally{testing.value=false;}}
 onMounted(load);
 </script>

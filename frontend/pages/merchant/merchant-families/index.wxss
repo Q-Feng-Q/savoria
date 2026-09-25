@@ -1,3 +1,5 @@
+@import "../../../styles/storybook-merchant.wxss";
+
 .families-page { padding-bottom: calc(150rpx + env(safe-area-inset-bottom)); }
 .families-header, .family-row__top, .family-actions, .menu-status { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
 .families-header { padding: 12rpx 0 24rpx; border-bottom: 2rpx solid #eadfce; }

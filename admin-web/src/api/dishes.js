@@ -1,7 +1,10 @@
 import { normalizeArray, request } from './http';
 
-export async function listMerchantDishes() {
-  return normalizeArray(await request('/api/merchant/dishes', { method: 'GET' }));
+export async function listMerchantDishes(query = {}) {
+  const search = new URLSearchParams();
+  if (query.productType) search.set('productType', query.productType);
+  const suffix = search.toString() ? `?${search}` : '';
+  return normalizeArray(await request(`/api/merchant/dishes${suffix}`, { method: 'GET' }));
 }
 
 export async function getMerchantDishDetail(dishId) {

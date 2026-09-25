@@ -9,11 +9,18 @@
     <result property="categoryId" column="category_id"/>
     <result property="name" column="name"/>
     <result property="description" column="description"/>
+    <result property="productType" column="product_type"/>
+    <result property="nourishmentDescription" column="nourishment_description"/>
+    <result property="servingAdvice" column="serving_advice"/>
+    <result property="precautions" column="precautions"/>
     <result property="imageUrl" column="image_url"/>
     <result property="basePrice" column="base_price"/>
     <result property="sourceTemplateId" column="source_template_id"/>
     <result property="featuredAt" column="featured_at"/>
     <result property="status" column="status"/>
+    <result property="deletedAt" column="deleted_at"/>
+    <result property="deletedBy" column="deleted_by"/>
+    <result property="deletedByName" column="deleted_by_name"/>
   </resultMap>
 
   <resultMap id="CategoryMap" type="com.familykitchen.dish.model.entity.DishCategoryEntity">
@@ -45,6 +52,7 @@
     <result property="sourceTemplateStepId" column="source_template_step_id"/>
     <result property="componentTemplateId" column="component_template_id"/>
     <result property="sourceNote" column="source_note"/>
+    <result property="imageUrls" column="image_urls" typeHandler="com.familykitchen.dish.mapper.StringListJsonTypeHandler"/>
   </resultMap>
 
   <resultMap id="IngredientDictionaryMap" type="com.familykitchen.dish.model.entity.IngredientDictionaryEntity">
@@ -58,14 +66,28 @@
   </resultMap>
 
   <select id="selectDishes" resultMap="DishMap">
-    select id, merchant_id, category_id, name, description, image_url, base_price, source_template_id, featured_at, status
-    from dishes
-    where merchant_id = #{merchantId}
-    order by (featured_at is not null) desc, featured_at desc, id desc
+    select d.id, d.merchant_id, d.category_id, d.name, d.description, d.product_type, d.nourishment_description, d.serving_advice, d.precautions, d.image_url, d.base_price,
+           d.source_template_id, d.featured_at, d.status, d.deleted_at, d.deleted_by,
+           case when d.deleted_by is null then null
+                else coalesce(nullif(u.nickname, ''), nullif(u.username, ''), concat('用户 ', d.deleted_by))
+           end as deleted_by_name
+    from dishes d
+    left join users u on u.id = d.deleted_by
+    where d.merchant_id = #{merchantId}
+    <choose>
+      <when test="scope == 'deleted'">and d.status = 'deleted'</when>
+      <otherwise>and d.status &lt;&gt; 'deleted'</otherwise>
+    </choose>
+    order by
+    <choose>
+      <when test="scope == 'deleted'">d.deleted_at desc, d.id desc</when>
+      <otherwise>(d.featured_at is not null) desc, d.featured_at desc, d.id desc</otherwise>
+    </choose>
   </select>
 
   <select id="selectDish" resultMap="DishMap">
-    select id, merchant_id, category_id, name, description, image_url, base_price, source_template_id, featured_at, status
+    select id, merchant_id, category_id, name, description, product_type, nourishment_description, serving_advice, precautions, image_url, base_price, source_template_id,
+           featured_at, status, deleted_at, deleted_by, null as deleted_by_name
     from dishes
     where merchant_id = #{merchantId} and id = #{dishId}
   </select>
@@ -75,11 +97,36 @@
   </select>
 
   <select id="selectDishForUpdate" resultMap="DishMap">
-    select id, merchant_id, category_id, name, description, image_url, base_price, source_template_id, featured_at, status
+    select id, merchant_id, category_id, name, description, product_type, nourishment_description, serving_advice, precautions, image_url, base_price, source_template_id,
+           featured_at, status, deleted_at, deleted_by, null as deleted_by_name
     from dishes
     where merchant_id = #{merchantId} and id = #{dishId}
     for update
   </select>
+
+  <select id="selectDishesForUpdate" resultMap="DishMap">
+    select id, merchant_id, category_id, name, description, product_type, nourishment_description, serving_advice, precautions, image_url, base_price, source_template_id,
+           featured_at, status, deleted_at, deleted_by, null as deleted_by_name
+    from dishes
+    where merchant_id = #{merchantId} and id in
+    <foreach collection="dishIds" item="dishId" open="(" separator="," close=")">#{dishId}</foreach>
+    order by id asc
+    for update
+  </select>
+
+  <update id="markDishesDeleted">
+    update dishes
+    set status = 'deleted', deleted_at = current_timestamp(6), deleted_by = #{deletedBy}, featured_at = null
+    where merchant_id = #{merchantId} and status &lt;&gt; 'deleted' and id in
+    <foreach collection="dishIds" item="dishId" open="(" separator="," close=")">#{dishId}</foreach>
+  </update>
+
+  <update id="restoreDeletedDishes">
+    update dishes
+    set status = 'inactive', deleted_at = null, deleted_by = null, featured_at = null
+    where merchant_id = #{merchantId} and status = 'deleted' and id in
+    <foreach collection="dishIds" item="dishId" open="(" separator="," close=")">#{dishId}</foreach>
+  </update>
 
   <select id="countActiveFeaturedDishes" resultType="int">
     select count(*) from dishes
@@ -104,8 +151,8 @@
 
   <insert id="insertDish" parameterType="com.familykitchen.dish.model.entity.DishEntity"
           useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-    insert into dishes (merchant_id, category_id, name, description, image_url, base_price, source_template_id, featured_at, status)
-    values (#{merchantId}, #{categoryId}, #{name}, #{description}, #{imageUrl}, #{basePrice}, #{sourceTemplateId}, #{featuredAt}, #{status})
+    insert into dishes (merchant_id, category_id, name, description, product_type, nourishment_description, serving_advice, precautions, image_url, base_price, source_template_id, featured_at, status)
+    values (#{merchantId}, #{categoryId}, #{name}, #{description}, #{productType}, #{nourishmentDescription}, #{servingAdvice}, #{precautions}, #{imageUrl}, #{basePrice}, #{sourceTemplateId}, #{featuredAt}, #{status})
   </insert>
 
   <update id="updateDish" parameterType="com.familykitchen.dish.model.entity.DishEntity">
@@ -113,21 +160,23 @@
     set category_id = #{categoryId},
         name = #{name},
         description = #{description},
+        product_type = #{productType}, nourishment_description = #{nourishmentDescription},
+        serving_advice = #{servingAdvice}, precautions = #{precautions},
         image_url = #{imageUrl},
         base_price = #{basePrice},
         status = #{status},
         featured_at = case when lower(#{status}) = 'inactive' then null else featured_at end
-    where merchant_id = #{merchantId} and id = #{id}
+    where merchant_id = #{merchantId} and id = #{id} and status &lt;&gt; 'deleted'
   </update>
 
   <update id="updateDishStatus">
     update dishes set status = #{status}
-    where merchant_id = #{merchantId} and id = #{dishId}
+    where merchant_id = #{merchantId} and id = #{dishId} and status &lt;&gt; 'deleted'
   </update>
 
   <update id="setDishInactiveAndClearFeatured">
     update dishes set status = 'inactive', featured_at = null
-    where merchant_id = #{merchantId} and id = #{dishId}
+    where merchant_id = #{merchantId} and id = #{dishId} and status &lt;&gt; 'deleted'
   </update>
 
   <delete id="deleteDishIngredients">
@@ -152,14 +201,14 @@
 
   <insert id="insertCookingStep" parameterType="com.familykitchen.dish.model.entity.DishCookingStepEntity">
     insert into dish_cooking_steps (dish_id,step_no,title,content,duration_seconds,temperature_text,
-      heat_level,source_template_step_id,component_template_id,source_note)
+      heat_level,source_template_step_id,component_template_id,source_note,image_urls)
     values (#{dishId},#{stepNo},#{title},#{content},#{durationSeconds},#{temperatureText},
-      #{heatLevel},#{sourceTemplateStepId},#{componentTemplateId},#{sourceNote})
+      #{heatLevel},#{sourceTemplateStepId},#{componentTemplateId},#{sourceNote},#{imageUrls,typeHandler=com.familykitchen.dish.mapper.StringListJsonTypeHandler})
   </insert>
 
   <select id="selectCookingSteps" resultMap="CookingStepMap">
     select id,dish_id,step_no,title,content,duration_seconds,temperature_text,heat_level,
-      source_template_step_id,component_template_id,source_note
+      source_template_step_id,component_template_id,source_note,image_urls
     from dish_cooking_steps
     where dish_id = #{dishId}
     order by step_no asc, id asc
@@ -233,5 +282,25 @@
     from dish_ingredients di
     join dishes d on d.id = di.dish_id
     where d.merchant_id = #{merchantId} and di.ingredient_name = #{ingredientName}
+  </select>
+  <select id="selectDishesByProductType" resultMap="DishMap">
+    select d.id, d.merchant_id, d.category_id, d.name, d.description, d.product_type, d.nourishment_description, d.serving_advice, d.precautions, d.image_url, d.base_price,
+           d.source_template_id, d.featured_at, d.status, d.deleted_at, d.deleted_by,
+           case when d.deleted_by is null then null
+                else coalesce(nullif(u.nickname, ''), nullif(u.username, ''), concat('用户 ', d.deleted_by))
+           end as deleted_by_name
+    from dishes d
+    left join users u on u.id = d.deleted_by
+    where d.merchant_id = #{merchantId}
+      and coalesce(d.product_type, 'NORMAL') = #{productType}
+    <choose>
+      <when test="scope == 'deleted'">and d.status = 'deleted'</when>
+      <otherwise>and d.status &lt;&gt; 'deleted'</otherwise>
+    </choose>
+    order by
+    <choose>
+      <when test="scope == 'deleted'">d.deleted_at desc, d.id desc</when>
+      <otherwise>(d.featured_at is not null) desc, d.featured_at desc, d.id desc</otherwise>
+    </choose>
   </select>
 </mapper>

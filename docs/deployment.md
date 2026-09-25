@@ -18,6 +18,18 @@
 
 ## 1. 部署前检查
 
+### 当前初始化基线（2026-09-23）
+
+按重新建库方案，所有结构与基础数据已归并至以下三份脚本，位于 `backend/src/main/resources/db/migration/`：
+
+1. `V1__init_schema.sql`：完整表结构，已包含多尺寸 Logo 配置和制作步骤图片字段。
+2. `V2__init_system_and_admin.sql`：系统配置、管理员、默认商户和字典数据。
+3. `V3__init_recipe_catalog.sql`：完整内置菜谱目录。
+
+原 V4、V5 增量脚本已移除。发布前必须执行 Maven `clean` 构建（例如 `mvn clean package`），避免 `target/classes` 或旧 JAR 仍携带已删除脚本。选择全新空数据库并由 Flyway 顺序初始化，不要先手动执行三份 SQL 再让 Flyway 重复执行。
+
+**该基线不能直接升级已有数据库。** 不要靠删除旧库的 Flyway 历史或执行 `repair` 来绕过结构差异；需要保留旧数据时先备份，并另行制定迁移方案。本次代码修改没有执行数据库删除、重建或初始化。
+
 ### 1.1 环境要求
 
 | 组件 | 建议版本 | 用途 |
@@ -501,7 +513,56 @@ Flyway 会在新版本首次启动时自动升级数据库。
 
 该模式以部署简单为优先，MySQL、Java 和 Nginx 不能独立扩容或滚动更新，任一服务重启都会影响整站。建议服务器至少 2 GB 内存，4 GB 更稳妥。业务量增长、多实例部署或需要数据库高可用时，应把 MySQL 独立迁出容器。
 
-## 4. 微信小程序发布
+## 4. 微信云托管部署后端
+
+仓库根目录的 `Dockerfile` 是微信云托管专用镜像，只构建并运行 Spring Boot 后端，不包含管理后台或 MySQL。云托管服务端口为 `8080`，健康检查地址为 `/public/system-settings`。
+
+### 4.1 首次绑定 GitHub 流水线
+
+在微信云托管控制台打开现有 Spring Boot 服务并创建流水线：
+
+1. 代码源选择 GitHub 仓库 `Q-Feng-Q/savoria`。
+2. 发布分支选择 `dev`。
+3. 构建目录选择仓库根目录 `.`。
+4. Dockerfile 路径填写 `Dockerfile`。
+5. 容器端口填写 `8080`，启动探针延迟建议不少于 `120` 秒。
+6. 开启“代码推送后自动构建/发布”（控制台用词可能是自动发布或自动部署）。
+
+`container.config.json` 可用于从模板首次创建服务；已有服务仍以控制台中的实例、扩缩容、环境变量和发布设置为准。
+
+### 4.2 云托管环境变量
+
+Spring Boot 模板通常已提供前三项 MySQL 连接变量。数据库名不是 `family_kitchen` 时，以云数据库中的真实名称覆盖：
+
+```dotenv
+MYSQL_ADDRESS=云数据库内网地址:3306
+MYSQL_USERNAME=云数据库用户名
+MYSQL_PASSWORD=云数据库密码
+MYSQL_DATABASE=family_kitchen
+
+FAMILY_KITCHEN_JWT_SECRET=至少32字节的随机密钥
+FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_PASSWORD=初始管理员强密码
+FAMILY_KITCHEN_WECHAT_APP_ID=小程序AppID
+FAMILY_KITCHEN_WECHAT_APP_SECRET=小程序AppSecret
+```
+
+不要把这些值写进仓库、Dockerfile 或 `container.config.json`。首次连接空数据库时，Flyway 会自动执行 V1-V3 初始化脚本；不要再手工重复执行 SQL。
+
+### 4.3 上传文件说明
+
+镜像把上传文件写到 `/data` 下，但云托管容器本地磁盘会随实例重建或扩缩容而丢失，也不能在多个实例间共享。当前配置只适合部署验证。正式保存菜品图片、步骤图片和反馈附件前，应接入云存储/对象存储，或使用云托管支持的持久化存储；不能仅依赖容器目录。
+
+### 4.4 发布验证
+
+流水线发布成功后，用云托管分配的 HTTPS 域名验证：
+
+```text
+GET https://云托管域名/public/system-settings
+```
+
+接口返回 `200` 后，再把小程序生产环境的 API 地址切换为该 HTTPS 域名，并真机验证注册登录、微信绑定、图片上传、点菜、餐篮、下单和商户接单流程。
+
+## 5. 微信小程序发布
 
 1. 在 `frontend/app.js` 中把 `apiBaseUrl` 改为生产 HTTPS API 地址，例如：
 
@@ -522,9 +583,9 @@ Flyway 会在新版本首次启动时自动升级数据库。
 
 当前 `project.config.json` 的 `urlCheck` 为 `false`，这只适合开发联调。提交前应开启域名校验，并在真机上验证登录、图片上传、下单和通知等主要流程。
 
-## 5. 部署验证
+## 6. 部署验证
 
-### 5.1 后端与数据库
+### 6.1 后端与数据库
 
 ```bash
 curl -i http://127.0.0.1:8080/public/system-settings
@@ -535,7 +596,7 @@ curl -I http://127.0.0.1:8080/swagger-ui.html
 
 > 当前项目没有引入 Spring Boot Actuator 依赖，因此 `/actuator/health` 不能作为现成的健康检查接口。
 
-### 5.2 管理后台
+### 6.2 管理后台
 
 ```bash
 curl -I https://admin.example.com/
@@ -549,7 +610,7 @@ curl -i https://admin.example.com/api/public/system-settings
 - 菜品图片能正常上传和访问
 - API 请求地址为同域 `/api/*`，没有混合内容或跨域错误
 
-### 5.3 小程序
+### 6.3 小程序
 
 至少完成以下真机回归：
 
@@ -560,9 +621,9 @@ curl -i https://admin.example.com/api/public/system-settings
 - 图片加载与上传
 - 通知中心
 
-## 6. 更新发布与回滚
+## 7. 更新发布与回滚
 
-### 6.1 后端更新
+### 7.1 后端更新
 
 发布前备份数据库和上传目录。推荐保留带版本号的 JAR：
 
@@ -581,7 +642,7 @@ curl -i https://admin.example.com/api/public/system-settings
 
 Flyway 迁移应优先采用向后兼容设计。数据库迁移执行后，仅回滚 JAR 可能无法恢复旧版本，因此数据库结构变更必须准备单独的回滚方案或恢复备份方案。
 
-### 6.2 管理后台更新
+### 7.2 管理后台更新
 
 把每次构建产物放入独立版本目录，通过软链接切换：
 
@@ -592,7 +653,7 @@ Flyway 迁移应优先采用向后兼容设计。数据库迁移执行后，仅�
 
 回滚时将软链接切回上一版本并重载 Nginx。
 
-## 7. 备份建议
+## 8. 备份建议
 
 建议至少每天执行：
 
@@ -607,7 +668,7 @@ tar -czf uploads_$(date +%F_%H%M%S).tar.gz \
 
 备份文件应复制到另一台服务器或对象存储，并定期进行恢复演练。数据库备份和上传目录备份应尽量来自同一时间窗口。
 
-## 8. 常见问题
+## 9. 常见问题
 
 ### 后端启动时报数据库连接失败
 
@@ -649,7 +710,7 @@ try_files $uri $uri/ /index.html;
 - 检查 `frontend/app.js` 中的 `apiBaseUrl`。
 - 使用真机调试查看具体请求错误。
 
-## 9. 上线验收清单
+## 10. 上线验收清单
 
 - [ ] 后端测试通过，JAR 构建成功
 - [ ] 管理后台测试和构建通过

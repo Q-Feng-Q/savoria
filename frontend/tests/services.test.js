@@ -305,6 +305,24 @@ test('merchant status update uses the dedicated endpoint and exact payload', asy
   assert.deepEqual(calls, [{ pathname: '/api/merchant/dishes/8/status', options: { method: 'PUT', data: { status: 'INACTIVE' } } }]);
 });
 
+test('merchant dish deletion services send scope and exact batch payloads', async () => {
+  const calls = [];
+  const merchant = createMerchantService({ request: async (pathname, options) => {
+    calls.push({ pathname, options });
+    return { code: 0, data: { changedCount: 2 } };
+  } });
+
+  await merchant.getDishes({ scope: 'deleted' });
+  await merchant.batchDeleteDishes({ dishIds: [8, 9] });
+  await merchant.batchRestoreDishes({ dishIds: [8, 9] });
+
+  assert.deepEqual(calls, [
+    { pathname: '/api/merchant/dishes?scope=deleted', options: { method: 'GET' } },
+    { pathname: '/api/merchant/dishes/batch-delete', options: { method: 'POST', data: { dishIds: [8, 9] } } },
+    { pathname: '/api/merchant/dishes/batch-restore', options: { method: 'POST', data: { dishIds: [8, 9] } } }
+  ]);
+});
+
 test('merchant featured update uses the dedicated endpoint and exact payload', async () => {
   const calls = [];
   const merchant = createMerchantService({ request: async (pathname, options) => { calls.push({ pathname, options }); return { code: 0, data: null }; } });

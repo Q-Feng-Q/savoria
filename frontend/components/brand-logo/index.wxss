@@ -1,0 +1,10 @@
+:host { display:block; min-width:0; max-width:100%; }
+.brand-lockup { display:flex; align-items:center; flex-wrap:wrap; gap:12rpx; max-width:100%; min-width:0; color:#51331f; }
+.brand-lockup__mark { flex:0 1 auto; min-width:0; line-height:0; }
+.brand-lockup__image { display:block; width:100%; max-width:100%; }
+.brand-lockup__name { display:block; flex:1 1 140rpx; min-width:0; font-family:"KaiTi",serif; font-size:40rpx; line-height:1.3; font-weight:800; overflow-wrap:anywhere; word-break:break-all; }
+.brand-lockup--small .brand-lockup__name { font-size:28rpx; }
+.brand-lockup--large .brand-lockup__name { font-size:48rpx; }
+.brand-lockup--stacked { flex-direction:column; align-items:flex-start; }
+.brand-lockup--stacked .brand-lockup__name { flex:auto; }
+.brand-lockup__fallback { display:block; padding:16rpx; border-radius:50%; line-height:1; font-size:36rpx; background:#f3dbad; color:#51331f; }

@@ -1,0 +1,33 @@
+<view class="story-subpage warm-page feedback-page">
+  <view class="feedback-heading">告诉我们你的想法</view>
+  <text class="feedback-note">遇到的问题，或希望增加的功能，都可以在这里告诉我们。</text>
+  <view class="feedback-section">
+    <text class="feedback-label">反馈类型</text>
+    <view class="feedback-types">
+      <view class="feedback-type {{type === 'BUG' ? 'is-active' : ''}}" data-type="BUG" bindtap="selectType" aria-role="button" aria-label="BUG 反馈" hover-class="feedback-pressed">BUG 反馈</view>
+      <view class="feedback-type {{type === 'SUGGESTION' ? 'is-active' : ''}}" data-type="SUGGESTION" bindtap="selectType" aria-role="button" aria-label="功能建议" hover-class="feedback-pressed">功能建议</view>
+    </view>
+  </view>
+  <view class="feedback-section">
+    <text class="feedback-label">详细描述</text>
+    <textarea value="{{content}}" bindinput="input" disabled="{{saving || uncertain || submittedId}}" maxlength="2000" placeholder="请描述操作步骤、遇到的问题，或你的建议……" aria-label="反馈详细描述" />
+    <text class="feedback-count">{{content.length}} / 2000</text>
+  </view>
+  <view class="feedback-section">
+    <text class="feedback-label">补充图片 · 选填</text>
+    <text class="feedback-note">最多 6 张 JPEG / PNG，每张不超过 4MB。请勿上传密码等敏感信息。</text>
+    <view class="feedback-images">
+      <view wx:for="{{images}}" wx:key="key" class="feedback-image">
+        <image src="{{item.path}}" mode="aspectFill" data-path="{{item.path}}" bindtap="preview" aria-label="预览反馈图片" />
+        <view wx:if="{{item.state === 'failed'}}" class="feedback-image-action" data-key="{{item.key}}" bindtap="retryImage" aria-role="button">上传失败 · 重试</view>
+        <text wx:else class="feedback-image-state">{{item.state === 'ready' ? '已上传' : '上传中…'}}</text>
+        <text wx:if="{{item.error}}" class="feedback-note">{{item.error}}</text>
+        <view wx:if="{{!saving && !uncertain && !submittedId}}" class="feedback-image-action" data-key="{{item.key}}" bindtap="removeImage" aria-role="button">移除</view>
+      </view>
+    </view>
+    <action-button wx:if="{{images.length < 6}}" label="添加图片" tone="secondary" block loading="{{choosing}}" disabled="{{saving || uncertain || submittedId}}" bind:action="chooseImages" />
+  </view>
+  <view wx:if="{{uncertain}}" class="feedback-warning">提交结果尚未确认，内容已暂时锁定。点击重试将查询或完成同一次提交，不会重复创建反馈。</view>
+  <action-button label="{{submittedId ? '查看已提交反馈' : uncertain ? '重试确认提交' : '提交反馈'}}" loading="{{saving}}" disabled="{{saving || choosing || !imagesReady}}" block bind:action="submit" />
+  <text class="feedback-note feedback-footer">处理回复可在“我的反馈”中查看。离开本页后不保留草稿。</text>
+</view>

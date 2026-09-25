@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,11 +31,14 @@ import java.util.function.Supplier;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 
 /** Verifies the shared cart's version, attribution, and absolute-quantity semantics. */
 class CartApplicationServiceTest {
   private static final CurrentUserContext USER = new CurrentUserContext(
       7L, 11L, 13L, 7L, "member", Set.of(), Set.of());
+  private static final CurrentUserContext FAMILY_ONLY_USER = new CurrentUserContext(
+      7L, null, 13L, 7L, "member", Set.of(), Set.of());
 
   @Test
   void returnsAggregateDishWithCurrentMemberAndAllAttributions() {
@@ -56,10 +60,26 @@ class CartApplicationServiceTest {
   }
 
   @Test
+  void keepsDeletedDishSnapshotVisibleAndMarksItUnavailable() {
+    CartMapper mapper = mock(CartMapper.class);
+    CartItemEntity item = item(8L, 21L, 3);
+    item.setAvailable(false);
+    item.setUnavailableReason("菜品已删除，不可提交");
+    when(mapper.selectFamilyActiveCart(13L)).thenReturn(cart(4L, 3));
+    when(mapper.selectCartItems(4L)).thenReturn(List.of(item));
+    when(mapper.selectSelections(8L)).thenReturn(List.of(selection(7L, "小林", 3)));
+
+    var row = service(mapper).cart(USER).items().get(0);
+
+    assertThat(row.available()).isFalse();
+    assertThat(row.unavailableReason()).isEqualTo("菜品已删除，不可提交");
+  }
+
+  @Test
   void getCreatesOneEmptyCartUnderTheFamilyLock() {
     CartMapper mapper = mock(CartMapper.class);
     when(mapper.selectFamilyActiveCart(13L)).thenReturn(null);
-    when(mapper.lockFamilyForCart(13L)).thenReturn(13L);
+    when(mapper.lockFamilyForCart(13L)).thenReturn(11L);
     when(mapper.selectFamilyActiveCartForUpdate(13L)).thenReturn(null);
     when(mapper.insertCart(any())).thenAnswer(invocation -> {
       CartEntity created = invocation.getArgument(0);
@@ -74,8 +94,30 @@ class CartApplicationServiceTest {
     assertThat(view.version()).isZero();
     ArgumentCaptor<CartEntity> inserted = ArgumentCaptor.forClass(CartEntity.class);
     verify(mapper).insertCart(inserted.capture());
+    assertThat(inserted.getValue().getMerchantId()).isEqualTo(11L);
     assertThat(inserted.getValue().getMemberId()).isNull();
     assertThat(inserted.getValue().getMealSlotId()).isNull();
+  }
+
+  @Test
+  void createsCartForOrdinaryFamilyMemberUsingFamiliesMerchant() {
+    CartMapper mapper = mock(CartMapper.class);
+    when(mapper.selectFamilyActiveCart(13L)).thenReturn(null);
+    when(mapper.lockFamilyForCart(13L)).thenReturn(11L);
+    when(mapper.selectFamilyActiveCartForUpdate(13L)).thenReturn(null);
+    when(mapper.insertCart(any())).thenAnswer(invocation -> {
+      CartEntity created = invocation.getArgument(0);
+      created.setId(4L);
+      return 1;
+    });
+    when(mapper.selectCartItems(4L)).thenReturn(List.of());
+
+    var view = service(mapper).cart(FAMILY_ONLY_USER);
+
+    assertThat(view.cartId()).isEqualTo(4L);
+    ArgumentCaptor<CartEntity> inserted = ArgumentCaptor.forClass(CartEntity.class);
+    verify(mapper).insertCart(inserted.capture());
+    assertThat(inserted.getValue().getMerchantId()).isEqualTo(11L);
   }
 
   @Test
@@ -103,6 +145,11 @@ class CartApplicationServiceTest {
     assertThat(updated.getValue().getPrice()).isEqualByComparingTo("12.00");
     assertThat(updated.getValue().getDishNameSnapshot()).isEqualTo("家庭价牛腩");
     assertThat(view.version()).isEqualTo(4);
+    InOrder locks = inOrder(mapper);
+    locks.verify(mapper).lockMerchantForCart(11L);
+    locks.verify(mapper).lockDishesForCart(11L, List.of(21L));
+    locks.verify(mapper).lockFamilyMenuItemsForCart(13L, List.of(21L));
+    locks.verify(mapper).bumpVersion(4L, 13L, 3L);
   }
 
   @Test
@@ -146,6 +193,24 @@ class CartApplicationServiceTest {
     verify(mapper).deleteSelection(8L, 7L);
     verify(mapper, never()).deleteAggregateItem(8L);
     verify(mapper).updateCartItem(any(CartItemEntity.class));
+    verify(mapper, never()).selectAvailableDish(13L, 21L);
+  }
+
+  @Test
+  void unavailableExistingDishCanBeReducedButNotIncreased() {
+    CartMapper mapper = mock(CartMapper.class);
+    when(mapper.selectFamilyActiveCart(13L)).thenReturn(cart(4L, 3), cart(4L, 4));
+    when(mapper.selectFamilyCart(4L, 13L)).thenReturn(cart(4L, 4));
+    when(mapper.bumpVersion(4L, 13L, 3)).thenReturn(1);
+    when(mapper.selectCartItem(4L, 21L)).thenReturn(item(8L, 21L, 3));
+    when(mapper.selectSelectionForUpdate(8L, 7L)).thenReturn(selection(7L, "小林", 2));
+    when(mapper.sumSelections(8L)).thenReturn(2);
+    when(mapper.selectCartItems(4L)).thenReturn(List.of());
+
+    service(mapper).mutateItem(
+        USER, new CartMutationRequest(4L, 3L, "reduce-deleted", 21L, 1, null));
+
+    verify(mapper).upsertSelection(8L, 7L, 1, null);
     verify(mapper, never()).selectAvailableDish(13L, 21L);
   }
 

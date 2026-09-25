@@ -1,0 +1,15 @@
+<view class="story-subpage warm-page feedback-page">
+  <view class="feedback-heading">我的反馈</view>
+  <text class="feedback-note">查看问题处理进度和平台回复</text>
+  <view class="feedback-section"><action-button label="提交 BUG / 建议" block bind:action="create" /></view>
+  <view wx:for="{{items}}" wx:key="feedbackId" class="feedback-row" data-id="{{item.feedbackId}}" bindtap="open" aria-role="button" aria-label="查看反馈详情" hover-class="feedback-pressed">
+    <view class="feedback-row-head"><text>{{item.typeLabel}}</text><text class="feedback-status">{{item.statusLabel}}</text></view>
+    <text class="feedback-content feedback-summary">{{item.content}}</text>
+    <text class="feedback-note">{{item.timeLabel}} · 查看详情 ›</text>
+  </view>
+  <view wx:if="{{error}}" class="feedback-warning"><text>{{error}}</text><action-button label="重试加载" tone="secondary" bind:action="retry" /></view>
+  <text wx:elif="{{loading}}" class="feedback-note">正在读取反馈…</text>
+  <text wx:elif="{{!items.length}}" class="feedback-note">还没有反馈记录，你的建议会帮助我们做得更好。</text>
+  <action-button wx:elif="{{items.length < total}}" label="加载更多" tone="secondary" block bind:action="retry" />
+  <text wx:else class="feedback-note">已显示全部 {{total}} 条反馈</text>
+</view>

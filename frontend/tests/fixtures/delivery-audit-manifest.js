@@ -23,13 +23,13 @@ module.exports = Object.freeze({
   version: 1,
   baseline: Object.freeze({ frontendTests: 348, backendTests: 285, backendSkipped: 12 }),
   serviceModules: Object.freeze([
-    '_shared.js', 'auth.js', 'cart.js', 'family.js', 'files.js', 'merchant.js',
+    '_shared.js', 'auth.js', 'cart.js', 'family.js', 'feedback.js', 'files.js', 'merchant.js',
     'notifications.js', 'orders.js', 'purchase.js', 'system.js', 'user.js'
   ]),
   backendRouteBoundary: Object.freeze({
     includePrefixes: Object.freeze([
       '/api/auth', '/api/users/me', '/api/family', '/api/merchant',
-      '/api/notifications', '/api/files', '/api/public/system-settings'
+      '/api/notifications', '/api/files', '/api/feedback', '/api/public/system-settings'
     ]),
     exclusions: Object.freeze([
       Object.freeze({ route: '/api/admin/**', reason: 'admin-web is outside this delivery audit' }),
@@ -47,6 +47,9 @@ module.exports = Object.freeze({
     'pages/account/account-management/index': page('account', { async: true, list: true, refresh: true }),
     'pages/account/account-security/index': page('account', { async: true, form: true }),
     'pages/account/notifications/index': page('account', { async: true, list: true, refresh: true }),
+    'pages/account/feedback-list/index': page('account', { async: true, list: true, refresh: true }),
+    'pages/account/feedback-create/index': page('account', { async: true, form: true }),
+    'pages/account/feedback-detail/index': page('account', { async: true, refresh: true }),
     'pages/account/profile/index': page('account', { async: true, refresh: true }),
     'pages/account/profile-edit/index': page('account', { async: true, form: true }),
     'pages/auth/entry/index': page('auth', { async: true, form: true, tenantScope: 'public' }),

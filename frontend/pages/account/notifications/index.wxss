@@ -6,6 +6,8 @@
   gap: 18rpx;
 }
 
+@import "../../../styles/storybook-subpages.wxss";
+
 .summary-label,
 .summary-value,
 .notify-content,

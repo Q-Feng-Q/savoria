@@ -53,7 +53,7 @@ test('merchant mutations expose local busy guards instead of replacing page stat
     'dish-edit': /saving[\s\S]*uploading/,
     'ingredient-edit': /saving[\s\S]*busyIngredientId/,
     'merchant-family-detail': /deliveryBusy[\s\S]*busyMemberId/,
-    'family-menu': /saving[\s\S]*rowBusyMap/
+    'family-menu': /mutationBusy/
   }
   for (const [page, pattern] of Object.entries(expectations)) assert.match(read(`${pageBase(page)}.js`), pattern, page)
 })
@@ -118,10 +118,10 @@ test('merchant mutation refreshes opt into silent loading on every affected page
     'merchant-orders': 1,
     'merchant-order-detail': 1,
     purchase: 1,
-    'merchant-dishes': 2,
+    'merchant-dishes': 3,
     'ingredient-edit': 2,
     'merchant-family-detail': 2,
-    'family-menu': 2
+    'family-menu': 4
   }
   for (const [page, count] of Object.entries(expectedSilentRefreshes)) {
     const source = read(`${pageBase(page)}.js`)
@@ -183,20 +183,26 @@ test('list mutations lock only the affected merchant row', () => {
       markup: /aria-disabled="\{\{busyOrderMap\[item\.id\]\}\}"[^>]*aria-busy="\{\{busyOrderMap\[item\.id\]\}\}"/
     },
     'merchant-dishes': {
-      guard: /if\s*\(!dishId\s*\|\|\s*this\.data\.busyDishMap\[dishId\]\)\s*return/,
-      markup: /aria-disabled="\{\{busyDishMap\[item\.id\]\}\}"[^>]*aria-busy="\{\{busyDishMap\[item\.id\]\}\}"/
+      guard: /if\s*\(!dishId\s*\|\|\s*this\.data\.mutationBusy\s*\|\|\s*this\.data\.busyDishMap\[dishId\]\)\s*return/,
+      markup: /aria-disabled="\{\{mutationBusy \|\| busyDishMap\[item\.id\]\}\}"[^>]*aria-busy="\{\{mutationBusy\}\}"/
     },
     purchase: {
       guard: /if\s*\(itemId\s*!==\s*null\s*&&\s*this\.data\.busyItemMap\[itemId\]\)\s*return/,
       markup: /aria-disabled="\{\{busyItemMap\[item\.itemId\]\}\}"[^>]*aria-busy="\{\{busyItemMap\[item\.itemId\]\}\}"/
-    },
-    'family-menu': {
-      guard: /if\s*\(rowBusyId\s*!==\s*null\s*&&\s*this\.data\.rowBusyMap\[rowBusyId\]\)\s*return/,
-      markup: /aria-disabled="\{\{rowBusyMap\[item\.id\]\}\}"[^>]*aria-busy="\{\{rowBusyMap\[item\.id\]\}\}"/
     }
   }
   for (const [page, expected] of Object.entries(expectations)) {
     assert.match(read(`${pageBase(page)}.js`), expected.guard, `${page}: row-local guard`)
     assert.match(read(`${pageBase(page)}.wxml`), expected.markup, `${page}: row-local semantics`)
   }
+})
+
+test('family menu uses one page-wide busy state for every custom control', () => {
+  const source = read('pages/merchant/family-menu/index.js')
+  const markup = read('pages/merchant/family-menu/index.wxml')
+  assert.match(source, /if\s*\(this\.data\.mutationBusy\)\s*return/)
+  assert.doesNotMatch(source, /rowBusyMap|rowBusyId/)
+  assert.match(markup, /bindtap="toggleSelection"[^>]*aria-disabled="\{\{mutationBusy\}\}"/)
+  assert.match(markup, /bindtap="toggleSelectAll"[^>]*aria-disabled="\{\{mutationBusy\}\}"/)
+  assert.match(markup, /bindtap="enableSelected"[^>]*aria-disabled="\{\{mutationBusy \|\| selectedCount === 0\}\}"/)
 })

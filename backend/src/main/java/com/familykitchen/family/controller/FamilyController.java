@@ -106,10 +106,14 @@ public class FamilyController {
   public ApiResponse<List<DishView>> menu(
       HttpServletRequest request,
       @Parameter(description = "菜品分类 ID") @RequestParam(required = false) Long categoryId,
-      @Parameter(description = "搜索关键字") @RequestParam(required = false) String keyword
+      @Parameter(description = "搜索关键字") @RequestParam(required = false) String keyword,
+      @RequestParam(required = false) String productType
   ) {
     CurrentUserContext user = currentUserProvider.require(request);
-    return ApiResponse.ok(familyApplicationService.menuItems(user, categoryId, keyword));
+    if (productType != null) com.familykitchen.dish.service.NourishmentFields.type(productType, null);
+    var items = familyApplicationService.menuItems(user, categoryId, keyword);
+    return ApiResponse.ok(productType == null ? items : items.stream()
+        .filter(item -> productType.equals(item.productType())).toList());
   }
 
   /**

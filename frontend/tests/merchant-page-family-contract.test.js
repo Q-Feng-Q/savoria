@@ -108,7 +108,8 @@ test('merchant overview exposes the approved restrained workbench structure', ()
 
   const quickActions = source.match(/class="[^"]*merchant-quick-action[^"]*"/g) || [];
   assert.equal(quickActions.length, 3);
-  assert.equal((source.match(/<action-button[^>]+bind:action=/g) || []).length, 3);
+  assert.equal((source.match(/<action-button[^>]+bind:action=/g) || []).length, 4);
+  assert.match(source, /label="BUG \/ 建议"[^>]+bind:action="openFeedback"/);
   for (const label of ['订单与备餐', '今日采购', '通知与提醒']) assert.match(source, new RegExp(label));
 
   for (const asset of ['merchant-cooking.webp', 'merchant-orders.webp', 'merchant-purchase.webp']) {
@@ -699,6 +700,82 @@ test('merchant dishes is a searchable root workbench with guarded linear rows', 
   assert.equal(config.usingComponents['page-state'], '/components/page-state/index');
 });
 
+test('merchant dishes exposes visible-list selection, batch deletion and recycle-bin restore', () => {
+  const markup = read('pages/merchant/merchant-dishes/index.wxml');
+  const source = read('pages/merchant/merchant-dishes/index.js');
+  const styles = read('pages/merchant/merchant-dishes/index.wxss');
+
+  assert.match(markup, /bindtap="selectScope"[^>]+data-scope="available"/);
+  assert.match(markup, /bindtap="selectScope"[^>]+data-scope="deleted"/);
+  assert.match(markup, /bindtap="toggleSelectAllVisible"/);
+  assert.match(markup, /bindtap="toggleSelectDish"/);
+  assert.match(markup, /bindtap="batchDeleteSelected"/);
+  assert.match(markup, /bindtap="batchRestoreSelected"/);
+  assert.match(markup, /item\.deletedByName/);
+  assert.match(markup, /item\.deletedAtText/);
+  assert.match(markup, /mutationBusy/);
+  assert.doesNotMatch(markup, /<button\b/);
+  assert.match(source, /getDishes\(\{ scope: this\.data\.scope, productType: this\.data\.productType \|\| undefined \}\)/);
+  assert.match(source, /batchDeleteDishes\(\{ dishIds \}\)/);
+  assert.match(source, /batchRestoreDishes\(\{ dishIds \}\)/);
+  assert.match(styles, /\.selection-control[^\{]*\{[^}]*min-height:\s*88rpx/s);
+  assert.match(styles, /\.batch-action[^\{]*\{[^}]*min-height:\s*88rpx/s);
+});
+
+test('merchant dish selection selects only visible filtered rows', () => {
+  const pagePath = path.join(root, 'pages', 'merchant', 'merchant-dishes', 'index.js');
+  const previousPage = global.Page;
+  global.Page = () => {};
+  try {
+    delete require.cache[require.resolve(pagePath)];
+    const { toggleVisibleSelection } = require(pagePath);
+    const allRows = [{ id: 1 }, { id: 2 }, { id: 3 }];
+    const visibleRows = [{ id: 1 }, { id: 3 }];
+    assert.deepEqual(toggleVisibleSelection([], visibleRows, allRows), [1, 3]);
+    assert.deepEqual(toggleVisibleSelection([1, 2, 3], visibleRows, allRows), [2]);
+  } finally {
+    delete require.cache[require.resolve(pagePath)];
+    global.Page = previousPage;
+  }
+});
+
+test('merchant dish search and status changes clear prior selection', async () => {
+  await withMerchantDishesPage(() => ({ merchant: {} }), async (page) => {
+    const rows = [
+      { id: 1, name: '鱼汤', category: '汤', status: 'active', statusText: '已上架' },
+      { id: 2, name: '米饭', category: '主食', status: 'inactive', statusText: '已下架' }
+    ];
+    page.setData({ dishRows: rows, filteredDishRows: rows, selectedDishIds: [1] });
+    page.bindSearch({ detail: { value: '饭' } });
+    assert.deepEqual(page.data.selectedDishIds, []);
+    page.setData({ selectedDishIds: [2] });
+    page.selectStatusFilter({ currentTarget: { dataset: { status: 'active' } } });
+    assert.deepEqual(page.data.selectedDishIds, []);
+  });
+});
+
+test('merchant dish batch mutation deduplicates ids and rejects more than 100', async () => {
+  const calls = [];
+  await withMerchantDishesPage(() => ({ merchant: {
+    batchDeleteDishes: async (payload) => { calls.push(payload); return { changedCount: 2 }; }
+  } }), async (page, toasts) => {
+    global.wx.showModal = async () => ({ confirm: true });
+    page.load = async () => {};
+    page.setData({ selectedDishIds: [8, 8, 9] });
+    await page.batchDeleteSelected();
+    assert.deepEqual(calls, [{ dishIds: [8, 9] }]);
+    page.setData({ selectedDishIds: Array.from({ length: 101 }, (_, index) => index + 1) });
+    await page.batchDeleteSelected();
+    assert.equal(calls.length, 1);
+    assert.deepEqual(toasts.at(-1), { title: '一次最多操作 100 道菜', icon: 'none' });
+  });
+});
+
+test('merchant dish edit navigation is blocked while a page mutation is pending', () => {
+  const source = read('pages/merchant/merchant-dishes/index.js');
+  assert.match(source, /openEditDish\(event\)\s*\{\s*if \(this\.data\.mutationBusy\) return;/);
+});
+
 test('merchant dish search matches canonical active and inactive status values', () => {
   const pagePath = path.join(root, 'pages', 'merchant', 'merchant-dishes', 'index.js');
   const previousPage = global.Page;
@@ -737,10 +814,10 @@ test('merchant dish featured action is accessible, precedes status, and uses the
   const statusPosition = markup.indexOf('bindtap="toggleStatus"');
 
   assert.ok(featuredPosition >= 0 && featuredPosition < statusPosition, 'featured control must be physically above status');
-  assert.match(markup, /class="[^"]*row-action--featured[^"]*"[^>]+bindtap="toggleFeatured"[^>]+aria-role="button"[^>]+aria-label="\{\{item\.featuredLabel\}\}\{\{item\.name\}\}"[^>]+aria-disabled="\{\{item\.featuredDisabled \|\| busyDishMap\[item\.id\]\}\}"[^>]+aria-busy="\{\{busyDishMap\[item\.id\]\}\}"[^>]+hover-class="ui-button--pressed"/);
+  assert.match(markup, /class="[^"]*row-action--featured[^"]*"[^>]+bindtap="toggleFeatured"[^>]+aria-role="button"[^>]+aria-label="\{\{item\.featuredLabel\}\}\{\{item\.name\}\}"[^>]+aria-disabled="\{\{item\.featuredDisabled \|\| mutationBusy \|\| busyDishMap\[item\.id\]\}\}"[^>]+aria-busy="\{\{mutationBusy\}\}"[^>]+hover-class="ui-button--pressed"/);
   assert.match(markup, /\{\{busyDishMap\[item\.id\] \? '处理中' : item\.featuredLabel\}\}/);
   assert.match(source, /toggleFeatured\(event\)/);
-  assert.match(source, /if\s*\(!dishId\s*\|\|\s*this\.data\.busyDishMap\[dishId\]\)\s*return/);
+  assert.match(source, /if\s*\(!dishId\s*\|\|\s*this\.data\.mutationBusy\s*\|\|\s*this\.data\.busyDishMap\[dishId\]\)\s*return/);
   assert.match(source, /merchant\.setDishFeatured\(dishId,\s*!row\.featured\)/);
   assert.match(source, /await this\.load\(\{ silent: true \}\)/);
 });
@@ -958,7 +1035,7 @@ test('dish editor busy guard blocks deferred-save mutations', () => {
     assert.match(source, new RegExp(`${handler}\\s*\\([^)]*\\)\\s*\\{\\s*if \\(this\\.isMutationBusy\\(\\)\\) return;`));
   }
   assert.match(source, /saveFingerprint/);
-  assert.match(markup, /disabled="\{\{saving \|\| uploading\}\}"/);
+  assert.match(markup, /disabled="\{\{saving \|\| uploading \|\| stepUploading\}\}"/);
 });
 
 test('ingredient save and delete operations are mutually exclusive', async () => {
@@ -1227,9 +1304,16 @@ test('family menu exposes explicit family source copy and guarded row editing', 
   assert.match(markup, /bindtap="toggleDish"/);
   assert.match(markup, /data-delta="-1"[^>]+bindtap="changePrice"/);
   assert.match(markup, /data-delta="1"[^>]+bindtap="changePrice"/);
+  assert.match(markup, /bindtap="toggleSelectAll"[^>]+aria-role="checkbox"[^>]+aria-checked="\{\{allSelected\}\}"/);
+  assert.match(markup, /bindtap="toggleSelection"[^>]+aria-role="checkbox"[^>]+aria-checked="\{\{selectedDishMap\[item\.id\]\}\}"/);
+  assert.match(markup, /bindtap="enableSelected"/);
+  assert.match(markup, /批量启用（\{\{selectedCount\}\}）/);
+  assert.match(markup, /bindtap="enableAll"/);
+  assert.match(markup, /一键启用全部/);
   assert.match(source, /phase:\s*'loading'/);
   assert.match(source, /_loadGeneration/);
-  assert.match(source, /rowBusyId/);
+  assert.match(source, /mutationBusy/);
+  assert.doesNotMatch(source, /rowBusyId|rowBusyMap/);
   assert.match(source, /retryLoad\s*\(/);
   assert.match(source, /saveFamilyMenu\(this\.data\.familyId,\s*\{\s*items:/s);
   assert.match(source, /copyFamilyMenu\(this\.data\.familyId,\s*\{\s*sourceFamilyId:\s*option\.value/s);

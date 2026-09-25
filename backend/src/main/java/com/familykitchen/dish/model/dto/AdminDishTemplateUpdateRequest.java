@@ -53,7 +53,28 @@ public record AdminDishTemplateUpdateRequest(
     String imageUrl, String imageSourceUrl, String imageAuthor, String imageLicense,
     String sourceType, String sourceKey, String sourceUrl, String sourceRevision,
     String sourceCategory, String sourceYieldText, String templateType, String dataStatus,
+    Boolean procurementReady, String imageRightsStatus,
+    String productType, String nourishmentDescription, String servingAdvice, String precautions
+) {
+  /** Backward-compatible constructor for clients without nourishment fields. */
+  public AdminDishTemplateUpdateRequest(Integer schemaVersion,
+    Long expectedVersion,
+    String name,
+    String description,
+    Long categoryId,
+    BigDecimal referencePrice,
+    List<String> tasteTags,
+    List<String> mealTags,
+    Boolean enabled,
+    List<IngredientItem> ingredients,
+    List<CookingStepItem> cookingSteps,
+    String imageUrl, String imageSourceUrl, String imageAuthor, String imageLicense,
+    String sourceType, String sourceKey, String sourceUrl, String sourceRevision,
+    String sourceCategory, String sourceYieldText, String templateType, String dataStatus,
     Boolean procurementReady, String imageRightsStatus) {
+    this(schemaVersion, expectedVersion, name, description, categoryId, referencePrice, tasteTags, mealTags, enabled, ingredients, cookingSteps, imageUrl, imageSourceUrl, imageAuthor, imageLicense, sourceType, sourceKey, sourceUrl, sourceRevision, sourceCategory, sourceYieldText, templateType, dataStatus, procurementReady, imageRightsStatus, null, null, null, null);
+  }
+
 
   /**
    * 创建不含任何服务端字段的正常编辑请求。
@@ -126,5 +147,11 @@ public record AdminDishTemplateUpdateRequest(
       Integer durationSeconds,
       @Size(max = 100) String temperatureText,
       @Size(max = 50) String heatLevel,
-      Long componentTemplateId) { }
+      Long componentTemplateId,
+      @Size(max = 5) List<String> imageUrls) {
+    public CookingStepItem(String itemId, Integer stepNo, String title, String content,
+        Integer durationSeconds, String temperatureText, String heatLevel, Long componentTemplateId) {
+      this(itemId, stepNo, title, content, durationSeconds, temperatureText, heatLevel, componentTemplateId, null);
+    }
+  }
 }

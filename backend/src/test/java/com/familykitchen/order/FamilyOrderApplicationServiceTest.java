@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +46,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
+import org.mockito.InOrder;
 
 /** Verifies the shared-cart submission transaction orchestration. */
 class FamilyOrderApplicationServiceTest {
@@ -80,9 +82,11 @@ class FamilyOrderApplicationServiceTest {
     CartItemSelectionEntity first=selection(21L,1,null);
     CartItemSelectionEntity second=selection(22L,2,"少盐");
     when(carts.selectFamilyCartForUpdate(40L,2L)).thenReturn(cart);
+    when(carts.selectFamilyCart(40L,2L)).thenReturn(cart);
+    when(carts.selectCartItems(40L)).thenReturn(List.of(item));
     when(carts.selectCartItemsForUpdate(40L)).thenReturn(List.of(item));
     when(carts.selectSelectionsForUpdate(41L)).thenReturn(List.of(first,second));
-    when(carts.selectAvailableDishForUpdate(2L,31L))
+    when(carts.selectAvailableDish(2L,31L))
         .thenReturn(new CartDishSnapshot(31L,"番茄牛腩",new BigDecimal("38.00")));
     when(carts.submitFamilyCart(40L,2L,6L)).thenReturn(1);
     when(relations.lockActiveParticipants(2L,List.of(21L,22L))).thenReturn(List.of(21L,22L));
@@ -111,6 +115,12 @@ class FamilyOrderApplicationServiceTest {
     });
     verify(wallet).freezeNewOrder(2L,77L,21L,new BigDecimal("114.00"),"order:77:initial");
     verify(carts).submitFamilyCart(40L,2L,6L);
+    InOrder locks=inOrder(carts);
+    locks.verify(carts).lockMerchantForCart(1L);
+    locks.verify(carts).lockDishesForCart(1L,List.of(31L));
+    locks.verify(carts).lockFamilyMenuItemsForCart(2L,List.of(31L));
+    locks.verify(carts).selectFamilyCartForUpdate(40L,2L);
+    locks.verify(carts).selectCartItemsForUpdate(40L);
     verify(notifications).insertNotification(eq("merchant"),eq(1L),eq("merchant"),
         eq("order"),eq("收到新订单"),eq("家庭 2 提交了订单 #77，预计 12:30 用餐"));
   }

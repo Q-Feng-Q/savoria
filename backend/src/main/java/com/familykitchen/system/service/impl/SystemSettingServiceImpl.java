@@ -4,6 +4,7 @@ import com.familykitchen.common.error.ErrorCode;
 import com.familykitchen.system.mapper.SystemSettingMapper;
 import com.familykitchen.system.mapper.SystemAuditMapper;
 import com.familykitchen.system.model.dto.SystemSettingRequest;
+import com.familykitchen.system.model.dto.BrandSettingRequest;
 import com.familykitchen.system.model.entity.SystemSettingDO;
 import com.familykitchen.system.model.vo.SystemSettingView;
 import com.familykitchen.system.model.vo.PublicSystemSettingView;
@@ -35,8 +36,10 @@ public class SystemSettingServiceImpl implements SystemSettingService {
   @Override public SystemSettingView current(){return view(require());}
   /** {@inheritDoc} */
   @Override public PublicSystemSettingView publicCurrent(){SystemSettingDO e=require();return new PublicSystemSettingView(
-      e.getSiteName(),e.getSiteLogoUrl(),Boolean.TRUE.equals(e.getMaintenanceEnabled()),e.getMaintenanceMessage(),
-      Boolean.TRUE.equals(e.getMobileBindingEnabled()),Boolean.TRUE.equals(e.getEmailBindingEnabled()),Boolean.TRUE.equals(e.getWechatBindingEnabled()));}
+      siteName(e),e.getSiteLogoUrl(),Boolean.TRUE.equals(e.getMaintenanceEnabled()),e.getMaintenanceMessage(),
+      Boolean.TRUE.equals(e.getMobileBindingEnabled()),Boolean.TRUE.equals(e.getEmailBindingEnabled()),Boolean.TRUE.equals(e.getWechatBindingEnabled()),
+      e.getSiteLogoSmallUrl(),e.getSiteLogoLargeUrl(),e.getSiteFaviconUrl(),
+      size(e.getSiteLogoSmallSize(),32),size(e.getSiteLogoSize(),56),size(e.getSiteLogoLargeSize(),96));}
   /** {@inheritDoc} */
   @Override public boolean dishReviewEnabled(){return Boolean.TRUE.equals(require().getDishReviewEnabled());}
   /** {@inheritDoc} */
@@ -52,6 +55,8 @@ public class SystemSettingServiceImpl implements SystemSettingService {
   @Override @Transactional public SystemSettingView update(Long operatorId,SystemSettingRequest r){
     SystemSettingDO e=new SystemSettingDO(); e.setId(1L); e.setSiteName(r.siteName().trim());
     e.setSiteLogoUrl(r.siteLogoUrl()); e.setDishReviewEnabled(r.dishReviewEnabled());
+    e.setSiteLogoSmallUrl(r.siteLogoSmallUrl());e.setSiteLogoLargeUrl(r.siteLogoLargeUrl());e.setSiteFaviconUrl(r.siteFaviconUrl());
+    e.setSiteLogoSmallSize(r.siteLogoSmallSize());e.setSiteLogoSize(r.siteLogoSize());e.setSiteLogoLargeSize(r.siteLogoLargeSize());
     e.setMaintenanceEnabled(r.maintenanceEnabled()); e.setMaintenanceMessage(r.maintenanceMessage().trim());
     e.setMobileBindingEnabled(r.mobileBindingEnabled());e.setEmailBindingEnabled(r.emailBindingEnabled());
     e.setWechatBindingEnabled(r.wechatBindingEnabled());e.setSmtpHost(r.smtpHost());e.setSmtpPort(r.smtpPort());
@@ -70,11 +75,24 @@ public class SystemSettingServiceImpl implements SystemSettingService {
       cached=loaded;cacheExpiresAt=now+5000;return loaded;
     // 短暂数据库故障时允许使用已过期缓存维持维护开关等关键读路径；无任何历史值则必须暴露故障。
     }catch(RuntimeException exception){if(value!=null)return value;throw exception;}}
-  private static SystemSettingView view(SystemSettingDO e){return new SystemSettingView(e.getSiteName(),
+  @Override @Transactional public SystemSettingView updateBranding(Long operatorId,BrandSettingRequest r){
+    SystemSettingDO e=new SystemSettingDO();e.setId(1L);
+    e.setSiteName(r.siteName()==null?null:r.siteName().trim());e.setSiteLogoUrl(r.siteLogoUrl());
+    e.setSiteLogoSmallUrl(r.siteLogoSmallUrl());e.setSiteLogoLargeUrl(r.siteLogoLargeUrl());e.setSiteFaviconUrl(r.siteFaviconUrl());
+    e.setSiteLogoSmallSize(r.siteLogoSmallSize());e.setSiteLogoSize(r.siteLogoSize());e.setSiteLogoLargeSize(r.siteLogoLargeSize());
+    e.setUpdatedBy(operatorId);mapper.updateBranding(e);
+    cached=null;cacheExpiresAt=0;
+    auditMapper.insert(operatorId,"SYSTEM_SETTINGS_UPDATE","品牌标识更新");
+    return current();
+  }
+  private static String siteName(SystemSettingDO e){return e.getSiteName()==null||e.getSiteName().isBlank()?"食光栀味":e.getSiteName();}
+  private static Integer size(Integer value,int fallback){return value==null?fallback:value;}
+  private static SystemSettingView view(SystemSettingDO e){return new SystemSettingView(siteName(e),
       e.getSiteLogoUrl(),Boolean.TRUE.equals(e.getDishReviewEnabled()),Boolean.TRUE.equals(e.getMaintenanceEnabled()),
       e.getMaintenanceMessage(),Boolean.TRUE.equals(e.getMobileBindingEnabled()),Boolean.TRUE.equals(e.getEmailBindingEnabled()),
       Boolean.TRUE.equals(e.getWechatBindingEnabled()),e.getSmtpHost(),e.getSmtpPort(),e.getSmtpUsername(),
       e.getSmtpPasswordCiphertext()==null||e.getSmtpPasswordCiphertext().isBlank()?"":"******",
       e.getSmtpPasswordCiphertext()!=null&&!e.getSmtpPasswordCiphertext().isBlank(),Boolean.TRUE.equals(e.getSmtpTlsEnabled()),
-      e.getSmtpFrom(),e.getUpdatedAt());}
+      e.getSmtpFrom(),e.getUpdatedAt(),e.getSiteLogoSmallUrl(),e.getSiteLogoLargeUrl(),e.getSiteFaviconUrl(),
+      size(e.getSiteLogoSmallSize(),32),size(e.getSiteLogoSize(),56),size(e.getSiteLogoLargeSize(),96));}
 }

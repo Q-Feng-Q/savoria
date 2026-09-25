@@ -1,4 +1,4 @@
-<view class="warm-page change-detail">
+<view class="merchant-story warm-page change-detail">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="申请详情" description="{{errorMessage}}" bind:retry="retryLoad" />
   <block wx:else>
     <view class="summary"><view><text class="summary-kicker">申请 #{{detail.requestId}}</text><text class="summary-title">{{detail.templateName}}</text><text class="summary-meta">提交于 {{detail.submittedText}} · 模板版本 {{detail.baseTemplateVersion}}</text></view><text class="status status--{{detail.statusTone}}">{{detail.statusLabel}}</text></view>
@@ -10,7 +10,7 @@
     <text class="section-title">食材对比</text>
     <view class="ingredient-columns"><view><text class="column-title">修改前 · {{baseIngredients.length}} 项</text><view wx:for="{{baseIngredients}}" wx:key="key" class="ingredient-row"><text>{{item.ingredientName}}</text><text>{{item.text}}</text></view></view><view><text class="column-title">申请修改为 · {{targetIngredients.length}} 项</text><view wx:for="{{targetIngredients}}" wx:key="key" class="ingredient-row ingredient-row--target"><text>{{item.ingredientName}}</text><text>{{item.text}}</text></view></view></view>
     <text class="section-title">制作步骤对比</text>
-    <view class="ingredient-columns"><view><text class="column-title">修改前 · {{baseSteps.length}} 步</text><view wx:for="{{baseSteps}}" wx:key="key" class="ingredient-row"><text>{{item.stepNo}}. {{item.titleText}}</text><text>{{item.content}}</text></view><text wx:if="{{!baseSteps.length}}" class="empty-copy">暂无步骤</text></view><view><text class="column-title">申请修改为 · {{targetSteps.length}} 步</text><view wx:for="{{targetSteps}}" wx:key="key" class="ingredient-row ingredient-row--target"><text>{{item.stepNo}}. {{item.titleText}}</text><text>{{item.content}}</text></view><text wx:if="{{!targetSteps.length}}" class="empty-copy">暂无步骤</text></view></view>
+    <view class="ingredient-columns"><view><text class="column-title">修改前 · {{baseSteps.length}} 步</text><view wx:for="{{baseSteps}}" wx:key="key" class="ingredient-row"><text>{{item.stepNo}}. {{item.titleText}}</text><text>{{item.content}}</text><step-images images="{{item.imageUrls}}" /></view><text wx:if="{{!baseSteps.length}}" class="empty-copy">暂无步骤</text></view><view><text class="column-title">申请修改为 · {{targetSteps.length}} 步</text><view wx:for="{{targetSteps}}" wx:key="key" class="ingredient-row ingredient-row--target"><text>{{item.stepNo}}. {{item.titleText}}</text><text>{{item.content}}</text><step-images images="{{item.imageUrls}}" /></view><text wx:if="{{!targetSteps.length}}" class="empty-copy">暂无步骤</text></view></view>
     <view wx:if="{{detail.canWithdraw}}" class="withdraw-action {{withdrawing ? 'is-disabled' : ''}}" bindtap="withdraw" aria-role="button" aria-label="撤回本次模板修改申请" hover-class="ui-button--pressed">{{withdrawing ? '撤回中' : '撤回本次申请'}}</view>
   </block>
 </view>

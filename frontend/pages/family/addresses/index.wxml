@@ -1,7 +1,7 @@
-<view class="warm-page warm-state-host page addresses-page">
+<view class="story-page story-subpage warm-page warm-state-host page addresses-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="地址簿" description="{{errorMessage || '正在读取配送地址'}}" illustration="home" bind:retry="retryLoad" />
   <view wx:if="{{phase === 'ready'}}">
-  <view class="hero">
+  <view class="hero"><view class="story-subhead-art"><image class="story-art__atlas story-art__atlas--family" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
     <text class="eyebrow">配送地址</text>
     <text class="title">地址簿</text>
     <text class="subtitle">普通成员和家庭管理员都可以维护常用收餐地址。</text>

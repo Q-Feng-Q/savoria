@@ -10,6 +10,7 @@ const factories = {
   auth: require('../services/auth').createAuthService,
   cart: require('../services/cart').createCartService,
   family: require('../services/family').createFamilyService,
+  feedback: require('../services/feedback').createFeedbackService,
   files: require('../services/files').createFilesService,
   merchant: require('../services/merchant').createMerchantService,
   notifications: require('../services/notifications').createNotificationsService,
@@ -25,6 +26,10 @@ const buildService = (factory, captured) => factory({
   request: async (pathname, options) => {
     captured.push({ kind: 'request', pathname, options })
     return { code: 0, data: { contract: true } }
+  },
+  download: async (options) => {
+    captured.push({ kind: 'download', options })
+    return { statusCode: 200, tempFilePath: '/private/contract.png' }
   },
   upload: async (options) => {
     captured.push({ kind: 'upload', options })
@@ -91,6 +96,10 @@ if (fs.existsSync(contractsPath)) {
         if (Object.hasOwn(contract, 'data')) assert.deepEqual(call.options.data, contract.data)
         else assert.equal(Object.hasOwn(call.options, 'data'), false)
         assert.deepEqual(result, { contract: true })
+      } else if (call.kind === 'download') {
+        assert.equal(call.options.url, `http://127.0.0.1:8080${contract.path}`)
+        assert.equal(call.options.header.Authorization, 'Bearer contract-token')
+        assert.equal(result, '/private/contract.png')
       } else {
         assert.equal(call.options.url, `http://127.0.0.1:8080${contract.path}`)
         assert.equal(call.options.filePath, contract.args[0])

@@ -1,3 +1,5 @@
+const { nourishmentFields, validateNourishment } = require('./nourishment');
+const { validateStepImages } = require('./step-images');
 const STATUS_META = {
   PENDING: { label: '待审核', tone: 'pending' },
   APPROVED: { label: '已通过', tone: 'approved' },
@@ -37,10 +39,15 @@ function stepItemId(item, index) {
 
 function buildTemplateSnapshot(source = {}) {
   return {
+    ...nourishmentFields(source),
     schemaVersion: 2,
     categoryId: Number(source.categoryId),
     name: trim(source.name),
     description: nullableText(source.description),
+    imageUrl: nullableText(source.imageUrl),
+    imageAssetId: nullableNumber(source.imageAssetId),
+    removeImage: Boolean(source.removeImage),
+    imageRightsConfirmed: Boolean(source.imageRightsConfirmed),
     referencePrice: nullableNumber(source.referencePrice),
     tasteTags: normalizeTags(source.tasteTags),
     mealTags: normalizeTags(source.mealTags).filter((item) => ['BREAKFAST', 'LUNCH', 'DINNER'].includes(item)),
@@ -69,6 +76,7 @@ function buildTemplateSnapshot(source = {}) {
     }),
     cookingSteps: (source.cookingSteps || []).map((item, index) => ({
       itemId: stepItemId(item, index),
+      imageUrls: [...(item.imageUrls || [])],
       stepNo: index + 1,
       title: nullableText(item.title),
       content: trim(item.content),
@@ -82,8 +90,11 @@ function buildTemplateSnapshot(source = {}) {
 
 function validateTemplateSnapshot(snapshot) {
   if (!snapshot || snapshot.schemaVersion !== 2) return '模板快照版本不正确';
+  const nourishmentError = validateNourishment(snapshot);
+  if (nourishmentError) return nourishmentError;
   if (!Number.isInteger(snapshot.categoryId) || snapshot.categoryId < 1) return '请选择模板分类';
   if (!snapshot.name) return '请填写菜品名称';
+  if (snapshot.imageAssetId !== null && !snapshot.imageRightsConfirmed) return '请确认拥有新图片的合法使用权';
   if (snapshot.referencePrice !== null
       && (!Number.isFinite(snapshot.referencePrice) || snapshot.referencePrice < 0)) {
     return '参考价格必须留空或填写大于等于 0 的数字';
@@ -111,6 +122,8 @@ function validateTemplateSnapshot(snapshot) {
   }
   const stepIds = new Set();
   for (const [index, item] of (snapshot.cookingSteps || []).entries()) {
+    const imageError = validateStepImages(item.imageUrls);
+    if (imageError) return imageError;
     if (!item.itemId || stepIds.has(item.itemId)) return '请检查制作步骤项目编号';
     stepIds.add(item.itemId);
     if (item.stepNo !== index + 1 || !item.content) return '请按顺序补全制作步骤内容';

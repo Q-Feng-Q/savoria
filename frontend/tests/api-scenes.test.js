@@ -250,6 +250,27 @@ test('buildApiMenuScene exposes real categories and combines category selection 
   assert.deepEqual(hot.visibleMenuCards[0].displayTags, ['热菜', '慢火炖煮']);
 });
 
+test('buildApiMenuScene groups searched dishes into stable ordered scroll sections', () => {
+  const menuItems = [
+    { dishId: 100, categoryId: 3, categoryName: '热菜', categorySortOrder: 20, name: '番茄牛腩', description: '慢火炖煮', price: 38, featured: true },
+    { dishId: 101, categoryId: 4, categoryName: '汤羹', categorySortOrder: 30, name: '山药排骨汤', description: '清润', price: 28, featured: false },
+    { dishId: 102, categoryId: 3, categoryName: '热菜', categorySortOrder: 20, name: '板栗烧鸡', description: '咸香', price: 36, featured: false }
+  ];
+
+  const all = buildApiMenuScene({ homeData, menuItems });
+  const searched = buildApiMenuScene({ homeData, menuItems, searchKeyword: '排骨' });
+
+  assert.deepEqual(all.menuSections.map((section) => [section.key, section.label, section.anchorId]), [
+    ['3', '热菜', 'menu-section-3'],
+    ['4', '汤羹', 'menu-section-4']
+  ]);
+  assert.deepEqual(all.menuSections[0].cards.map((item) => item.name), ['番茄牛腩', '板栗烧鸡']);
+  assert.deepEqual(searched.menuSections.map((section) => section.key), ['4']);
+  assert.deepEqual(searched.categoryOptions.map((item) => item.key), ['all', '4']);
+  assert.deepEqual(searched.menuSections[0].cards.map((item) => item.name), ['山药排骨汤']);
+  assert.equal(searched.resultSummaryText, '共 1 道');
+});
+
 test('buildApiDishDetailScene keeps ingredient and selected count info', () => {
   const scene = buildApiDishDetailScene({
     homeData,
@@ -393,6 +414,24 @@ test('buildApiCartScene groups cart items and keeps address selection state', ()
   assert.equal(scene.canSubmit, true);
 });
 
+test('buildApiCartScene keeps deleted rows visible and blocks checkout', () => {
+  const scene = buildApiCartScene({
+    homeData,
+    cart: {
+      serverDate: '2026-07-02', bookingEnded: false,
+      expectedMealTime: '2026-07-02T18:30:00', totalAmount: 18,
+      items: [{ itemId: 902, dishId: 101, dishName: '历史菜品', price: 18,
+        quantity: 1, currentMemberQuantity: 1, selections: [], available: false,
+        unavailableReason: '菜品已删除，不可提交' }]
+    }
+  });
+
+  assert.equal(scene.groupedItems[0].rows[0].available, false);
+  assert.equal(scene.groupedItems[0].rows[0].unavailableReason, '菜品已删除，不可提交');
+  assert.equal(scene.canSubmit, false);
+  assert.equal(scene.warningText, '餐篮中有不可用菜品，请减少到 0 后再提交');
+});
+
 test('buildApiOrdersScene and detail scene map uppercase statuses', () => {
   const order = {
     orderId: 88,
@@ -486,4 +525,18 @@ test('address scenes normalize backend address fields', () => {
 test('mapOrderStatusLabel falls back gracefully', () => {
   assert.equal(mapOrderStatusLabel('DONE'), '已完成');
   assert.equal(mapOrderStatusLabel('UNKNOWN_STATUS'), 'UNKNOWN_STATUS');
+});
+
+test('buildApiCartScene hides address selection when family delivery is disabled', () => {
+  const scene = buildApiCartScene({
+    homeData: { ...homeData, family: { ...homeData.family, deliveryEnabled: false } },
+    cart: { serverDate: '2026-07-02', expectedMealTime: '2026-07-02T18:30:00', totalAmount: 18, items: [] },
+    addresses: [{ addressId: 1, contactName: '陈梅', contactPhone: '13800000000', addressText: '星河路 18 号' }],
+    deliveryMode: 'DELIVERY'
+  });
+
+  assert.equal(scene.context.family.deliveryEnabled, false);
+  assert.deepEqual(scene.deliveryOptions.map((item) => item.key), ['PICKUP']);
+  assert.deepEqual(scene.addressOptions, []);
+  assert.equal(scene.currentAddress, null);
 });

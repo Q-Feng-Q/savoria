@@ -38,5 +38,6 @@ test('profile identity switch uses a compact custom tap target instead of a nati
 
   assert.doesNotMatch(profile, /<button[^>]*class="profile-switch-link"/)
   assert.match(profile, /<view[^>]*class="profile-switch-link"[^>]*aria-role="button"[^>]*hover-class="profile-switch-link--pressed"/)
-  assert.match(styles, /\.profile-switch-link\{[^}]*display:inline-flex[^}]*justify-self:end[^}]*width:auto[^}]*white-space:nowrap/)
+  assert.match(styles, /\.profile-switch-link\s*\{[^}]*min-height:64rpx[^}]*white-space:nowrap/)
+  assert.match(profile, /bindtap="switchIdentity"/)
 })

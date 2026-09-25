@@ -25,4 +25,14 @@ import java.math.BigDecimal;
 public record AdminDishTemplateView(Long templateId, String templateCode, String name,
     String sourceCategory, String sourceType, String templateType, String dataStatus,
     boolean procurementReady, String imageRightsStatus, String imageUrl, BigDecimal referencePrice,
-    boolean missingSteps, String sourceRevision, boolean enabled, Long version) { }
+    boolean missingSteps, String sourceRevision, boolean enabled, Long version,
+    String productType, String nourishmentDescription, String servingAdvice, String precautions
+) {
+  /** Backward-compatible constructor for clients without nourishment fields. */
+  public AdminDishTemplateView(Long templateId, String templateCode, String name,
+    String sourceCategory, String sourceType, String templateType, String dataStatus,
+    boolean procurementReady, String imageRightsStatus, String imageUrl, BigDecimal referencePrice,
+    boolean missingSteps, String sourceRevision, boolean enabled, Long version) {
+    this(templateId, templateCode, name, sourceCategory, sourceType, templateType, dataStatus, procurementReady, imageRightsStatus, imageUrl, referencePrice, missingSteps, sourceRevision, enabled, version, "NORMAL", null, null, null);
+  }
+ }

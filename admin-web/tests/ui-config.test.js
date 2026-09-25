@@ -41,6 +41,7 @@ test('admin ui config keeps all required merchant and platform modules in naviga
     'platform-families',
     'platform-merchants',
     'users',
+    'platform-feedback',
     'dish-reviews',
     'dish-template-change-reviews',
     'platform-dish-templates',

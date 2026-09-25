@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   mail:
@@ -13,9 +13,9 @@ spring:
   application:
     name: family-kitchen-backend
   datasource:
-    url: jdbc:mysql://192.168.5.100:3308/family_kitchen?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
-    username: root
-    password: ${SPRING_DATASOURCE_PASSWORD:123456}
+    url: jdbc:mysql://${MYSQL_ADDRESS:127.0.0.1:3306}/${MYSQL_DATABASE:family_kitchen}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
   flyway:
     enabled: true
@@ -23,7 +23,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 4MB
-      max-request-size: 4MB
+      max-request-size: 5MB
 
 springdoc:
   swagger-ui:
@@ -49,19 +49,21 @@ family-kitchen:
     build: ${FAMILY_KITCHEN_INSTANCE_BUILD:unknown}
     heartbeat-ms: ${FAMILY_KITCHEN_INSTANCE_HEARTBEAT_MS:10000}
   file-storage:
-    local-root: ./uploads
+    local-root: ${FAMILY_KITCHEN_FILE_STORAGE_LOCAL_ROOT:./uploads}
+  feedback:
+    private-root: ${FAMILY_KITCHEN_FEEDBACK_PRIVATE_ROOT:./data/feedback-private}
   dish-template-assets:
-    private-root: ./data/dish-template-assets/private
-    public-root: ./uploads/dish-template-assets
+    private-root: ${FAMILY_KITCHEN_DISH_TEMPLATE_ASSETS_PRIVATE_ROOT:./data/dish-template-assets/private}
+    public-root: ${FAMILY_KITCHEN_DISH_TEMPLATE_ASSETS_PUBLIC_ROOT:./uploads/dish-template-assets}
     public-url-prefix: /uploads/dish-template-assets
   jwt:
-    secret: ${FAMILY_KITCHEN_JWT_SECRET:d6a4f7e9c2b8a1f3e5d7c9b1a3f5e7d9c2b4a6f8e0d2c4b6a8f0e2d4c6b8a0f2 }
+    secret: ${FAMILY_KITCHEN_JWT_SECRET:}
     expires-in-seconds: 7200
   auth:
     bootstrap-admin:
       username: admin
       display-name: 系统管理员
-      password: ${FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_PASSWORD:123456}
+      password: ${FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_PASSWORD:}
   wechat:
-    app-id: ""
-    app-secret: ""
+    app-id: "${FAMILY_KITCHEN_WECHAT_APP_ID:}"
+    app-secret: "${FAMILY_KITCHEN_WECHAT_APP_SECRET:}"

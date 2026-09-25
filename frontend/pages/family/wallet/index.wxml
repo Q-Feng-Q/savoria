@@ -1,7 +1,7 @@
-<view class="warm-page warm-state-host page wallet-page">
+<view class="story-page story-subpage warm-page warm-state-host page wallet-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="家庭钱包" description="{{errorMessage || '正在同步家庭余额'}}" illustration="wallet" bind:retry="retryLoad" />
   <view wx:if="{{phase === 'ready'}}">
-  <view class="hero wallet-hero">
+  <view class="hero wallet-hero"><view class="story-subhead-art"><image class="story-art__atlas story-art__atlas--family" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
     <text class="eyebrow">家庭钱包</text>
     <text class="title">{{context.family.name}}</text>
     <text class="subtitle">全家共享余额；点菜成员会保留在订单明细中，结算统一从家庭钱包完成。</text>

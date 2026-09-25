@@ -11,6 +11,7 @@ function buildProfileMenuGroups(context = {}) {
     items.push({ key: 'wallet', label: '我的余额', note: '查看余额与流水' });
   }
   items.push({ key: 'notifications', label: '账号通知', note: '申请、邀请和订单动态' });
+  items.push({ key: 'feedback', label: 'BUG / 建议', note: '反馈问题，查看处理回复' });
 
   const familyRole = String(context.familyRole || '').toUpperCase();
   const familyAdmin = explicitPermissions

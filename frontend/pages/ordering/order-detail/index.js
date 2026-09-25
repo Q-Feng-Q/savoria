@@ -26,7 +26,7 @@ Page({
   retryLoad() { return this.load(); },
 
   async load({ silent = false } = {}) {
-    const session = requireSession();
+    const session = requireSession({ familyOnly: true });
     if (!session) return;
     if (!this.data.id) {
       this.setData({ phase: 'error', errorMessage: '缺少订单编号', scene: null });

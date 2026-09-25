@@ -2,6 +2,8 @@ const { createApiRuntime } = require('../../../utils/api-runtime');
 const { createDirtyForm } = require('../../../utils/dirty-form');
 const { requireSession, showApiError, resolveApiErrorMessage } = require('../../../utils/page-api');
 const { buildTemplateSnapshot, validateTemplateSnapshot } = require('../../../utils/dish-template-change');
+const { toImageUrl } = require('../../../utils/image-url');
+const { PRODUCT_TYPES } = require('../../../utils/nourishment');
 
 const MEALS = [
   { value: 'BREAKFAST', label: '早餐' },
@@ -25,6 +27,8 @@ function decorateForm(detail) {
   const snapshot = buildTemplateSnapshot(detail);
   return {
     ...snapshot,
+    templateType: detail.templateType,
+    imagePreviewUrl: detail.imageUrl || '',
     tasteTagsText: snapshot.tasteTags.join('，'),
     ingredients: snapshot.ingredients.map((item) => ({
       ...item,
@@ -39,9 +43,10 @@ function decorateForm(detail) {
 
 Page({
   data: {
-    phase: 'loading', errorMessage: '', saving: false,
+    productTypes: PRODUCT_TYPES,
+    phase: 'loading', errorMessage: '', saving: false, stepUploading: false,
     form: null, submitNote: '', categories: [], categoryNames: [], categoryIndex: 0,
-    meals: MEALS, calcTypes: CALC_TYPES, quantityStatuses: QUANTITY_STATUSES
+    meals: MEALS, calcTypes: CALC_TYPES, quantityStatuses: QUANTITY_STATUSES, uploadingImage: false
   },
   onLoad(options) {
     this.templateId = Number(options.id);
@@ -61,8 +66,10 @@ Page({
         runtime.merchant.getDishTemplateCategories()
       ]);
       const categoryIndex = Math.max(0, categories.findIndex((item) => Number(item.categoryId) === Number(detail.categoryId)));
+      const form = decorateForm(detail);
+      form.imagePreviewUrl = toImageUrl(runtime.baseUrl, detail.imageUrl);
       this.setData({
-        form: decorateForm(detail),
+        form,
         categories, categoryNames: categories.map((item) => item.name),
         categoryIndex,
         meals: MEALS.map((item) => ({ ...item, selected: detail.mealTags && detail.mealTags.includes(item.value) })),
@@ -74,6 +81,20 @@ Page({
     }
   },
   retryLoad() { return this.load(); },
+  onStepImagesBusy(event) { this.setData({ stepUploading: event.detail.busy }); },
+  onStepImagesChange(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    if (!this.data.form || !this.data.form.cookingSteps[index]) return;
+    this.setData({ [`form.cookingSteps[${index}].imageUrls`]: event.detail.images });
+    this.markDirty();
+  },
+  bindProductType(event) {
+    if (this.data.saving || this.data.uploadingImage || this.data.form.templateType === 'COMPONENT') return;
+    const selected = PRODUCT_TYPES[Number(event.detail.value)];
+    if (!selected) return;
+    this.setData({ 'form.productType': selected.value });
+    this.markDirty();
+  },
   bindField(event) {
     if (this.data.saving) return;
     this.setData({ [`form.${event.currentTarget.dataset.field}`]: event.detail.value });
@@ -95,6 +116,39 @@ Page({
   },
   toggleEnabled() {
     this.setData({ 'form.enabled': !this.data.form.enabled });
+    this.markDirty();
+  },
+  async chooseTemplateImage() {
+    if (this.data.uploadingImage || this.data.saving || this.data.stepUploading) return;
+    try {
+      const chosen = await wx.chooseMedia({ count: 1, mediaType: ['image'], sourceType: ['album', 'camera'] });
+      const filePath = chosen.tempFiles && chosen.tempFiles[0] && chosen.tempFiles[0].tempFilePath;
+      if (!filePath) return;
+      this.setData({ uploadingImage: true });
+      const uploaded = await createApiRuntime().files.uploadImage(filePath);
+      this.setData({
+        'form.imageUrl': uploaded.url,
+        'form.imagePreviewUrl': uploaded.imageUrl || uploaded.url,
+        'form.imageAssetId': uploaded.fileId,
+        'form.removeImage': false,
+        'form.imageRightsConfirmed': false
+      });
+      this.markDirty();
+    } catch (error) {
+      if (error && /cancel/i.test(String(error.errMsg || error.message || ''))) return;
+      showApiError(error, '模板图片上传失败');
+    } finally { this.setData({ uploadingImage: false }); }
+  },
+  toggleImageRights() {
+    if (!this.data.form.imageAssetId) return;
+    this.setData({ 'form.imageRightsConfirmed': !this.data.form.imageRightsConfirmed });
+    this.markDirty();
+  },
+  removeTemplateImage() {
+    this.setData({
+      'form.imageUrl': null, 'form.imagePreviewUrl': '', 'form.imageAssetId': null,
+      'form.removeImage': true, 'form.imageRightsConfirmed': false
+    });
     this.markDirty();
   },
   bindIngredientField(event) {
@@ -161,12 +215,14 @@ Page({
     this.markDirty();
   },
   bindStepField(event) {
+    if (this.data.saving || this.data.stepUploading || this.data.uploadingImage) return;
     const index = Number(event.currentTarget.dataset.index);
     const field = event.currentTarget.dataset.field;
     this.setData({ [`form.cookingSteps[${index}].${field}`]: event.detail.value });
     this.markDirty();
   },
   addCookingStep() {
+    if (this.data.saving || this.data.stepUploading || this.data.uploadingImage) return;
     const cookingSteps = clone(this.data.form.cookingSteps || []);
     cookingSteps.push({
       itemId: `client-step:${Date.now()}:${cookingSteps.length + 1}`,
@@ -182,6 +238,7 @@ Page({
     this.markDirty();
   },
   removeCookingStep(event) {
+    if (this.data.saving || this.data.stepUploading || this.data.uploadingImage) return;
     const cookingSteps = clone(this.data.form.cookingSteps || []);
     cookingSteps.splice(Number(event.currentTarget.dataset.index), 1);
     cookingSteps.forEach((item, index) => { item.stepNo = index + 1; });
@@ -189,7 +246,7 @@ Page({
     this.markDirty();
   },
   async submit() {
-    if (this.data.saving || !this.data.form) return;
+    if (this.data.saving || this.data.stepUploading || this.data.uploadingImage || !this.data.form) return;
     const source = { ...clone(this.data.form), tasteTags: this.data.form.tasteTagsText };
     const targetSnapshot = buildTemplateSnapshot(source);
     const validation = validateTemplateSnapshot(targetSnapshot);

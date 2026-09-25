@@ -1,4 +1,4 @@
-<view class="warm-page warm-page--form warm-state-host warm-submit-state account-form-page">
+<view class="story-page story-subpage warm-page warm-page--form warm-state-host warm-submit-state account-form-page"><view class="story-subhead"><view class="story-subhead-art"><image class="story-art__atlas story-art__atlas--family" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-subhead__title">我的资料</text><text class="story-subhead__note">让家人更好地认识你</text></view>
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="个人资料" description="{{errorMessage || '正在读取账号资料'}}" bind:retry="retryLoad" />
   <view wx:if="{{phase === 'ready'}}">
   <view class="account-form-avatar">{{avatarInitial}}</view>

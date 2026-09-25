@@ -26,6 +26,9 @@ public interface MemberAuthService {
    */
   LoginResponse login(UserLoginRequest request);
 
+  /** 使用统一认证流程登录后台，在创建会话前检查后台身份。 */
+  LoginResponse loginAdmin(UserLoginRequest request);
+
   /** 使用微信官方临时登录码登录已绑定账号。 
    * @param request 请求参数
    * @return 处理Login后的结果

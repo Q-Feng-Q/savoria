@@ -1,4 +1,6 @@
 const { toImageUrl } = require('./image-url');
+const { nourishmentFields, buildNourishmentSections } = require('./nourishment');
+const { summarizeFamilyOrders, presentOrder, presentCartTime } = require('./family-order-presentation');
 
 const ORDER_STATUS_LABELS = {
   PENDING: '待确认',
@@ -145,6 +147,7 @@ function buildContext(homeData, extra = {}) {
     family: {
       id: homeData.family.familyId,
       name: homeData.family.familyName,
+      deliveryEnabled: homeData.family.deliveryEnabled !== false && homeData.deliveryEnabled !== false,
       addresses: normalizeAddresses(extra.addresses || [])
     },
     member: {
@@ -155,11 +158,12 @@ function buildContext(homeData, extra = {}) {
   };
 }
 
-function buildApiHomeScene(homeData, { imageBaseUrl = '', windowWidth = 0 } = {}) {
+function buildApiHomeScene(homeData, { imageBaseUrl = '', windowWidth = 0, orders = null, cart = null } = {}) {
   const selectedMeal = getSelectedMealSlot(resolveMealSlots(homeData));
   const dashboardCards = homeData.dashboardCards || [];
   const cartCard = dashboardCards.find((item) => item.key === 'cart');
-  const latestOrder = (homeData.recentOrders || [])[0] || null;
+  const recentOrders = Array.isArray(homeData.recentOrders) ? homeData.recentOrders : [];
+  const latestOrder = recentOrders[0] || null;
   const featuredSource = Array.isArray(homeData.featuredDishes)
     ? homeData.featuredDishes
     : (homeData.featuredDish ? [homeData.featuredDish] : []);
@@ -176,6 +180,7 @@ function buildApiHomeScene(homeData, { imageBaseUrl = '', windowWidth = 0 } = {}
 
   return {
     context: buildContext(homeData),
+    homeMealTime: cart && presentCartTime(cart, homeData.serviceDate).valid ? String(cart.expectedMealTime).slice(11,16) : '',
     crew: buildHomeCrewRoleLabels(homeData),
     heroImageUrl: '/assets/brand/hero-warm-kitchen.webp',
     currentMemberName: homeData.member.name,
@@ -203,7 +208,8 @@ function buildApiHomeScene(homeData, { imageBaseUrl = '', windowWidth = 0 } = {}
     },
     orderSummary: {
       statusLabel: latestOrder ? mapOrderStatusLabel(latestOrder.status) : '还未下单',
-      orderId: latestOrder ? latestOrder.orderId : null
+      orderId: latestOrder ? latestOrder.orderId : null,
+      ...summarizeFamilyOrders(orders || recentOrders, homeData.serviceDate)
     },
     flowCards: [
       { key: 'choose', title: '先选特色菜', note: '从首页推荐或菜单里挑选' },
@@ -211,15 +217,16 @@ function buildApiHomeScene(homeData, { imageBaseUrl = '', windowWidth = 0 } = {}
       { key: 'track', title: '最后看进度', note: '订单变化会同步提醒' }
     ],
     quickEntries: [
-      { key: 'menu', label: '去点菜', note: '看看今天吃什么' },
-      { key: 'cart', label: '看餐篮', note: '已选菜品集中确认' },
-      { key: 'orders', label: '订单进度', note: '查看当前订单状态' },
-      { key: 'profile', label: '我的', note: '地址、通知和钱包' }
+      { key: 'menu', label: '本周菜单', note: '查看好菜', icon:'/assets/ui/story/menu-ink.png' },
+      { key: 'cart', label: '家庭餐篮', note: '用心选餐', icon:'/assets/ui/story/basket-orange.png' },
+      { key: 'orders', label: '预约开饭', note: '安排这一餐', icon:'/assets/ui/story/calendar-green.png' },
+      { key: 'profile', label: '家庭档案', note: '口味偏好', icon:'/assets/ui/story/home-orange.png' }
     ]
   };
 }
 
-function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeyword = '', activeCategoryKey = 'all', imageBaseUrl = '' }) {
+function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeyword = '', activeCategoryKey = 'all', imageBaseUrl = '', productType = '' }) {
+  menuItems = menuItems.filter((item) => !productType || (item.productType || 'NORMAL') === productType);
   const normalizedKeyword = String(searchKeyword || '').trim().toLowerCase();
   const cartItems = (cart && cart.items) || [];
   const categoryMap = new Map();
@@ -255,6 +262,7 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
       categoryKey,
       category: categoryLabel,
       badge: categoryLabel,
+      productType: item.productType || 'NORMAL',
       tasteText: item.description || '今日可点',
       soldText: selectedCount > 0 ? `餐篮已选 ${selectedCount} 份` : '还未加入',
       finalPriceText: formatCurrency(item.price),
@@ -271,22 +279,33 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
       cartLineId: cartItem ? cartItem.itemId : null
     };
   });
-  const visibleMenuCards = menuCards.filter((item) => {
-    if (resolvedCategoryKey !== 'all' && item.categoryKey !== resolvedCategoryKey) return false;
+  const searchedMenuCards = menuCards.filter((item) => {
     if (!normalizedKeyword) return true;
     return [item.name, item.description]
       .filter(Boolean)
       .some((text) => String(text).toLowerCase().includes(normalizedKeyword));
   });
+  const searchedCategoryKeys = new Set(searchedMenuCards.map((item) => item.categoryKey));
+  const effectiveCategoryKey = resolvedCategoryKey !== 'all' && normalizedKeyword
+    && !searchedCategoryKeys.has(resolvedCategoryKey) ? 'all' : resolvedCategoryKey;
+  const visibleMenuCards = searchedMenuCards.filter((item) => (
+    effectiveCategoryKey === 'all' || item.categoryKey === effectiveCategoryKey
+  ));
+  const menuSections = categories.map((category) => ({
+    key: category.key,
+    label: category.label,
+    anchorId: `menu-section-${category.key}`,
+    cards: searchedMenuCards.filter((item) => item.categoryKey === category.key)
+  })).filter((section) => section.cards.length);
   const categoryOptions = [
     { key: 'all', label: '全部', sortOrder: -1 },
-    ...categories
+    ...categories.filter((category) => !normalizedKeyword || searchedCategoryKeys.has(category.key))
   ].map((item) => ({
     key: item.key,
     label: item.label,
-    activeClass: item.key === resolvedCategoryKey ? 'active' : ''
+    activeClass: item.key === effectiveCategoryKey ? 'active' : ''
   }));
-  const activeCategory = categoryOptions.find((item) => item.key === resolvedCategoryKey);
+  const activeCategory = categoryOptions.find((item) => item.key === effectiveCategoryKey);
 
   return {
     context: buildContext(homeData),
@@ -295,14 +314,15 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
     currentDate: formatDateText(homeData.serviceDate),
     currentMemberName: homeData.member.name,
     cartItemCount: Number((cart && cart.totalQuantity) || 0),
-    activeCategoryKey: resolvedCategoryKey,
-    activeCategoryLabel: resolvedCategoryKey === 'all' ? '全部菜品' : activeCategory.label,
+    activeCategoryKey: effectiveCategoryKey,
+    activeCategoryLabel: effectiveCategoryKey === 'all' ? '全部菜品' : activeCategory.label,
     categoryOptions,
     expectedMealTimeText: formatExpectedMealTime(cart && cart.expectedMealTime),
     menuCards,
     visibleMenuCards,
+    menuSections,
     searchKeyword,
-    resultSummaryText: `共 ${visibleMenuCards.length} 道`,
+    resultSummaryText: `共 ${searchedMenuCards.length} 道`,
     emptyStateText: normalizedKeyword ? '没有找到匹配菜品' : (resolvedCategoryKey === 'all' ? '当前还没有可点菜品' : '当前分类还没有可点菜品')
   };
 }
@@ -315,6 +335,8 @@ function buildApiDishDetailScene({ homeData, dishDetail, cart = null, mealSlots 
     context: buildContext(homeData),
     dish: {
       id: dishDetail.dishId,
+      ...nourishmentFields(dishDetail),
+      nourishmentSections: buildNourishmentSections(dishDetail),
       category: displayText(dishDetail.categoryName, '今日菜单'),
       name: dishDetail.name,
       description: dishDetail.description || '商户维护的菜品详情',
@@ -340,7 +362,11 @@ function buildApiDishDetailScene({ homeData, dishDetail, cart = null, mealSlots 
 }
 
 function buildApiCartScene({ homeData, mealSlots = [], cart, addresses = [], deliveryMode = 'PICKUP', addressId = null }) {
-  const normalizedAddresses = normalizeAddresses(addresses);
+  const timePresentation = presentCartTime(cart || {}, homeData.serviceDate);
+  const familyDeliveryEnabled = homeData && homeData.family
+    ? homeData.family.deliveryEnabled !== false && homeData.deliveryEnabled !== false
+    : true;
+  const normalizedAddresses = familyDeliveryEnabled ? normalizeAddresses(addresses) : [];
   const rows = ((cart && cart.items) || []).map((item) => ({
     id: item.itemId,
     dishId: item.dishId,
@@ -350,6 +376,9 @@ function buildApiCartScene({ homeData, mealSlots = [], cart, addresses = [], del
     quantity: Number(item.quantity || 0),
     totalQuantity: Number(item.quantity || 0),
     myQuantity: Number(item.currentMemberQuantity || 0),
+    available: item.available !== false,
+    unavailableReason: item.available === false
+      ? displayText(item.unavailableReason, '菜品当前不可用，不可提交') : '',
     canEdit: true,
     note: item.currentMemberRemark || '',
     selections: Array.isArray(item.selections) ? item.selections.map((selection) => ({
@@ -369,9 +398,10 @@ function buildApiCartScene({ homeData, mealSlots = [], cart, addresses = [], del
     ? addressId
     : ((findDefaultAddress(normalizedAddresses) || {}).id || null);
   const currentAddress = normalizedAddresses.find((item) => item.id === effectiveAddressId) || findDefaultAddress(normalizedAddresses);
-  const effectiveDeliveryMode = deliveryMode || 'PICKUP';
-  const canSubmit = Boolean(cart && cart.items && cart.items.length) && !cart.bookingEnded
-    && Boolean(cart.expectedMealTime) && (
+  const effectiveDeliveryMode = familyDeliveryEnabled && deliveryMode === 'DELIVERY' ? 'DELIVERY' : 'PICKUP';
+  const hasUnavailableItems = rows.some((item) => !item.available);
+  const canSubmit = Boolean(cart && cart.items && cart.items.length) && !hasUnavailableItems && !cart.bookingEnded
+    && timePresentation.valid && (
     effectiveDeliveryMode !== 'DELIVERY' || Boolean(currentAddress)
   );
   const foundAddressIndex = normalizedAddresses.findIndex((item) => item.id === effectiveAddressId);
@@ -382,16 +412,23 @@ function buildApiCartScene({ homeData, mealSlots = [], cart, addresses = [], del
       note: cart ? cart.remark || '' : ''
     },
     serviceDate: cart ? cart.serverDate : homeData.serviceDate,
-    expectedMealTime: cart ? cart.expectedMealTime : null,
-    expectedMealTimeText: formatExpectedMealTime(cart && cart.expectedMealTime),
+    expectedMealTime: timePresentation.valid ? cart.expectedMealTime : null,
+    expectedMealTimeText: timePresentation.valid ? formatExpectedMealTime(cart.expectedMealTime) : '待选择',
+    expectedMealDateText: timePresentation.expectedMealDateText,
+    expectedMealClockText: timePresentation.expectedMealClockText,
+    deliveryMode: effectiveDeliveryMode,
+    displayDeliveryOptions: [
+      {key:'DELIVERY',label:'配送',icon:'truck',activeClass:effectiveDeliveryMode==='DELIVERY'?'active':'',disabled:!familyDeliveryEnabled || !normalizedAddresses.length},
+      {key:'PICKUP',label:'到店自取',icon:'store',activeClass:effectiveDeliveryMode==='PICKUP'?'active':'',disabled:false}
+    ],
     expectedMealTimeOptions: buildExpectedMealTimeOptions(cart),
     bookingEnded: Boolean(cart && cart.bookingEnded),
     groupedItems,
     chargeLines: [],
-    deliveryOptions: [
+    deliveryOptions: familyDeliveryEnabled ? [
       { key: 'PICKUP', label: '自取', activeClass: effectiveDeliveryMode === 'PICKUP' ? 'active' : '' },
       { key: 'DELIVERY', label: '配送', activeClass: effectiveDeliveryMode === 'DELIVERY' ? 'active' : '', disabled: !normalizedAddresses.length }
-    ],
+    ] : [{ key: 'PICKUP', label: '自取', activeClass: 'active' }],
     addressOptions: normalizedAddresses.map((item) => ({ value: item.id, label: `${item.contactName} · ${item.address}` })),
     addressIndex: foundAddressIndex >= 0 ? foundAddressIndex : 0,
     currentAddress,
@@ -400,19 +437,22 @@ function buildApiCartScene({ homeData, mealSlots = [], cart, addresses = [], del
       deliveryFee: formatAmountNumber(0),
       totalAmount: formatAmountNumber(cart ? cart.totalAmount : 0)
     },
-    warningText: canSubmit ? '' : (cart && cart.bookingEnded ? '今天已停止预约，请明天再来'
-      : (!cart || !cart.expectedMealTime ? '请选择今天的预计用餐时间'
-        : (effectiveDeliveryMode === 'DELIVERY' && !currentAddress ? '请选择配送地址' : ''))),
+    familyDeliveryEnabled,
+    warningText: canSubmit ? '' : (hasUnavailableItems ? '餐篮中有不可用菜品，请减少到 0 后再提交'
+      : (cart && cart.bookingEnded ? '今天已停止预约，请明天再来'
+      : (!timePresentation.valid ? '请选择今天的预计用餐时间'
+        : (effectiveDeliveryMode === 'DELIVERY' && !currentAddress ? '请选择配送地址' : '')))),
     canSubmit
   };
 }
 
-function buildApiOrdersScene({ homeData, orders = [], mealSlots = [] }) {
+function buildApiOrdersScene({ homeData, orders = [], mealSlots = [], menuItems = [], imageBaseUrl = '' }) {
   const mealSlotMap = new Map(resolveMealSlots(homeData, mealSlots).map((item) => [item.mealSlotId, item]));
 
   return {
     context: buildContext(homeData),
     orders: orders.map((order) => ({
+      ...presentOrder(order, menuItems, imageBaseUrl),
       id: order.orderId,
       orderNo: `#${order.orderId}`,
       serviceDate: order.serviceDate,

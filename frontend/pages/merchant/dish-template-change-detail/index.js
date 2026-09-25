@@ -5,6 +5,8 @@ const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 
 const FIELD_META = [
   ['name', '菜品名称'], ['categoryId', '分类 ID'], ['description', '菜品简介'],
+  ['productType', '菜品类型'], ['nourishmentDescription', '滋补介绍'], ['servingAdvice', '食用建议'], ['precautions', '注意事项'],
+  ['imageUrl', '菜品图片'],
   ['referencePrice', '参考价格'], ['tasteTags', '口味标签'], ['mealTags', '推荐餐次'],
   ['sortOrder', '排序值'], ['enabled', '启用状态']
 ];
@@ -16,10 +18,18 @@ function displayValue(value) {
 }
 
 function buildComparison(base = {}, target = {}) {
-  return FIELD_META.map(([key, label]) => ({
-    key, label, baseText: displayValue(base[key]), targetText: displayValue(target[key]),
-    changed: JSON.stringify(base[key]) !== JSON.stringify(target[key])
-  }));
+  const format = (key, value) => key === 'productType'
+    ? (value === 'NOURISHMENT' ? '滋补食品' : '普通菜品') : displayValue(value);
+  const nourishmentKeys = ['productType', 'nourishmentDescription', 'servingAdvice', 'precautions'];
+  return FIELD_META.map(([key, label]) => {
+    const preserved = nourishmentKeys.includes(key) && target[key] == null;
+    return {
+      key, label,
+      baseText: nourishmentKeys.includes(key) && base[key] == null ? '历史快照未记录' : format(key, base[key]),
+      targetText: preserved ? '未修改，保留原值' : format(key, target[key]),
+      changed: !preserved && JSON.stringify(base[key]) !== JSON.stringify(target[key])
+    };
+  });
 }
 
 function decorateIngredients(rows) {

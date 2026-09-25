@@ -46,6 +46,9 @@ class DishTemplateServiceTest {
     source.setSortOrder(17);
     source.setEnabled(true);
     source.setVersion(6L);
+    source.setSourceType("COOK_LIKE_HOC");
+    source.setProductType("NOURISHMENT");
+    source.setNourishmentDescription("汤羹特点");
     when(templateMapper.selectTemplate(11L, 2L)).thenReturn(source);
     when(templateMapper.selectTemplateIngredients(2L)).thenReturn(List.of(ingredient(2L, "番茄")));
     when(templateMapper.selectTemplateCookingSteps(2L))
@@ -58,6 +61,10 @@ class DishTemplateServiceTest {
     assertEquals(6L, detail.version());
     assertEquals(1, detail.cookingSteps().size());
     assertEquals(21L, detail.cookingSteps().get(0).getId());
+    assertEquals("COOK_LIKE_HOC", detail.sourceType());
+    assertTrue(detail.importable());
+    assertEquals("NOURISHMENT", detail.productType());
+    assertEquals("汤羹特点", detail.nourishmentDescription());
   }
 
   @Test
@@ -65,6 +72,8 @@ class DishTemplateServiceTest {
     DishTemplateMapper templateMapper = mock(DishTemplateMapper.class);
     DishMapper dishMapper = mock(DishMapper.class);
     DishTemplateEntity template = template(2L, "番茄炒蛋", "家常热菜");
+    template.setProductType("NOURISHMENT");
+    template.setServingAdvice("温热食用");
     DishTemplateIngredientEntity ingredient = ingredient(2L, "番茄");
     DishCategoryEntity category = new DishCategoryEntity();
     category.setId(8L);
@@ -72,7 +81,9 @@ class DishTemplateServiceTest {
     when(templateMapper.selectImportedTemplateIds(11L, List.of(2L))).thenReturn(List.of());
     when(templateMapper.selectEligibleTemplateForUpdate(2L)).thenReturn(template);
     when(templateMapper.selectTemplateIngredients(2L)).thenReturn(List.of(ingredient));
-    when(templateMapper.selectTemplateCookingSteps(2L)).thenReturn(List.of());
+    var illustratedStep = step(21L, 2L, 1, "炒制");
+    illustratedStep.setImageUrls(List.of("/uploads/images/a.jpg", "/uploads/images/b.png"));
+    when(templateMapper.selectTemplateCookingSteps(2L)).thenReturn(List.of(illustratedStep));
     when(templateMapper.selectMerchantCategoryByName(11L, "家常热菜")).thenReturn(category);
     when(templateMapper.insertImportedDishIgnore(any())).thenAnswer(invocation -> {
       invocation.<com.familykitchen.dish.model.entity.DishEntity>getArgument(0).setId(99L);
@@ -90,7 +101,12 @@ class DishTemplateServiceTest {
     verify(templateMapper).insertImportedDishIgnore(dishCaptor.capture());
     assertEquals(2L, dishCaptor.getValue().getSourceTemplateId());
     assertEquals("active", dishCaptor.getValue().getStatus());
+    assertEquals("NOURISHMENT", dishCaptor.getValue().getProductType());
+    assertEquals("温热食用", dishCaptor.getValue().getServingAdvice());
     verify(dishMapper).insertDishIngredient(any());
+    var savedStep = ArgumentCaptor.forClass(DishCookingStepEntity.class);
+    verify(dishMapper).insertCookingStep(savedStep.capture());
+    assertEquals(illustratedStep.getImageUrls(), savedStep.getValue().getImageUrls());
     verify(templateMapper).insertMerchantIngredientIgnore(any());
   }
 
@@ -191,7 +207,7 @@ class DishTemplateServiceTest {
     when(templateMapper.selectTemplatesByIds(List.of(2L))).thenReturn(List.of());
     BusinessException missing = assertThrows(BusinessException.class,
         () -> service(templateMapper, dishMapper).importTemplates(USER, List.of(2L, 2L)));
-    assertEquals(ErrorCode.NOT_FOUND, missing.errorCode());
+    assertEquals(ErrorCode.BUSINESS_INVALID, missing.errorCode());
     verify(templateMapper).selectTemplatesByIds(List.of(2L));
     verify(templateMapper, never()).insertImportedDishIgnore(any());
     verifyNoInteractions(dishMapper);

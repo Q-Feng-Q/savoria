@@ -1,0 +1,20 @@
+/* Shared material and illustration geometry for the approved family screens. */
+.story-page { --story-ink:#51331f; --story-green:#647b3e; --story-orange:#e87536; background:#fff3d7; color:var(--story-ink); }
+.story-art { position:absolute; inset:0; overflow:hidden; pointer-events:none; border-radius:inherit; }
+.story-art__atlas { position:absolute; left:0; top:0; width:100%; height:300%; }
+.story-art__atlas--family { top:-100%; }
+.story-art__atlas--footer { top:-200%; }
+.story-heading { display:flex; align-items:center; gap:12rpx; color:#50321e; font-size:32rpx; font-weight:800; line-height:1.4; }
+.story-leaf { color:#718744; font-size:34rpx; }
+.story-icon { width:38rpx; height:38rpx; flex-shrink:0; }
+.story-paper { background:linear-gradient(110deg,#fff5df,#fff0d1); border:2rpx solid #efddb7; border-radius:28rpx; box-shadow:0 10rpx 24rpx rgba(151,108,41,.09); }
+.story-brand { position:relative; min-height:220rpx; padding-bottom:20rpx; margin:0 -10rpx; }
+.story-brand__copy { position:relative; padding:30rpx 0 0 18rpx; width:53%; }
+.story-brand__name { display:block; color:#482713; font-family:"STKaiti","KaiTi","Kaiti SC",serif; font-size:64rpx; line-height:1.1; font-weight:900; letter-spacing:-3rpx; white-space:nowrap; }
+.story-brand__heart { color:#d96543; font-size:30rpx; margin-left:8rpx; }
+.story-brand__tagline { display:block; margin-top:12rpx; color:#795034; font-family:"STKaiti","KaiTi",serif; font-size:22rpx; line-height:1.6; letter-spacing:2rpx; }
+.story-footer { position:relative; height:166rpx; margin:22rpx -12rpx 0; overflow:hidden; }
+.story-footer__copy { position:relative; display:block; width:49%; padding:44rpx 0 0 26rpx; font-family:"STKaiti","KaiTi",serif; font-size:25rpx; line-height:1.6; color:#536231; transform:rotate(-4deg); }
+.story-tap { transition:opacity .15s,transform .15s; }
+.story-tap--pressed { opacity:.78; transform:scale(.985); }
+@media (prefers-reduced-motion:reduce) { .story-tap { transition:none; } }

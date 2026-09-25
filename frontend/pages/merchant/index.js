@@ -267,6 +267,8 @@ Page({
     wx.navigateTo({ url: '/pages/account/notifications/index?actor=merchant' });
   },
 
+  openFeedback() { wx.navigateTo({ url: '/pages/account/feedback-list/index' }); },
+
   openAccountSwitcher() {
     wx.navigateTo({ url: '/pages/account/account-management/index' });
   },

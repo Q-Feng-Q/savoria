@@ -1,4 +1,4 @@
-<view class="warm-page template-page">
+<view class="merchant-story warm-page template-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="模板菜市场" description="{{errorMessage || '正在准备家常菜'}}" illustration="cart" bind:retry="retryLoad" />
   <view wx:if="{{phase === 'ready'}}">
   <view class="template-head">
@@ -23,6 +23,7 @@
   </scroll-view>
 
   <view class="filter-row">
+    <picker class="filter-item" range="{{productTypes}}" range-key="label" value="{{productTypeIndex}}" bindchange="changeProductType" disabled="{{importing || importingAll}}"><text>{{productTypes[productTypeIndex].label}} ▾</text></picker>
     <view class="filter-item {{imported === '' ? 'filter-item--active' : ''}}" data-value="" bindtap="changeImported" aria-role="button" aria-label="筛选全部模板" hover-class="ui-button--pressed">全部</view>
     <view class="filter-item {{imported === 'false' ? 'filter-item--active' : ''}}" data-value="false" bindtap="changeImported" aria-role="button" aria-label="筛选未导入模板" hover-class="ui-button--pressed">未导入</view>
     <view class="filter-item {{imported === 'true' ? 'filter-item--active' : ''}}" data-value="true" bindtap="changeImported" aria-role="button" aria-label="筛选已导入模板" hover-class="ui-button--pressed">已导入</view>
@@ -36,11 +37,12 @@
       <view wx:else class="template-image-placeholder" data-id="{{item.templateId}}" bindtap="openDetail" aria-role="button" aria-label="查看{{item.name}}模板详情" hover-class="ui-button--pressed"><text>暂无图片</text></view>
       <view class="template-main" data-id="{{item.templateId}}" bindtap="openDetail" aria-role="button" aria-label="查看{{item.name}}模板详情" hover-class="ui-button--pressed">
         <text class="template-name">{{item.name}}</text>
-        <text class="template-meta">{{item.categoryName}} · {{item.ingredientCount}} 种食材 · {{item.stepsLabel}}</text>
-        <text class="template-tags">{{item.tagsText || '家常'}} · {{item.priceText}}</text>
+        <text class="template-meta">{{item.productType === 'NOURISHMENT' ? '滋补食品 · ' : ''}}{{item.categoryName}} · {{item.ingredientCount}} 种食材 · {{item.stepsLabel}}</text>
+        <text class="template-tags">{{item.tagsText || '家常'}} · {{item.priceText}} · {{item.readinessLabel}}</text>
       </view>
       <view wx:if="{{item.imported}}" class="imported-label">已导入</view>
-      <view wx:else class="check-control {{item.selected ? 'check-control--active' : ''}}" data-id="{{item.templateId}}" bindtap="toggleSelection" aria-role="checkbox" aria-label="选择{{item.name}}" hover-class="ui-button--pressed">{{item.selected ? '✓' : ''}}</view>
+      <view wx:elif="{{item.importable}}" class="check-control {{item.selected ? 'check-control--active' : ''}}" data-id="{{item.templateId}}" bindtap="toggleSelection" aria-role="checkbox" aria-label="选择{{item.name}}" hover-class="ui-button--pressed">{{item.selected ? '✓' : ''}}</view>
+      <view wx:else class="pending-label">待完善</view>
     </view>
     <view wx:if="{{loadingMore}}" class="list-progress">正在加载更多菜品…</view>
     <view wx:elif="{{items.length && !hasMore}}" class="list-progress list-progress--done">已显示全部 {{total}} 道系统菜品</view>

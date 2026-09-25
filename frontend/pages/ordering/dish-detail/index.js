@@ -12,7 +12,7 @@ Page({
   onShow() { this.load(); },
   retryLoad() { return this.load(); },
   async load() {
-    const session = requireSession();
+    const session = requireSession({ familyOnly: true });
     if (!session) return;
     if (!this.data.id) {
       this.setData({ phase: 'error', errorMessage: '缺少菜品编号', scene: null });
@@ -37,7 +37,7 @@ Page({
     }
   },
   async addDish() {
-    if (!requireSession() || this.data.mutationBusy || !this.source) return;
+    if (!requireSession({ familyOnly: true }) || this.data.mutationBusy || !this.source) return;
     this.setData({ mutationBusy: true });
     const { runtime, cart, dishDetail } = this.source;
     const item = (cart.items || []).find((row) => Number(row.dishId) === Number(dishDetail.dishId));

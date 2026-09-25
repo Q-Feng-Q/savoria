@@ -1,0 +1,9 @@
+:host { display:block; min-width:0; max-width:100%; }
+.step-gallery { margin-top:18rpx; min-width:0; }
+.step-gallery__hint { display:block; color:#806443; font-size:22rpx; line-height:1.6; margin-bottom:10rpx; }
+.step-gallery__grid { display:flex; flex-wrap:wrap; gap:12rpx; }
+.step-gallery__item { width:132rpx; max-width:100%; position:relative; }
+.step-gallery__image { display:block; width:100%; height:132rpx; border-radius:16rpx; background:#f1dfb9; }
+.step-gallery__remove { padding:10rpx 4rpx; text-align:center; color:#a44229; font-size:22rpx; }
+.step-gallery__add { display:flex; align-items:center; justify-content:center; width:132rpx; height:132rpx; box-sizing:border-box; border:2rpx dashed #b89968; border-radius:16rpx; color:#654627; background:#f8eacb; font-size:22rpx; }
+.step-gallery__disabled { opacity:.5; }

@@ -11,6 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @TableName("dish_cooking_steps")
 @Schema(description = "商户菜品制作步骤实体")
 public class DishCookingStepEntity {
+  private java.util.List<String> imageUrls;
+  public java.util.List<String> getImageUrls() { return imageUrls == null ? java.util.List.of() : imageUrls; }
+  public void setImageUrls(java.util.List<String> value) { imageUrls = value == null ? java.util.List.of() : java.util.List.copyOf(value); }
 
   /**
    * 标识。

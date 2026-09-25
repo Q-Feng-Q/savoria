@@ -13,6 +13,27 @@ import java.time.LocalDateTime;
 @TableName("dishes")
 public class DishEntity {
 
+  @TableField("product_type")
+  private String productType;
+  public String getProductType() { return productType == null ? "NORMAL" : productType; }
+  public void setProductType(String value) { this.productType = value; }
+
+  @TableField("nourishment_description")
+  private String nourishmentDescription;
+  public String getNourishmentDescription() { return nourishmentDescription; }
+  public void setNourishmentDescription(String value) { this.nourishmentDescription = value; }
+
+  @TableField("serving_advice")
+  private String servingAdvice;
+  public String getServingAdvice() { return servingAdvice; }
+  public void setServingAdvice(String value) { this.servingAdvice = value; }
+
+  @TableField("precautions")
+  private String precautions;
+  public String getPrecautions() { return precautions; }
+  public void setPrecautions(String value) { this.precautions = value; }
+
+
   /** 菜品 ID。 */
   @TableId(value = "id", type = IdType.AUTO)
   private Long id;
@@ -52,6 +73,18 @@ public class DishEntity {
   /** 菜品状态。 */
   @TableField("status")
   private String status;
+
+  /** 逻辑删除时间。 */
+  @TableField("deleted_at")
+  private LocalDateTime deletedAt;
+
+  /** 执行逻辑删除的用户 ID。 */
+  @TableField("deleted_by")
+  private Long deletedBy;
+
+  /** 删除操作人展示名，仅用于查询投影。 */
+  @TableField(exist = false)
+  private String deletedByName;
 
   /**
    * 获取标识。
@@ -193,4 +226,28 @@ public class DishEntity {
    * @param status 状态
    */
   public void setStatus(String status) { this.status = status; }
+  /** Returns logical deletion time.
+   * @return deletion time, or null
+   */
+  public LocalDateTime getDeletedAt() { return deletedAt; }
+  /** Sets logical deletion time.
+   * @param deletedAt deletion time
+   */
+  public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
+  /** Returns deletion operator identifier.
+   * @return operator identifier, or null
+   */
+  public Long getDeletedBy() { return deletedBy; }
+  /** Sets deletion operator identifier.
+   * @param deletedBy operator identifier
+   */
+  public void setDeletedBy(Long deletedBy) { this.deletedBy = deletedBy; }
+  /** Returns deletion operator display name.
+   * @return operator display name, or null
+   */
+  public String getDeletedByName() { return deletedByName; }
+  /** Sets deletion operator display name.
+   * @param deletedByName operator display name
+   */
+  public void setDeletedByName(String deletedByName) { this.deletedByName = deletedByName; }
 }

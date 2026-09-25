@@ -1,7 +1,55 @@
 -- 家庭厨房最终数据库结构。
 -- 空库初始化专用；关系完整性由应用层维护，不创建物理外键。
+-- 2026-09-23：已合并品牌配置和步骤图片字段，仅供全新空库使用。
 
 SET NAMES utf8mb4;
+
+CREATE TABLE user_feedback (
+  id bigint NOT NULL AUTO_INCREMENT COMMENT '反馈ID',
+  owner_user_id bigint NOT NULL COMMENT '提交用户ID',
+  request_id varchar(80) CHARACTER SET ascii COLLATE ascii_bin NOT NULL COMMENT '提交幂等请求标识',
+  type varchar(20) NOT NULL COMMENT '反馈类型',
+  content varchar(2000) NOT NULL COMMENT '反馈内容',
+  status varchar(20) NOT NULL DEFAULT 'OPEN' COMMENT '处理状态',
+  reply varchar(2000) NOT NULL DEFAULT '' COMMENT '最新回复',
+  version int NOT NULL DEFAULT 0 COMMENT '乐观锁版本',
+  handled_by bigint DEFAULT NULL COMMENT '处理管理员用户ID',
+  created_at datetime(6) NOT NULL COMMENT '提交时间',
+  updated_at datetime(6) NOT NULL COMMENT '更新时间',
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_feedback_request (owner_user_id,request_id),
+  KEY idx_feedback_owner_created (owner_user_id,created_at),
+  KEY idx_feedback_filters (status,type,created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户反馈表';
+
+CREATE TABLE feedback_images (
+  id varchar(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL COMMENT '图片标识',
+  owner_user_id bigint NOT NULL COMMENT '上传用户ID',
+  object_key varchar(80) NOT NULL COMMENT '私有存储对象键',
+  mime varchar(30) NOT NULL COMMENT '图片媒体类型',
+  width int NOT NULL COMMENT '图片宽度像素',
+  height int NOT NULL COMMENT '图片高度像素',
+  byte_size int NOT NULL COMMENT '图片文件字节数',
+  feedback_id bigint DEFAULT NULL COMMENT '关联反馈ID',
+  sort_order int NOT NULL DEFAULT 0 COMMENT '图片显示顺序',
+  created_at datetime(6) NOT NULL COMMENT '上传时间',
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_feedback_object (object_key),
+  KEY idx_feedback_image_owner_created (owner_user_id,created_at),
+  KEY idx_feedback_image_expired (feedback_id,created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='反馈私有图片表';
+
+CREATE TABLE feedback_history (
+  id bigint NOT NULL AUTO_INCREMENT COMMENT '处理记录ID',
+  feedback_id bigint NOT NULL COMMENT '反馈ID',
+  admin_id bigint NOT NULL COMMENT '操作管理员用户ID',
+  from_status varchar(20) NOT NULL COMMENT '变更前状态',
+  to_status varchar(20) NOT NULL COMMENT '变更后状态',
+  reply varchar(2000) NOT NULL COMMENT '处理回复',
+  created_at datetime(6) NOT NULL COMMENT '处理时间',
+  PRIMARY KEY (id),
+  KEY idx_feedback_history (feedback_id,id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='反馈处理历史表';
 
 CREATE TABLE account_cancellation_requests (
   id bigint NOT NULL AUTO_INCREMENT COMMENT '账号注销申请ID',
@@ -122,6 +170,7 @@ CREATE TABLE dish_cooking_steps (
   source_template_step_id bigint DEFAULT NULL COMMENT '来源平台模板步骤逻辑ID',
   component_template_id bigint DEFAULT NULL COMMENT '来源配料组件模板逻辑ID',
   source_note varchar(1000) DEFAULT NULL COMMENT '来源步骤简短追踪说明',
+  image_urls json DEFAULT NULL COMMENT '有序步骤图片地址，最多五张',
   PRIMARY KEY (id),
   UNIQUE KEY uk_dish_cooking_steps_dish_step (dish_id,step_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='菜品制作步骤表';
@@ -208,6 +257,7 @@ CREATE TABLE dish_template_cooking_steps (
   temperature_text varchar(100) DEFAULT NULL COMMENT '可可靠识别的温度说明',
   heat_level varchar(50) DEFAULT NULL COMMENT '可可靠识别的火候说明',
   component_template_id bigint DEFAULT NULL COMMENT '当前步骤使用的配料组件逻辑ID',
+  image_urls json DEFAULT NULL COMMENT '有序步骤图片地址，最多五张',
   PRIMARY KEY (id),
   UNIQUE KEY uk_dish_template_cooking_steps_template_step (template_id,step_no),
   UNIQUE KEY uk_dish_template_cooking_steps_item_key (item_key),
@@ -302,6 +352,10 @@ CREATE TABLE dish_templates (
   category_id bigint NOT NULL COMMENT '平台模板分类ID',
   name varchar(100) NOT NULL COMMENT '模板菜品名称',
   description varchar(255) DEFAULT NULL COMMENT '模板菜品简介',
+  product_type varchar(20) NOT NULL DEFAULT 'NORMAL' COMMENT '商品类型：NORMAL/NOURISHMENT',
+  nourishment_description varchar(1000) DEFAULT NULL COMMENT '滋补介绍（纯文本）',
+  serving_advice varchar(1000) DEFAULT NULL COMMENT '食用建议（纯文本）',
+  precautions varchar(1000) DEFAULT NULL COMMENT '注意事项（纯文本）',
   image_url varchar(500) DEFAULT NULL COMMENT '审核发布后的本地图片访问地址',
   image_source_url varchar(1000) DEFAULT NULL COMMENT '已声明授权图片的来源页面',
   image_author varchar(255) DEFAULT NULL COMMENT '已声明授权图片的作者或来源平台',
@@ -342,6 +396,10 @@ CREATE TABLE dishes (
   category_id bigint NOT NULL COMMENT '菜品分类ID',
   name varchar(100) NOT NULL COMMENT '菜品名称',
   description varchar(255) DEFAULT NULL COMMENT '菜品简介',
+  product_type varchar(20) NOT NULL DEFAULT 'NORMAL' COMMENT '商品类型：NORMAL/NOURISHMENT',
+  nourishment_description varchar(1000) DEFAULT NULL COMMENT '滋补介绍（纯文本）',
+  serving_advice varchar(1000) DEFAULT NULL COMMENT '食用建议（纯文本）',
+  precautions varchar(1000) DEFAULT NULL COMMENT '注意事项（纯文本）',
   image_url varchar(500) DEFAULT NULL COMMENT '菜品图片地址',
   tags_json json DEFAULT NULL COMMENT '菜品标签JSON',
   base_price decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '基础售价',
@@ -967,6 +1025,12 @@ CREATE TABLE system_settings (
   id bigint NOT NULL COMMENT '固定主键，始终为1',
   site_name varchar(100) NOT NULL COMMENT '站点名称',
   site_logo_url varchar(500) DEFAULT NULL COMMENT '站点Logo地址',
+  site_logo_small_url varchar(500) DEFAULT NULL COMMENT '站点小尺寸Logo地址',
+  site_logo_large_url varchar(500) DEFAULT NULL COMMENT '站点大尺寸Logo地址',
+  site_favicon_url varchar(500) DEFAULT NULL COMMENT '站点浏览器图标地址',
+  site_logo_small_size int DEFAULT NULL COMMENT '小尺寸Logo显示大小',
+  site_logo_size int DEFAULT NULL COMMENT '默认Logo显示大小',
+  site_logo_large_size int DEFAULT NULL COMMENT '大尺寸Logo显示大小',
   dish_review_enabled tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否开启菜品审核',
   maintenance_enabled tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否开启全站维护',
   maintenance_message varchar(500) NOT NULL DEFAULT '系统维护中，请稍后再试' COMMENT '维护提示',
@@ -1084,4 +1148,3 @@ CREATE TABLE wechat_authorization_records (
   PRIMARY KEY (id),
   UNIQUE KEY uk_wechat_credential_hash (credential_hash)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='微信短期授权记录表';
-

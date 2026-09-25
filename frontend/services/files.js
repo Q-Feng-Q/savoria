@@ -1,4 +1,4 @@
-const { buildAuthHeaders } = require('../utils/api');
+const { buildAuthHeaders, normalizeBackendPath } = require('../utils/api');
 const { toImageUrl } = require('../utils/image-url');
 
 function defaultUploadAdapter(options) {
@@ -15,7 +15,7 @@ function createFilesService({ baseUrl = '', getSession = () => null, upload = de
   return {
     async uploadImage(filePath) {
       const response = await upload({
-        url: `${String(baseUrl || '').replace(/\/+$/, '')}/api/files/images`,
+        url: `${String(baseUrl || '').replace(/\/+$/, '')}${normalizeBackendPath('/api/files/images')}`,
         filePath,
         name: 'file',
         header: buildAuthHeaders(getSession())

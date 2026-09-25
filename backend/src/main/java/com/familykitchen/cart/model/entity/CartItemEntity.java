@@ -42,6 +42,14 @@ public class CartItemEntity {
   @TableField("item_remark")
   private String itemRemark;
 
+  /** Whether this historical snapshot is still orderable now. */
+  @TableField(exist = false)
+  private Boolean available;
+
+  /** Human-readable reason when current ordering is unavailable. */
+  @TableField(exist = false)
+  private String unavailableReason;
+
   /**
    * 获取标识。
    *
@@ -147,4 +155,20 @@ public class CartItemEntity {
    * @param itemRemark 项目备注
    */
   public void setItemRemark(String itemRemark) { this.itemRemark = itemRemark; }
+  /** Returns whether the snapshot can still be submitted.
+   * @return current availability
+   */
+  public Boolean getAvailable() { return available; }
+  /** Sets current submission availability.
+   * @param available current availability
+   */
+  public void setAvailable(Boolean available) { this.available = available; }
+  /** Returns the user-readable unavailable reason.
+   * @return unavailable reason, or null
+   */
+  public String getUnavailableReason() { return unavailableReason; }
+  /** Sets the user-readable unavailable reason.
+   * @param unavailableReason unavailable reason
+   */
+  public void setUnavailableReason(String unavailableReason) { this.unavailableReason = unavailableReason; }
 }

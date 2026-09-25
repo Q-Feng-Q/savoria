@@ -54,9 +54,9 @@ class CookLikeHocTemplateMigrationTest {
     int end = sql.indexOf("-- END GENERATED COOKLIKEHOC DATA");
     String generated = sql.substring(start, end);
     assertFalse(generated.isBlank());
-    assertEquals(336, count(generated, "INSERT INTO dish_template_source_records"));
+    assertEquals(339, count(generated, "INSERT INTO dish_template_source_records"));
     assertEquals(179, count(generated, "INSERT INTO dish_template_image_assets"));
-    assertTrue(generated.contains("f7a91c2db0ce9b6a41eaf06e5ce64cbde5a831ed"));
+    assertTrue(generated.contains("dde5df039a5dc0ef49842cc2b385763d5e377573"));
     assertTrue(generated.contains("INSERT INTO dish_template_cooking_steps"));
   }
 

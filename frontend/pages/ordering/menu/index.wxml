@@ -1,23 +1,36 @@
-<view class="warm-page warm-state-host menu-page concept-page">
+<view class="warm-page warm-state-host menu-page concept-page story-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="菜单暂时没准备好" description="{{errorMessage || '正在看看今天有哪些好吃的'}}" illustration="search" bind:retry="load" />
   <block wx:else>
     <view class="design-menu-header menu-intro sk-stagger-in">
+      <view class="story-art"><image class="story-art__atlas" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
       <view class="design-menu-header__copy"><text class="design-menu-header__eyebrow">{{crew.helperLabel}} · {{currentDate}}</text><text class="design-menu-header__title">今天吃什么</text><text class="design-menu-header__context">{{context.family.name}} · {{currentMemberName}}</text></view>
-      <view class="design-menu-header__art animal-menu-art"><image class="design-menu-header__image animal-menu-art__image" src="/assets/brand/animal-mascot-trio.webp" mode="aspectFill" /><text class="animal-menu-art__label">新鲜配菜到啦</text></view>
     </view>
 
-    <view class="menu-reservation" bindtap="openCart" aria-role="button" aria-label="查看或修改预计用餐时间" hover-class="menu-reservation--pressed" hover-stay-time="80">
+    <view class="menu-reservation">
       <view><text class="menu-reservation__label">预计用餐时间</text><text class="menu-reservation__value">{{expectedMealTimeText}}</text></view>
-      <text class="menu-reservation__action">{{expectedMealTimeText === '待选择' ? '去设置' : '可在餐篮修改'}} ›</text>
+      <text class="menu-reservation__action">餐篮中修改</text>
     </view>
 
     <view class="design-menu-search"><text class="design-menu-search__icon">⌕</text><input class="menu-search" value="{{searchKeyword}}" placeholder="搜索菜名或口味" bindinput="handleSearchInput" /><view wx:if="{{searchKeyword}}" class="ui-button clear-search" bindtap="clearSearch" aria-role="button" aria-label="清除" hover-class="ui-button--pressed" hover-stay-time="80">清除</view></view>
 
+    <picker class="menu-type-filter" range="{{productTypes}}" range-key="label" value="{{productTypeIndex}}" bindchange="changeProductType"><text>{{productTypes[productTypeIndex].label}} ▾</text></picker>
     <view class="menu-category-layout menu-content">
-      <scroll-view class="category-rail" scroll-y enhanced show-scrollbar="{{false}}"><view wx:for="{{categoryOptions}}" wx:key="key" class="ui-button category-item {{item.activeClass}}" data-key="{{item.key}}" bindtap="selectCategory" aria-role="button" aria-label="查看{{item.label}}分类" hover-class="ui-button--pressed" hover-stay-time="80"><text>{{item.label}}</text></view></scroll-view>
-      <view class="dish-list"><view class="dish-list__head"><text>{{activeCategoryLabel}}</text><text>{{resultSummaryText}}</text></view><page-state wx:if="{{!visibleMenuCards.length}}" phase="empty" title="没找到合适的菜" description="{{emptyStateText}}" illustration="search" /><view wx:for="{{visibleMenuCards}}" wx:key="id" class="menu-dish-entry"><text wx:if="{{item.featured}}" class="menu-featured-tag">主厨推荐</text><dish-row dish="{{item}}" quantity="{{item.selectedByCurrentMemberCount}}" bind:open="openDishFromRow" bind:quantitychange="changeDishQuantity" /></view></view>
+      <scroll-view class="category-rail" scroll-y scroll-into-view="{{categoryScrollIntoView}}" enhanced show-scrollbar="{{false}}">
+        <view wx:for="{{categoryOptions}}" wx:key="key" id="menu-category-{{item.key}}" class="ui-button category-item {{item.activeClass}}" data-key="{{item.key}}" bindtap="selectCategory" aria-role="button" aria-label="查看{{item.label}}分类" hover-class="ui-button--pressed" hover-stay-time="80"><text>{{item.label}}</text></view>
+      </scroll-view>
+      <scroll-view class="dish-list dish-list-scroll" scroll-y enhanced show-scrollbar="{{false}}" scroll-with-animation="{{dishScrollWithAnimation}}" scroll-into-view="{{dishScrollIntoView}}" bindscroll="handleDishScroll">
+        <view id="menu-list-top" class="dish-list__top-anchor"></view>
+        <view class="dish-list__head"><text>{{activeCategoryLabel}}</text><text>{{resultSummaryText}}</text></view>
+        <page-state wx:if="{{!menuSections.length}}" phase="empty" title="没找到合适的菜" description="{{emptyStateText}}" illustration="search" />
+        <view wx:for="{{menuSections}}" wx:key="key" id="{{item.anchorId}}" class="menu-category-section" data-key="{{item.key}}">
+          <view class="menu-category-section__head"><text>{{item.label}}</text><text>{{item.cards.length}} 道</text></view>
+          <view wx:for="{{item.cards}}" wx:for-item="dish" wx:key="id" class="menu-dish-entry">
+            <text wx:if="{{dish.featured}}" class="menu-featured-tag">主厨推荐</text>
+            <dish-row dish="{{dish}}" quantity="{{dish.selectedByCurrentMemberCount}}" bind:open="openDishFromRow" bind:quantitychange="changeDishQuantity" />
+          </view>
+        </view>
+      </scroll-view>
     </view>
 
-    <view class="design-cart-dock"><bottom-action-bar summary="{{'共享餐篮 · ' + cartItemCount + ' 份'}}" primaryText="去餐篮" disabled="{{mutationBusy}}" bind:primary="openCart"><view slot="secondary" class="ui-button orders-link" bindtap="openOrders" aria-role="button" aria-label="订单" hover-class="ui-button--pressed" hover-stay-time="80">订单</view></bottom-action-bar></view>
   </block>
 </view>

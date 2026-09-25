@@ -10,7 +10,7 @@ const QUICK_ENTRY_ROUTES = {
   profile: '/pages/account/profile/index'
 };
 
-Page({
+const { withBranding } = require('../../../utils/branding'); Page(withBranding({
   identityLoad: createIdentityLoadGuard(),
   data: {
     bannerIndex: 0,
@@ -38,17 +38,19 @@ Page({
   },
 
   async load() {
-    const session = requireSession();
+    const session = requireSession({ familyOnly: true });
     if (!session) return;
     const loadToken = this.identityLoad.begin(session);
 
     const runtime = createApiRuntime();
     this.setData({ phase: 'loading', errorMessage: '', context: null });
     try {
-      const homeData = await runtime.family.getHome();
+      const [homeData, orders, cart] = await Promise.all([
+        runtime.family.getHome(), runtime.orders.listOrders(), runtime.cart.getCart()
+      ]);
       const windowInfo = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : {};
       const scene = buildApiHomeScene(homeData, {
-        imageBaseUrl: runtime.baseUrl,
+        imageBaseUrl: runtime.baseUrl, orders, cart,
         windowWidth: windowInfo.windowWidth
       });
       if (!this.identityLoad.isCurrent(loadToken)) return;
@@ -74,12 +76,6 @@ Page({
     const key = event.currentTarget.dataset.key;
     const url = QUICK_ENTRY_ROUTES[key];
     if (!url) return;
-
-    if (key === 'cart') {
-      wx.navigateTo({ url });
-      return;
-    }
-
     wx.switchTab({ url });
   }
-});
+}));

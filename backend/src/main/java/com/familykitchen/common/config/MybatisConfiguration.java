@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
     "com.familykitchen.common.security",
     "com.familykitchen.dish.mapper",
     "com.familykitchen.family.mapper",
+    "com.familykitchen.feedback",
     "com.familykitchen.file.mapper",
     "com.familykitchen.merchant.mapper",
     "com.familykitchen.migration",

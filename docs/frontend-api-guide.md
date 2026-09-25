@@ -902,7 +902,7 @@ PUT /api/merchant/profile
 ### 7.1 商户菜品列表
 
 ```http
-GET /api/merchant/dishes
+GET /api/merchant/dishes?scope=available
 ```
 
 列表项 `DishView` 的推荐相关字段：
@@ -919,7 +919,44 @@ GET /api/merchant/dishes
   sourceTemplateId,
   templateImported,
   featuredAt, // ISO-8601 日期时间；未推荐时为 null
-  featured    // boolean；由 featuredAt 是否存在得出
+  featured,   // boolean；由 featuredAt 是否存在得出
+  deletedAt,  // 回收站记录的删除时间；在用菜品为 null
+  deletedByName // 删除操作人显示名；在用菜品为 null
+}
+```
+
+`scope` 可选值为 `available`（默认，只返回未删除菜品）和 `deleted`（只返回回收站菜品）；其他值返回 HTTP 400。回收站按删除时间、菜品 ID 倒序返回。
+
+#### 批量逻辑删除
+
+```http
+POST /api/merchant/dishes/batch-delete
+Content-Type: application/json
+```
+
+```json
+{ "dishIds": [8, 9] }
+```
+
+`dishIds` 原始数组必须包含 1–100 个正整数；重复 ID 会去重。请求具有商户边界且整批原子执行：任一菜品不存在或不属于当前商户时整批失败。删除会清除推荐状态、停用所有家庭菜单关联项，并保留历史订单快照；重复删除按幂等成功处理。
+
+#### 批量恢复
+
+```http
+POST /api/merchant/dishes/batch-restore
+Content-Type: application/json
+```
+
+请求体与批量删除相同。恢复后的菜品统一为 `inactive`，不会自动上架或重新启用家庭菜单。
+
+两组批量接口返回：
+
+```json
+{
+  "requestedCount": 2,
+  "uniqueCount": 2,
+  "changedCount": 2,
+  "unchangedCount": 0
 }
 ```
 
@@ -1072,7 +1109,8 @@ Content-Type: multipart/form-data
 
 ```js
 wx.uploadFile({
-  url: `${baseUrl}/api/files/images`,
+  // 小程序直连后端时使用真实 Controller 路径；走 /api 反向代理时由代理前缀补齐。
+  url: `${baseUrl}${normalizeBackendPath('/api/files/images')}`,
   filePath,
   name: 'file',
   header: buildAuthHeaders(session),
@@ -1575,7 +1613,9 @@ GET /api/merchant/dish-templates?categoryId=1&keyword=鸡&imported=false&page=1&
 
 - `categoryId`、`keyword`、`imported` 可不传。
 - `page` 默认 `1`；`pageSize` 默认 `20`、最大 `100`。
-- `data.items` 包含 `templateId`、`templateCode`、分类、名称、简介、后端本地图片 URL、参考价、口味标签、推荐餐次、食材数量和 `imported`。
+- 接口返回全部启用的成品模板，不再只返回采购数据完整的模板；未完善模板仍可查看来源食材与制作步骤。
+- `data.items` 包含 `templateId`、`templateCode`、分类、名称、简介、后端本地图片 URL、参考价、口味标签、推荐餐次、食材数量、`sourceType`、`dataStatus`、`procurementReady`、`importable` 和 `imported`。
+- 只有 `importable=true && imported=false` 的模板允许勾选；`importable=false` 固定显示“待完善后导入”，可进入详情并提交模板修改申请。
 - 图片是后端相对路径，例如 `/images/dish-templates/dish-001.jpg`；小程序需要使用当前 API `baseUrl` 拼接，不能打入小程序代码包。
 
 ### 21.3 模板详情
@@ -1584,7 +1624,7 @@ GET /api/merchant/dish-templates?categoryId=1&keyword=鸡&imported=false&page=1&
 GET /api/merchant/dish-templates/{templateId}
 ```
 
-详情额外返回 `imageSourceUrl`、`imageAuthor`、`imageLicense`、`ingredients` 和按 `stepNo` 排序的 `cookingSteps`。无制作流程时返回空数组。`referencePrice` 和图片字段可为 `null`，前端必须显示固定尺寸占位，不得用假价格或假图片补齐。
+详情额外返回 `sourceType`、`importable`、`imageSourceUrl`、`imageAuthor`、`imageLicense`、`ingredients` 和按 `stepNo` 排序的 `cookingSteps`。即使模板尚不可导入，详情也必须可打开。无制作流程时返回空数组。`referencePrice` 和图片字段可为 `null`，前端必须显示固定尺寸占位，不得用假价格或假图片补齐。
 
 ### 21.4 选择性批量导入
 
@@ -1612,16 +1652,16 @@ Content-Type: application/json
 }
 ```
 
-常见错误：`请选择要导入的模板菜品`、`单次最多导入100道模板菜品`、`模板菜品不存在或已停用：[ID]`、`无商户后台访问权限`。
+常见错误：`请选择要导入的模板菜品`、`单次最多导入100道模板菜品`、`以下模板不存在、已停用或采购数据尚未完善，暂不能导入：[ID]`、`无商户后台访问权限`。
 
-### 21.5 一键导入全部启用模板
+### 21.5 一键导入全部可导入模板
 
 ```http
 POST /api/merchant/dish-templates/import-all
 ```
 
 - 请求不携带正文，也不允许前端传入商户 ID；商户身份只取自当前登录上下文。
-- 后端读取全部启用模板并在一个事务内导入，不受选择导入单次 100 道上限影响。
+- 后端读取全部 `importable=true` 的启用模板并在一个事务内导入，不受选择导入单次 100 道上限影响。
 - 同一商户已经导入的模板会计入 `skippedIds`/`skippedCount`，不会覆盖商户修改后的名称、价格、图片、食材、制作流程或上下架状态。
 - 停用模板不会进入全量导入集合。
 - 响应结构与 21.4 选择性批量导入一致。
@@ -1782,13 +1822,13 @@ Content-Type: application/json
 5. 400、403、404、409、422 的后端中文 `message` 直接展示，尤其是手工菜品、来源模板停用、空食材和重复待审核申请。
 6. 审核通过只更新平台模板，不把新模板自动覆盖到当前商户或其他商户已有菜品。
 
-服务端从商户菜品自动生成可编辑业务快照，包含菜名、简介、价格、食材和制作步骤；模板分类、标签、餐次、排序和启用状态保持来源模板值。图片、来源身份、模板类型、图片授权和派生状态永远由平台服务端维护，不进入商户快照。
+服务端从商户菜品自动生成可编辑业务快照，包含菜名、简介、价格、食材和制作步骤；模板分类、标签、餐次、排序和启用状态保持来源模板值。该入口保留模板原图；需要改图时应在模板修改编辑器内上传并单独提交审核。
 
 ### 20.2 v2 快照字段约束
 
 模板修改接口固定提交 `schemaVersion: 2`。`ingredients` 中每项必须有稳定且唯一的 `itemId` 与 `quantityStatus`；只有 `VERIFIED` 可填写 `quantity/unit/calcType`。`cookingSteps` 使用稳定 `itemId`，`stepNo` 必须从 1 连续排列。没有制作步骤时提交空数组。
 
-`imageUrl`、`imageSourceUrl`、`imageAuthor`、`imageLicense`、内部资源 ID、来源键/版本、`templateType`、`dataStatus`、`procurementReady`、`imageRightsStatus` 不能提交。收到 400、409 或 422 时直接展示后端 `message`，不要自动删字段重试。
+模板修改编辑器可提交 `imageUrl`、`imageAssetId`、`removeImage` 和 `imageRightsConfirmed`。新图必须先通过 `POST /api/files/images` 上传，并使用响应中的原始 `url` 和 `fileId`；预览可使用前端补全后的绝对地址。`imageSourceUrl`、`imageAuthor`、`imageLicense`、来源键/版本、`templateType`、`dataStatus`、`procurementReady`、`imageRightsStatus` 不能提交。收到 400、409 或 422 时直接展示后端 `message`，不要自动删字段重试。
 
 模板导入后，采购食材和制作步骤会随导入复制到商户菜品。制作步骤会随导入复制，之后商户可独立修改；平台模板后续变化不会自动覆盖商户副本。
 
@@ -1890,3 +1930,44 @@ POST /api/merchant/families/{familyId}/wallet/adjust
 ```
 
 订单提交冻结、拒单/取消释放、完成扣减均操作家庭钱包。成员选择归属仅用于订单明细与审计，不参与拆分扣款。旧 `/api/family/me/wallet/ledgers`、`/api/merchant/members/{memberId}/wallet/*` 和 `/api/family/meal-slots` 为退役契约，新页面不得调用；个人钱包余额切换由受控迁移流程完成，禁止在当前业务数据库中以页面操作或普通启动流程执行清空。
+
+## 22. 菜品类型与滋补介绍
+
+菜品、系统模板及修改申请快照扩展以下字段，类型与原分类独立，不拆分餐篮或订单：
+
+| 字段 | 说明 |
+| --- | --- |
+| `productType` | `NORMAL` 普通菜品、`NOURISHMENT` 滋补食品；新增默认 `NORMAL` |
+| `nourishmentDescription` | 滋补介绍，选填纯文本，最多 1000 字符 |
+| `servingAdvice` | 食用建议，选填纯文本，最多 1000 字符 |
+| `precautions` | 注意事项，选填纯文本，最多 1000 字符 |
+
+编辑时省略/null 保留原值，明确提交空字符串清除对应文字。文本修剪首尾空白，保留内部换行。切为普通菜品保留文字，但详情不展示；滋补食品只展示非空小节。配料组件 `COMPONENT` 不支持滋补信息。客户端不得自动生成疾病治疗或疗效承诺。
+
+`GET /api/merchant/dishes`、`GET /api/merchant/dish-templates`、`GET /api/admin/dish-templates`、`GET /api/family/menu` 支持可选 `productType`；全部类型省略参数。模板的筛选在分页及总数计算之前执行。小程序家庭点菜使用完整已启用菜单作类型/关键词组合筛选，再生成非空分类，不得只筛推荐菜或分页首屏。
+
+模板首次导入、商户申请修改、菜品同步模板申请及审批均携带四字段。快照仍为 `schemaVersion=2`，后端兼容缺少字段的旧申请，不把缺失当成清空。
+
+按尚未部署的确认，本功能字段直接加入 `V1__init_schema.sql`，不附带本功能 ALTER 增量脚本。未执行现有本地数据库的初始化或重建；已有库不会仅因文件修改而自动获得字段。
+
+## BUG / 建议图文反馈
+
+小程序入口为“我的 → BUG / 建议”，商户工作台也有同名入口；未加入家庭的登录账号同样可用。支持描述、最多六张 JPEG/PNG 图片、我的反馈分页与详情状态/回复。网页平台管理员在“用户反馈”中筛选和处理，普通商户没有处理权限。
+
+- 上传 `POST /api/feedback/images`（multipart `file`），获取字符串 `imageId`；单图 4 MiB、2000 万像素以内，每小时最多 30 次成功上传。
+- 提交 `POST /api/feedback`：`{ requestId, type: "BUG" | "SUGGESTION", content, imageIds }`，内容修剪后 1～2000 字符，最多 6 个本人的未绑定图片。每小时最多 10 条成功反馈。同一次网络重试必须保留 requestId 和原始内容，不能把重试变成新反馈。
+- 我的记录 `GET /api/feedback?page=1&pageSize=20`，返回 `{ items, total, page, pageSize }`；详情 `GET /api/feedback/{feedbackId}` 仅本人可读。
+- 平台列表与详情为 `/api/admin/feedback`、`/api/admin/feedback/{feedbackId}`；处理 `PUT /api/admin/feedback/{feedbackId}`：`{ status, reply, version }`。状态 OPEN/PROCESSING/RESOLVED/CLOSED，后两种回复必填；版本冲突 409 保留草稿并要求主动刷新。
+- 图片 `GET /api/feedback/images/{imageId}` 必须带身份请求头；小程序下载到临时文件，网页读取 Blob，不能在 URL 中拼接令牌。切换账号或退出详情释放预览。未绑定图片 24 小时过期。
+
+开发验证未启动业务后端或修改当前数据库。三张新表已写入 V1 初始化文件，已有数据库不会自动得到这些表；首次部署使用新的初始化库。完整安全和响应契约参见 `docs/api-spec.md`。
+
+## 制作步骤配图
+
+商户菜品编辑、模板编辑/申请均支持每步 0～5 张图片；详情与审核对比在对应步骤正文下显示，点击可放大。没有图片时详情不留空位。
+
+每个步骤提交 `imageUrls: []` 或完整有序 URL 数组。使用现有图片上传接口返回的 `url`（原始相对路径），展示时才解析当前 API 地址。单张最多 4 MiB，JPEG/PNG/WebP；上传中禁止提交和步骤增删；部分失败保留成功项，切换账号或离开编辑器后丢弃迟到结果。删除只解除当前引用。
+
+模板步骤保持服务端 `itemId/itemKey`，不要根据数组下标重建稳定标识。菜品步骤重排时图片随步骤对象一起移动。模板导入与审核审批保留配图；旧版客户端遇到有图步骤的歧义修改会提示刷新重试。
+
+后端需要先具备 `image_urls` 列，再使用新版编辑功能。该字段已于 2026-09-23 合并进 `V1__init_schema.sql`，原 V5 已移除，仅用于全新空库初始化。开发只运行隔离测试，未重建业务数据库。详见 `docs/api-spec.md` 的“制作步骤图片”。

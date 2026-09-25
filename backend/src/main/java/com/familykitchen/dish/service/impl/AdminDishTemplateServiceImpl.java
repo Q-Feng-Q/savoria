@@ -21,6 +21,7 @@ import com.familykitchen.dish.model.vo.AdminDishTemplateView;
 import com.familykitchen.dish.model.vo.DishTemplateImageAssetStatusView;
 import com.familykitchen.dish.model.vo.DishTemplateMutationView;
 import com.familykitchen.dish.service.AdminDishTemplateService;
+import com.familykitchen.dish.service.NourishmentFields;
 import com.familykitchen.dish.service.DishTemplateImageStorageService;
 import com.familykitchen.dish.service.DishTemplateProcurementReadinessEvaluator;
 import java.math.BigDecimal;
@@ -68,12 +69,15 @@ public class AdminDishTemplateServiceImpl implements AdminDishTemplateService {
   public AdminDishTemplatePageView page(CurrentUserContext user, AdminDishTemplateQuery rawQuery) {
     requireAdmin(user);
     AdminDishTemplateQuery query = rawQuery.validated();
-    long total = mapper.countAdminTemplates(query.normalizedKeyword(), query.sourceType(),
+    long total = query.productType() == null ? mapper.countAdminTemplates(query.normalizedKeyword(), query.sourceType(),
         query.templateType(), query.dataStatus(), query.normalizedSourceCategory(), query.missingImage(),
-        query.missingSteps());
-    List<AdminDishTemplateView> items = mapper.selectAdminTemplatesPage(query.normalizedKeyword(),
+        query.missingSteps()) : mapper.countAdminTemplatesByProductType(query.normalizedKeyword(), query.sourceType(),
+        query.templateType(), query.dataStatus(), query.normalizedSourceCategory(), query.missingImage(), query.missingSteps(), query.productType());
+    List<AdminDishTemplateView> items = (query.productType() == null ? mapper.selectAdminTemplatesPage(query.normalizedKeyword(),
         query.sourceType(), query.templateType(), query.dataStatus(), query.normalizedSourceCategory(),
-        query.missingImage(), query.missingSteps(), query.offset(), query.normalizedPageSize()).stream()
+        query.missingImage(), query.missingSteps(), query.offset(), query.normalizedPageSize())
+        : mapper.selectAdminTemplatesPageByProductType(query.normalizedKeyword(), query.sourceType(), query.templateType(),
+        query.dataStatus(), query.normalizedSourceCategory(), query.missingImage(), query.missingSteps(), query.offset(), query.normalizedPageSize(), query.productType())).stream()
         .map(this::toListView).toList();
     return new AdminDishTemplatePageView(items, total, query.normalizedPage(), query.normalizedPageSize());
   }
@@ -95,7 +99,8 @@ public class AdminDishTemplateServiceImpl implements AdminDishTemplateService {
         template.getImageRightsStatus(), template.getSortOrder(), Boolean.TRUE.equals(template.getEnabled()),
         template.getVersion(), mapper.selectTemplateSourceRecords(templateId),
         mapper.selectTemplateNameAliases(templateId), mapper.selectTemplateIngredients(templateId),
-        mapper.selectTemplateCookingSteps(templateId), assets);
+        mapper.selectTemplateCookingSteps(templateId), assets, template.getProductType(),
+        template.getNourishmentDescription(), template.getServingAdvice(), template.getPrecautions());
   }
 
   /** {@inheritDoc} */
@@ -121,8 +126,14 @@ public class AdminDishTemplateServiceImpl implements AdminDishTemplateService {
     }
     List<DishTemplateIngredientEntity> ingredients = request.ingredients().stream()
         .map(item -> toIngredient(templateId, item)).toList();
+    var currentSteps = mapper.selectTemplateCookingSteps(templateId);
     List<DishTemplateCookingStepEntity> steps = request.cookingSteps().stream()
-        .map(item -> toStep(templateId, item)).toList();
+        .map(item -> {
+          var row = toStep(templateId, item);
+          row.setImageUrls(com.familykitchen.dish.service.CookingStepImages.resolveTemplate(
+              templateId, item.itemId(), item.imageUrls(), currentSteps));
+          return row;
+        }).toList();
     DishTemplateEntity edited = editableCopy(locked, request);
     RecipeGraph graph = loadGraph(edited, ingredients, steps);
     var readiness = evaluator.evaluate(templateId, List.copyOf(graph.templates.values()), graph.ingredients);
@@ -258,6 +269,7 @@ public class AdminDishTemplateServiceImpl implements AdminDishTemplateService {
   }
 
   private DishTemplateEntity editableCopy(DishTemplateEntity source, AdminDishTemplateUpdateRequest request) {
+    NourishmentFields.apply(source, request.productType(), request.nourishmentDescription(), request.servingAdvice(), request.precautions());
     source.setCategoryId(request.categoryId()); source.setName(request.name().trim());
     source.setDescription(trimToNull(request.description())); source.setReferencePrice(request.referencePrice());
     source.setTasteTags(writeTags(request.tasteTags())); source.setMealTags(writeTags(request.mealTags()));
@@ -292,7 +304,8 @@ public class AdminDishTemplateServiceImpl implements AdminDishTemplateService {
         item.getSourceCategory(), item.getSourceType(), item.getTemplateType(), item.getDataStatus(),
         Boolean.TRUE.equals(item.getProcurementReady()), item.getImageRightsStatus(), item.getImageUrl(),
         item.getReferencePrice(), Boolean.TRUE.equals(item.getMissingSteps()), item.getSourceRevision(),
-        Boolean.TRUE.equals(item.getEnabled()), item.getVersion());
+        Boolean.TRUE.equals(item.getEnabled()), item.getVersion(), item.getProductType(),
+        item.getNourishmentDescription(), item.getServingAdvice(), item.getPrecautions());
   }
 
   private String deriveStatus(DishTemplateEntity template, boolean procurementReady) {

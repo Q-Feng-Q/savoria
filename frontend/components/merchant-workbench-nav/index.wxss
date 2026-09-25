@@ -39,3 +39,10 @@
 .merchant-workbench-nav__item--pressed {
   background: #f4eadc;
 }
+
+.merchant-workbench-nav__bar { background:#fff0d1; border-top-color:#e4cfaa; }
+.merchant-workbench-nav__item { flex-direction:column; gap:6rpx; min-height:106rpx; padding:12rpx 0; color:#806746; font-size:22rpx; }
+.merchant-workbench-nav__icon { width:40rpx; height:40rpx; }
+.merchant-workbench-nav__item--active { color:#c56c35; font-weight:800; }
+.merchant-workbench-nav__item--pressed { background:#f4e3be; }
+.merchant-workbench-nav__spacer { min-height:calc(106rpx + env(safe-area-inset-bottom)); }

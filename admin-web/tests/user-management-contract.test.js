@@ -7,7 +7,7 @@ const read = (file) => fs.readFileSync(path.resolve(__dirname, '..', file), 'utf
 test('platform user management is routed and visible in navigation', () => {
   assert.match(read('ui-config.js'), /key:\s*'users'/);
   assert.match(read('src/router/index.js'), /UsersView/);
-  assert.match(read('src/layouts/AdminLayout.vue'), /'users'/);
+  assert.match(read('src/workspaces.js'), /'\/users'/);
 });
 
 test('user management api uses platform admin user endpoints', () => {

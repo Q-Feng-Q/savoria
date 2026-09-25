@@ -108,3 +108,13 @@ test('cart main rows show totals and reveal member attribution only in details',
   assert.match(wxml, /wx:if="\{\{expandedDishIds\[row\.id\]\}\}"/);
   assert.match(wxml, /item\.memberName.*item\.quantity/s);
 });
+
+test('unavailable cart rows keep decrement active and disable only increment and checkout', () => {
+  const js = read('pages/ordering/cart/index.js');
+  const wxml = read('pages/ordering/cart/index.wxml');
+  const wxss = read('pages/ordering/cart/index.wxss');
+  assert.match(js, /delta\s*>\s*0\s*&&\s*!row\.available/);
+  assert.match(wxml, /wx:if="\{\{!row\.available\}\}"[^>]*class="cart-item-warning"[^>]*>\{\{row\.unavailableReason\}\}/);
+  assert.match(wxml, /data-delta="1"[^>]*is-disabled[^>]*aria-disabled="\{\{!row\.available\}\}"/);
+  assert.match(wxss, /\.cart-item-warning\s*\{[^}]*color:\s*var\(--sk-danger\)/s);
+});

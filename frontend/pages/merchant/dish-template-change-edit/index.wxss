@@ -1,3 +1,5 @@
+@import "../../../styles/storybook-merchant.wxss";
+
 .change-editor { padding-bottom:calc(180rpx + env(safe-area-inset-bottom)); background:var(--sk-bg); }
 .editor-heading { padding:30rpx 4rpx 24rpx; }
 .eyebrow,.editor-title,.editor-copy,.section-title,.field>text,.switch-title,.switch-copy { display:block; }
@@ -20,6 +22,13 @@
 .switch-copy { margin-top:5rpx; color:var(--sk-muted); font-size:19rpx; }
 .text-action,.remove-action { color:#3e8c5c; font-size:22rpx; font-weight:900; }
 .remove-action { color:#b15847; }
+.template-image-editor { display:flex; align-items:center; gap:20rpx; }
+.template-image-editor image,.template-image-empty { width:210rpx; height:158rpx; flex:none; border-radius:20rpx 8rpx 20rpx 8rpx; background:#f4efe7; }
+.template-image-empty { display:flex; align-items:center; justify-content:center; color:var(--sk-muted); font-size:21rpx; }
+.template-image-actions { display:grid; gap:22rpx; }
+.image-rights { display:flex; align-items:flex-start; gap:14rpx; margin-top:20rpx; padding:18rpx; border:2rpx solid var(--sk-line-soft); border-radius:16rpx 7rpx 16rpx 7rpx; color:var(--sk-muted); font-size:21rpx; line-height:1.5; }
+.image-rights--checked { border-color:#56aa73; background:#edf7ef; color:#357d50; }
+.rights-check { display:flex; align-items:center; justify-content:center; width:30rpx; height:30rpx; flex:none; border:2rpx solid #56aa73; border-radius:7rpx; color:#fff; background:#56aa73; }
 .ingredient-editor,.step-editor { margin-top:18rpx; padding:18rpx; border:2rpx dashed #dbcdbd; border-radius:20rpx 8rpx 20rpx 8rpx; background:#fffcf5; }
 .step-editor { border-style:solid; background:#fffdf8; }
 .ingredient-head { display:flex; align-items:center; justify-content:space-between; font-size:23rpx; font-weight:900; }

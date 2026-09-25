@@ -78,7 +78,24 @@ test('createApiRuntime gives file uploads the current token and stable identity 
     }
   });
   await runtime.files.uploadImage('dish.png');
+  assert.equal(uploadOptions.url, 'https://kitchen.test/files/images');
   assert.equal(uploadOptions.header.Authorization, 'Bearer upload-token');
   assert.equal(uploadOptions.header['X-User-Id'], 9);
   assert.equal(uploadOptions.header['X-Merchant-Id'], 12);
+});
+
+test('file upload keeps the api prefix when the configured base url is the proxy root', async () => {
+  let uploadUrl = '';
+  const runtime = createApiRuntime({
+    baseUrl: '/api',
+    sessionStore: { getSession: () => ({ accessToken: 'token' }), getToken: () => 'token' },
+    upload: async (options) => {
+      uploadUrl = options.url;
+      return { statusCode: 200, data: JSON.stringify({ code: 0, data: { url: '/uploads/a.png' } }) };
+    }
+  });
+
+  await runtime.files.uploadImage('dish.png');
+
+  assert.equal(uploadUrl, '/api/files/images');
 });

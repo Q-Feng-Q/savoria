@@ -27,5 +27,7 @@ public record SystemSettingView(
     boolean mobileBindingEnabled,boolean emailBindingEnabled,boolean wechatBindingEnabled,
     String smtpHost,Integer smtpPort,String smtpUsername,String smtpPassword,
     boolean smtpPasswordConfigured,boolean smtpTlsEnabled,String smtpFrom,
-    LocalDateTime updatedAt
+    LocalDateTime updatedAt,
+    String siteLogoSmallUrl, String siteLogoLargeUrl, String siteFaviconUrl,
+    Integer siteLogoSmallSize, Integer siteLogoSize, Integer siteLogoLargeSize
 ) {}

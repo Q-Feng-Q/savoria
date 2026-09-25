@@ -30,7 +30,7 @@ test('profile page uses class-only selectors accepted by the WeChat component co
   const template = fs.readFileSync(path.join(root, 'pages/account/profile/index.wxml'), 'utf8')
 
   assert.doesNotMatch(styles, /\s+text(?=[:\s,{])/)
-  assert.match(template, /class="warm-profile-portrait__welcome-kicker"/)
+  assert.match(template, /<brand-logo size="small"/)
   assert.match(template, /class="warm-profile-portrait__welcome-title"/)
   assert.match(template, /class="profile-family-summary__name"/)
   assert.match(template, /class="profile-family-summary__meta"/)

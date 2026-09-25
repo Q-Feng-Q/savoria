@@ -27,12 +27,23 @@ test('optional address and wallet failures do not hide an existing family', () =
   assert.match(source, /runtime\.family\.getWalletLedgers\(\)\.catch\(\(\) => \[\]\)/);
 });
 
-test('profile recovers realtime family membership when the legacy context response is stale', () => {
+test('profile only requests family home after the identity context confirms a family', () => {
   const source = fs.readFileSync(profilePagePath, 'utf8');
+  const familyDecisionIndex = source.indexOf('identityContext.familyId');
   const homeRequestIndex = source.indexOf('runtime.family.getHome()');
   const unboundDecisionIndex = source.indexOf('if (!effectiveIdentityContext.familyId)');
 
+  assert.ok(familyDecisionIndex >= 0);
   assert.ok(homeRequestIndex >= 0);
+  assert.ok(homeRequestIndex > familyDecisionIndex);
   assert.ok(unboundDecisionIndex > homeRequestIndex);
-  assert.match(source, /familyId:\s*homeData\.family\.familyId/);
+  assert.match(source, /identityContext\.familyId\s*\?\s*await runtime\.family\.getHome\(\)\s*:\s*null/);
+  assert.doesNotMatch(source, /catch\s*\(error\)\s*\{\s*if\s*\(identityContext\.familyId\)/);
+});
+
+test('profile initializes non-data identity guards during page lifecycle', () => {
+  const source = fs.readFileSync(profilePagePath, 'utf8');
+
+  assert.doesNotMatch(source, /Page\(\{\s*identityLoad:/);
+  assert.match(source, /onLoad\(\)\s*\{\s*this\.identityLoad\s*=\s*createIdentityLoadGuard\(\)/);
 });

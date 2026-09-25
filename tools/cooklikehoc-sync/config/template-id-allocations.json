@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "highWaterMark": 549.0,
+  "highWaterMark": 552.0,
   "allocations": [
     {
       "stableKey": "local:DISH_001",
@@ -2746,6 +2746,21 @@
       "stableKey": "source:饮品/鸡笼香柠檬茶.md",
       "id": 549,
       "templateCode": "CLH_549"
+    },
+    {
+      "stableKey": "source:主食/红米糙米红薯饭.md",
+      "id": 550,
+      "templateCode": "CLH_550"
+    },
+    {
+      "stableKey": "source:汤/山药莲子鸡汤.md",
+      "id": 551,
+      "templateCode": "CLH_551"
+    },
+    {
+      "stableKey": "source:炖菜/板栗烧鸡.md",
+      "id": 552,
+      "templateCode": "CLH_552"
     }
   ]
 }

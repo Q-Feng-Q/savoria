@@ -1,4 +1,4 @@
-<view class="warm-page change-editor">
+<view class="merchant-story warm-page change-editor">
   <view class="editor-heading"><text class="eyebrow">SYSTEM DISH</text><text class="editor-title">申请修改模板</text><text class="editor-copy">提交的是完整模板信息，审核通过后会覆盖平台模板，不会改动商户已经导入的菜品。</text></view>
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="模板修改" description="{{errorMessage}}" bind:retry="retryLoad" />
   <view wx:else>
@@ -7,9 +7,21 @@
       <view class="field"><text>菜品名称</text><input value="{{form.name}}" data-field="name" bindinput="bindField" maxlength="100" /></view>
       <view class="field"><text>模板分类</text><picker range="{{categoryNames}}" value="{{categoryIndex}}" bindchange="bindCategory"><view class="picker-control">{{categoryNames[categoryIndex]}}</view></picker></view>
       <view class="field"><text>菜品简介</text><textarea value="{{form.description}}" data-field="description" bindinput="bindField" maxlength="255" /></view>
+      <view wx:if="{{form.templateType !== 'COMPONENT'}}" class="field">
+        <text class="label">菜品类型</text>
+        <picker range="{{productTypes}}" range-key="label" value="{{form.productType === 'NOURISHMENT' ? 1 : 0}}" bindchange="bindProductType" disabled="{{saving || uploadingImage}}"><view class="picker-control">{{form.productType === 'NOURISHMENT' ? '滋补食品' : '普通菜品'}} · 点击选择</view></picker>
+      </view>
+      <view wx:if="{{form.productType === 'NOURISHMENT' && form.templateType !== 'COMPONENT'}}">
+        <text class="muted">每项最多 1000 字，未填写则不展示。请填写食品特点与食用提示，勿填写疾病治疗或疗效保证。</text>
+        <view class="field"><text class="label">滋补介绍（选填）</text><textarea value="{{form.nourishmentDescription}}" data-field="nourishmentDescription" bindinput="bindField" maxlength="1000" disabled="{{saving || uploadingImage}}" placeholder="未填写则不展示" /></view>
+        <view class="field"><text class="label">食用建议（选填）</text><textarea value="{{form.servingAdvice}}" data-field="servingAdvice" bindinput="bindField" maxlength="1000" disabled="{{saving || uploadingImage}}" placeholder="未填写则不展示" /></view>
+        <view class="field"><text class="label">注意事项（选填）</text><textarea value="{{form.precautions}}" data-field="precautions" bindinput="bindField" maxlength="1000" disabled="{{saving || uploadingImage}}" placeholder="未填写则不展示" /></view>
+      </view>
       <view class="field-grid"><view class="field"><text>参考价格</text><input type="digit" value="{{form.referencePrice}}" data-field="referencePrice" bindinput="bindField" /></view><view class="field"><text>排序值</text><input type="number" value="{{form.sortOrder}}" data-field="sortOrder" bindinput="bindField" /></view></view>
       <view class="field"><text>口味标签</text><input value="{{form.tasteTagsText}}" data-field="tasteTagsText" bindinput="bindField" placeholder="用逗号分隔，例如：家常，咸香" /></view>
       <view class="field"><text>推荐餐次</text><view class="choice-row"><view wx:for="{{meals}}" wx:key="value" class="choice {{item.selected ? 'choice--active' : ''}}" data-value="{{item.value}}" bindtap="toggleMeal" aria-role="checkbox" aria-label="选择{{item.label}}" hover-class="ui-button--pressed">{{item.label}}</view></view></view>
+      <view class="field"><text>菜品图片</text><view class="template-image-editor"><image wx:if="{{form.imagePreviewUrl}}" src="{{form.imagePreviewUrl}}" mode="aspectFill" /><view wx:else class="template-image-empty">暂无图片</view><view class="template-image-actions"><view class="text-action" bindtap="chooseTemplateImage" aria-role="button" aria-label="更换图片" hover-class="ui-button--pressed">{{uploadingImage ? '上传中...' : '更换图片'}}</view><view wx:if="{{form.imagePreviewUrl}}" class="remove-action" bindtap="removeTemplateImage" aria-role="button" aria-label="删除模板图片" hover-class="ui-button--pressed">删除图片</view></view></view></view>
+      <view wx:if="{{form.imageAssetId}}" class="image-rights {{form.imageRightsConfirmed ? 'image-rights--checked' : ''}}" bindtap="toggleImageRights" aria-role="checkbox" aria-label="确认拥有模板图片使用权" aria-checked="{{form.imageRightsConfirmed}}" hover-class="ui-button--pressed"><text class="rights-check">{{form.imageRightsConfirmed ? '✓' : ''}}</text><text>我确认拥有该图片使用权，并授权平台审核通过后用于模板菜品</text></view>
       <view class="switch-row" bindtap="toggleEnabled" aria-role="checkbox" aria-label="设置模板启用状态" hover-class="ui-button--pressed"><view><text class="switch-title">审核通过后启用</text><text class="switch-copy">关闭后模板仍保留，但不会在市场中展示</text></view><switch checked="{{form.enabled}}" color="#59ad75" disabled /></view>
     </view>
 
@@ -30,7 +42,7 @@
       <view wx:for="{{form.cookingSteps}}" wx:key="itemId" class="step-editor">
         <view class="ingredient-head"><text>步骤 {{index + 1}}</text><view class="remove-action" data-index="{{index}}" bindtap="removeCookingStep" aria-role="button" aria-label="删除第{{index + 1}}个步骤" hover-class="ui-button--pressed">删除</view></view>
         <view class="field"><text>标题</text><input value="{{item.title}}" data-index="{{index}}" data-field="title" bindinput="bindStepField" maxlength="100" placeholder="可选" /></view>
-        <view class="field"><text>操作内容</text><textarea value="{{item.content}}" data-index="{{index}}" data-field="content" bindinput="bindStepField" placeholder="写清楚处理、火候和先后顺序" /></view>
+        <view class="field"><text>操作内容</text><textarea value="{{item.content}}" data-index="{{index}}" data-field="content" bindinput="bindStepField" placeholder="写清楚处理、火候和先后顺序" /></view><step-images images="{{item.imageUrls}}" editable="{{true}}" disabled="{{saving || uploadingImage || stepUploading}}" data-index="{{index}}" bind:change="onStepImagesChange" bind:busy="onStepImagesBusy" />
         <view class="field-grid"><view class="field"><text>火候</text><input value="{{item.heatLevel}}" data-index="{{index}}" data-field="heatLevel" bindinput="bindStepField" placeholder="例如：小火" /></view><view class="field"><text>时长（秒）</text><input type="number" value="{{item.durationSeconds}}" data-index="{{index}}" data-field="durationSeconds" bindinput="bindStepField" /></view></view>
       </view>
     </view>
@@ -38,4 +50,4 @@
     <view class="form-section"><text class="section-title">提交说明</text><view class="field"><textarea value="{{submitNote}}" bindinput="bindSubmitNote" maxlength="500" placeholder="说明修改原因和主要调整内容，方便管理员审核" /></view></view>
   </view>
 </view>
-<view wx:if="{{phase === 'ready'}}" class="safe-action-bar"><view class="ui-button submit-action {{saving ? 'is-disabled' : ''}}" bindtap="submit" aria-role="button" aria-label="提交模板修改申请" aria-busy="{{saving}}" hover-class="ui-button--pressed">{{saving ? '提交中' : '提交审核'}}</view></view>
+<view wx:if="{{phase === 'ready'}}" class="safe-action-bar merchant-story-bar"><view class="ui-button submit-action {{saving ? 'is-disabled' : ''}}" bindtap="submit" aria-role="button" aria-label="提交模板修改申请" aria-busy="{{saving}}" hover-class="ui-button--pressed">{{saving ? '提交中' : '提交审核'}}</view></view>
