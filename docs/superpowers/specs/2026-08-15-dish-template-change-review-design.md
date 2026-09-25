@@ -42,7 +42,7 @@ V8 新增 `dish_template_change_requests` 表，不创建物理外键：
 | `result_notification_id` | `bigint NULL` | 终态结果通知 ID |
 | `pending_marker` | `tinyint GENERATED ALWAYS AS (...) STORED` | `PENDING` 时为 1，其他状态为 `NULL` |
 
-生成列表达式为 `CASE WHEN status='PENDING' THEN 1 ELSE NULL END`；增加 `CHECK (status IN ('PENDING','APPROVED','REJECTED','WITHDRAWN'))`；唯一索引为 `(merchant_id,template_id,pending_marker)`。普通索引为 `(status,submitted_at,id)`、`(merchant_id,status,submitted_at,id)` 和 `(template_id,status,submitted_at,id)`。表及字段使用中文注释，表选项为 `ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`，不创建物理外键。
+生成列表达式为 `CASE WHEN status='PENDING' THEN 1 ELSE NULL END`；增加 `CHECK (status IN ('PENDING','APPROVED','REJECTED','WITHDRAWN'))`；唯一索引为 `(merchant_id,template_id,pending_marker)`。普通索引为 `(status,submitted_at,id)`、`(merchant_id,status,submitted_at,id)` 和 `(template_id,status,submitted_at,id)`。表及字段使用中文注释，表选项为 `ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci`，不创建物理外键。
 
 实体沿用项目现状使用 MyBatis-Plus `@TableName/@TableId/@TableField` 描述表映射，同时 Mapper 接口和 XML 使用 `resultMap` 执行 SQL；Service 直接调用 Mapper，保持传统 Controller-Service-Mapper 分层。
 
