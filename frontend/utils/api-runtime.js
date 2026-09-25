@@ -11,6 +11,11 @@ const { createFilesService } = require('../services/files');
 const { createUserService } = require('../services/user');
 const { createSystemService } = require('../services/system');
 const { createFeedbackService } = require('../services/feedback');
+const {
+  createCloudRequestAdapter,
+  createCloudTransferAdapter,
+  resolveCloudHostingConfig
+} = require('./cloud-hosting');
 
 function resolveApp(app) {
   if (app) return app;
@@ -42,11 +47,30 @@ function resolveNotificationScope(session) {
 
 function createApiRuntime(options = {}) {
   const app = resolveApp(options.app);
-  const baseUrl = options.baseUrl || resolveBaseUrl(app);
+  const cloudHosting = resolveCloudHostingConfig(app);
+  const baseUrl = options.baseUrl || cloudHosting.assetBaseUrl || resolveBaseUrl(app);
   const sessionStore = options.sessionStore || resolveSessionStore(app);
+  const requestAdapter = options.request || (cloudHosting.enabled
+    ? createCloudRequestAdapter({
+      ...cloudHosting,
+      callContainer: options.callContainer
+    })
+    : undefined);
+  const uploadAdapter = options.upload || (cloudHosting.enabled
+    ? createCloudTransferAdapter('uploadFile', {
+      service: cloudHosting.service,
+      transfer: options.uploadFile
+    })
+    : undefined);
+  const downloadAdapter = options.download || (cloudHosting.enabled
+    ? createCloudTransferAdapter('downloadFile', {
+      service: cloudHosting.service,
+      transfer: options.downloadFile
+    })
+    : undefined);
   const request = createApiClient({
     baseUrl,
-    request: options.request,
+    request: requestAdapter,
     getSession: () => sessionStore.getSession(),
     getToken: () => sessionStore.getToken()
   });
@@ -54,12 +78,13 @@ function createApiRuntime(options = {}) {
   return {
     app,
     baseUrl,
+    cloudHosting,
     request,
     sessionStore,
     auth: createAuthService({ request }),
     user: createUserService({ request }),
     system: createSystemService({ request }),
-    feedback: createFeedbackService({ request, baseUrl, getSession: () => sessionStore.getSession(), upload: options.upload, download: options.download }),
+    feedback: createFeedbackService({ request, baseUrl, getSession: () => sessionStore.getSession(), upload: uploadAdapter, download: downloadAdapter }),
     family: createFamilyService({ request }),
     cart: createCartService({ request }),
     orders: createOrdersService({ request }),
@@ -70,7 +95,7 @@ function createApiRuntime(options = {}) {
       request,
       baseUrl,
       getSession: () => sessionStore.getSession(),
-      upload: options.upload
+      upload: uploadAdapter
     })
   };
 }

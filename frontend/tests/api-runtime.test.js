@@ -99,3 +99,44 @@ test('file upload keeps the api prefix when the configured base url is the proxy
 
   assert.equal(uploadUrl, '/api/files/images');
 });
+
+test('createApiRuntime selects cloud hosting for api calls and file transfers', async () => {
+  let requestOptions;
+  let uploadOptions;
+  const app = {
+    globalData: {
+      apiBaseUrl: 'https://prod-env.service.tcloudbase.com',
+      cloudHosting: {
+        enabled: true,
+        env: 'prod-env',
+        service: 'springboot-service',
+        assetBaseUrl: 'https://prod-env.service.tcloudbase.com'
+      },
+      sessionStore: {
+        getSession: () => ({ accessToken: 'cloud-token', familyId: 3 }),
+        getToken: () => 'cloud-token'
+      }
+    }
+  };
+  const runtime = createApiRuntime({
+    app,
+    callContainer: async (options) => {
+      requestOptions = options;
+      return { statusCode: 200, data: { code: 0, data: [] } };
+    },
+    uploadFile: async (options) => {
+      uploadOptions = options;
+      return { statusCode: 200, data: JSON.stringify({ code: 0, data: { url: '/uploads/cloud.png' } }) };
+    }
+  });
+
+  await runtime.orders.listOrders();
+  await runtime.files.uploadImage('cloud.png');
+
+  assert.equal(requestOptions.path, '/family/orders');
+  assert.equal(requestOptions.header['X-WX-SERVICE'], 'springboot-service');
+  assert.equal(requestOptions.header.Authorization, 'Bearer cloud-token');
+  assert.equal(uploadOptions.url, 'https://prod-env.service.tcloudbase.com/files/images');
+  assert.equal(uploadOptions.header['X-WX-SERVICE'], 'springboot-service');
+  assert.equal(runtime.cloudHosting.enabled, true);
+});

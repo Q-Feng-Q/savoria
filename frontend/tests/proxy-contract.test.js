@@ -5,9 +5,12 @@ const path = require('node:path');
 
 const frontendRoot = path.resolve(__dirname, '..');
 
-test('mini program directly targets backend while transport strips the api prefix', () => {
+test('mini program production config targets the approved cloud hosting service', () => {
   const appSource = fs.readFileSync(path.join(frontendRoot, 'app.js'), 'utf8');
-  assert.match(appSource, /apiBaseUrl:\s*['"]http:\/\/127\.0\.0\.1:8080['"]/);
+  assert.match(appSource, /const CLOUD_ENV = 'prod-d5g0vleyp9ed264bf'/);
+  assert.match(appSource, /const CLOUD_SERVICE = 'springboot-6dl0'/);
+  assert.match(appSource, /wx\.cloud\.init\(/);
+  assert.match(appSource, /enabled:\s*true/);
 });
 
 test('proxy has a start script and development files stay outside the upload package', () => {
