@@ -4,11 +4,10 @@
 
 - 云环境：`prod-d5g0vleyp9ed264bf`
 - 云托管服务：`springboot-6dl0`
-- 容器入口：Nginx 监听 `0.0.0.0:8080`
-- 应用端口：Spring Boot 监听 `0.0.0.0:8081`
+- 容器入口：Spring Boot 直接监听云托管注入的 `PORT`（当前为 `8081`）
 - 数据库：云开发 MySQL 或可由云托管访问的腾讯云 MySQL
 
-云托管容器只运行 Nginx 和 Spring Boot，不内置 MySQL。服务允许缩容到零并扩容到多个实例，容器本地磁盘不能作为生产数据库持久化层。
+云托管容器只打包并运行后端 JAR，不包含 Nginx、前端或 MySQL。服务允许缩容到零并扩容到多个实例，容器本地磁盘不能作为生产数据库持久化层。
 
 ## 部署前配置
 
@@ -25,9 +24,7 @@
 
 以下非敏感变量已经由 `container.config.json` 提供：
 
-- `PORT=8080`
-- `SERVER_ADDRESS=0.0.0.0`
-- `SERVER_PORT=8081`
+- `PORT=8081`
 - `MYSQL_DATABASE=family_kitchen`
 - `FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_USERNAME=admin`
 - `FAMILY_KITCHEN_WECHAT_APP_ID=wx092b0184d87bf822`
@@ -41,14 +38,11 @@
 环境变量保存后重新触发 Git 仓库部署。正常启动日志顺序应包含：
 
 ```text
-[cloudrun-entrypoint] database=<地址>/family_kitchen user=<账号> gateway=8080 app=0.0.0.0:8081
-[cloudrun-entrypoint] starting Spring Boot on 0.0.0.0:8081
-[cloudrun-entrypoint] starting Nginx on 0.0.0.0:8080
 Tomcat started on port(s): 8081
 Started FamilyKitchenApplication
 ```
 
-首次连接空数据库时 Flyway 会执行初始化脚本，因此探针延迟设置为 300 秒。若缺少配置，容器会直接输出 `missing required environment variable: ...`；若数据库网络不可达，继续检查 MySQL 地址、私有网络和安全组。
+首次连接空数据库时 Flyway 会执行初始化脚本，因此探针延迟设置为 300 秒。若缺少配置，Spring Boot 会在启动时报告对应配置错误；若数据库网络不可达，继续检查 MySQL 地址、私有网络和安全组。
 
 ## 小程序调用
 

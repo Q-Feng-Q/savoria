@@ -1,0 +1,7 @@
+*
+!backend/
+!backend/**
+!docker/
+!docker/cloud-hosting-full/
+!docker/cloud-hosting-full/cloudrun-entrypoint.sh
+!docker/cloud-hosting-full/cloudrun-nginx.conf

@@ -1,5 +1,5 @@
 {
-  "containerPort": 8081,
+  "containerPort": 8080,
   "minNum": 0,
   "maxNum": 2,
   "cpu": 1,
@@ -17,7 +17,9 @@
     }
   ],
   "envParams": {
-    "PORT": "8081",
+    "PORT": "8080",
+    "SERVER_ADDRESS": "0.0.0.0",
+    "SERVER_PORT": "8081",
     "MYSQL_DATABASE": "family_kitchen",
     "FAMILY_KITCHEN_AUTH_BOOTSTRAP_ADMIN_USERNAME": "admin",
     "FAMILY_KITCHEN_WECHAT_APP_ID": "wx092b0184d87bf822"
