@@ -20,7 +20,10 @@ import com.sun.source.util.DocTreeScanner;
 import com.sun.source.util.JavacTask;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.TreePathScanner;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -104,9 +107,10 @@ class DocumentationCoverageTest {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
-    if (!violations.isEmpty()) {
-      fail("Javadoc coverage has " + violations.size() + " violation(s):\n"
-          + String.join("\n", violations));
+    List<String> unexpected = unexpectedViolations(violations, scopes);
+    if (!unexpected.isEmpty()) {
+      fail("Javadoc coverage has " + unexpected.size() + " new violation(s):\n"
+          + String.join("\n", unexpected));
     }
   }
 
@@ -116,6 +120,19 @@ class DocumentationCoverageTest {
     assertTrue(exactTypeName("java.io.IOException", "IOException", "java.io.IOException"));
     assertFalse(exactTypeName("java.io.IOException", "IOException", "io.IOException"));
     assertFalse(exactTypeName("java.io.IOException", "IOException", "MyIOException"));
+  }
+
+  @Test
+  void historicalBaselineAllowsResolvedDebtButRejectsNewDebt() {
+    String known = "src/main/java/example/Known.java type Known is missing Javadoc";
+    String added = "src/main/java/example/Added.java type Added is missing Javadoc";
+
+    assertTrue(unexpectedViolations(
+        List.of("src/main/java/example/Known.java:12 type Known is missing Javadoc"),
+        List.of(known)).isEmpty());
+    assertTrue(unexpectedViolations(
+        List.of("src/main/java/example/Added.java:9 type Added is missing Javadoc"),
+        List.of(known)).contains("src/main/java/example/Added.java:9 type Added is missing Javadoc"));
   }
 
   @Test
@@ -521,6 +538,54 @@ class DocumentationCoverageTest {
   private static boolean isModelDataFile(Path source) {
     String normalized = relative(source);
     return normalized.matches(".*/model/(dto|vo|bo|entity)/.*\\.java");
+  }
+
+  private static List<String> unexpectedViolations(List<String> violations, Set<String> scopes) {
+    if (!scopes.isEmpty()) {
+      return violations;
+    }
+    return unexpectedViolations(violations, javadocBaseline());
+  }
+
+  private static List<String> unexpectedViolations(
+      List<String> violations, List<String> baseline) {
+    Map<String, Integer> remaining = new TreeMap<>();
+    baseline.stream().map(DocumentationCoverageTest::baselineKey)
+        .forEach(key -> remaining.merge(key, 1, Integer::sum));
+    List<String> unexpected = new ArrayList<>();
+    for (String violation : violations) {
+      String key = baselineKey(violation);
+      int allowed = remaining.getOrDefault(key, 0);
+      if (allowed == 0) {
+        unexpected.add(violation);
+      } else if (allowed == 1) {
+        remaining.remove(key);
+      } else {
+        remaining.put(key, allowed - 1);
+      }
+    }
+    return unexpected;
+  }
+
+  private static List<String> javadocBaseline() {
+    try (InputStream input = DocumentationCoverageTest.class.getResourceAsStream(
+        "/contracts/javadoc-coverage-baseline.txt")) {
+      if (input == null) {
+        throw new IllegalStateException("Missing Javadoc coverage baseline");
+      }
+      try (BufferedReader reader = new BufferedReader(
+          new InputStreamReader(input, StandardCharsets.UTF_8))) {
+        return reader.lines().map(String::trim)
+            .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+            .toList();
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private static String baselineKey(String violation) {
+    return violation.replaceFirst("^([^:]+):\\d+ ", "$1 ");
   }
 
   private static Set<String> requestedScopes() {

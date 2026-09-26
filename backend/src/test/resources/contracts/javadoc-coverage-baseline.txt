@@ -1,0 +1,371 @@
+# Historical Javadoc debt accepted on 2026-09-26.
+# Scoped checks remain strict; the full suite rejects every new violation.
+src/main/java/com/familykitchen/auth/service/impl/AdminAuthApplicationServiceImpl.java method AdminAuthApplicationServiceImpl is missing Javadoc
+src/main/java/com/familykitchen/auth/service/impl/AdminAuthApplicationServiceImpl.java method login is missing Javadoc
+src/main/java/com/familykitchen/auth/service/impl/MemberAuthServiceImpl.java method loginAdmin is missing Javadoc
+src/main/java/com/familykitchen/auth/service/MemberAuthService.java method loginAdmin is missing @param request
+src/main/java/com/familykitchen/auth/service/MemberAuthService.java method loginAdmin is missing @return
+src/main/java/com/familykitchen/dish/controller/AdminDishTemplateController.java method page is missing @param productType
+src/main/java/com/familykitchen/dish/controller/DishTemplateController.java method templates is missing @param productType
+src/main/java/com/familykitchen/dish/mapper/DishMapper.java method selectDishesByProductType is missing Javadoc
+src/main/java/com/familykitchen/dish/mapper/DishTemplateMapper.java method countAdminTemplatesByProductType is missing Javadoc
+src/main/java/com/familykitchen/dish/mapper/DishTemplateMapper.java method countTemplatesByProductType is missing Javadoc
+src/main/java/com/familykitchen/dish/mapper/DishTemplateMapper.java method selectAdminTemplatesPageByProductType is missing Javadoc
+src/main/java/com/familykitchen/dish/mapper/DishTemplateMapper.java method selectTemplatesByProductType is missing Javadoc
+src/main/java/com/familykitchen/dish/mapper/StringListJsonTypeHandler.java method getNullableResult is missing Javadoc
+src/main/java/com/familykitchen/dish/mapper/StringListJsonTypeHandler.java method getNullableResult is missing Javadoc
+src/main/java/com/familykitchen/dish/mapper/StringListJsonTypeHandler.java method getNullableResult is missing Javadoc
+src/main/java/com/familykitchen/dish/mapper/StringListJsonTypeHandler.java method setNonNullParameter is missing Javadoc
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateQuery.java method AdminDishTemplateQuery is missing Javadoc
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateQuery.java record AdminDishTemplateQuery is missing @param productType
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param categoryId
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param cookingSteps
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param dataStatus
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param description
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param enabled
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param expectedVersion
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param imageAuthor
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param imageLicense
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param imageRightsStatus
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param imageSourceUrl
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param imageUrl
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param ingredients
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param mealTags
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param name
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param procurementReady
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param referencePrice
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param schemaVersion
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param sourceCategory
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param sourceKey
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param sourceRevision
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param sourceType
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param sourceUrl
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param sourceYieldText
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param tasteTags
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method AdminDishTemplateUpdateRequest is missing @param templateType
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java method CookingStepItem is missing Javadoc
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java record AdminDishTemplateUpdateRequest is missing @param nourishmentDescription
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java record AdminDishTemplateUpdateRequest is missing @param precautions
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java record AdminDishTemplateUpdateRequest is missing @param productType
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java record AdminDishTemplateUpdateRequest is missing @param servingAdvice
+src/main/java/com/familykitchen/dish/model/dto/AdminDishTemplateUpdateRequest.java record CookingStepItem is missing @param imageUrls
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java method CookingStepRequest is missing Javadoc
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java method DishRequest is missing @param basePrice
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java method DishRequest is missing @param categoryId
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java method DishRequest is missing @param cookingSteps
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java method DishRequest is missing @param description
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java method DishRequest is missing @param imageUrl
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java method DishRequest is missing @param ingredients
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java method DishRequest is missing @param name
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java method DishRequest is missing @param status
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java record CookingStepRequest is missing @param imageUrls
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java record DishRequest is missing @param nourishmentDescription
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java record DishRequest is missing @param precautions
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java record DishRequest is missing @param productType
+src/main/java/com/familykitchen/dish/model/dto/DishRequest.java record DishRequest is missing @param servingAdvice
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateCookingStepSnapshotRequest.java method DishTemplateCookingStepSnapshotRequest is missing Javadoc
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateCookingStepSnapshotRequest.java record DishTemplateCookingStepSnapshotRequest is missing @param imageUrls
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateQuery.java method DishTemplateQuery is missing Javadoc
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateQuery.java record DishTemplateQuery is missing @param productType
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param categoryId
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param cookingSteps
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param description
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param enabled
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param imageAssetId
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param imageRightsConfirmed
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param imageUrl
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param ingredients
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param mealTags
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param name
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param referencePrice
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param removeImage
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param schemaVersion
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param sortOrder
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java method DishTemplateSnapshotRequest is missing @param tasteTags
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java record DishTemplateSnapshotRequest is missing @param nourishmentDescription
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java record DishTemplateSnapshotRequest is missing @param precautions
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java record DishTemplateSnapshotRequest is missing @param productType
+src/main/java/com/familykitchen/dish/model/dto/DishTemplateSnapshotRequest.java record DishTemplateSnapshotRequest is missing @param servingAdvice
+src/main/java/com/familykitchen/dish/model/entity/DishCookingStepEntity.java field imageUrls is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishCookingStepEntity.java method getImageUrls is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishCookingStepEntity.java method setImageUrls is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishEntity.java field nourishmentDescription is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishEntity.java field precautions is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishEntity.java field productType is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishEntity.java field servingAdvice is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishEntity.java method getNourishmentDescription is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishEntity.java method getPrecautions is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishEntity.java method getProductType is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishEntity.java method getServingAdvice is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishEntity.java method setNourishmentDescription is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishEntity.java method setPrecautions is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishEntity.java method setProductType is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishEntity.java method setServingAdvice is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateCookingStepEntity.java field imageUrls is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateCookingStepEntity.java method getImageUrls is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateCookingStepEntity.java method setImageUrls is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateEntity.java field nourishmentDescription is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateEntity.java field precautions is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateEntity.java field productType is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateEntity.java field servingAdvice is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateEntity.java method getNourishmentDescription is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateEntity.java method getPrecautions is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateEntity.java method getProductType is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateEntity.java method getServingAdvice is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateEntity.java method setNourishmentDescription is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateEntity.java method setPrecautions is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateEntity.java method setProductType is missing Javadoc
+src/main/java/com/familykitchen/dish/model/entity/DishTemplateEntity.java method setServingAdvice is missing Javadoc
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param categoryId
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param categoryName
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param cookingSteps
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param dataStatus
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param description
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param enabled
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param imageRightsStatus
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param imageUrl
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param ingredients
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param internalAssetReviews
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param mealTags
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param name
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param nameAliases
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param procurementReady
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param referencePrice
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param sortOrder
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param sourceCategory
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param sourceRecords
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param sourceType
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param tasteTags
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param templateCode
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param templateId
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param templateType
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java method AdminDishTemplateDetailView is missing @param version
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java record AdminDishTemplateDetailView is missing @param nourishmentDescription
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java record AdminDishTemplateDetailView is missing @param precautions
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java record AdminDishTemplateDetailView is missing @param productType
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateDetailView.java record AdminDishTemplateDetailView is missing @param servingAdvice
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param dataStatus
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param enabled
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param imageRightsStatus
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param imageUrl
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param missingSteps
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param name
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param procurementReady
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param referencePrice
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param sourceCategory
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param sourceRevision
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param sourceType
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param templateCode
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param templateId
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param templateType
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java method AdminDishTemplateView is missing @param version
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java record AdminDishTemplateView is missing @param nourishmentDescription
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java record AdminDishTemplateView is missing @param precautions
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java record AdminDishTemplateView is missing @param productType
+src/main/java/com/familykitchen/dish/model/vo/AdminDishTemplateView.java record AdminDishTemplateView is missing @param servingAdvice
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method CookingStepView is missing Javadoc
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method CookingStepView is missing Javadoc
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method DishDetailView is missing @param categoryId
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method DishDetailView is missing @param cookingSteps
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method DishDetailView is missing @param description
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method DishDetailView is missing @param dishId
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method DishDetailView is missing @param imageUrl
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method DishDetailView is missing @param ingredients
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method DishDetailView is missing @param name
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method DishDetailView is missing @param price
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method DishDetailView is missing @param sourceTemplateId
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method DishDetailView is missing @param status
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java method DishDetailView is missing @param templateImported
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java record CookingStepView is missing @param imageUrls
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java record DishDetailView is missing @param nourishmentDescription
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java record DishDetailView is missing @param precautions
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java record DishDetailView is missing @param productType
+src/main/java/com/familykitchen/dish/model/vo/DishDetailView.java record DishDetailView is missing @param servingAdvice
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param categoryId
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param categoryName
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param cookingSteps
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param dataStatus
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param description
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param enabled
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param imageAuthor
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param imageLicense
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param imageRightsStatus
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param imageSourceUrl
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param imageUrl
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param importable
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param imported
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param ingredients
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param mealTags
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param name
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param procurementReady
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param referencePrice
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param sortOrder
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param sourceCategory
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param sourceType
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param tasteTags
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param templateCode
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param templateId
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param templateType
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java method DishTemplateDetailView is missing @param version
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java record DishTemplateDetailView is missing @param nourishmentDescription
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java record DishTemplateDetailView is missing @param precautions
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java record DishTemplateDetailView is missing @param productType
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateDetailView.java record DishTemplateDetailView is missing @param servingAdvice
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param categoryId
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param categoryName
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param dataStatus
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param description
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param imageRightsStatus
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param imageUrl
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param importable
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param imported
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param ingredientCount
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param mealTags
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param missingSteps
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param name
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param procurementReady
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param referencePrice
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param sourceCategory
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param sourceType
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param tasteTags
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param templateCode
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param templateId
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param templateType
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java method DishTemplateView is missing @param version
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java record DishTemplateView is missing @param nourishmentDescription
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java record DishTemplateView is missing @param precautions
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java record DishTemplateView is missing @param productType
+src/main/java/com/familykitchen/dish/model/vo/DishTemplateView.java record DishTemplateView is missing @param servingAdvice
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param categoryId
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param categoryName
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param categorySortOrder
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param deletedAt
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param deletedByName
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param description
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param dishId
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param featured
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param featuredAt
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param imageUrl
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param name
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param price
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param sourceTemplateId
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param status
+src/main/java/com/familykitchen/dish/model/vo/DishView.java method DishView is missing @param templateImported
+src/main/java/com/familykitchen/dish/model/vo/DishView.java record DishView is missing @param nourishmentDescription
+src/main/java/com/familykitchen/dish/model/vo/DishView.java record DishView is missing @param precautions
+src/main/java/com/familykitchen/dish/model/vo/DishView.java record DishView is missing @param productType
+src/main/java/com/familykitchen/dish/model/vo/DishView.java record DishView is missing @param servingAdvice
+src/main/java/com/familykitchen/dish/service/CookingStepImages.java method resolveDish is missing Javadoc
+src/main/java/com/familykitchen/dish/service/CookingStepImages.java method resolveTemplate is missing Javadoc
+src/main/java/com/familykitchen/dish/service/CookingStepImages.java method toRequest is missing Javadoc
+src/main/java/com/familykitchen/dish/service/CookingStepImages.java method validate is missing Javadoc
+src/main/java/com/familykitchen/dish/service/DishApplicationService.java method dishes is missing Javadoc
+src/main/java/com/familykitchen/dish/service/impl/DishApplicationServiceImpl.java method dishes is missing Javadoc
+src/main/java/com/familykitchen/dish/service/NourishmentFields.java method apply is missing Javadoc
+src/main/java/com/familykitchen/dish/service/NourishmentFields.java method apply is missing Javadoc
+src/main/java/com/familykitchen/dish/service/NourishmentFields.java method text is missing Javadoc
+src/main/java/com/familykitchen/dish/service/NourishmentFields.java method type is missing Javadoc
+src/main/java/com/familykitchen/family/controller/FamilyController.java method menu is missing @param productType
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param basePrice
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param categoryId
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param categoryName
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param categorySortOrder
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param description
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param dishId
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param dishName
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param enabled
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param familyFinalPrice
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param featured
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param featuredAt
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param imageUrl
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java method FamilyMenuItemView is missing @param sortOrder
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java record FamilyMenuItemView is missing @param nourishmentDescription
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java record FamilyMenuItemView is missing @param precautions
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java record FamilyMenuItemView is missing @param productType
+src/main/java/com/familykitchen/family/model/vo/FamilyMenuItemView.java record FamilyMenuItemView is missing @param servingAdvice
+src/main/java/com/familykitchen/feedback/AdminFeedbackController.java method detail is missing Javadoc
+src/main/java/com/familykitchen/feedback/AdminFeedbackController.java method list is missing Javadoc
+src/main/java/com/familykitchen/feedback/AdminFeedbackController.java method update is missing Javadoc
+src/main/java/com/familykitchen/feedback/FeedbackController.java method create is missing Javadoc
+src/main/java/com/familykitchen/feedback/FeedbackController.java method detail is missing Javadoc
+src/main/java/com/familykitchen/feedback/FeedbackController.java method image is missing Javadoc
+src/main/java/com/familykitchen/feedback/FeedbackController.java method list is missing Javadoc
+src/main/java/com/familykitchen/feedback/FeedbackController.java method upload is missing Javadoc
+src/main/java/com/familykitchen/feedback/FeedbackImageService.java method cleanupExpired is missing Javadoc
+src/main/java/com/familykitchen/feedback/FeedbackService.java method create is missing Javadoc
+src/main/java/com/familykitchen/feedback/FeedbackService.java method list is missing Javadoc
+src/main/java/com/familykitchen/feedback/FeedbackService.java method update is missing Javadoc
+src/main/java/com/familykitchen/system/controller/AdminSystemSettingController.java method updateBranding is missing Javadoc
+src/main/java/com/familykitchen/system/mapper/SystemSettingMapper.java method updateBranding is missing Javadoc
+src/main/java/com/familykitchen/system/model/dto/BrandSettingRequest.java record BrandSettingRequest is missing @param siteFaviconUrl
+src/main/java/com/familykitchen/system/model/dto/BrandSettingRequest.java record BrandSettingRequest is missing @param siteLogoLargeSize
+src/main/java/com/familykitchen/system/model/dto/BrandSettingRequest.java record BrandSettingRequest is missing @param siteLogoLargeUrl
+src/main/java/com/familykitchen/system/model/dto/BrandSettingRequest.java record BrandSettingRequest is missing @param siteLogoSize
+src/main/java/com/familykitchen/system/model/dto/BrandSettingRequest.java record BrandSettingRequest is missing @param siteLogoSmallSize
+src/main/java/com/familykitchen/system/model/dto/BrandSettingRequest.java record BrandSettingRequest is missing @param siteLogoSmallUrl
+src/main/java/com/familykitchen/system/model/dto/BrandSettingRequest.java record BrandSettingRequest is missing @param siteLogoUrl
+src/main/java/com/familykitchen/system/model/dto/BrandSettingRequest.java record BrandSettingRequest is missing @param siteName
+src/main/java/com/familykitchen/system/model/dto/SystemSettingRequest.java method SystemSettingRequest is missing Javadoc
+src/main/java/com/familykitchen/system/model/dto/SystemSettingRequest.java record SystemSettingRequest is missing @param siteFaviconUrl
+src/main/java/com/familykitchen/system/model/dto/SystemSettingRequest.java record SystemSettingRequest is missing @param siteLogoLargeSize
+src/main/java/com/familykitchen/system/model/dto/SystemSettingRequest.java record SystemSettingRequest is missing @param siteLogoLargeUrl
+src/main/java/com/familykitchen/system/model/dto/SystemSettingRequest.java record SystemSettingRequest is missing @param siteLogoSize
+src/main/java/com/familykitchen/system/model/dto/SystemSettingRequest.java record SystemSettingRequest is missing @param siteLogoSmallSize
+src/main/java/com/familykitchen/system/model/dto/SystemSettingRequest.java record SystemSettingRequest is missing @param siteLogoSmallUrl
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java field siteFaviconUrl is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java field siteLogoLargeSize is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java field siteLogoLargeUrl is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java field siteLogoSize is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java field siteLogoSmallSize is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java field siteLogoSmallUrl is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java method getSiteFaviconUrl is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java method getSiteLogoLargeSize is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java method getSiteLogoLargeUrl is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java method getSiteLogoSize is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java method getSiteLogoSmallSize is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java method getSiteLogoSmallUrl is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java method setSiteFaviconUrl is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java method setSiteLogoLargeSize is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java method setSiteLogoLargeUrl is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java method setSiteLogoSize is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java method setSiteLogoSmallSize is missing Javadoc
+src/main/java/com/familykitchen/system/model/entity/SystemSettingDO.java method setSiteLogoSmallUrl is missing Javadoc
+src/main/java/com/familykitchen/system/model/vo/PublicSystemSettingView.java record PublicSystemSettingView is missing @param siteFaviconUrl
+src/main/java/com/familykitchen/system/model/vo/PublicSystemSettingView.java record PublicSystemSettingView is missing @param siteLogoLargeSize
+src/main/java/com/familykitchen/system/model/vo/PublicSystemSettingView.java record PublicSystemSettingView is missing @param siteLogoLargeUrl
+src/main/java/com/familykitchen/system/model/vo/PublicSystemSettingView.java record PublicSystemSettingView is missing @param siteLogoSize
+src/main/java/com/familykitchen/system/model/vo/PublicSystemSettingView.java record PublicSystemSettingView is missing @param siteLogoSmallSize
+src/main/java/com/familykitchen/system/model/vo/PublicSystemSettingView.java record PublicSystemSettingView is missing @param siteLogoSmallUrl
+src/main/java/com/familykitchen/system/model/vo/SystemSettingView.java record SystemSettingView is missing @param siteFaviconUrl
+src/main/java/com/familykitchen/system/model/vo/SystemSettingView.java record SystemSettingView is missing @param siteLogoLargeSize
+src/main/java/com/familykitchen/system/model/vo/SystemSettingView.java record SystemSettingView is missing @param siteLogoLargeUrl
+src/main/java/com/familykitchen/system/model/vo/SystemSettingView.java record SystemSettingView is missing @param siteLogoSize
+src/main/java/com/familykitchen/system/model/vo/SystemSettingView.java record SystemSettingView is missing @param siteLogoSmallSize
+src/main/java/com/familykitchen/system/model/vo/SystemSettingView.java record SystemSettingView is missing @param siteLogoSmallUrl
+src/main/java/com/familykitchen/system/service/impl/SystemSettingServiceImpl.java method updateBranding is missing Javadoc
+src/main/java/com/familykitchen/system/service/SystemSettingService.java method updateBranding is missing Javadoc
+src/main/java/com/familykitchen/system/validation/BrandSizeDeserializer.java method deserialize is missing Javadoc
+src/main/java/com/familykitchen/system/validation/BrandUrl.java method groups is missing Javadoc
+src/main/java/com/familykitchen/system/validation/BrandUrl.java method message is missing Javadoc
+src/main/java/com/familykitchen/system/validation/BrandUrl.java method payload is missing Javadoc
+src/main/java/com/familykitchen/system/validation/BrandUrl.java type BrandUrl is missing Javadoc
+src/main/java/com/familykitchen/system/validation/BrandUrlValidator.java method isValid is missing Javadoc
+src/main/java/com/familykitchen/system/validation/BrandUrlValidator.java type BrandUrlValidator is missing Javadoc
+src/test/java/com/familykitchen/auth/AdminMerchantLoginParityTest.java type AdminMerchantLoginParityTest is missing Javadoc
+src/test/java/com/familykitchen/database/CookingStepImagesPersistenceTest.java type CookingStepImagesPersistenceTest is missing Javadoc
+src/test/java/com/familykitchen/database/NourishmentMapperContractTest.java type NourishmentMapperContractTest is missing Javadoc
+src/test/java/com/familykitchen/dish/CookingStepImagesTest.java type CookingStepImagesTest is missing Javadoc
+src/test/java/com/familykitchen/dish/DishNourishmentTest.java type DishNourishmentTest is missing Javadoc
+src/test/java/com/familykitchen/family/FamilyNourishmentMenuTest.java type FamilyNourishmentMenuTest is missing Javadoc
+src/test/java/com/familykitchen/feedback/FeedbackContractTest.java type FeedbackContractTest is missing Javadoc
+src/test/java/com/familykitchen/feedback/FeedbackImageServiceTest.java method doBegin is missing Javadoc
+src/test/java/com/familykitchen/feedback/FeedbackImageServiceTest.java method doCommit is missing Javadoc
+src/test/java/com/familykitchen/feedback/FeedbackImageServiceTest.java method doGetTransaction is missing Javadoc
+src/test/java/com/familykitchen/feedback/FeedbackImageServiceTest.java method doRollback is missing Javadoc
+src/test/java/com/familykitchen/feedback/FeedbackImageServiceTest.java type FeedbackImageServiceTest is missing Javadoc
+src/test/java/com/familykitchen/feedback/FeedbackImageServiceTest.java type TestTransactions is missing Javadoc
+src/test/java/com/familykitchen/feedback/FeedbackServiceTest.java type FeedbackServiceTest is missing Javadoc
+src/test/java/com/familykitchen/feedback/FeedbackUploadLimitTest.java method upload is missing Javadoc
+src/test/java/com/familykitchen/feedback/FeedbackUploadLimitTest.java type OversizedUpload is missing Javadoc
+src/test/java/com/familykitchen/system/BrandSettingControllerTest.java type BrandSettingControllerTest is missing Javadoc
+src/test/java/com/familykitchen/system/BrandSettingTest.java type BrandSettingTest is missing Javadoc

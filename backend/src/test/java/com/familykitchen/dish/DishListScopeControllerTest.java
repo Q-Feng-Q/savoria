@@ -44,7 +44,8 @@ class DishListScopeControllerTest {
     when(users.require(request)).thenReturn(USER);
     when(dishes.dishes(USER, "deleted")).thenReturn(List.of());
 
-    new DishController(users, dishes, mock(DishReviewService.class)).dishes(request, "deleted");
+    new DishController(users, dishes, mock(DishReviewService.class))
+        .dishes(request, "deleted", null);
 
     verify(dishes).dishes(USER, "deleted");
   }

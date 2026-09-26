@@ -44,10 +44,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/merchant")
 @Tag(name = "商户端-菜品", description = "商户菜品、制作步骤与分类管理接口")
 public class DishController {
-  public ApiResponse<List<DishView>> dishes(HttpServletRequest request, String scope) {
-    return dishes(request, scope, null);
-  }
-
   private final CurrentUserProvider currentUserProvider;
   private final DishApplicationService dishApplicationService;
   private final DishReviewService dishReviewService;
@@ -106,6 +102,7 @@ public class DishController {
    *
    * @param request 请求参数
    * @param scope available 或 deleted 查询范围
+   * @param productType 可选的产品类型筛选条件
    * @return 处理的结果
    */
   @GetMapping("/dishes")
