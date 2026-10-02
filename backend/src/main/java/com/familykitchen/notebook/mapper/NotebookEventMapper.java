@@ -3,9 +3,11 @@ package com.familykitchen.notebook.mapper;
 import com.familykitchen.notebook.model.NotebookDeleteImpact;
 import com.familykitchen.notebook.model.NotebookEventView;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
@@ -149,14 +151,75 @@ public class NotebookEventMapper {
     return new NotebookDeleteImpact(records, versions, grants);
   }
 
-  /** Lists a bounded set of private image object keys for post-commit cleanup.
+  /** Image metadata copied into the durable cleanup queue before cascade deletion.
+   * @param id image row ID
+   * @param storageKey private object key */
+  public record ImageKeyRow(long id, String storageKey) {}
+
+  /** Reads one bounded image batch using a stable keyset cursor.
    * @param eventId event ID
-   * @param limit maximum keys, including one overflow sentinel
-   * @return object keys */
-  public List<String> imageKeys(long eventId, int limit) {
-    return sql.queryForList("SELECT image.storage_key FROM notebook_images image "
-        + "JOIN notebook_records record ON record.id=image.record_id WHERE record.event_id=? "
-        + "ORDER BY image.id LIMIT ?", String.class, eventId, limit);
+   * @param afterId exclusive image row cursor
+   * @param limit maximum rows
+   * @return image metadata */
+  public List<ImageKeyRow> imageKeysAfter(long eventId, long afterId, int limit) {
+    return sql.query("SELECT image.id,image.storage_key FROM notebook_images image "
+        + "JOIN notebook_records record ON record.id=image.record_id "
+        + "WHERE record.event_id=? AND image.id>? ORDER BY image.id LIMIT ?",
+        (row, ignored) -> new ImageKeyRow(row.getLong("id"), row.getString("storage_key")),
+        eventId, afterId, limit);
+  }
+
+  /** Saves image keys in a durable queue that survives event deletion.
+   * @param eventId event ID snapshot
+   * @param owner account ID snapshot
+   * @param images one bounded image batch */
+  public void enqueueImageCleanup(long eventId, long owner, List<ImageKeyRow> images) {
+    sql.batchUpdate("INSERT INTO notebook_image_cleanup(event_id,owner_user_id,storage_key) VALUES (?,?,?)",
+        new BatchPreparedStatementSetter() {
+          @Override public void setValues(PreparedStatement statement, int index) throws SQLException {
+            statement.setLong(1, eventId);
+            statement.setLong(2, owner);
+            statement.setString(3, images.get(index).storageKey());
+          }
+          @Override public int getBatchSize() { return images.size(); }
+        });
+  }
+
+  /** One durable cleanup entry.
+   * @param id queue ID
+   * @param storageKey private object key */
+  public record CleanupRow(long id, String storageKey) {}
+
+  /** Reads pending keys for one deleted event after commit.
+   * @param eventId deleted event ID snapshot
+   * @param afterId exclusive queue cursor
+   * @param limit maximum rows
+   * @return pending rows */
+  public List<CleanupRow> pendingCleanupForEvent(long eventId, long afterId, int limit) {
+    return sql.query("SELECT id,storage_key FROM notebook_image_cleanup WHERE event_id=? AND id>? "
+        + "ORDER BY id LIMIT ?", (row, ignored) -> new CleanupRow(row.getLong("id"),
+        row.getString("storage_key")), eventId, afterId, limit);
+  }
+
+  /** Reads pending keys across events for scheduled retry.
+   * @param afterId exclusive queue cursor
+   * @param limit maximum rows
+   * @return pending rows */
+  public List<CleanupRow> pendingCleanupAfter(long afterId, int limit) {
+    return sql.query("SELECT id,storage_key FROM notebook_image_cleanup WHERE id>? ORDER BY id LIMIT ?",
+        (row, ignored) -> new CleanupRow(row.getLong("id"), row.getString("storage_key")),
+        afterId, limit);
+  }
+
+  /** Removes successfully handled cleanup entries.
+   * @param ids queue IDs from one bounded batch */
+  public void removeCleanup(List<Long> ids) {
+    sql.batchUpdate("DELETE FROM notebook_image_cleanup WHERE id=?", new BatchPreparedStatementSetter() {
+      @Override public void setValues(PreparedStatement statement, int index) throws SQLException {
+        statement.setLong(1, ids.get(index));
+      }
+      @Override public int getBatchSize() { return ids.size(); }
+    });
   }
 
   /** Revokes event grants before removing the event tree.

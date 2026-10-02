@@ -360,6 +360,6 @@ Content-Type: application/json
 | `GET /api/notebook/events/{id}/templates` | 无 | 按版本升序的完整历史模板数组 |
 | `POST /api/notebook/events/{id}/templates` | `{ fields: [...] }` | 新发布的不可变模板版本 |
 
-事件含 `id`、`ownerUserId`、`name`、`category`、`description`、`sortOrder`、`starred`、`archived`、`currentTemplateVersion`。名称去首尾空白后为 1～120 字符，分类最多 80 字符，描述最多 5000 字符。删除前客户端应显示 `delete-impact` 并取得确认；服务端撤销授权、删除事件及其记录、版本和私有图片登记，保留不含正文的动作审计。一次删除最多处理 5000 个私有图片对象，超出时返回 409，需先分批删除记录。
+事件含 `id`、`ownerUserId`、`name`、`category`、`description`、`sortOrder`、`starred`、`archived`、`currentTemplateVersion`。名称去首尾空白后为 1～120 字符，分类最多 80 字符，描述最多 5000 字符。删除前客户端应显示 `delete-impact` 并取得确认；服务端撤销授权、删除事件及其记录、版本和私有图片登记，保留不含正文的动作审计。私有图片对象键在删除事务中分批写入 `V6__notebook_image_cleanup_queue.sql` 新增的持久清理队列；提交后分批删除文件，失败条目留待定时重试，不限制事件可删除的图片总数。
 
 模板 `fields` 为完整有序数组，最多 50 项。每项含 `key?`、`type`、`label`、`required`、`options?`、`unit?`。初次创建不传 `key`；后续编辑可传当前版本中的 `key`，同类型改名保持键不变，改类型由服务端分配新键；未知或重复键返回 400。支持 `TEXT`、`LONG_TEXT`、`NUMBER`、`DATE`、`TIME`、`DATETIME`、`SINGLE_SELECT`、`MULTI_SELECT`、`BOOLEAN`、`RATING`、`IMAGE`。选项仅用于两种选择类型，必填且最多 30 个；`unit` 仅用于数字类型。每次发布递增版本，历史版本及记录字段定义不改写。

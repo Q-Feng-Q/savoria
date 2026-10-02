@@ -23,12 +23,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /** Account scoped event and immutable template integration tests. */
 class NotebookEventServiceTest {
   private NotebookEventService service;
   private JdbcTemplate sql;
+  private DataSourceTransactionManager transactions;
   private Path cleanupRoot;
 
   @AfterEach void removePrivateTestFiles() throws Exception {
@@ -44,14 +47,17 @@ class NotebookEventServiceTest {
     sql = new JdbcTemplate(source);
     sql.execute("CREATE TABLE users (id BIGINT PRIMARY KEY)");
     sql.execute("CREATE TABLE system_settings (id BIGINT PRIMARY KEY)");
-    try (var stream = getClass().getResourceAsStream("/db/migration/V5__personal_notebook.sql")) {
-      for (String command : new String(stream.readAllBytes(), StandardCharsets.UTF_8).split(";")) {
-        if (!command.isBlank()) sql.execute(command);
+    for (String migration : List.of("V5__personal_notebook.sql", "V6__notebook_image_cleanup_queue.sql")) {
+      try (var stream = getClass().getResourceAsStream("/db/migration/" + migration)) {
+        for (String command : new String(stream.readAllBytes(), StandardCharsets.UTF_8).split(";")) {
+          if (!command.isBlank()) sql.execute(command);
+        }
       }
     }
     sql.update("INSERT INTO users(id) VALUES (1),(2)");
+    transactions = new DataSourceTransactionManager(source);
     service = new NotebookEventService(new NotebookEventMapper(sql), new NotebookTemplateValidator(),
-        new ObjectMapper());
+        new ObjectMapper(), transactions);
   }
 
   @Test void createsAccountOwnedEventWithFirstTemplateAndDeniesOtherAccounts() {
@@ -130,6 +136,7 @@ class NotebookEventServiceTest {
 
   @Test void doesNotDeleteFilesWhenPrivateRootOverlapsPublicUploads() throws Exception {
     Path root = testRoot();
+    Path privateRoot = Files.createDirectory(root.resolve("private"));
     var created = service.create(1L, create("Protected storage"));
     sql.update("INSERT INTO notebook_records(event_id,owner_user_id,created_by_user_id,"
         + "updated_by_user_id,occurred_from,occurred_to,title,template_version,values_json) "
@@ -137,16 +144,22 @@ class NotebookEventServiceTest {
         "Record", 1, "{}");
     long recordId = sql.queryForObject("SELECT id FROM notebook_records WHERE event_id=?", Long.class, created.id());
     String key = java.util.UUID.randomUUID() + ".png";
-    Path image = root.resolve(key);
+    Path image = privateRoot.resolve(key);
     Files.write(image, new byte[] {1, 2, 3});
     sql.update("INSERT INTO notebook_images(record_id,owner_user_id,storage_key,original_name,"
         + "content_type,byte_size) VALUES (?,?,?,?,?,?)", recordId, 1, key, "image.png", "image/png", 3);
-    ReflectionTestUtils.setField(service, "privateRoot", root.toString());
-    ReflectionTestUtils.setField(service, "publicRoot", root.toString());
+    ReflectionTestUtils.setField(service, "privateRoot", privateRoot.toString());
+    ReflectionTestUtils.setField(service, "publicRoot", privateRoot.toString());
 
     service.delete(1L, created.id(), true);
 
     assertThat(Files.exists(image)).isTrue();
+    assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_image_cleanup", Integer.class)).isEqualTo(1);
+    Path safePublic = Files.createDirectory(root.resolve("public"));
+    ReflectionTestUtils.setField(service, "publicRoot", safePublic.toString());
+    service.cleanupPending();
+    assertThat(Files.exists(image)).isFalse();
+    assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_image_cleanup", Integer.class)).isZero();
   }
 
   @Test void confirmedDeletionCleansBoundedPrivateImageFiles() throws Exception {
@@ -169,6 +182,73 @@ class NotebookEventServiceTest {
 
     service.delete(1L, created.id(), true);
 
+    assertThat(Files.exists(image)).isFalse();
+  }
+
+  @Test void deletesMoreThanFiveThousandImagesInBoundedBatches() throws Exception {
+    Path root = testRoot();
+    Path privateRoot = Files.createDirectory(root.resolve("private"));
+    Path publicRoot = Files.createDirectory(root.resolve("public"));
+    var created = service.create(1L, create("Large image history"));
+    sql.update("INSERT INTO notebook_records(event_id,owner_user_id,created_by_user_id,"
+        + "updated_by_user_id,occurred_from,occurred_to,title,template_version,values_json) "
+        + "VALUES (?,?,?,?,?,?,?,?,?)", created.id(), 1, 1, 1, "2026-01-01", "2026-01-01",
+        "Record", 1, "{}");
+    long recordId = sql.queryForObject("SELECT id FROM notebook_records WHERE event_id=?", Long.class, created.id());
+    sql.update("INSERT INTO notebook_images(record_id,owner_user_id,storage_key,original_name,"
+        + "content_type,byte_size) SELECT ?,1,LPAD(CAST(X AS VARCHAR),32,'0') || '.png',"
+        + "'image.png','image/png',3 FROM SYSTEM_RANGE(1,5001)", recordId);
+    Path first = privateRoot.resolve("00000000000000000000000000000001.png");
+    Path last = privateRoot.resolve("00000000000000000000000000005001.png");
+    Files.write(first, new byte[] {1});
+    Files.write(last, new byte[] {2});
+    ReflectionTestUtils.setField(service, "privateRoot", privateRoot.toString());
+    ReflectionTestUtils.setField(service, "publicRoot", publicRoot.toString());
+
+    service.delete(1L, created.id(), true);
+
+    assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_events WHERE id=?", Integer.class, created.id()))
+        .isZero();
+    assertThat(Files.exists(first)).isFalse();
+    assertThat(Files.exists(last)).isFalse();
+    assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_image_cleanup", Integer.class)).isZero();
+  }
+
+  @Test void cleanupQueueRollsBackWithDeleteAndRunsAfterCommit() throws Exception {
+    Path root = testRoot();
+    Path privateRoot = Files.createDirectory(root.resolve("private"));
+    Path publicRoot = Files.createDirectory(root.resolve("public"));
+    var created = service.create(1L, create("Transactional deletion"));
+    sql.update("INSERT INTO notebook_records(event_id,owner_user_id,created_by_user_id,"
+        + "updated_by_user_id,occurred_from,occurred_to,title,template_version,values_json) "
+        + "VALUES (?,?,?,?,?,?,?,?,?)", created.id(), 1, 1, 1, "2026-01-01", "2026-01-01",
+        "Record", 1, "{}");
+    long recordId = sql.queryForObject("SELECT id FROM notebook_records WHERE event_id=?", Long.class, created.id());
+    String key = java.util.UUID.randomUUID() + ".png";
+    Path image = privateRoot.resolve(key);
+    Files.write(image, new byte[] {1});
+    sql.update("INSERT INTO notebook_images(record_id,owner_user_id,storage_key,original_name,"
+        + "content_type,byte_size) VALUES (?,?,?,?,?,?)", recordId, 1, key, "image.png", "image/png", 1);
+    ReflectionTestUtils.setField(service, "privateRoot", privateRoot.toString());
+    ReflectionTestUtils.setField(service, "publicRoot", publicRoot.toString());
+
+    new TransactionTemplate(transactions).execute(status -> {
+      service.delete(1L, created.id(), true);
+      status.setRollbackOnly();
+      return null;
+    });
+    assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_events WHERE id=?", Integer.class, created.id()))
+        .isEqualTo(1);
+    assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_image_cleanup", Integer.class)).isZero();
+    assertThat(Files.exists(image)).isTrue();
+
+    new TransactionTemplate(transactions).execute(status -> {
+      service.delete(1L, created.id(), true);
+      return null;
+    });
+    assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_events WHERE id=?", Integer.class, created.id()))
+        .isZero();
+    assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_image_cleanup", Integer.class)).isZero();
     assertThat(Files.exists(image)).isFalse();
   }
 

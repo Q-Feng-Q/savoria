@@ -17,24 +17,31 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.LongFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /** Account scoped notebook event lifecycle and immutable template publishing. */
 @Service
 public class NotebookEventService {
   private static final Logger log = LoggerFactory.getLogger(NotebookEventService.class);
-  private static final int MAX_DELETE_IMAGE_KEYS = 5000;
+  private static final int IMAGE_BATCH_SIZE = 100;
   private final NotebookEventMapper mapper;
   private final NotebookTemplateValidator validator;
   private final ObjectMapper json;
+  private final TransactionTemplate cleanupTransactions;
   @Value("${family-kitchen.notebook.private-root:./data/notebook-private}")
   private String privateRoot = "./data/notebook-private";
   @Value("${family-kitchen.file-storage.local-root:./uploads}")
@@ -43,10 +50,13 @@ public class NotebookEventService {
   /** Creates the account-owned notebook application service.
    * @param mapper notebook SQL boundary
    * @param validator versioned field validator
-   * @param json JSON codec */
+   * @param json JSON codec
+   * @param transactions transaction manager for post-commit cleanup */
   public NotebookEventService(NotebookEventMapper mapper, NotebookTemplateValidator validator,
-      ObjectMapper json) {
+      ObjectMapper json, PlatformTransactionManager transactions) {
     this.mapper = mapper; this.validator = validator; this.json = json;
+    this.cleanupTransactions = new TransactionTemplate(transactions);
+    this.cleanupTransactions.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
   }
 
   /** Creates an event and first template in the same transaction.
@@ -166,52 +176,92 @@ public class NotebookEventService {
   public void delete(long owner, long eventId, boolean confirmed) {
     get(owner, eventId);
     if (!confirmed) throw bad("Confirm permanent notebook event deletion");
-    List<String> keys = mapper.imageKeys(eventId, MAX_DELETE_IMAGE_KEYS + 1);
-    if (keys.size() > MAX_DELETE_IMAGE_KEYS) {
-      throw new BusinessException(ErrorCode.STATE_CONFLICT,
-          "Too many private images; delete records in smaller batches first");
+    long lastImageId = 0;
+    while (true) {
+      var batch = mapper.imageKeysAfter(eventId, lastImageId, IMAGE_BATCH_SIZE);
+      if (batch.isEmpty()) break;
+      mapper.enqueueImageCleanup(eventId, owner, batch);
+      lastImageId = batch.get(batch.size() - 1).id();
+      if (batch.size() < IMAGE_BATCH_SIZE) break;
     }
     mapper.revokeGrants(eventId);
     if (mapper.deleteEvent(owner, eventId) != 1) throw missing();
     mapper.audit(owner, owner, eventId, "EVENT_DELETE");
     if (TransactionSynchronizationManager.isSynchronizationActive()) {
       TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-        @Override public void afterCommit() { cleanupImages(keys); }
+        @Override public void afterCommit() { retryEventCleanup(eventId); }
       });
-    } else cleanupImages(keys);
+    } else retryEventCleanup(eventId);
   }
 
-  private void cleanupImages(List<String> keys) {
-    if (keys.isEmpty()) return;
+  /** Retries persisted private file cleanup in bounded batches.
+   * Failed files retain queue rows for the next scheduled attempt. */
+  @Scheduled(fixedDelayString = "${family-kitchen.notebook.cleanup-delay-ms:3600000}",
+      initialDelayString = "${family-kitchen.notebook.cleanup-delay-ms:3600000}")
+  public void cleanupPending() {
+    try { processCleanup(cursor -> mapper.pendingCleanupAfter(cursor, IMAGE_BATCH_SIZE)); }
+    catch (RuntimeException failure) { log.warn("Notebook private image cleanup will retry", failure); }
+  }
+
+  private void retryEventCleanup(long eventId) {
+    try { processCleanup(cursor -> mapper.pendingCleanupForEvent(eventId, cursor, IMAGE_BATCH_SIZE)); }
+    catch (RuntimeException failure) {
+      log.warn("Notebook event image cleanup will retry eventId={}", eventId, failure);
+    }
+  }
+
+  private void processCleanup(LongFunction<List<NotebookEventMapper.CleanupRow>> fetch) {
+    long cursor = 0;
+    while (true) {
+      long afterId = cursor;
+      List<NotebookEventMapper.CleanupRow> batch = cleanupTransactions.execute(
+          status -> fetch.apply(afterId));
+      if (batch == null || batch.isEmpty()) return;
+      Path root = verifiedPrivateRoot();
+      if (root == null) return;
+      List<Long> cleaned = new ArrayList<>();
+      for (var row : batch) if (cleanupImage(root, row.storageKey())) cleaned.add(row.id());
+      if (!cleaned.isEmpty()) cleanupTransactions.executeWithoutResult(
+          status -> mapper.removeCleanup(cleaned));
+      cursor = batch.get(batch.size() - 1).id();
+      if (batch.size() < IMAGE_BATCH_SIZE) return;
+    }
+  }
+
+  private Path verifiedPrivateRoot() {
     Path root = Path.of(privateRoot).toAbsolutePath().normalize();
     Path publicFiles = Path.of(publicRoot).toAbsolutePath().normalize();
     try {
-      if (!Files.exists(root, LinkOption.NOFOLLOW_LINKS)) return;
+      if (!Files.exists(root, LinkOption.NOFOLLOW_LINKS)) return null;
       Path realRoot = root.toRealPath();
       Path realPublic = Files.exists(publicFiles, LinkOption.NOFOLLOW_LINKS)
           ? publicFiles.toRealPath() : publicFiles;
       if (!root.equals(realRoot) || realRoot.startsWith(realPublic)
           || realPublic.startsWith(realRoot)) {
         log.error("Notebook private image root overlaps public storage or is a symlink");
-        return;
+        return null;
       }
     } catch (IOException failure) {
       log.warn("Cannot verify notebook private image root", failure);
-      return;
+      return null;
     }
-    for (String key : keys) {
-      if (key == null || !key.matches("[a-fA-F0-9-]{32,36}\\.(png|jpg|webp)")) {
-        log.warn("Skipping invalid private notebook image key");
-        continue;
-      }
-      Path target = root.resolve(key).normalize();
-      if (!target.getParent().equals(root)) continue;
-      try {
-        if (Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS)
-            && target.toRealPath().getParent().equals(root)) Files.delete(target);
-      } catch (IOException failure) {
-        log.warn("Private notebook image cleanup failed for key={}", key, failure);
-      }
+    return root;
+  }
+
+  private boolean cleanupImage(Path root, String key) {
+    if (key == null || !key.matches("[a-fA-F0-9-]{32,36}\\.(png|jpg|webp)")) {
+      log.warn("Skipping invalid private notebook image key");
+      return true;
+    }
+    Path target = root.resolve(key).normalize();
+    if (!target.getParent().equals(root)) return true;
+    try {
+      if (Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS)
+          && target.toRealPath().getParent().equals(root)) Files.delete(target);
+      return true;
+    } catch (IOException failure) {
+      log.warn("Private notebook image cleanup failed for key={}", key, failure);
+      return false;
     }
   }
 
