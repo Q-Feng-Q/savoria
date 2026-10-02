@@ -3,7 +3,7 @@
   <block wx:else>
     <view class="story-brand home-brand-header">
       <view class="story-art"><image class="story-art__atlas" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
-      <view class="story-brand__copy"><brand-logo size="standard" /><text class="story-brand__tagline">让家常菜 · 温暖每一餐\n就是最好的时光</text></view>
+      <view class="story-brand__copy"><brand-logo size="standard" /><text class="story-brand__tagline">{{brandCopy.homeHeroTagline}}</text></view>
     </view>
     <view class="home-family-overview">
       <view class="home-family-banner">
@@ -41,6 +41,6 @@
         </view>
       </view>
     </view>
-    <view class="story-footer"><view class="story-art"><image class="story-art__atlas story-art__atlas--footer" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-footer__copy">好好吃饭\n就是一家人在一起</text></view>
+    <view class="story-footer"><view class="story-art"><image class="story-art__atlas story-art__atlas--footer" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-footer__copy">{{brandCopy.homeFooterMessage}}</text></view>
   </block>
 </view>

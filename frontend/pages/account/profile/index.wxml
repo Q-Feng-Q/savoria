@@ -1,7 +1,7 @@
 <view class="warm-page warm-state-host profile-page concept-page story-page" wx:if="{{context}}">
   <view class="design-profile-banner profile-dashboard profile-dashboard--animal warm-profile-portrait">
     <view class="profile-story-art story-art"><image class="story-art__atlas" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
-    <view class="warm-profile-portrait__welcome"><brand-logo size="small" /><text class="warm-profile-portrait__welcome-title">{{isUnbound ? '从这里，认识新家' : '好好吃饭，就是幸福'}}</text></view>
+    <view class="warm-profile-portrait__welcome"><brand-logo size="small" /><text class="warm-profile-portrait__welcome-title">{{isUnbound ? '从这里，认识新家' : brandCopy.profileWelcomeMessage}}</text></view>
     <view class="profile-banner__identity warm-profile-portrait__identity">
       <view class="profile-avatar">{{avatarInitial}}</view>
       <view class="profile-hero__copy"><text class="profile-kicker">{{isUnbound ? '欢迎你' : crew.tasterWelcomeLabel}}</text><text class="profile-name">{{accountProfile.nickname || context.member.name}}</text><text class="profile-account">@{{accountProfile.username}} · {{sessionLabel}}</text></view>
@@ -27,5 +27,5 @@
   <view class="profile-settings-group profile-section"><group-menu groups="{{menuGroups}}" bind:select="selectMenu" /></view>
 
   <view class="profile-settings-group profile-section profile-section--plain"><view class="profile-row profile-row--danger" aria-role="button" aria-label="退出登录" hover-class="profile-row--pressed" hover-stay-time="80" bindtap="logoutExperience"><text>退出登录</text></view></view>
-  <view class="story-footer"><view class="story-art"><image class="story-art__atlas story-art__atlas--footer" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-footer__copy">好好吃饭\n就是一家人在一起</text></view>
+  <view class="story-footer"><view class="story-art"><image class="story-art__atlas story-art__atlas--footer" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-footer__copy">{{brandCopy.homeFooterMessage}}</text></view>
 </view>

@@ -1,8 +1,9 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
 const { sessionStore } = require('../../../utils/session');
 const { showApiError } = require('../../../utils/page-api');
+const { withBranding } = require('../../../utils/branding');
 
-Page({
+Page(withBranding({
   data: { form: { username: '', password: '', name: '', mobile: '' }, loading: false },
   onUsernameInput(event) { this.setData({ 'form.username': event.detail.value }); },
   onPasswordInput(event) { this.setData({ 'form.password': event.detail.value }); },
@@ -27,4 +28,4 @@ Page({
       showApiError(error, '注册失败');
     } finally { this.setData({ loading: false }); }
   }
-});
+}));

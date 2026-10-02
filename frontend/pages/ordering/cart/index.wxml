@@ -3,7 +3,7 @@
   <block wx:else>
     <view class="story-brand cart-head">
       <view class="story-art"><image class="story-art__atlas" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view>
-      <view class="story-brand__copy"><brand-logo size="standard" /><text class="story-brand__tagline">让家常菜 · 温暖每一餐</text></view>
+      <view class="story-brand__copy"><brand-logo size="standard" /><text class="story-brand__tagline">{{brandCopy.cartHeroTagline}}</text></view>
     </view>
 
     <view class="checkout-section time-section">
@@ -19,7 +19,7 @@
       <view class="delivery-row"><view wx:for="{{displayDeliveryOptions}}" wx:key="key" class="delivery-option {{item.activeClass}} {{item.disabled ? 'is-disabled' : ''}}" data-mode="{{item.key}}" data-disabled="{{item.disabled}}" aria-disabled="{{item.disabled}}" bindtap="selectDelivery" aria-role="button" aria-label="{{item.label}}" hover-class="story-tap--pressed" hover-stay-time="80"><image class="delivery-option__icon" src="/assets/ui/story/{{item.icon}}-{{item.activeClass ? 'green' : 'ink'}}.png" /><text>{{item.label}}</text></view></view>
       <label wx:if="{{familyDeliveryEnabled && context.family.addresses.length && deliveryMode === 'DELIVERY'}}" class="cart-field address-field"><text class="address-label">⌖ 配送地址</text><picker class="address-picker" range="{{addressOptions}}" range-key="label" value="{{addressIndex}}" bindchange="bindAddress"><view class="address-line"><image class="address-pin story-icon" src="/assets/ui/story/pin-green.png" /><view class="address-copy"><text class="address-main">{{currentAddress ? currentAddress.address : '请选择配送地址'}}</text><text class="address-contact">{{currentAddress ? currentAddress.contactName + '  ' + currentAddress.phone : '从家庭地址簿中选择'}}</text></view><text class="address-chevron">›</text><text class="address-book">▦ 地址簿</text></view></picker></label>
       <view wx:if="{{!familyDeliveryEnabled}}" class="delivery-disabled-note"><text class="delivery-notice-icon">!</text><view><text class="delivery-notice-title">家庭暂未开启配送，仅支持自取</text><text class="delivery-notice-copy">期待很快与您在餐桌相见～</text></view></view>
-      <view wx:else class="delivery-warm-note"><text class="delivery-note-leaf">❧</text><text>{{deliveryMode === 'DELIVERY' ? '美味正在路上，用食物，把温暖送到家' : '先在一起，好好吃饭，期待您的到来'}}</text></view>
+      <view wx:else class="delivery-warm-note"><text class="delivery-note-leaf">❧</text><text>{{deliveryMode === 'DELIVERY' ? brandCopy.deliveryMessage : brandCopy.pickupMessage}}</text></view>
     </view>
 
     <view class="selected-section">
@@ -49,7 +49,7 @@
     </view>
     <view class="checkout-section remark-section"><label class="cart-field"><text>整单备注</text><textarea class="cart-order-remark" value="{{cart.note}}" placeholder="口味、忌口或其他叮嘱……" bindblur="bindNote" /></label></view>
     <view wx:if="{{warningText}}" class="cart-warning">{{warningText}}</view>
-    <view class="story-footer"><view class="story-art"><image class="story-art__atlas story-art__atlas--footer" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-footer__copy">{{brandName}}\n把平凡的日子，过成温暖的诗</text></view>
+    <view class="story-footer"><view class="story-art"><image class="story-art__atlas story-art__atlas--footer" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-footer__copy">{{brandName}}\n{{brandCopy.cartFooterMessage}}</text></view>
     <bottom-action-bar summary="{{'合计 ¥' + totals.totalAmount}}" primaryText="提交订单" disabled="{{!canSubmit || mutationBusy}}" bind:primary="submitOrder"><text slot="summary" class="bottom-note">订单将从家庭钱包统一冻结并扣款</text></bottom-action-bar>
   </block>
 </view>

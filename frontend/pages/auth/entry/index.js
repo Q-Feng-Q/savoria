@@ -3,6 +3,7 @@ const { sessionStore } = require('../../../utils/session');
 const { redirectBySession, showApiError, showLoginError } = require('../../../utils/page-api');
 const { evaluateLoginSession } = require('../../../utils/login-routing');
 const { loginWithPermissionFallback } = require('../../../utils/portal-login-flow');
+const { withBranding } = require('../../../utils/branding');
 
 function showPlatformAdminNotice(message) {
   return new Promise((resolve) => wx.showModal({
@@ -15,7 +16,7 @@ function showPlatformAdminNotice(message) {
   }));
 }
 
-Page({
+Page(withBranding({
   data: { form: { username: '', password: '' }, loading: false, addingAccount: false },
   onLoad(query) {
     let username = '';
@@ -69,4 +70,4 @@ Page({
       if (loginCompleted) showApiError(error, '登录后账号信息加载失败'); else showLoginError(error);
     } finally { this.setData({ loading: false }); }
   }
-});
+}));

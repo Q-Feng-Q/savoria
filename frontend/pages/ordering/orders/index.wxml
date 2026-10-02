@@ -17,6 +17,6 @@
       <page-state wx:if="{{!visibleOrders.length}}" phase="empty" title="还没有这类订单" description="点好菜并提交后，进度会显示在这里" illustration="orders" />
       <order-row wx:for="{{visibleOrders}}" wx:key="id" order="{{item}}" bind:open="openOrderRow" />
     </view>
-    <view class="story-footer"><view class="story-art"><image class="story-art__atlas story-art__atlas--footer" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-footer__copy">好好吃饭\n就是一家人在一起</text></view>
+    <view class="story-footer"><view class="story-art"><image class="story-art__atlas story-art__atlas--footer" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-footer__copy">{{brandCopy.homeFooterMessage}}</text></view>
   </view>
 </view>
