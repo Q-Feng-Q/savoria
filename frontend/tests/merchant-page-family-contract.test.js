@@ -1330,6 +1330,14 @@ test('family menu exposes explicit family source copy and guarded row editing', 
   assert.equal(config.usingComponents['page-state'], '/components/page-state/index');
 });
 
+test('family menu picker hosts stay transparent behind selector controls', () => {
+  const markup = read('pages/merchant/family-menu/index.wxml');
+  const styles = read('pages/merchant/family-menu/index.wxss');
+
+  assert.equal((markup.match(/<picker[^>]*class="family-menu-picker"/g) || []).length, 2);
+  assert.match(styles, /\.merchant-story \.family-menu-picker\s*\{[^}]*padding:\s*0[^}]*border:\s*0[^}]*background:\s*transparent/s);
+});
+
 test('family menu no longer exposes the legacy per-family featured-dish control', () => {
   const markup = read('pages/merchant/family-menu/index.wxml');
   const source = read('pages/merchant/family-menu/index.js');

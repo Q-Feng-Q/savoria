@@ -10,11 +10,11 @@
 
     <view class="selector-section">
       <text class="selector-label">当前家庭</text>
-      <picker range="{{familyOptions}}" range-key="label" value="{{familyIndex}}" bindchange="bindFamily">
+      <picker class="family-menu-picker" range="{{familyOptions}}" range-key="label" value="{{familyIndex}}" bindchange="bindFamily">
         <view class="selector-control {{mutationBusy ? 'is-disabled' : ''}}" aria-role="button" aria-label="选择当前家庭" aria-disabled="{{mutationBusy}}" aria-busy="{{mutationBusy}}">{{currentFamilyName}}</view>
       </picker>
       <text class="selector-label source-label">来源家庭</text>
-      <picker wx:if="{{sourceFamilyOptions.length}}" range="{{sourceFamilyOptions}}" range-key="label" value="{{sourceFamilyIndex}}" bindchange="bindSourceFamily">
+      <picker wx:if="{{sourceFamilyOptions.length}}" class="family-menu-picker" range="{{sourceFamilyOptions}}" range-key="label" value="{{sourceFamilyIndex}}" bindchange="bindSourceFamily">
         <view class="selector-control" aria-role="button" aria-label="选择来源家庭">{{sourceFamilyOptions[sourceFamilyIndex].label}}</view>
       </picker>
       <text wx:else class="empty-source">没有其他家庭可作为复制来源。</text>
