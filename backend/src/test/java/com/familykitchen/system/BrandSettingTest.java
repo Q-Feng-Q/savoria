@@ -28,7 +28,7 @@ class BrandSettingTest {
     assertThat(tree.path("siteLogoSize").asInt()).isEqualTo(56);
     assertThat(tree.path("siteLogoLargeSize").asInt()).isEqualTo(96);
     assertThat(tree.path("siteName").asText()).isEqualTo("食光栀味");
-    assertThat(tree.size()).isEqualTo(13);
+    assertThat(tree.size()).isEqualTo(21);
     assertThat(tree.toString()).doesNotContain("smtp", "updatedBy", "secret");
   }
 

@@ -20,6 +20,14 @@ import com.familykitchen.system.security.PlatformSecretCipher;
  */
 @Service
 public class SystemSettingServiceImpl implements SystemSettingService {
+  private static final String DEFAULT_BRAND_TAGLINE = "好好吃饭，就是幸福";
+  private static final String DEFAULT_HOME_HERO_TAGLINE = "让家常菜 · 温暖每一餐\n就是最好的时光";
+  private static final String DEFAULT_HOME_FOOTER_MESSAGE = "好好吃饭\n就是一家人在一起";
+  private static final String DEFAULT_CART_HERO_TAGLINE = "让家常菜 · 温暖每一餐";
+  private static final String DEFAULT_DELIVERY_MESSAGE = "美味正在路上，用食物，把温暖送到家";
+  private static final String DEFAULT_PICKUP_MESSAGE = "先在一起，好好吃饭，期待您的到来";
+  private static final String DEFAULT_CART_FOOTER_MESSAGE = "把平凡的日子，过成温暖的诗";
+  private static final String DEFAULT_PROFILE_WELCOME_MESSAGE = "好好吃饭，就是幸福";
   private final SystemSettingMapper mapper;
   private final SystemAuditMapper auditMapper;
   private final PlatformSecretCipher secretCipher;
@@ -39,7 +47,12 @@ public class SystemSettingServiceImpl implements SystemSettingService {
       siteName(e),e.getSiteLogoUrl(),Boolean.TRUE.equals(e.getMaintenanceEnabled()),e.getMaintenanceMessage(),
       Boolean.TRUE.equals(e.getMobileBindingEnabled()),Boolean.TRUE.equals(e.getEmailBindingEnabled()),Boolean.TRUE.equals(e.getWechatBindingEnabled()),
       e.getSiteLogoSmallUrl(),e.getSiteLogoLargeUrl(),e.getSiteFaviconUrl(),
-      size(e.getSiteLogoSmallSize(),32),size(e.getSiteLogoSize(),56),size(e.getSiteLogoLargeSize(),96));}
+      size(e.getSiteLogoSmallSize(),32),size(e.getSiteLogoSize(),56),size(e.getSiteLogoLargeSize(),96),
+      effective(e.getBrandTagline(),DEFAULT_BRAND_TAGLINE),effective(e.getHomeHeroTagline(),DEFAULT_HOME_HERO_TAGLINE),
+      effective(e.getHomeFooterMessage(),DEFAULT_HOME_FOOTER_MESSAGE),effective(e.getCartHeroTagline(),DEFAULT_CART_HERO_TAGLINE),
+      effective(e.getDeliveryMessage(),DEFAULT_DELIVERY_MESSAGE),effective(e.getPickupMessage(),DEFAULT_PICKUP_MESSAGE),
+      effective(e.getCartFooterMessage(),DEFAULT_CART_FOOTER_MESSAGE),
+      effective(e.getProfileWelcomeMessage(),DEFAULT_PROFILE_WELCOME_MESSAGE));}
   /** {@inheritDoc} */
   @Override public boolean dishReviewEnabled(){return Boolean.TRUE.equals(require().getDishReviewEnabled());}
   /** {@inheritDoc} */
@@ -57,6 +70,10 @@ public class SystemSettingServiceImpl implements SystemSettingService {
     e.setSiteLogoUrl(r.siteLogoUrl()); e.setDishReviewEnabled(r.dishReviewEnabled());
     e.setSiteLogoSmallUrl(r.siteLogoSmallUrl());e.setSiteLogoLargeUrl(r.siteLogoLargeUrl());e.setSiteFaviconUrl(r.siteFaviconUrl());
     e.setSiteLogoSmallSize(r.siteLogoSmallSize());e.setSiteLogoSize(r.siteLogoSize());e.setSiteLogoLargeSize(r.siteLogoLargeSize());
+    e.setBrandTagline(optional(r.brandTagline()));e.setHomeHeroTagline(optional(r.homeHeroTagline()));
+    e.setHomeFooterMessage(optional(r.homeFooterMessage()));e.setCartHeroTagline(optional(r.cartHeroTagline()));
+    e.setDeliveryMessage(optional(r.deliveryMessage()));e.setPickupMessage(optional(r.pickupMessage()));
+    e.setCartFooterMessage(optional(r.cartFooterMessage()));e.setProfileWelcomeMessage(optional(r.profileWelcomeMessage()));
     e.setMaintenanceEnabled(r.maintenanceEnabled()); e.setMaintenanceMessage(r.maintenanceMessage().trim());
     e.setMobileBindingEnabled(r.mobileBindingEnabled());e.setEmailBindingEnabled(r.emailBindingEnabled());
     e.setWechatBindingEnabled(r.wechatBindingEnabled());e.setSmtpHost(r.smtpHost());e.setSmtpPort(r.smtpPort());
@@ -86,6 +103,8 @@ public class SystemSettingServiceImpl implements SystemSettingService {
     return current();
   }
   private static String siteName(SystemSettingDO e){return e.getSiteName()==null||e.getSiteName().isBlank()?"食光栀味":e.getSiteName();}
+  private static String effective(String value,String fallback){return value==null||value.isBlank()?fallback:value.trim();}
+  private static String optional(String value){return value==null||value.isBlank()?null:value.trim();}
   private static Integer size(Integer value,int fallback){return value==null?fallback:value;}
   private static SystemSettingView view(SystemSettingDO e){return new SystemSettingView(siteName(e),
       e.getSiteLogoUrl(),Boolean.TRUE.equals(e.getDishReviewEnabled()),Boolean.TRUE.equals(e.getMaintenanceEnabled()),
@@ -94,5 +113,10 @@ public class SystemSettingServiceImpl implements SystemSettingService {
       e.getSmtpPasswordCiphertext()==null||e.getSmtpPasswordCiphertext().isBlank()?"":"******",
       e.getSmtpPasswordCiphertext()!=null&&!e.getSmtpPasswordCiphertext().isBlank(),Boolean.TRUE.equals(e.getSmtpTlsEnabled()),
       e.getSmtpFrom(),e.getUpdatedAt(),e.getSiteLogoSmallUrl(),e.getSiteLogoLargeUrl(),e.getSiteFaviconUrl(),
-      size(e.getSiteLogoSmallSize(),32),size(e.getSiteLogoSize(),56),size(e.getSiteLogoLargeSize(),96));}
+      size(e.getSiteLogoSmallSize(),32),size(e.getSiteLogoSize(),56),size(e.getSiteLogoLargeSize(),96),
+      effective(e.getBrandTagline(),DEFAULT_BRAND_TAGLINE),effective(e.getHomeHeroTagline(),DEFAULT_HOME_HERO_TAGLINE),
+      effective(e.getHomeFooterMessage(),DEFAULT_HOME_FOOTER_MESSAGE),effective(e.getCartHeroTagline(),DEFAULT_CART_HERO_TAGLINE),
+      effective(e.getDeliveryMessage(),DEFAULT_DELIVERY_MESSAGE),effective(e.getPickupMessage(),DEFAULT_PICKUP_MESSAGE),
+      effective(e.getCartFooterMessage(),DEFAULT_CART_FOOTER_MESSAGE),
+      effective(e.getProfileWelcomeMessage(),DEFAULT_PROFILE_WELCOME_MESSAGE));}
 }

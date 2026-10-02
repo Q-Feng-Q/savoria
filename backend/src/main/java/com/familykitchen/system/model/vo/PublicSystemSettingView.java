@@ -19,5 +19,7 @@ public record PublicSystemSettingView(
     boolean emailBindingEnabled,
     boolean wechatBindingEnabled,
     String siteLogoSmallUrl, String siteLogoLargeUrl, String siteFaviconUrl,
-    Integer siteLogoSmallSize, Integer siteLogoSize, Integer siteLogoLargeSize
+    Integer siteLogoSmallSize, Integer siteLogoSize, Integer siteLogoLargeSize,
+    String brandTagline, String homeHeroTagline, String homeFooterMessage, String cartHeroTagline,
+    String deliveryMessage, String pickupMessage, String cartFooterMessage, String profileWelcomeMessage
 ) {}

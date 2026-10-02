@@ -45,7 +45,15 @@ public record SystemSettingRequest(
     @BrandUrl @Size(max=500) String siteFaviconUrl,
     @JsonDeserialize(using=BrandSizeDeserializer.class) @Min(16) @Max(64) Integer siteLogoSmallSize,
     @JsonDeserialize(using=BrandSizeDeserializer.class) @Min(24) @Max(120) Integer siteLogoSize,
-    @JsonDeserialize(using=BrandSizeDeserializer.class) @Min(48) @Max(160) Integer siteLogoLargeSize
+    @JsonDeserialize(using=BrandSizeDeserializer.class) @Min(48) @Max(160) Integer siteLogoLargeSize,
+    @Size(max=120) String brandTagline,
+    @Size(max=120) String homeHeroTagline,
+    @Size(max=120) String homeFooterMessage,
+    @Size(max=120) String cartHeroTagline,
+    @Size(max=80) String deliveryMessage,
+    @Size(max=80) String pickupMessage,
+    @Size(max=120) String cartFooterMessage,
+    @Size(max=120) String profileWelcomeMessage
 ) {
   public SystemSettingRequest(String siteName, String siteLogoUrl, boolean dishReviewEnabled,
       boolean maintenanceEnabled, String maintenanceMessage, boolean mobileBindingEnabled,
@@ -53,6 +61,7 @@ public record SystemSettingRequest(
       String smtpUsername, String smtpPassword, boolean smtpTlsEnabled, String smtpFrom) {
     this(siteName, siteLogoUrl, dishReviewEnabled, maintenanceEnabled, maintenanceMessage,
         mobileBindingEnabled, emailBindingEnabled, wechatBindingEnabled, smtpHost, smtpPort,
-        smtpUsername, smtpPassword, smtpTlsEnabled, smtpFrom, null, null, null, null, null, null);
+        smtpUsername, smtpPassword, smtpTlsEnabled, smtpFrom, null, null, null, null, null, null,
+        null, null, null, null, null, null, null, null);
   }
 }
