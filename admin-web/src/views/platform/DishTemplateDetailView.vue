@@ -34,12 +34,13 @@ import { useRoute, useRouter } from 'vue-router';
 import StepImages from '../../components/StepImages.vue'; import NourishmentFields from '../../components/NourishmentFields.vue';
 import { getAdminDishTemplate, previewDishTemplateAsset, promoteDishTemplateImage, rejectDishTemplateImage, updateAdminDishTemplate } from '../../api/admin-dish-templates';
 import { buildTemplateSnapshot, createTemplateChangeForm, validateTemplateSnapshot } from '../../utils/dish-template-changes';
-import { promptAction } from '../../utils/dialog';
+import { confirmAction, promptAction } from '../../utils/dialog';
 import { notify } from '../../utils/feedback';
 import { listAdminDishTemplates } from '../../api/admin-dish-templates';
 
 const route = useRoute(); const router = useRouter();
 const stepUploading = ref(false); const loading = ref(true); const saving = ref(false); const assetBusy = ref(false);
+const deleteConfirming = ref(false);
 const detail = ref(null); const form = ref(null);
 const categories = ref([]); const categoriesLoading = ref(false); const categoriesError = ref(false);
 const categoryOptions = computed(() => {
@@ -68,9 +69,31 @@ const quantityStatuses = { VERIFIED: '已核定', SOURCE_BATCH: '原配方批量
 function prepare(value) { detail.value = value; form.value = createTemplateChangeForm(value); for (const asset of value.internalAssetReviews || []) promotionForms[asset.assetId] ||= { author: '', sourceUrl: '', license: '' }; }
 async function load() { if (stepUploading.value) return; loading.value = true; try { prepare(await getAdminDishTemplate(route.params.templateId)); } finally { loading.value = false; } }
 function addIngredient() { form.value.ingredients.push({ itemId: `ingredient-new-${Date.now()}`, ingredientName: '', ingredientCategory: '', quantityStatus: 'MISSING', quantity: '', unit: '', calcType: '', sourceQuantityText: '', sortOrder: form.value.ingredients.length + 1 }); }
-function removeIngredient(index) { form.value.ingredients.splice(index, 1); }
+async function removeIngredient(index) {
+  if (!form.value || saving.value || stepUploading.value || deleteConfirming.value) return;
+  const currentForm = form.value;
+  const item = currentForm.ingredients[index];
+  if (!item) return;
+  deleteConfirming.value = true;
+  try {
+    const confirmed = await confirmAction({ title: `删除食材“${item.ingredientName || `第 ${index + 1} 项`}”`, message: '此项将从平台模板中移除，保存后生效。', danger: true, confirmText: '确认删除' });
+    if (!confirmed || form.value !== currentForm || saving.value || stepUploading.value || currentForm.ingredients[index] !== item) return;
+    currentForm.ingredients.splice(index, 1);
+  } finally { deleteConfirming.value = false; }
+}
 function addStep() { if (saving.value || stepUploading.value) return; form.value.cookingSteps.push({ itemId: `step-new-${Date.now()}`, title: '', content: '', durationSeconds: '', temperatureText: '', heatLevel: '', componentTemplateId: '' }); }
-function removeStep(index) { if (saving.value || stepUploading.value) return; form.value.cookingSteps.splice(index, 1); }
+async function removeStep(index) {
+  if (!form.value || saving.value || stepUploading.value || deleteConfirming.value) return;
+  const currentForm = form.value;
+  const step = currentForm.cookingSteps[index];
+  if (!step) return;
+  deleteConfirming.value = true;
+  try {
+    const confirmed = await confirmAction({ title: `删除第 ${index + 1} 个制作步骤`, message: '该步骤及其图片会从平台模板移除，保存后生效。', danger: true, confirmText: '确认删除' });
+    if (!confirmed || form.value !== currentForm || saving.value || stepUploading.value || currentForm.cookingSteps[index] !== step) return;
+    currentForm.cookingSteps.splice(index, 1);
+  } finally { deleteConfirming.value = false; }
+}
 async function save() { if (saving.value || stepUploading.value) return; const snapshot = buildTemplateSnapshot(form.value); const validation = validateTemplateSnapshot(snapshot); if (validation) { notify(validation, 'error'); return; } const { sortOrder, ...editable } = snapshot; saving.value = true; try { await updateAdminDishTemplate(detail.value.templateId, { ...editable, schemaVersion: 2, expectedVersion: detail.value.version }); notify('模板已保存，完整状态已重新计算', 'success'); await load(); } finally { saving.value = false; } }
 async function preview(asset) { assetBusy.value = true; try { if (assetPreviewUrls[asset.assetId]) URL.revokeObjectURL(assetPreviewUrls[asset.assetId]); assetPreviewUrls[asset.assetId] = await previewDishTemplateAsset(asset.assetId); } finally { assetBusy.value = false; } }
 async function promote(asset) { if (stepUploading.value || saving.value) return; const values = promotionForms[asset.assetId]; if (!values.author || !values.sourceUrl || !values.license) { notify('请补全作者、来源页面和授权说明', 'error'); return; } assetBusy.value = true; try { await promoteDishTemplateImage(detail.value.templateId, { internalAssetId: asset.assetId, expectedVersion: detail.value.version, ...values }); notify('图片已发布', 'success'); await load(); } finally { assetBusy.value = false; } }

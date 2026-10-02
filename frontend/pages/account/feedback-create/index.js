@@ -3,6 +3,7 @@ const { requireSession, showApiError } = require('../../../utils/page-api');
 const { identityKey } = require('../../../utils/identity-load');
 const { validateDraft, createSubmission } = require('../../../utils/feedback');
 const { removeTempFile } = require('../../../services/feedback');
+const { confirmDelete } = require('../../../utils/confirm-delete');
 const callWx = (name, options) => new Promise((resolve, reject) => wx[name]({ ...options, success: resolve, fail: reject }));
 
 Page({
@@ -86,11 +87,14 @@ Page({
     const image = this.data.images.find((item) => item.key === key);
     if (image && image.state === 'failed') this.upload(key);
   },
-  removeImage(event) {
-    if (this.locked()) return;
+  async removeImage(event) {
+    if (this.locked() || !this.isCurrent()) return;
     const key = event.currentTarget.dataset.key;
     const image = this.data.images.find((item) => item.key === key);
-    if (image) removeTempFile(image.path);
+    if (!image) return;
+    if (!await confirmDelete(this, '移除反馈图片', '这张图片会从当前反馈中移除。') || this.locked() || !this.isCurrent()) return;
+    if (!this.data.images.some((item) => item.key === key && item.path === image.path)) return;
+    removeTempFile(image.path);
     const images = this.data.images.filter((item) => item.key !== key);
     this.setData({ images, imagesReady: images.every((item) => item.state === 'ready') });
   },

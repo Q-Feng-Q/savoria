@@ -49,6 +49,18 @@
       {
         "value": "assets/brand/scenes/merchant-dishes.webp",
         "type": "file"
+      },
+      {
+        "value": "assets/ui/story/pin-orange.png",
+        "type": "file"
+      },
+      {
+        "value": "assets/ui/story/pin-ink.png",
+        "type": "file"
+      },
+      {
+        "value": "assets/ui/story/pin-cream.png",
+        "type": "file"
       }
     ],
     "include": []

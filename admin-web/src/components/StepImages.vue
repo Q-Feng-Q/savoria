@@ -27,13 +27,25 @@ import { uploadDishImage } from '../api/files';
 import { getApiBaseUrl, getStoredSession } from '../api/http';
 import { uploadStepImages, stepImageUrl } from '../utils/step-images';
 import { notify } from '../utils/feedback';
+import { confirmAction } from '../utils/dialog';
 const props=defineProps({modelValue:{type:Array,default:()=>[]},editable:Boolean,disabled:Boolean});
 const emit=defineEmits(['update:modelValue','busy']);
-const busy=ref(false),previewIndex=ref(null);
+const busy=ref(false),previewIndex=ref(null),removing=ref(false);
 let alive=true;
 onBeforeUnmount(()=>{alive=false;});
 const assetUrl=url=>stepImageUrl(url,getApiBaseUrl());
-function remove(index){if(!props.disabled&&!busy.value)emit('update:modelValue',props.modelValue.filter((_,i)=>i!==index));}
+async function remove(index){
+  if(props.disabled||busy.value||removing.value)return;
+  const image=props.modelValue[index];
+  if(!image)return;
+  removing.value=true;
+  try{
+    const confirmed=await confirmAction({title:`删除第 ${index+1} 张步骤图片`,message:'图片会从当前步骤移除，保存后生效。',danger:true,confirmText:'确认删除'});
+    if(!confirmed)return;
+    if(!alive||props.disabled||busy.value||props.modelValue[index]!==image)return;
+    emit('update:modelValue',props.modelValue.filter((_,i)=>i!==index));
+  }finally{removing.value=false;}
+}
 async function choose(event){
   const files=Array.from(event.target.files || []);event.target.value='';
   if(!files.length||props.disabled||busy.value)return;

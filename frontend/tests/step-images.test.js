@@ -60,23 +60,28 @@ test('step image component is wired to editable and read-only entrances', () => 
 
 function componentHarness(upload) {
   let definition, session = {userId:1,accessToken:'one'}, chosen;
+  let confirmRemoval = false;
   const events=[];
-  const wx={chooseMedia(options){chosen=options;},showToast(){},previewImage(){}};
+  const wx={chooseMedia(options){chosen=options;},showToast(){},previewImage(){},showModal:async()=>({confirm:confirmRemoval})};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../components/step-images/index.js'),'utf8'),{
     Component:value=>{definition=value;},wx,
     require:name=> name.endsWith('/api-runtime') ? {createApiRuntime:()=>({baseUrl:'http://localhost',files:{uploadImage:upload}})}
       : name.endsWith('/session') ? {sessionStore:{getSession:()=>session}}
+      : name.endsWith('/confirm-delete') ? (()=>{const module={exports:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../utils/confirm-delete.js'),'utf8'),{module,wx});return module.exports;})()
       : require(path.resolve(__dirname,'../components/step-images',name))
   });
   const instance={properties:{images:Array(5).fill('/uploads/images/old.jpg'),editable:true,disabled:false},data:{busy:false},
     ...definition.methods,setData(value){Object.assign(this.data,value);},triggerEvent(type,detail){events.push({type,detail});if(type==='change')this.properties.images=detail.images;}};
   definition.lifetimes.attached.call(instance);
-  return {instance,events,select:files=>chosen.success({tempFiles:files}),switchIdentity:()=>{session={userId:2,accessToken:'two'};},detach:()=>definition.lifetimes.detached.call(instance)};
+  return {instance,events,select:files=>chosen.success({tempFiles:files}),setConfirm:value=>{confirmRemoval=value;},switchIdentity:()=>{session={userId:2,accessToken:'two'};},detach:()=>definition.lifetimes.detached.call(instance)};
 }
 
 test('component deletes a photo then allows one replacement and emits complete raw list', async () => {
   const h=componentHarness(async()=>({url:'/uploads/images/new.jpg'}));
-  h.instance.remove({currentTarget:{dataset:{index:2}}});
+  await h.instance.remove({currentTarget:{dataset:{index:2}}});
+  assert.equal(h.instance.properties.images.length,5);
+  h.setConfirm(true);
+  await h.instance.remove({currentTarget:{dataset:{index:2}}});
   assert.equal(h.instance.properties.images.length,4);
   const pending=h.instance.choose();h.select([{tempFilePath:'photo'}]);await pending;
   assert.equal(h.instance.properties.images.length,5);

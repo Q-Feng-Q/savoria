@@ -187,7 +187,7 @@ import StatusPill from '../../components/StatusPill.vue';
 import ProductTypeBadge from '../../components/ProductTypeBadge.vue';
 import NourishmentFields from '../../components/NourishmentFields.vue';
 import { foodInformation, validateFoodInformation } from '../../utils/dish-template-changes';
-import { promptAction } from '../../utils/dialog';
+import { confirmAction, promptAction } from '../../utils/dialog';
 import {
   createDishCategory,
   createMerchantDish,
@@ -204,6 +204,7 @@ import { notify } from '../../utils/feedback';
 const loading = ref(false);
 const saving = ref(false);
 const stepUploading = ref(false);
+const deleteConfirming = ref(false);
 const editorLoading = ref(false);
 let editorGeneration = 0;
 let loadGeneration = 0;
@@ -395,11 +396,19 @@ function addIngredientRow() {
   form.ingredients.push({ ingredientName: '', quantity: 0, unit: 'g', calcType: 'FIXED' });
 }
 
-function removeIngredientRow(index) {
-  form.ingredients.splice(index, 1);
-  if (!form.ingredients.length) {
-    addIngredientRow();
-  }
+async function removeIngredientRow(index) {
+  if (saving.value || stepUploading.value || deleteConfirming.value) return;
+  const item = form.ingredients[index];
+  if (!item) return;
+  deleteConfirming.value = true;
+  try {
+    const confirmed = await confirmAction({ title: `删除原材料“${item.ingredientName || `第 ${index + 1} 项`}”`, message: '此项将从当前菜品移除，保存后生效。', danger: true, confirmText: '确认删除' });
+    if (!confirmed || saving.value || stepUploading.value || form.ingredients[index] !== item) return;
+    form.ingredients.splice(index, 1);
+    if (!form.ingredients.length) {
+      addIngredientRow();
+    }
+  } finally { deleteConfirming.value = false; }
 }
 
 function addStepRow() {
@@ -407,12 +416,19 @@ function addStepRow() {
   form.cookingSteps.push({ title: '', content: '' });
 }
 
-function removeStepRow(index) {
-  if (saving.value || stepUploading.value) return;
-  form.cookingSteps.splice(index, 1);
-  if (!form.cookingSteps.length) {
-    addStepRow();
-  }
+async function removeStepRow(index) {
+  if (saving.value || stepUploading.value || deleteConfirming.value) return;
+  const step = form.cookingSteps[index];
+  if (!step) return;
+  deleteConfirming.value = true;
+  try {
+    const confirmed = await confirmAction({ title: `删除第 ${index + 1} 个制作步骤`, message: '该步骤及其图片会从当前菜品移除，保存后生效。', danger: true, confirmText: '确认删除' });
+    if (!confirmed || saving.value || stepUploading.value || form.cookingSteps[index] !== step) return;
+    form.cookingSteps.splice(index, 1);
+    if (!form.cookingSteps.length) {
+      addStepRow();
+    }
+  } finally { deleteConfirming.value = false; }
 }
 
 async function openCreateCategory() {

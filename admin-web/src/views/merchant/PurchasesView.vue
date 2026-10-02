@@ -139,6 +139,7 @@ import {
   togglePurchaseChecked
 } from '../../api/purchases';
 import { MEAL_SLOT_FILTER_OPTIONS, MEAL_SLOT_OPTIONS } from '../../constants/meal-slots';
+import { confirmAction } from '../../utils/dialog';
 
 const date = ref(new Date().toISOString().slice(0, 10));
 const families = ref([]);
@@ -207,6 +208,8 @@ async function createTempItem() {
 
 async function deleteTempItem(item) {
   if (!item.itemId) return;
+  const confirmed = await confirmAction({ title: `删除临时采购项“${item.ingredientName}”`, message: '删除后此项将从采购清单移除，确定继续吗？', danger: true, confirmText: '确认删除' });
+  if (!confirmed) return;
   await deleteTempPurchaseItem(item.itemId);
   await loadFamilyPurchaseItems();
   await loadSummary();

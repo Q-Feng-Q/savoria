@@ -2,6 +2,7 @@ const { createApiRuntime } = require('../../../utils/api-runtime');
 const { buildApiPurchaseScene, buildPurchaseMealOptions } = require('../../../utils/merchant-scenes');
 const { requireSession, resolveApiErrorMessage } = require('../../../utils/page-api');
 const { todayText } = require('../../../utils/date');
+const { confirmDelete } = require('../../../utils/confirm-delete');
 
 function appendTemporaryItems(copyText, tempItems) {
   const lines = [];
@@ -141,9 +142,12 @@ Page({
     );
   },
 
-  deleteTempItem(event) {
+  async deleteTempItem(event) {
     const itemId = Number(event.currentTarget.dataset.id || 0);
-    if (!itemId) return;
+    const item = this.data.tempItems.find((entry) => Number(entry.itemId) === itemId);
+    if (!itemId || !item || this.data.busyItemMap[itemId]) return;
+    if (!await confirmDelete(this, `删除临时采购项“${item.ingredientName}”`, '删除后此项将从采购清单移除，确定继续吗？') || this.data.busyItemMap[itemId]) return;
+    if (!this.data.tempItems.some((entry) => Number(entry.itemId) === itemId)) return;
     return this.runPurchaseMutation((purchase) => purchase.deleteTempItem(itemId), '删除临时采购项失败', itemId);
   },
 

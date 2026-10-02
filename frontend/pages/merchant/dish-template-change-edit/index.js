@@ -4,6 +4,7 @@ const { requireSession, showApiError, resolveApiErrorMessage } = require('../../
 const { buildTemplateSnapshot, validateTemplateSnapshot } = require('../../../utils/dish-template-change');
 const { toImageUrl } = require('../../../utils/image-url');
 const { PRODUCT_TYPES } = require('../../../utils/nourishment');
+const { confirmDelete } = require('../../../utils/confirm-delete');
 
 const MEALS = [
   { value: 'BREAKFAST', label: '早餐' },
@@ -144,7 +145,10 @@ Page({
     this.setData({ 'form.imageRightsConfirmed': !this.data.form.imageRightsConfirmed });
     this.markDirty();
   },
-  removeTemplateImage() {
+  async removeTemplateImage() {
+    if (this.data.saving || this.data.stepUploading || this.data.uploadingImage || !this.data.form.imagePreviewUrl) return;
+    const previewUrl = this.data.form.imagePreviewUrl;
+    if (!await confirmDelete(this, '删除菜品图片', '图片会从本次模板修改申请中移除，提交后生效。') || this.data.saving || this.data.stepUploading || this.data.uploadingImage || this.data.form.imagePreviewUrl !== previewUrl) return;
     this.setData({
       'form.imageUrl': null, 'form.imagePreviewUrl': '', 'form.imageAssetId': null,
       'form.removeImage': true, 'form.imageRightsConfirmed': false
@@ -203,13 +207,18 @@ Page({
     this.setData({ 'form.ingredients': ingredients });
     this.markDirty();
   },
-  removeIngredient(event) {
+  async removeIngredient(event) {
+    if (this.data.saving || this.data.stepUploading || this.data.uploadingImage) return;
     if ((this.data.form.ingredients || []).length <= 1) {
       wx.showToast({ title: '至少保留 1 项食材', icon: 'none' });
       return;
     }
+    const index = Number(event.currentTarget.dataset.index);
+    const current = this.data.form.ingredients[index];
+    if (!current) return;
+    if (!await confirmDelete(this, `删除食材“${current.ingredientName || `第 ${index + 1} 项`}”`, '此项将从模板修改申请中移除，提交后生效。') || this.data.saving || this.data.stepUploading || this.data.uploadingImage || this.data.form.ingredients[index] !== current) return;
     const ingredients = clone(this.data.form.ingredients);
-    ingredients.splice(Number(event.currentTarget.dataset.index), 1);
+    ingredients.splice(index, 1);
     ingredients.forEach((item, index) => { item.sortOrder = index + 1; });
     this.setData({ 'form.ingredients': ingredients });
     this.markDirty();
@@ -237,16 +246,20 @@ Page({
     this.setData({ 'form.cookingSteps': cookingSteps });
     this.markDirty();
   },
-  removeCookingStep(event) {
+  async removeCookingStep(event) {
     if (this.data.saving || this.data.stepUploading || this.data.uploadingImage) return;
+    const index = Number(event.currentTarget.dataset.index);
+    const current = (this.data.form.cookingSteps || [])[index];
+    if (!current) return;
+    if (!await confirmDelete(this, `删除第 ${index + 1} 个制作步骤`, '该步骤及其图片会从模板修改申请中移除，提交后生效。') || this.data.saving || this.data.stepUploading || this.data.uploadingImage || this.data.form.cookingSteps[index] !== current) return;
     const cookingSteps = clone(this.data.form.cookingSteps || []);
-    cookingSteps.splice(Number(event.currentTarget.dataset.index), 1);
+    cookingSteps.splice(index, 1);
     cookingSteps.forEach((item, index) => { item.stepNo = index + 1; });
     this.setData({ 'form.cookingSteps': cookingSteps });
     this.markDirty();
   },
   async submit() {
-    if (this.data.saving || this.data.stepUploading || this.data.uploadingImage || !this.data.form) return;
+    if (this.data.saving || this.data.stepUploading || this.data.uploadingImage || this._confirmingDelete || !this.data.form) return;
     const source = { ...clone(this.data.form), tasteTags: this.data.form.tasteTagsText };
     const targetSnapshot = buildTemplateSnapshot(source);
     const validation = validateTemplateSnapshot(targetSnapshot);

@@ -1,6 +1,7 @@
 const { createApiRuntime } = require('../../../utils/api-runtime');
 const { buildApiMerchantIngredientsScene } = require('../../../utils/merchant-scenes');
 const { requireSession, showApiError, resolveApiErrorMessage } = require('../../../utils/page-api');
+const { confirmDelete } = require('../../../utils/confirm-delete');
 
 function filterIngredients(ingredients, query) {
   const term = String(query || '').trim().toLocaleLowerCase();
@@ -76,6 +77,8 @@ Page({
       return;
     }
     if (this.data.busyIngredientId) return;
+    if (!await confirmDelete(this, `删除食材“${ingredient.name}”`, '删除后无法恢复，确定继续吗？') || this.data.busyIngredientId) return;
+    if (!this.data.ingredients.some((item) => String(item.id) === String(id) && item.removable)) return;
     this.setData({ busyIngredientId: id });
     try {
       const runtime = createApiRuntime();

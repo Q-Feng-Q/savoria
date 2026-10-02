@@ -533,6 +533,7 @@ async function withPurchasePage(runtime, run) {
   global.Page = (value) => { definition = value; };
   global.wx = {
     showToast(value) { toasts.push(value); },
+    showModal: async () => ({ confirm: true }),
     setClipboardData(value) { clipboard.push(value); }
   };
 
@@ -572,6 +573,10 @@ test('purchase retains real temporary checkout items and binds checked/delete mu
     assert.equal(page.data.phase, 'ready');
     assert.deepEqual(page.data.tempItems, [{ itemId: 71, mealSlotId: null, ingredientName: '餐巾纸', quantity: 2, unit: '包', remark: '补货', checked: false, temporary: true }]);
     await page.toggleTempItem({ currentTarget: { dataset: { id: 71, checked: false } } });
+    global.wx.showModal = async () => ({ confirm: false });
+    await page.deleteTempItem({ currentTarget: { dataset: { id: 71 } } });
+    assert.deepEqual(calls, [['toggle', 71, { checked: true }]]);
+    global.wx.showModal = async () => ({ confirm: true });
     await page.deleteTempItem({ currentTarget: { dataset: { id: 71 } } });
     assert.deepEqual(calls, [['toggle', 71, { checked: true }], ['delete', 71]]);
   });
@@ -1061,9 +1066,11 @@ test('catalog mutation messages follow API outcomes rather than cached settings'
 test('dish editor busy guard blocks deferred-save mutations', () => {
   const source = read('pages/merchant/dish-edit/index.js');
   const markup = read('pages/merchant/dish-edit/index.wxml');
-  for (const handler of ['bindField', 'bindCategory', 'bindIngredient', 'openIngredientResults', 'bindIngredientSearch', 'closeIngredientResults', 'bindCalculation', 'bindQuantity', 'bindStepTitle', 'bindStepContent', 'addIngredient', 'removeIngredient', 'addCookingStep', 'removeCookingStep', 'toggleStatus', 'openIngredientLibrary']) {
+  for (const handler of ['bindField', 'bindCategory', 'bindIngredient', 'openIngredientResults', 'bindIngredientSearch', 'closeIngredientResults', 'bindCalculation', 'bindQuantity', 'bindStepTitle', 'bindStepContent', 'addIngredient', 'addCookingStep', 'toggleStatus', 'openIngredientLibrary']) {
     assert.match(source, new RegExp(`${handler}\\s*\\([^)]*\\)\\s*\\{\\s*if \\(this\\.isMutationBusy\\(\\)\\) return;`));
   }
+  assert.match(source, /async removeIngredient\s*\([^)]*\)\s*\{\s*if \(this\.isMutationBusy\(\)\) return;/);
+  assert.match(source, /async removeCookingStep\s*\([^)]*\)\s*\{\s*if \(this\.isMutationBusy\(\)\) return;/);
   assert.match(source, /saveFingerprint/);
   assert.match(markup, /disabled="\{\{saving \|\| uploading \|\| stepUploading\}\}"/);
 });
@@ -1124,14 +1131,19 @@ test('deleting an ingredient refreshes the list while preserving its search quer
   const pagePath = path.join(root, 'pages', 'merchant', 'ingredient-edit', 'index.js');
   const runtimePath = require.resolve(path.join(root, 'utils', 'api-runtime.js')); const pageApiPath = require.resolve(path.join(root, 'utils', 'page-api.js'));
   const oldRuntime = require.cache[runtimePath]; const oldApi = require.cache[pageApiPath]; const oldPage = global.Page; const oldWx = global.wx; let definition;
-  require.cache[runtimePath] = { exports: { createApiRuntime: () => ({ merchant: { deleteIngredient: async () => {}, getIngredients: async () => [] } }) } };
+  let deleteCalls = 0;
+  require.cache[runtimePath] = { exports: { createApiRuntime: () => ({ merchant: { deleteIngredient: async () => { deleteCalls++; }, getIngredients: async () => [] } }) } };
   require.cache[pageApiPath] = { exports: { requireSession: () => ({ merchantId: 2 }), showApiError: () => {}, resolveApiErrorMessage: (e, f) => e.message || f } };
-  global.Page = (value) => { definition = value; }; global.wx = { showToast() {} };
+  global.Page = (value) => { definition = value; }; global.wx = { showToast() {}, showModal: async () => ({ confirm: false }) };
   try {
     delete require.cache[require.resolve(pagePath)]; require(pagePath);
     const page = Object.assign({}, definition, { data: JSON.parse(JSON.stringify(definition.data)), setData(update) { this.data = { ...this.data, ...update }; } });
     page.setData({ query: '盐', ingredients: [{ id: 7, name: '盐', removable: true }] });
     await page.removeIngredient({ currentTarget: { dataset: { id: 7 } } });
+    assert.equal(deleteCalls, 0);
+    global.wx.showModal = async () => ({ confirm: true });
+    await page.removeIngredient({ currentTarget: { dataset: { id: 7 } } });
+    assert.equal(deleteCalls, 1);
     assert.equal(page.data.query, '盐'); assert.deepEqual(page.data.visibleIngredients, []);
   } finally { delete require.cache[require.resolve(pagePath)]; if (oldRuntime) require.cache[runtimePath] = oldRuntime; else delete require.cache[runtimePath]; if (oldApi) require.cache[pageApiPath] = oldApi; else delete require.cache[pageApiPath]; global.Page = oldPage; global.wx = oldWx; }
 });

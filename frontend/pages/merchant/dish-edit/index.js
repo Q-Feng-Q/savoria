@@ -3,6 +3,7 @@ const { validateStepImages } = require('../../../utils/step-images');
 const { requireSession, showApiError, resolveApiErrorMessage } = require('../../../utils/page-api');
 const { createDirtyForm } = require('../../../utils/dirty-form');
 const { PRODUCT_TYPES, nourishmentFields, validateNourishment } = require('../../../utils/nourishment');
+const { confirmDelete } = require('../../../utils/confirm-delete');
 
 const calculationTypes = [
   { value: 'FIXED', label: '固定消耗' },
@@ -221,7 +222,7 @@ Page({
 
   retryLoad() { return this.load(); },
 
-  isMutationBusy() { return this.data.saving || this.data.uploading || this.data.stepUploading; },
+  isMutationBusy() { return this.data.saving || this.data.uploading || this.data.stepUploading || this._confirmingDelete; },
 
   onStepImagesBusy(event) { this.setData({ stepUploading: event.detail.busy }); },
   onStepImagesChange(event) {
@@ -386,10 +387,14 @@ Page({
     this.markDirty();
   },
 
-  removeIngredient(event) {
+  async removeIngredient(event) {
     if (this.isMutationBusy()) return;
+    const index = Number(event.currentTarget.dataset.index);
+    const current = (this.data.dish.ingredients || [])[index];
+    if (!current) return;
+    if (!await confirmDelete(this, `删除原材料“${current.name}”`, '此项将从当前菜品移除，保存后生效。') || this.isMutationBusy() || this.data.dish.ingredients[index] !== current) return;
     const next = clone(this.data.dish.ingredients || []);
-    next.splice(Number(event.currentTarget.dataset.index || 0), 1);
+    next.splice(index, 1);
     this.setData({ 'dish.ingredients': next });
     this.markDirty();
   },
@@ -417,10 +422,14 @@ Page({
     });
   },
 
-  removeCookingStep(event) {
+  async removeCookingStep(event) {
     if (this.isMutationBusy()) return;
+    const index = Number(event.currentTarget.dataset.index);
+    const current = (this.data.dish.cookingSteps || [])[index];
+    if (!current) return;
+    if (!await confirmDelete(this, `删除第 ${index + 1} 个制作步骤`, '该步骤及其图片会从当前菜品移除，保存后生效。') || this.isMutationBusy() || this.data.dish.cookingSteps[index] !== current) return;
     const next = clone(this.data.dish.cookingSteps || []);
-    next.splice(Number(event.currentTarget.dataset.index || 0), 1);
+    next.splice(index, 1);
     next.forEach((item, index) => {
       item.stepNo = index + 1;
     });

@@ -3,6 +3,7 @@ const { sessionStore } = require('../../utils/session');
 const { identityKey } = require('../../utils/identity-load');
 const { toImageUrl } = require('../../utils/image-url');
 const { uploadStepImages, MAX_STEP_IMAGES } = require('../../utils/step-images');
+const { confirmDelete } = require('../../utils/confirm-delete');
 
 Component({
   properties: { images: { type: Array, value: [] }, editable: Boolean, disabled: Boolean },
@@ -21,10 +22,16 @@ Component({
       const urls = this.data.previews;
       if (urls.length) wx.previewImage({ urls, current: urls[Number(event.currentTarget.dataset.index)] });
     },
-    remove(event) {
+    async remove(event) {
       if (!this.properties.editable || this.properties.disabled || this.data.busy) return;
+      const index = Number(event.currentTarget.dataset.index);
+      const image = (this.properties.images || [])[index];
+      if (!image) return;
+      const identity = identityKey(sessionStore.getSession());
+      if (!await confirmDelete(this, `删除第 ${index + 1} 张步骤图片`, '图片会从当前步骤移除，保存后生效。') || !this._attached || !this.properties.editable || this.properties.disabled || this.data.busy) return;
+      if (identity !== identityKey(sessionStore.getSession()) || (this.properties.images || [])[index] !== image) return;
       const images = [...(this.properties.images || [])];
-      images.splice(Number(event.currentTarget.dataset.index), 1);
+      images.splice(index, 1);
       this.triggerEvent('change', { images });
     },
     async choose() {

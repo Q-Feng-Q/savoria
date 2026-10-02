@@ -113,6 +113,7 @@ import { uploadDishImage } from '../../api/files';
 import { getApiBaseUrl } from '../../api/http';
 import { buildTemplateSnapshot, createTemplateChangeForm, validateTemplateSnapshot } from '../../utils/dish-template-changes';
 import { notify } from '../../utils/feedback';
+import { confirmAction } from '../../utils/dialog';
 
 const router = useRouter();
 const categories = ref([]);
@@ -126,6 +127,7 @@ const editorForm = ref(null);
 const editorTemplateId = ref(null);
 let editorGeneration = 0;
 const editorSaving = ref(false); const stepUploading = ref(false);
+const deleteConfirming = ref(false);
 const editorUploading = ref(false);
 const submitNote = ref('');
 const meals = [{ value: 'BREAKFAST', label: '早餐' }, { value: 'LUNCH', label: '午餐' }, { value: 'DINNER', label: '晚餐' }];
@@ -196,13 +198,33 @@ function addTemplateIngredient() {
   editorForm.value.ingredients.push({ itemId: `ingredient-new-${Date.now()}`, ingredientName: '', ingredientCategory: '', quantityStatus: 'MISSING', quantity: '', unit: '', calcType: '', sourceQuantityText: '', sortOrder: editorForm.value.ingredients.length + 1 });
 }
 
-function removeTemplateIngredient(index) {
+async function removeTemplateIngredient(index) {
+  if (!editorForm.value || editorSaving.value || editorUploading.value || stepUploading.value || deleteConfirming.value) return;
   if (editorForm.value.ingredients.length <= 1) { notify('至少保留 1 项食材', 'error'); return; }
-  editorForm.value.ingredients.splice(index, 1);
+  const form = editorForm.value;
+  const item = form.ingredients[index];
+  if (!item) return;
+  deleteConfirming.value = true;
+  try {
+    const confirmed = await confirmAction({ title: `删除食材“${item.ingredientName || `第 ${index + 1} 项`}”`, message: '此项将从模板修改申请中移除，提交后生效。', danger: true, confirmText: '确认删除' });
+    if (!confirmed || editorForm.value !== form || editorSaving.value || editorUploading.value || stepUploading.value || form.ingredients[index] !== item) return;
+    form.ingredients.splice(index, 1);
+  } finally { deleteConfirming.value = false; }
 }
 
 function addCookingStep() { if (editorSaving.value || editorUploading.value || stepUploading.value) return; editorForm.value.cookingSteps.push({ itemId: `step-new-${Date.now()}`, title: '', content: '', durationSeconds: '', temperatureText: '', heatLevel: '', componentTemplateId: '' }); }
-function removeCookingStep(index) { if (editorSaving.value || editorUploading.value || stepUploading.value) return; editorForm.value.cookingSteps.splice(index, 1); }
+async function removeCookingStep(index) {
+  if (!editorForm.value || editorSaving.value || editorUploading.value || stepUploading.value || deleteConfirming.value) return;
+  const form = editorForm.value;
+  const step = form.cookingSteps[index];
+  if (!step) return;
+  deleteConfirming.value = true;
+  try {
+    const confirmed = await confirmAction({ title: `删除第 ${index + 1} 个制作步骤`, message: '该步骤及其图片会从模板修改申请中移除，提交后生效。', danger: true, confirmText: '确认删除' });
+    if (!confirmed || editorForm.value !== form || editorSaving.value || editorUploading.value || stepUploading.value || form.cookingSteps[index] !== step) return;
+    form.cookingSteps.splice(index, 1);
+  } finally { deleteConfirming.value = false; }
+}
 
 async function uploadTemplateImage(event) {
   const file = event.target.files && event.target.files[0];
@@ -220,8 +242,16 @@ async function uploadTemplateImage(event) {
   finally { editorUploading.value = false; }
 }
 
-function removeTemplateImage() {
-  Object.assign(editorForm.value, { imageUrl: '', imagePreviewUrl: '', imageAssetId: null, removeImage: true, imageRightsConfirmed: false });
+async function removeTemplateImage() {
+  if (!editorForm.value || !editorForm.value.imagePreviewUrl || editorSaving.value || editorUploading.value || stepUploading.value || deleteConfirming.value) return;
+  const form = editorForm.value;
+  const imageUrl = form.imagePreviewUrl;
+  deleteConfirming.value = true;
+  try {
+    const confirmed = await confirmAction({ title: '删除菜品图片', message: '图片会从本次模板修改申请中移除，提交后生效。', danger: true, confirmText: '确认删除' });
+    if (!confirmed || editorForm.value !== form || editorSaving.value || editorUploading.value || stepUploading.value || form.imagePreviewUrl !== imageUrl) return;
+    Object.assign(form, { imageUrl: '', imagePreviewUrl: '', imageAssetId: null, removeImage: true, imageRightsConfirmed: false });
+  } finally { deleteConfirming.value = false; }
 }
 
 async function submitChange() {
