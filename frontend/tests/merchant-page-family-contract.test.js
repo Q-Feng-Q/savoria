@@ -107,10 +107,10 @@ test('merchant overview exposes the approved restrained workbench structure', ()
   assert.match(source, /regionStates\.families\.phase === 'error'[^>]*>[\s\S]*?bindtap="retryFamilies"/);
 
   const quickActions = source.match(/class="[^"]*merchant-quick-action[^"]*"/g) || [];
-  assert.equal(quickActions.length, 3);
-  assert.equal((source.match(/<action-button[^>]+bind:action=/g) || []).length, 4);
+  assert.equal(quickActions.length, 4);
+  assert.equal((source.match(/<action-button[^>]+bind:action=/g) || []).length, 5);
   assert.match(source, /label="BUG \/ 建议"[^>]+bind:action="openFeedback"/);
-  for (const label of ['订单与备餐', '今日采购', '通知与提醒']) assert.match(source, new RegExp(label));
+  for (const label of ['订单与备餐', '今日采购', '食材库', '通知与提醒']) assert.match(source, new RegExp(label));
 
   for (const asset of ['merchant-cooking.webp', 'merchant-orders.webp', 'merchant-purchase.webp']) {
     assert.match(source, new RegExp(asset));
@@ -433,10 +433,13 @@ test('partial and retry authentication failures use centralized resolution', asy
 
 test('merchant overview uses the approved navigation modes and routes', () => {
   const source = read('pages/merchant/index.js');
+  const markup = read('pages/merchant/index.wxml');
   assert.match(source, /openMerchantOrders\s*\([^)]*\)\s*\{[\s\S]*?wx\.redirectTo\(\{\s*url:\s*['"]\/pages\/merchant\/merchant-orders\/index['"]/);
   assert.match(source, /openPurchase\s*\([^)]*\)\s*\{[\s\S]*?wx\.navigateTo\(\{\s*url:\s*`\/pages\/merchant\/purchase\/index\?date=/);
   assert.match(source, /openNotifications\s*\([^)]*\)\s*\{[\s\S]*?wx\.navigateTo\(\{\s*url:\s*['"]\/pages\/account\/notifications\/index\?actor=merchant['"]/);
   assert.match(source, /openAccountSwitcher\s*\([^)]*\)\s*\{[\s\S]*?wx\.navigateTo\(\{\s*url:\s*['"]\/pages\/account\/account-management\/index['"]/);
+  assert.match(markup, /<view class="merchant-actions"[\s\S]*?<action-button[^>]+label="食材库"[^>]+bind:action="openIngredientLibrary"/);
+  assert.match(source, /openIngredientLibrary\s*\([^)]*\)\s*\{\s*wx\.navigateTo\(\{\s*url:\s*['"]\/pages\/merchant\/ingredient-edit\/index['"]/);
 });
 
 test('merchant orders is a root workbench with explicit backend filters, grouped rows and purchase entry', () => {

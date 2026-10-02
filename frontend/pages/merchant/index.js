@@ -263,6 +263,10 @@ Page({
     wx.navigateTo({ url: `/pages/merchant/purchase/index?date=${todayText()}` });
   },
 
+  openIngredientLibrary() {
+    wx.navigateTo({ url: '/pages/merchant/ingredient-edit/index' });
+  },
+
   openNotifications() {
     wx.navigateTo({ url: '/pages/account/notifications/index?actor=merchant' });
   },
