@@ -4,6 +4,37 @@ export const BRAND_DEFAULTS = Object.freeze({
 });
 export const BRAND_SIZES = Object.freeze({ siteLogoSmallSize: [16, 64], siteLogoSize: [24, 120], siteLogoLargeSize: [48, 160] });
 export const BRAND_URLS = ['siteLogoSmallUrl', 'siteLogoUrl', 'siteLogoLargeUrl', 'siteFaviconUrl'];
+export const BRAND_COPY_DEFAULTS = Object.freeze({
+  brandTagline: '好好吃饭，就是幸福',
+  homeHeroTagline: '让家常菜 · 温暖每一餐\n就是最好的时光',
+  homeFooterMessage: '好好吃饭\n就是一家人在一起',
+  cartHeroTagline: '让家常菜 · 温暖每一餐',
+  deliveryMessage: '美味正在路上，用食物，把温暖送到家',
+  pickupMessage: '先在一起，好好吃饭，期待您的到来',
+  cartFooterMessage: '把平凡的日子，过成温暖的诗',
+  profileWelcomeMessage: '好好吃饭，就是幸福'
+});
+export const BRAND_COPY_LIMITS = Object.freeze({
+  brandTagline: 120, homeHeroTagline: 120, homeFooterMessage: 120, cartHeroTagline: 120,
+  deliveryMessage: 80, pickupMessage: 80, cartFooterMessage: 120, profileWelcomeMessage: 120
+});
+
+export function normalizeBrandCopy(value = {}) {
+  const source = value || {};
+  return Object.fromEntries(Object.entries(BRAND_COPY_DEFAULTS).map(([key, fallback]) => {
+    const raw = typeof source[key] === 'string' ? source[key].trim() : '';
+    return [key, raw && raw.length <= BRAND_COPY_LIMITS[key] ? raw : fallback];
+  }));
+}
+
+export function brandCopyPayload(value = {}) {
+  return Object.fromEntries(Object.keys(BRAND_COPY_DEFAULTS).map((key) => {
+    const raw = typeof value[key] === 'string' ? value[key].trim() : '';
+    const limit = BRAND_COPY_LIMITS[key];
+    if (raw.length > limit) throw new Error(`品牌文案最多 ${limit} 个字符`);
+    return [key, raw || null];
+  }));
+}
 
 export function isBrandUrl(value) {
   if (typeof value !== 'string' || value.length > 500 || /[\x00-\x20\x7f\\]/.test(value)) return false;
