@@ -7,6 +7,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.familykitchen.common.error.BusinessException;
+import com.familykitchen.common.error.ErrorCode;
 import com.familykitchen.notebook.NotebookRangePolicy;
 import com.familykitchen.system.mapper.SystemAuditMapper;
 import com.familykitchen.system.mapper.SystemSettingMapper;
@@ -27,7 +29,12 @@ class NotebookLimitSettingTest {
     assertThatThrownBy(() -> policy.requireAllowed(
         LocalDate.of(2024, 1, 1), LocalDate.of(2027, 1, 1))).hasMessageContaining("36");
     assertThatThrownBy(() -> policy.requireAllowed(
-        LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 31))).isInstanceOf(IllegalArgumentException.class);
+        LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 31)))
+        .isInstanceOfSatisfying(BusinessException.class,
+            error -> assertThat(error.errorCode()).isEqualTo(ErrorCode.BAD_REQUEST));
+    assertThatThrownBy(() -> policy.requireAllowed(null, LocalDate.of(2026, 1, 31)))
+        .isInstanceOfSatisfying(BusinessException.class,
+            error -> assertThat(error.errorCode()).isEqualTo(ErrorCode.BAD_REQUEST));
     assertThatThrownBy(() -> new NotebookRangePolicy(() -> 1).requireAllowed(
         LocalDate.of(2026, 1, 31), LocalDate.of(2026, 2, 1))).hasMessageContaining("1");
   }

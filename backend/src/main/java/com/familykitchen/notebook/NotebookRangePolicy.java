@@ -21,7 +21,7 @@ public final class NotebookRangePolicy {
    * @param to last date */
   public void requireAllowed(LocalDate from, LocalDate to) {
     if (from == null || to == null || from.isAfter(to)) {
-      throw new IllegalArgumentException("Invalid notebook date range");
+      throw new BusinessException(ErrorCode.BAD_REQUEST, "Invalid notebook date range");
     }
     int limit = maxMonths.getAsInt();
     if (limit < 1 || limit > 36) limit = 36;

@@ -1,6 +1,7 @@
 package com.familykitchen.notebook;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -43,6 +44,24 @@ class NotebookSchemaTest {
       }
       assertThat(connection.getMetaData().getTables(null, null, "NOTEBOOK_RECORDS", null).next())
           .isTrue();
+      statement.execute("INSERT INTO users(id) VALUES (1),(2)");
+      statement.execute("INSERT INTO notebook_events(id,owner_user_id,name) VALUES (10,1,'Journal')");
+      statement.execute("INSERT INTO notebook_template_versions(event_id,version,fields_json,published_by_user_id) "
+          + "VALUES (10,1,'{}',1)");
+      statement.execute("INSERT INTO notebook_records(event_id,owner_user_id,created_by_user_id,"
+          + "updated_by_user_id,occurred_from,occurred_to,title,template_version,values_json) "
+          + "VALUES (10,1,1,1,'2026-01-01','2026-01-01','Valid',1,'{}')");
+      assertThatThrownBy(() -> statement.execute("INSERT INTO notebook_records(event_id,owner_user_id,"
+          + "created_by_user_id,updated_by_user_id,occurred_from,occurred_to,title,template_version,values_json) "
+          + "VALUES (10,2,1,1,'2026-01-01','2026-01-01','Wrong owner',1,'{}')"))
+          .isInstanceOf(java.sql.SQLException.class);
+      statement.execute("INSERT INTO notebook_grants(event_id,owner_user_id,grantee_user_id,data_from,data_to,"
+          + "valid_from,valid_to) VALUES (10,1,2,'2026-01-01','2026-01-31',"
+          + "'2026-01-01','2026-02-01')");
+      assertThatThrownBy(() -> statement.execute("INSERT INTO notebook_grants(event_id,owner_user_id,"
+          + "grantee_user_id,data_from,data_to,valid_from,valid_to) VALUES "
+          + "(10,2,1,'2026-01-01','2026-01-31','2026-01-01','2026-02-01')"))
+          .isInstanceOf(java.sql.SQLException.class);
     }
   }
 }

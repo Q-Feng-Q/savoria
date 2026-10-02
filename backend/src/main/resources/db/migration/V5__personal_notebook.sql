@@ -14,6 +14,7 @@ CREATE TABLE notebook_events (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
+  UNIQUE KEY uq_notebook_event_id_owner (id, owner_user_id),
   KEY idx_notebook_events_owner (owner_user_id, archived, starred, sort_order),
   CONSTRAINT fk_notebook_events_owner FOREIGN KEY (owner_user_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -50,7 +51,8 @@ CREATE TABLE notebook_records (
   PRIMARY KEY (id),
   KEY idx_notebook_records_event_range (event_id, occurred_from, occurred_to),
   KEY idx_notebook_records_owner_range (owner_user_id, occurred_from, occurred_to),
-  CONSTRAINT fk_notebook_record_event FOREIGN KEY (event_id) REFERENCES notebook_events(id) ON DELETE CASCADE,
+  CONSTRAINT fk_notebook_record_event_owner FOREIGN KEY (event_id, owner_user_id)
+    REFERENCES notebook_events(id, owner_user_id) ON DELETE CASCADE,
   CONSTRAINT fk_notebook_record_owner FOREIGN KEY (owner_user_id) REFERENCES users(id),
   CONSTRAINT fk_notebook_record_creator FOREIGN KEY (created_by_user_id) REFERENCES users(id),
   CONSTRAINT fk_notebook_record_editor FOREIGN KEY (updated_by_user_id) REFERENCES users(id),
@@ -123,7 +125,8 @@ CREATE TABLE notebook_grants (
   PRIMARY KEY (id),
   UNIQUE KEY uq_notebook_grant_event_grantee (event_id, grantee_user_id),
   KEY idx_notebook_grants_grantee (grantee_user_id, status, valid_to),
-  CONSTRAINT fk_notebook_grant_event FOREIGN KEY (event_id) REFERENCES notebook_events(id) ON DELETE CASCADE,
+  CONSTRAINT fk_notebook_grant_event_owner FOREIGN KEY (event_id, owner_user_id)
+    REFERENCES notebook_events(id, owner_user_id) ON DELETE CASCADE,
   CONSTRAINT fk_notebook_grant_owner FOREIGN KEY (owner_user_id) REFERENCES users(id),
   CONSTRAINT fk_notebook_grant_grantee FOREIGN KEY (grantee_user_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
