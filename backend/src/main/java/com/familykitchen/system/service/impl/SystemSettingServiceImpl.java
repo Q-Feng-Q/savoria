@@ -88,7 +88,7 @@ public class SystemSettingServiceImpl implements SystemSettingService {
     if(requestedMonths!=null&&(requestedMonths<1||requestedMonths>36))
       throw new BusinessException(ErrorCode.BAD_REQUEST,"记事查询月份须在 1 至 36 之间");
     SystemSettingDO e=new SystemSettingDO(); e.setId(1L); e.setSiteName(r.siteName().trim());
-    e.setNotebookMaxQueryMonths(requestedMonths==null?notebookMaxQueryMonths():requestedMonths);
+    e.setNotebookMaxQueryMonths(requestedMonths);
     e.setSiteLogoUrl(r.siteLogoUrl()); e.setDishReviewEnabled(r.dishReviewEnabled());
     e.setSiteLogoSmallUrl(r.siteLogoSmallUrl());e.setSiteLogoLargeUrl(r.siteLogoLargeUrl());e.setSiteFaviconUrl(r.siteFaviconUrl());
     e.setSiteLogoSmallSize(r.siteLogoSmallSize());e.setSiteLogoSize(r.siteLogoSize());e.setSiteLogoLargeSize(r.siteLogoLargeSize());

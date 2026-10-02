@@ -68,7 +68,24 @@ class NotebookLimitSettingTest {
     service.update(7L, request(null));
     var row = ArgumentCaptor.forClass(SystemSettingDO.class);
     verify(mapper, org.mockito.Mockito.atLeastOnce()).update(row.capture());
-    assertThat(row.getValue().getNotebookMaxQueryMonths()).isEqualTo(12);
+    assertThat(row.getValue().getNotebookMaxQueryMonths()).isNull();
+  }
+
+  @Test void legacyOmissionDoesNotOverwriteStoredLimitWhenSettingsReadFails() throws Exception {
+    var mapper = mock(SystemSettingMapper.class);
+    var stored = new SystemSettingDO();
+    stored.setNotebookMaxQueryMonths(12);
+    when(mapper.selectCurrent()).thenReturn(stored)
+        .thenThrow(new IllegalStateException("temporary settings read failure"));
+    var service = service(mapper);
+    service.current();
+
+    assertThatThrownBy(() -> service.update(7L, request(null)))
+        .isInstanceOf(IllegalStateException.class);
+
+    var row = ArgumentCaptor.forClass(SystemSettingDO.class);
+    verify(mapper).update(row.capture());
+    assertThat(row.getValue().getNotebookMaxQueryMonths()).isNull();
   }
 
   @Test void adminRejectsOutOfRangeValues() throws Exception {
