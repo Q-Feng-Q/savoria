@@ -343,3 +343,23 @@ Content-Type: application/json
 - 模板缺失字段按稳定步骤键匹配保留；兼容旧客户端基于数据库步骤 ID 生成的键。商户菜品步骤有图但旧请求缺失图片字段时，仅允许步骤数量、顺序及元数据未变化的写入；歧义请求拒绝并提示刷新。缺失整个 `cookingSteps` 保留当前步骤；显式 `cookingSteps: []` 表示删除所有步骤。
 - 新审核快照保存前解析缺失字段，历史快照批准前完成兼容检查；模板导入、组件展开及状态调整保留对应步骤图片。移除引用不删除原图片文件。
 - 数据库前置条件（2026-09-23 空库基线合并）：`V1__init_schema.sql` 已在 `dish_cooking_steps` 与 `dish_template_cooking_steps` 中直接定义可空 JSON 列 `image_urls`；原 V5 已移除。仅供全新空库初始化，不可直接套用已有 Flyway 历史库。未执行当前业务库重建；部署需同步发布后端和客户端。
+
+## 个人记事事件与模板（2026-10-03）
+
+以下路径沿用部署层 `/api` 前缀，均要求已登录；所有权只取当前账号 ID，家庭、商户或平台角色不增加记事访问权。普通响应为 `{ code, message, data }`。非所有者访问事件及模板返回 404。
+
+| 方法与路径 | 请求 | data |
+| --- | --- | --- |
+| `GET /api/notebook/events` | 可选 `includeArchived=false` | 当前账号事件数组；重点关注优先，再按 `sortOrder`、ID 排序 |
+| `POST /api/notebook/events` | `{ name, category?, description?, fields }` | 新事件；同时发布模板版本 1 |
+| `GET /api/notebook/events/{id}` | 无 | 当前账号事件详情 |
+| `PATCH /api/notebook/events/{id}` | `{ name?, category?, description?, starred?, archived?, sortOrder? }` | 更新后事件；省略或 null 表示保留原值 |
+| `GET /api/notebook/events/{id}/delete-impact` | 无 | `{ recordCount, templateVersionCount, grantCount }` |
+| `DELETE /api/notebook/events/{id}` | 必填语义 `confirm=true` | 空成功响应；未确认返回 400 |
+| `PUT /api/notebook/events/order` | `{ eventIds: [id, ...] }` | 空成功响应；所有 ID 均须属于当前账号且不得重复 |
+| `GET /api/notebook/events/{id}/templates` | 无 | 按版本升序的完整历史模板数组 |
+| `POST /api/notebook/events/{id}/templates` | `{ fields: [...] }` | 新发布的不可变模板版本 |
+
+事件含 `id`、`ownerUserId`、`name`、`category`、`description`、`sortOrder`、`starred`、`archived`、`currentTemplateVersion`。名称去首尾空白后为 1～120 字符，分类最多 80 字符，描述最多 5000 字符。删除前客户端应显示 `delete-impact` 并取得确认；服务端撤销授权、删除事件及其记录、版本和私有图片登记，保留不含正文的动作审计。一次删除最多处理 5000 个私有图片对象，超出时返回 409，需先分批删除记录。
+
+模板 `fields` 为完整有序数组，最多 50 项。每项含 `key?`、`type`、`label`、`required`、`options?`、`unit?`。初次创建不传 `key`；后续编辑可传当前版本中的 `key`，同类型改名保持键不变，改类型由服务端分配新键；未知或重复键返回 400。支持 `TEXT`、`LONG_TEXT`、`NUMBER`、`DATE`、`TIME`、`DATETIME`、`SINGLE_SELECT`、`MULTI_SELECT`、`BOOLEAN`、`RATING`、`IMAGE`。选项仅用于两种选择类型，必填且最多 30 个；`unit` 仅用于数字类型。每次发布递增版本，历史版本及记录字段定义不改写。
