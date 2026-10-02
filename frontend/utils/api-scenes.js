@@ -330,6 +330,9 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
 function buildApiDishDetailScene({ homeData, dishDetail, cart = null, mealSlots = [], imageBaseUrl = '' }) {
   const cartItem = ((cart && cart.items) || []).find((item) => item.dishId === dishDetail.dishId);
   const selectedCount = Number((cartItem && cartItem.quantity) || 0);
+  const tasteTags = Array.isArray(dishDetail.tasteTags)
+    ? dishDetail.tasteTags.map((item) => String(item || '').trim()).filter(Boolean)
+    : [];
 
   return {
     context: buildContext(homeData),
@@ -340,7 +343,7 @@ function buildApiDishDetailScene({ homeData, dishDetail, cart = null, mealSlots 
       category: displayText(dishDetail.categoryName, '今日菜单'),
       name: dishDetail.name,
       description: dishDetail.description || '商户维护的菜品详情',
-      tasteTags: dishDetail.description ? [dishDetail.description] : ['家常推荐'],
+      tasteTags: tasteTags.length ? tasteTags : ['家常推荐'],
       imageUrl: toImageUrl(imageBaseUrl, dishDetail.imageUrl),
       finalPrice: formatAmountNumber(dishDetail.price),
       familyName: homeData.family.familyName,

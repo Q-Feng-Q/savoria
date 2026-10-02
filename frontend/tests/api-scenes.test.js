@@ -280,6 +280,7 @@ test('buildApiDishDetailScene keeps ingredient and selected count info', () => {
       categoryName: '家常菜',
       name: '番茄炒蛋',
       description: '酸甜开胃',
+      tasteTags: ['酸甜', '家常'],
       imageUrl: '/uploads/images/tomato.png',
       price: 18,
       ingredients: [
@@ -304,6 +305,8 @@ test('buildApiDishDetailScene keeps ingredient and selected count info', () => {
   assert.equal(scene.dish.ingredients.length, 2);
   assert.equal(scene.dish.cookingSteps.length, 1);
   assert.equal(scene.dish.finalPrice, '18.00');
+  assert.deepEqual(scene.dish.tasteTags, ['酸甜', '家常']);
+  assert.doesNotMatch(scene.dish.tasteTags.join(' '), /酸甜开胃/);
   assert.equal(Object.hasOwn(scene.dish, 'basePrice'), false);
 });
 
@@ -314,6 +317,7 @@ test('buildApiDishDetailScene hides internal category ids behind readable copy',
   });
 
   assert.equal(scene.dish.category, '今日菜单');
+  assert.deepEqual(scene.dish.tasteTags, ['家常推荐']);
   assert.doesNotMatch(scene.dish.category, /14|分类/);
 });
 
