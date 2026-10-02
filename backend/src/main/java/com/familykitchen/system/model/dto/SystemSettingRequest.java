@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  * @param pickupMessage 自取氛围提示
  * @param cartFooterMessage 餐篮底部寄语
  * @param profileWelcomeMessage 个人中心欢迎语
+ * @param notebookMaxQueryMonths 记事单次查询最长月份，省略时保留当前设置
  */
 public record SystemSettingRequest(
     @NotBlank @Size(max=100) String siteName,
@@ -61,7 +62,8 @@ public record SystemSettingRequest(
     @Size(max=80) String deliveryMessage,
     @Size(max=80) String pickupMessage,
     @Size(max=120) String cartFooterMessage,
-    @Size(max=120) String profileWelcomeMessage
+    @Size(max=120) String profileWelcomeMessage,
+    @Min(1) @Max(36) Integer notebookMaxQueryMonths
 ) {
   public SystemSettingRequest(String siteName, String siteLogoUrl, boolean dishReviewEnabled,
       boolean maintenanceEnabled, String maintenanceMessage, boolean mobileBindingEnabled,
@@ -70,6 +72,6 @@ public record SystemSettingRequest(
     this(siteName, siteLogoUrl, dishReviewEnabled, maintenanceEnabled, maintenanceMessage,
         mobileBindingEnabled, emailBindingEnabled, wechatBindingEnabled, smtpHost, smtpPort,
         smtpUsername, smtpPassword, smtpTlsEnabled, smtpFrom, null, null, null, null, null, null,
-        null, null, null, null, null, null, null, null);
+        null, null, null, null, null, null, null, null, null);
   }
 }

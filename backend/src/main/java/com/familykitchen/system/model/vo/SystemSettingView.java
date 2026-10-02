@@ -28,6 +28,7 @@ import java.time.LocalDateTime;
  * @param pickupMessage 自取氛围提示
  * @param cartFooterMessage 餐篮底部寄语
  * @param profileWelcomeMessage 个人中心欢迎语
+ * @param notebookMaxQueryMonths 记事单次查询最长月份
  */
 public record SystemSettingView(
     String siteName,String siteLogoUrl,boolean dishReviewEnabled,
@@ -39,5 +40,6 @@ public record SystemSettingView(
     String siteLogoSmallUrl, String siteLogoLargeUrl, String siteFaviconUrl,
     Integer siteLogoSmallSize, Integer siteLogoSize, Integer siteLogoLargeSize,
     String brandTagline, String homeHeroTagline, String homeFooterMessage, String cartHeroTagline,
-    String deliveryMessage, String pickupMessage, String cartFooterMessage, String profileWelcomeMessage
+    String deliveryMessage, String pickupMessage, String cartFooterMessage, String profileWelcomeMessage,
+    int notebookMaxQueryMonths
 ) {}

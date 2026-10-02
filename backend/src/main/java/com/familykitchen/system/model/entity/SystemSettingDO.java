@@ -2,6 +2,14 @@ package com.familykitchen.system.model.entity;
 import java.time.LocalDateTime;
 /** 平台唯一系统配置的持久化实体，包含绑定开关和加密后的 SMTP 凭据。 */
 public class SystemSettingDO {
+  /** Maximum calendar months allowed in one notebook query. */
+  private Integer notebookMaxQueryMonths;
+  /** Returns the maximum notebook query span.
+   * @return maximum notebook query calendar months */
+  public Integer getNotebookMaxQueryMonths(){return notebookMaxQueryMonths;}
+  /** Sets the maximum notebook query span.
+   * @param value maximum notebook query calendar months */
+  public void setNotebookMaxQueryMonths(Integer value){notebookMaxQueryMonths=value;}
   private String siteLogoSmallUrl, siteLogoLargeUrl, siteFaviconUrl;
   /** 通用品牌标语。 */
   private String brandTagline;

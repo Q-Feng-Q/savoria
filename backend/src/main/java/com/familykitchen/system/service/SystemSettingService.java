@@ -36,4 +36,7 @@ public interface SystemSettingService {
   /** 查询微信绑定开关。
    * @return 是否开放微信绑定 */
   boolean wechatBindingEnabled();
+  /** Returns the effective notebook query span, with a safe default of 36 months.
+   * @return current notebook month limit */
+  int notebookMaxQueryMonths();
 }
