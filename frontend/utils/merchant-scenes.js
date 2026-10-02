@@ -565,6 +565,20 @@ function buildPurchaseMealOptions(summaryItems = []) {
   ];
 }
 
+function formatPurchaseSourceMeal(source, mealSlotMap) {
+  if (source && source.expectedMealTime) {
+    return formatExpectedMealTime(source.expectedMealTime);
+  }
+  const rawId = source && source.mealSlotId;
+  if (rawId !== null && rawId !== undefined && rawId !== '') {
+    const mealSlotId = Number(rawId);
+    if (Number.isInteger(mealSlotId) && mealSlotId > 0) {
+      return mealSlotMap.get(mealSlotId) || `餐次 ${mealSlotId}`;
+    }
+  }
+  return '用餐时间待确认';
+}
+
 function buildApiPurchaseScene({
   session,
   date,
@@ -650,7 +664,7 @@ function buildApiPurchaseScene({
         unit: item.unit,
         statusText: isEstimated ? '预估' : '已确认',
         familyText: Array.from(new Set(breakdown.map((source) => source.familyName))).join('、') || '暂无',
-        mealText: Array.from(new Set(filteredSources.map((source) => mealSlotMap.get(source.mealSlotId) || `餐次 ${source.mealSlotId}`))).join('、') || '全天',
+        mealText: Array.from(new Set(filteredSources.map((source) => formatPurchaseSourceMeal(source, mealSlotMap)))).join('、') || '用餐时间待确认',
         dishText: Array.from(new Set(breakdown.map((source) => source.dishName))).join('、') || '暂无',
         breakdown
       };

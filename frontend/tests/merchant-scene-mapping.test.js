@@ -178,6 +178,32 @@ test('purchase scene preserves its existing item and breakdown mapping', () => {
   });
 });
 
+test('purchase scene uses expected meal time and never renders a null meal slot', () => {
+  const scene = buildApiPurchaseScene({
+    session: {},
+    families: [{ familyId: 2, familyName: '老祁家' }],
+    summaryItems: [{
+      ingredientName: '时令蔬菜',
+      quantity: 200,
+      unit: 'g',
+      sourceStatus: 'CONFIRMED',
+      sources: [
+        {
+          familyId: 2,
+          mealSlotId: null,
+          orderId: 901,
+          dishId: 100,
+          serviceDate: '2026-09-27',
+          expectedMealTime: '2026-09-27T18:30:00'
+        }
+      ]
+    }]
+  });
+
+  assert.equal(scene.items[0].mealText, '2026-09-27 18:30');
+  assert.doesNotMatch(scene.items[0].mealText, /null|餐次/i);
+});
+
 test('filtered mixed-meal rows do not claim the all-meals aggregate quantity', () => {
   const scene = buildApiPurchaseScene({
     session: {},
