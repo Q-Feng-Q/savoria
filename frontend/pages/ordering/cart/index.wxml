@@ -6,7 +6,7 @@
       <view class="story-brand__copy"><brand-logo size="standard" /><text class="story-brand__tagline">{{brandCopy.cartHeroTagline}}</text></view>
     </view>
 
-    <view class="checkout-section time-section">
+    <view id="cart-time-section" class="checkout-section time-section">
       <view class="story-heading"><image class="story-leaf story-icon" src="/assets/ui/story/calendar-green.png" /><text>预计用餐时间</text></view>
       <view wx:if="{{bookingEnded}}" class="booking-ended">今天已停止预约，请明天再来</view>
       <view wx:else class="time-content"><picker class="time-picker" mode="selector" range="{{expectedMealTimeOptions}}" range-key="label" value="{{expectedMealTimeIndex}}" bindchange="bindExpectedMealTime">
@@ -14,7 +14,7 @@
       </picker><text class="time-quote">按时开饭\n一家人都在\n就是最好的时光</text></view>
     </view>
 
-    <view class="checkout-section fulfillment-section">
+    <view id="cart-fulfillment-section" class="checkout-section fulfillment-section">
       <view class="story-heading"><image class="story-leaf story-icon" src="/assets/ui/story/truck-green.png" /><text>取餐方式</text></view>
       <view class="delivery-row"><view wx:for="{{displayDeliveryOptions}}" wx:key="key" class="delivery-option {{item.activeClass}} {{item.disabled ? 'is-disabled' : ''}}" data-mode="{{item.key}}" data-disabled="{{item.disabled}}" aria-disabled="{{item.disabled}}" bindtap="selectDelivery" aria-role="button" aria-label="{{item.label}}" hover-class="story-tap--pressed" hover-stay-time="80"><image class="delivery-option__icon" src="/assets/ui/story/{{item.icon}}-{{item.activeClass ? 'green' : 'ink'}}.png" /><text>{{item.label}}</text></view></view>
       <label wx:if="{{familyDeliveryEnabled && context.family.addresses.length && deliveryMode === 'DELIVERY'}}" class="cart-field address-field"><text class="address-label">⌖ 配送地址</text><picker class="address-picker" range="{{addressOptions}}" range-key="label" value="{{addressIndex}}" bindchange="bindAddress"><view class="address-line"><image class="address-pin story-icon" src="/assets/ui/story/pin-green.png" /><view class="address-copy"><text class="address-main">{{currentAddress ? currentAddress.address : '请选择配送地址'}}</text><text class="address-contact">{{currentAddress ? currentAddress.contactName + '  ' + currentAddress.phone : '从家庭地址簿中选择'}}</text></view><text class="address-chevron">›</text><text class="address-book">▦ 地址簿</text></view></picker></label>
@@ -22,7 +22,7 @@
       <view wx:else class="delivery-warm-note"><text class="delivery-note-leaf">❧</text><text>{{deliveryMode === 'DELIVERY' ? brandCopy.deliveryMessage : brandCopy.pickupMessage}}</text></view>
     </view>
 
-    <view class="selected-section">
+    <view id="cart-items-section" class="selected-section">
       <view class="section-line"><text>全家已选</text><text>{{totals.totalAmount ? '合计 ¥' + totals.totalAmount : ''}}</text></view>
       <page-state wx:if="{{!groupedItems.length}}" phase="empty" title="餐篮还是空的" description="先去点几道家人爱吃的菜吧" illustration="orders" />
       <block wx:for="{{groupedItems}}" wx:for-item="group" wx:key="memberId">
@@ -50,6 +50,6 @@
     <view class="checkout-section remark-section"><label class="cart-field"><text>整单备注</text><textarea class="cart-order-remark" value="{{cart.note}}" placeholder="口味、忌口或其他叮嘱……" bindblur="bindNote" /></label></view>
     <view wx:if="{{warningText}}" class="cart-warning">{{warningText}}</view>
     <view class="story-footer"><view class="story-art"><image class="story-art__atlas story-art__atlas--footer" src="/assets/brand/approved-story-atlas.jpg" mode="scaleToFill" /></view><text class="story-footer__copy">{{brandName}}\n{{brandCopy.cartFooterMessage}}</text></view>
-    <bottom-action-bar summary="{{'合计 ¥' + totals.totalAmount}}" primaryText="提交订单" disabled="{{!canSubmit || mutationBusy}}" bind:primary="submitOrder"><text slot="summary" class="bottom-note">订单将从家庭钱包统一冻结并扣款</text></bottom-action-bar>
+    <bottom-action-bar summary="{{'合计 ¥' + totals.totalAmount}}" primaryText="提交订单" loading="{{mutationBusy}}" disabled="{{mutationBusy}}" bind:primary="submitOrder"><text slot="summary" class="bottom-note">订单将从家庭钱包统一冻结并扣款</text></bottom-action-bar>
   </block>
 </view>

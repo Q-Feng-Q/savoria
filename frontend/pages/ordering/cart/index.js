@@ -4,6 +4,7 @@ const { loadFamilyBundle } = require('../../../utils/family-api');
 const { createRequestId } = require('../../../utils/action-request');
 const { requireSession, showApiError } = require('../../../utils/page-api');
 const { createIdentityLoadGuard } = require('../../../utils/identity-load');
+const { validateCartSubmit, formatCartSubmitIssues } = require('../../../utils/cart-submit-validation');
 
 const { withBranding } = require('../../../utils/branding'); Page(withBranding({
   identityLoad: createIdentityLoadGuard(),
@@ -96,10 +97,24 @@ const { withBranding } = require('../../../utils/branding'); Page(withBranding({
   toggleSelectionDetails(event) {
     const id = String(event.currentTarget.dataset.id); this.setData({ [`expandedDishIds.${id}`]: !this.data.expandedDishIds[id] });
   },
+  showSubmitValidation(validation) {
+    wx.showModal({
+      title: '还不能提交订单',
+      content: formatCartSubmitIssues(validation.issues),
+      showCancel: false,
+      confirmText: '去完善',
+      success: ({ confirm }) => {
+        if (confirm && validation.target && wx.pageScrollTo) {
+          wx.pageScrollTo({ selector: validation.target, duration: 300 });
+        }
+      }
+    });
+  },
   async submitOrder() {
-    if (!this.data.canSubmit || this.data.mutationBusy || !this.source) {
-      wx.showToast({ title: this.data.warningText || '请先完善下单信息', icon: 'none' }); return;
-    }
+    if (this.data.mutationBusy) return;
+    const validation = validateCartSubmit({ ...this.data, canSubmit: Boolean(this.source) && this.data.canSubmit });
+    if (validation.issues.length) { this.showSubmitValidation(validation); return; }
+    if (!this.source) return;
     this.setData({ mutationBusy: true });
     const cart = this.source.cart;
     try {
