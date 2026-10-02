@@ -10,6 +10,14 @@
     <result property="siteLogoSmallSize" column="site_logo_small_size"/>
     <result property="siteLogoSize" column="site_logo_size"/>
     <result property="siteLogoLargeSize" column="site_logo_large_size"/>
+    <result property="brandTagline" column="brand_tagline"/>
+    <result property="homeHeroTagline" column="home_hero_tagline"/>
+    <result property="homeFooterMessage" column="home_footer_message"/>
+    <result property="cartHeroTagline" column="cart_hero_tagline"/>
+    <result property="deliveryMessage" column="delivery_message"/>
+    <result property="pickupMessage" column="pickup_message"/>
+    <result property="cartFooterMessage" column="cart_footer_message"/>
+    <result property="profileWelcomeMessage" column="profile_welcome_message"/>
     <result property="dishReviewEnabled" column="dish_review_enabled"/>
     <result property="maintenanceEnabled" column="maintenance_enabled"/>
     <result property="maintenanceMessage" column="maintenance_message"/>
@@ -23,11 +31,16 @@
   </resultMap>
   <select id="selectCurrent" resultMap="settingMap">SELECT id,site_name,site_logo_url,dish_review_enabled,
     site_logo_small_url,site_logo_large_url,site_favicon_url,site_logo_small_size,site_logo_size,site_logo_large_size,
+    brand_tagline,home_hero_tagline,home_footer_message,cart_hero_tagline,delivery_message,pickup_message,
+    cart_footer_message,profile_welcome_message,
     maintenance_enabled,maintenance_message,mobile_binding_enabled,email_binding_enabled,wechat_binding_enabled,
     smtp_host,smtp_port,smtp_username,smtp_password_ciphertext,smtp_tls_enabled,smtp_from,updated_by,updated_at
     FROM system_settings WHERE id=1</select>
   <update id="update">UPDATE system_settings SET site_name=#{siteName},site_logo_url=#{siteLogoUrl},
     <include refid="optionalBrandFields"/>
+    brand_tagline=#{brandTagline},home_hero_tagline=#{homeHeroTagline},home_footer_message=#{homeFooterMessage},
+    cart_hero_tagline=#{cartHeroTagline},delivery_message=#{deliveryMessage},pickup_message=#{pickupMessage},
+    cart_footer_message=#{cartFooterMessage},profile_welcome_message=#{profileWelcomeMessage},
     dish_review_enabled=#{dishReviewEnabled},maintenance_enabled=#{maintenanceEnabled},
     maintenance_message=#{maintenanceMessage},mobile_binding_enabled=#{mobileBindingEnabled},
     email_binding_enabled=#{emailBindingEnabled},wechat_binding_enabled=#{wechatBindingEnabled},

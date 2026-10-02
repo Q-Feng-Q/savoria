@@ -3,6 +3,8 @@ import java.time.LocalDateTime;
 /** 平台唯一系统配置的持久化实体，包含绑定开关和加密后的 SMTP 凭据。 */
 public class SystemSettingDO {
   private String siteLogoSmallUrl, siteLogoLargeUrl, siteFaviconUrl;
+  private String brandTagline, homeHeroTagline, homeFooterMessage, cartHeroTagline;
+  private String deliveryMessage, pickupMessage, cartFooterMessage, profileWelcomeMessage;
   private Integer siteLogoSmallSize, siteLogoSize, siteLogoLargeSize;
   public String getSiteLogoSmallUrl(){return siteLogoSmallUrl;}
   public void setSiteLogoSmallUrl(String v){siteLogoSmallUrl=v;}
@@ -16,6 +18,22 @@ public class SystemSettingDO {
   public void setSiteLogoSize(Integer v){siteLogoSize=v;}
   public Integer getSiteLogoLargeSize(){return siteLogoLargeSize;}
   public void setSiteLogoLargeSize(Integer v){siteLogoLargeSize=v;}
+  public String getBrandTagline(){return brandTagline;}
+  public void setBrandTagline(String v){brandTagline=v;}
+  public String getHomeHeroTagline(){return homeHeroTagline;}
+  public void setHomeHeroTagline(String v){homeHeroTagline=v;}
+  public String getHomeFooterMessage(){return homeFooterMessage;}
+  public void setHomeFooterMessage(String v){homeFooterMessage=v;}
+  public String getCartHeroTagline(){return cartHeroTagline;}
+  public void setCartHeroTagline(String v){cartHeroTagline=v;}
+  public String getDeliveryMessage(){return deliveryMessage;}
+  public void setDeliveryMessage(String v){deliveryMessage=v;}
+  public String getPickupMessage(){return pickupMessage;}
+  public void setPickupMessage(String v){pickupMessage=v;}
+  public String getCartFooterMessage(){return cartFooterMessage;}
+  public void setCartFooterMessage(String v){cartFooterMessage=v;}
+  public String getProfileWelcomeMessage(){return profileWelcomeMessage;}
+  public void setProfileWelcomeMessage(String v){profileWelcomeMessage=v;}
   /**
    * 固定配置记录主键。
    */

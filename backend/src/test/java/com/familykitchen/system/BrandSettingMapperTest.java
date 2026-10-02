@@ -24,7 +24,10 @@ class BrandSettingMapperTest {
           + "maintenance_enabled BOOLEAN, maintenance_message VARCHAR(500), mobile_binding_enabled BOOLEAN, "
           + "email_binding_enabled BOOLEAN, wechat_binding_enabled BOOLEAN, smtp_host VARCHAR(255), smtp_port INT, "
           + "smtp_username VARCHAR(255), smtp_password_ciphertext VARCHAR(500), smtp_tls_enabled BOOLEAN, "
-          + "smtp_from VARCHAR(255), updated_by BIGINT, updated_at TIMESTAMP)");
+          + "smtp_from VARCHAR(255), brand_tagline VARCHAR(500), home_hero_tagline VARCHAR(500), "
+          + "home_footer_message VARCHAR(500), cart_hero_tagline VARCHAR(500), delivery_message VARCHAR(500), "
+          + "pickup_message VARCHAR(500), cart_footer_message VARCHAR(500), profile_welcome_message VARCHAR(500), "
+          + "updated_by BIGINT, updated_at TIMESTAMP)");
       sql.execute("INSERT INTO system_settings (id,site_name,site_logo_url,site_logo_small_url,site_logo_small_size, "
           + "smtp_host,smtp_password_ciphertext,maintenance_enabled) VALUES (1,'Custom','/standard.png','/small.png',40,'smtp.private','secret',TRUE)");
     }
@@ -48,11 +51,31 @@ class BrandSettingMapperTest {
       assertThat(result.getUpdatedBy()).isEqualTo(9L);
       // Old full PUT leaves new fields null: SQL must preserve their stored values.
       var oldFullPut = new SystemSettingDO();oldFullPut.setSiteName("Changed");oldFullPut.setUpdatedBy(10L);
+      oldFullPut.setBrandTagline("好好吃饭，自定义幸福");
+      oldFullPut.setHomeHeroTagline("家的味道\n就是最好的时光");
+      oldFullPut.setHomeFooterMessage("一起吃饭\n就是一家人");
+      oldFullPut.setCartHeroTagline("今晚一起吃饭");
+      oldFullPut.setDeliveryMessage("热气腾腾，正在送往家中");
+      oldFullPut.setPickupMessage("先在一起，再好好吃饭");
+      oldFullPut.setCartFooterMessage("把日子过成一首温暖的诗");
+      oldFullPut.setProfileWelcomeMessage("欢迎回家吃饭");
       mapper.update(oldFullPut);
       var reread = mapper.selectCurrent();
       assertThat(reread.getSiteLogoSmallUrl()).isEmpty();
       assertThat(reread.getSiteLogoSmallSize()).isEqualTo(40);
       assertThat(reread.getSiteLogoLargeSize()).isEqualTo(160);
+      assertThat(reread.getBrandTagline()).isEqualTo("好好吃饭，自定义幸福");
+      assertThat(reread.getHomeHeroTagline()).isEqualTo("家的味道\n就是最好的时光");
+      assertThat(reread.getHomeFooterMessage()).isEqualTo("一起吃饭\n就是一家人");
+      assertThat(reread.getCartHeroTagline()).isEqualTo("今晚一起吃饭");
+      assertThat(reread.getDeliveryMessage()).isEqualTo("热气腾腾，正在送往家中");
+      assertThat(reread.getPickupMessage()).isEqualTo("先在一起，再好好吃饭");
+      assertThat(reread.getCartFooterMessage()).isEqualTo("把日子过成一首温暖的诗");
+      assertThat(reread.getProfileWelcomeMessage()).isEqualTo("欢迎回家吃饭");
+
+      oldFullPut.setPickupMessage(null);
+      mapper.update(oldFullPut);
+      assertThat(mapper.selectCurrent().getPickupMessage()).isNull();
       var allFields = new SystemSettingDO();
       allFields.setSiteName("Brand");allFields.setSiteLogoUrl("https://cdn.example.com/standard.png");
       allFields.setSiteLogoSmallUrl("/small.png");allFields.setSiteLogoLargeUrl("/large.png");allFields.setSiteFaviconUrl("/favicon.ico");
