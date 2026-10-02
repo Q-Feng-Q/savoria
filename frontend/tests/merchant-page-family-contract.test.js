@@ -1061,7 +1061,7 @@ test('catalog mutation messages follow API outcomes rather than cached settings'
 test('dish editor busy guard blocks deferred-save mutations', () => {
   const source = read('pages/merchant/dish-edit/index.js');
   const markup = read('pages/merchant/dish-edit/index.wxml');
-  for (const handler of ['bindField', 'bindCategory', 'bindIngredient', 'bindCalculation', 'bindQuantity', 'bindStepTitle', 'bindStepContent', 'addIngredient', 'removeIngredient', 'addCookingStep', 'removeCookingStep', 'toggleStatus', 'openIngredientLibrary']) {
+  for (const handler of ['bindField', 'bindCategory', 'bindIngredient', 'openIngredientResults', 'bindIngredientSearch', 'closeIngredientResults', 'bindCalculation', 'bindQuantity', 'bindStepTitle', 'bindStepContent', 'addIngredient', 'removeIngredient', 'addCookingStep', 'removeCookingStep', 'toggleStatus', 'openIngredientLibrary']) {
     assert.match(source, new RegExp(`${handler}\\s*\\([^)]*\\)\\s*\\{\\s*if \\(this\\.isMutationBusy\\(\\)\\) return;`));
   }
   assert.match(source, /saveFingerprint/);

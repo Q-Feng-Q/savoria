@@ -26,7 +26,19 @@
     <view class="form-section">
       <view class="section-head"><text class="section-title">原材料</text><view class="text-action" bindtap="openIngredientLibrary" aria-role="button" aria-label="打开食材库" hover-class="ui-button--pressed">食材库</view></view>
       <block wx:for="{{dish.ingredients}}" wx:key="id"><view class="line-row"><view><text class="strong">{{item.name}}</text><text class="muted">{{item.quantity}}{{item.unit}} · {{item.calculationType}}</text></view><view class="text-action" data-index="{{index}}" bindtap="removeIngredient" aria-role="button" aria-label="删除原材料" hover-class="ui-button--pressed">删除</view></view></block>
-      <picker class="editor-picker" range="{{ingredients}}" range-key="name" value="{{ingredientIndex}}" bindchange="bindIngredient" disabled="{{saving || uploading || stepUploading}}"><view class="picker-control">{{selectedIngredientName}}</view></picker>
+      <view class="ingredient-search-field">
+        <input class="ingredient-search-input" value="{{ingredientSearch}}" bindfocus="openIngredientResults" bindinput="bindIngredientSearch" placeholder="搜索食材名称或分类" confirm-type="search" disabled="{{saving || uploading || stepUploading}}" />
+        <text wx:if="{{selectedIngredientName}}" class="ingredient-selected">已选：{{selectedIngredientName}}</text>
+        <view wx:if="{{ingredientResultsOpen}}" class="ingredient-results">
+          <view class="ingredient-results-head"><text>食材列表 · {{filteredIngredients.length}} 项</text><view class="ingredient-close" bindtap="closeIngredientResults" aria-role="button" aria-label="收起食材列表" hover-class="ui-button--pressed">收起</view></view>
+          <scroll-view wx:if="{{filteredIngredients.length}}" class="ingredient-results-scroll" scroll-y="true" style="height: {{filteredIngredients.length > 4 ? 360 : filteredIngredients.length * 82}}rpx;">
+            <view wx:for="{{filteredIngredients}}" wx:key="ingredientId" class="ingredient-option" data-index="{{item.sourceIndex}}" bindtap="bindIngredient" aria-role="button" aria-label="选择{{item.name}}" hover-class="ui-button--pressed">
+              <text class="ingredient-option-name">{{item.name}}</text><text class="ingredient-option-meta">{{item.category || item.categoryName || '未分类'}} · {{item.unit}}</text>
+            </view>
+          </scroll-view>
+          <text wx:else class="ingredient-no-results">{{ingredients.length ? '没有匹配的食材，请换个关键词' : '食材库暂无食材，请先添加'}}</text>
+        </view>
+      </view>
       <input type="digit" value="{{newIngredientQuantity}}" bindinput="bindQuantity" placeholder="用量" disabled="{{saving || uploading || stepUploading}}" />
       <picker class="editor-picker" range="{{calculationTypes}}" range-key="label" value="{{calculationIndex}}" bindchange="bindCalculation" disabled="{{saving || uploading || stepUploading}}"><view class="picker-control">{{selectedCalculationLabel}}</view></picker>
       <view class="ui-button secondary-action" bindtap="addIngredient" aria-role="button" aria-label="添加原材料" hover-class="ui-button--pressed">添加原材料</view>

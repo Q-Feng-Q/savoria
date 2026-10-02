@@ -6,7 +6,8 @@ const read = (file) => fs.readFileSync(path.join(__dirname, '..', file), 'utf8')
 
 test('dish editor picker shells do not add a second background or inset', () => {
   const markup = read('pages/merchant/dish-edit/index.wxml');
-  assert.equal((markup.match(/<picker class="editor-picker"/g) || []).length, 4);
+  assert.equal((markup.match(/<picker class="editor-picker"/g) || []).length, 3);
+  assert.match(markup, /class="ingredient-search-input"/);
   const css = read('pages/merchant/dish-edit/index.wxss');
   const rule = css.match(/\.merchant-story\.editor-page \.editor-picker\s*\{([^}]+)\}/)?.[1];
   assert.ok(rule);

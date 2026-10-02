@@ -31,3 +31,16 @@ textarea { width: 100%; min-height: 160rpx; }
 /* The inner control owns the border and warm fill; picker is only a trigger. */
 .merchant-story.editor-page .editor-picker { display: block; width: 100%; min-height: 0; padding: 0; border: 0; background: transparent; box-sizing: border-box; }
 .merchant-story.editor-page .editor-picker .picker-control { width: 100%; background: #fff7e4; }
+
+.ingredient-search-field { margin-top: 14rpx; }
+.merchant-story.editor-page .ingredient-search-input { width: 100%; margin-top: 0; background: #fff7e4; }
+.ingredient-selected { display: block; margin: 12rpx 2rpx 0; color: #56745a; font-size: 24rpx; font-weight: 800; }
+.ingredient-results { margin-top: 10rpx; overflow: hidden; border: 2rpx solid #dfd0b7; border-radius: 16rpx; background: #fff7e4; }
+.ingredient-results-head { display: flex; align-items: center; justify-content: space-between; padding: 12rpx 20rpx; border-bottom: 2rpx solid #eadbc3; color: #806b56; font-size: 22rpx; }
+.ingredient-close { min-width: 72rpx; padding: 10rpx; color: #be6549; text-align: right; font-weight: 800; }
+.ingredient-results-scroll { max-height: 360rpx; }
+.ingredient-option { display: flex; align-items: center; justify-content: space-between; min-height: 82rpx; padding: 12rpx 20rpx; border-bottom: 2rpx solid #efe3cf; box-sizing: border-box; }
+.ingredient-option:last-child { border-bottom: 0; }
+.ingredient-option-name { color: #3c3026; font-size: 27rpx; font-weight: 750; }
+.ingredient-option-meta { margin-left: 12rpx; color: #8d7866; font-size: 22rpx; }
+.ingredient-no-results { display: block; padding: 32rpx 20rpx; color: #8d7866; font-size: 24rpx; text-align: center; }

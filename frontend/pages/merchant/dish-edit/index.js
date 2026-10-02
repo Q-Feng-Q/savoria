@@ -14,6 +14,16 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function filterDishIngredients(ingredients, query) {
+  const term = String(query || '').trim().toLocaleLowerCase();
+  return (ingredients || []).reduce((matches, item, sourceIndex) => {
+    if (!term || [item.name, item.category, item.categoryName].some((value) => String(value || '').toLocaleLowerCase().includes(term))) {
+      matches.push({ ...item, sourceIndex });
+    }
+    return matches;
+  }, []);
+}
+
 function validateDish(dish) {
   const nourishmentError = validateNourishment(dish);
   if (nourishmentError) return nourishmentError;
@@ -70,6 +80,9 @@ Page({
     dish: null,
     productTypes: PRODUCT_TYPES,
     ingredients: [],
+    filteredIngredients: [],
+    ingredientSearch: '',
+    ingredientResultsOpen: false,
     dishCategories: [],
     categoryIds: [],
     categoryIndex: 0,
@@ -117,8 +130,13 @@ Page({
       const ingredients = await createApiRuntime().merchant.getIngredients();
       if (generation !== this._loadGeneration) return;
       const preservedIndex = previous ? ingredients.findIndex((item) => Number(item.ingredientId) === Number(previous.ingredientId)) : -1;
-      const ingredientIndex = preservedIndex >= 0 ? preservedIndex : 0;
-      this.setData({ ingredients, ingredientIndex, selectedIngredientName: ingredients[ingredientIndex] ? ingredients[ingredientIndex].name : '' });
+      const ingredientIndex = this.data.ingredientIndex < 0 ? -1 : preservedIndex >= 0 ? preservedIndex : ingredients.length ? 0 : -1;
+      this.setData({
+        ingredients,
+        filteredIngredients: filterDishIngredients(ingredients, this.data.ingredientSearch),
+        ingredientIndex,
+        selectedIngredientName: ingredients[ingredientIndex] ? ingredients[ingredientIndex].name : ''
+      });
     } catch (error) { showApiError(error, '食材列表加载失败'); }
   },
 
@@ -177,6 +195,9 @@ Page({
       this.setData({
         dish: selectedDish,
         ingredients,
+        filteredIngredients: filterDishIngredients(ingredients, ''),
+        ingredientSearch: '',
+        ingredientResultsOpen: false,
         dishCategories: dishCategories.map((item) => item.name),
         categoryIds,
         categoryIndex,
@@ -281,11 +302,37 @@ Page({
 
   bindIngredient(event) {
     if (this.isMutationBusy()) return;
-    const ingredientIndex = Number(event.detail.value || 0);
+    const ingredientIndex = Number(event.currentTarget.dataset.index);
+    if (!Number.isInteger(ingredientIndex) || ingredientIndex < 0 || !this.data.ingredients[ingredientIndex]) return;
     this.setData({
       ingredientIndex,
-      selectedIngredientName: (this.data.ingredients[ingredientIndex] || {}).name || ''
+      selectedIngredientName: this.data.ingredients[ingredientIndex].name || '',
+      ingredientSearch: '',
+      filteredIngredients: filterDishIngredients(this.data.ingredients, ''),
+      ingredientResultsOpen: false
     });
+  },
+
+  openIngredientResults() {
+    if (this.isMutationBusy()) return;
+    this.setData({ ingredientResultsOpen: true });
+  },
+
+  bindIngredientSearch(event) {
+    if (this.isMutationBusy()) return;
+    const ingredientSearch = event.detail.value;
+    this.setData({
+      ingredientSearch,
+      filteredIngredients: filterDishIngredients(this.data.ingredients, ingredientSearch),
+      ingredientIndex: -1,
+      selectedIngredientName: '',
+      ingredientResultsOpen: true
+    });
+  },
+
+  closeIngredientResults() {
+    if (this.isMutationBusy()) return;
+    this.setData({ ingredientResultsOpen: false });
   },
 
   bindCalculation(event) {
@@ -315,10 +362,14 @@ Page({
   addIngredient() {
     if (this.isMutationBusy()) return;
     const ingredient = this.data.ingredients[this.data.ingredientIndex];
+    if (!ingredient) {
+      wx.showToast({ title: '请选择原材料', icon: 'none' });
+      return;
+    }
     const calcType = this.data.calculationTypes[this.data.calculationIndex].value;
     const quantityText = String(this.data.newIngredientQuantity ?? '').trim();
     const quantity = Number(quantityText);
-    if (!ingredient || !quantityText || !Number.isFinite(quantity) || quantity < 0) {
+    if (!quantityText || !Number.isFinite(quantity) || quantity < 0) {
       wx.showToast({ title: '请填写原材料用量', icon: 'none' });
       return;
     }
