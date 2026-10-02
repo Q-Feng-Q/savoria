@@ -9,6 +9,14 @@ package com.familykitchen.system.model.vo;
  * @param mobileBindingEnabled 是否开放手机号绑定
  * @param emailBindingEnabled 是否开放邮箱绑定
  * @param wechatBindingEnabled 是否开放微信绑定
+ * @param brandTagline 通用品牌标语
+ * @param homeHeroTagline 家庭首页顶部标语
+ * @param homeFooterMessage 家庭首页与相关页面底部寄语
+ * @param cartHeroTagline 餐篮顶部标语
+ * @param deliveryMessage 配送氛围提示
+ * @param pickupMessage 自取氛围提示
+ * @param cartFooterMessage 餐篮底部寄语
+ * @param profileWelcomeMessage 个人中心欢迎语
  */
 public record PublicSystemSettingView(
     String siteName,

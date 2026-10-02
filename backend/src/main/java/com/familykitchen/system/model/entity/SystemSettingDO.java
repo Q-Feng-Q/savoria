@@ -3,8 +3,22 @@ import java.time.LocalDateTime;
 /** 平台唯一系统配置的持久化实体，包含绑定开关和加密后的 SMTP 凭据。 */
 public class SystemSettingDO {
   private String siteLogoSmallUrl, siteLogoLargeUrl, siteFaviconUrl;
-  private String brandTagline, homeHeroTagline, homeFooterMessage, cartHeroTagline;
-  private String deliveryMessage, pickupMessage, cartFooterMessage, profileWelcomeMessage;
+  /** 通用品牌标语。 */
+  private String brandTagline;
+  /** 家庭首页顶部标语。 */
+  private String homeHeroTagline;
+  /** 家庭首页与相关页面底部寄语。 */
+  private String homeFooterMessage;
+  /** 餐篮顶部标语。 */
+  private String cartHeroTagline;
+  /** 配送氛围提示。 */
+  private String deliveryMessage;
+  /** 自取氛围提示。 */
+  private String pickupMessage;
+  /** 餐篮底部寄语。 */
+  private String cartFooterMessage;
+  /** 个人中心欢迎语。 */
+  private String profileWelcomeMessage;
   private Integer siteLogoSmallSize, siteLogoSize, siteLogoLargeSize;
   public String getSiteLogoSmallUrl(){return siteLogoSmallUrl;}
   public void setSiteLogoSmallUrl(String v){siteLogoSmallUrl=v;}
@@ -18,21 +32,53 @@ public class SystemSettingDO {
   public void setSiteLogoSize(Integer v){siteLogoSize=v;}
   public Integer getSiteLogoLargeSize(){return siteLogoLargeSize;}
   public void setSiteLogoLargeSize(Integer v){siteLogoLargeSize=v;}
+  /** 返回通用品牌标语。
+   * @return 通用品牌标语 */
   public String getBrandTagline(){return brandTagline;}
+  /** 设置通用品牌标语。
+   * @param v 通用品牌标语 */
   public void setBrandTagline(String v){brandTagline=v;}
+  /** 返回家庭首页顶部标语。
+   * @return 家庭首页顶部标语 */
   public String getHomeHeroTagline(){return homeHeroTagline;}
+  /** 设置家庭首页顶部标语。
+   * @param v 家庭首页顶部标语 */
   public void setHomeHeroTagline(String v){homeHeroTagline=v;}
+  /** 返回家庭首页与相关页面底部寄语。
+   * @return 家庭首页与相关页面底部寄语 */
   public String getHomeFooterMessage(){return homeFooterMessage;}
+  /** 设置家庭首页与相关页面底部寄语。
+   * @param v 家庭首页与相关页面底部寄语 */
   public void setHomeFooterMessage(String v){homeFooterMessage=v;}
+  /** 返回餐篮顶部标语。
+   * @return 餐篮顶部标语 */
   public String getCartHeroTagline(){return cartHeroTagline;}
+  /** 设置餐篮顶部标语。
+   * @param v 餐篮顶部标语 */
   public void setCartHeroTagline(String v){cartHeroTagline=v;}
+  /** 返回配送氛围提示。
+   * @return 配送氛围提示 */
   public String getDeliveryMessage(){return deliveryMessage;}
+  /** 设置配送氛围提示。
+   * @param v 配送氛围提示 */
   public void setDeliveryMessage(String v){deliveryMessage=v;}
+  /** 返回自取氛围提示。
+   * @return 自取氛围提示 */
   public String getPickupMessage(){return pickupMessage;}
+  /** 设置自取氛围提示。
+   * @param v 自取氛围提示 */
   public void setPickupMessage(String v){pickupMessage=v;}
+  /** 返回餐篮底部寄语。
+   * @return 餐篮底部寄语 */
   public String getCartFooterMessage(){return cartFooterMessage;}
+  /** 设置餐篮底部寄语。
+   * @param v 餐篮底部寄语 */
   public void setCartFooterMessage(String v){cartFooterMessage=v;}
+  /** 返回个人中心欢迎语。
+   * @return 个人中心欢迎语 */
   public String getProfileWelcomeMessage(){return profileWelcomeMessage;}
+  /** 设置个人中心欢迎语。
+   * @param v 个人中心欢迎语 */
   public void setProfileWelcomeMessage(String v){profileWelcomeMessage=v;}
   /**
    * 固定配置记录主键。

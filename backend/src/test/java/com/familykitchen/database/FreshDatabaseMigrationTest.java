@@ -35,7 +35,8 @@ class FreshDatabaseMigrationTest {
     assertEquals(List.of(
         "V1__init_schema.sql",
         "V2__init_system_and_admin.sql",
-        "V3__init_recipe_catalog.sql"),
+        "V3__init_recipe_catalog.sql",
+        "V4__add_brand_copy_settings.sql"),
         files.stream().map(path -> path.getFileName().toString()).toList());
 
     String sql = readAll(files).toLowerCase();

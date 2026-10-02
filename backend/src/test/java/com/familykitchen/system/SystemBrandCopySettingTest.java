@@ -16,6 +16,7 @@ import jakarta.validation.Validation;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+/** 验证品牌氛围文案的默认值、自定义值、清空语义与长度边界。 */
 class SystemBrandCopySettingTest {
   @Test void returnsEffectiveDefaultsWhenCopyIsMissing() {
     var mapper = mock(SystemSettingMapper.class);

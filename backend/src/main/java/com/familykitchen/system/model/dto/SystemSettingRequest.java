@@ -24,6 +24,14 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  * @param smtpPassword SMTP 明文密码；空值或掩码表示保留原密码
  * @param smtpTlsEnabled 是否启用 STARTTLS
  * @param smtpFrom 邮件发件人地址
+ * @param brandTagline 通用品牌标语
+ * @param homeHeroTagline 家庭首页顶部标语
+ * @param homeFooterMessage 家庭首页与相关页面底部寄语
+ * @param cartHeroTagline 餐篮顶部标语
+ * @param deliveryMessage 配送氛围提示
+ * @param pickupMessage 自取氛围提示
+ * @param cartFooterMessage 餐篮底部寄语
+ * @param profileWelcomeMessage 个人中心欢迎语
  */
 public record SystemSettingRequest(
     @NotBlank @Size(max=100) String siteName,
