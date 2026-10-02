@@ -1,4 +1,18 @@
 const BRAND_NAME = '食光栀味';
+const BRAND_COPY_DEFAULTS = Object.freeze({
+  brandTagline: '好好吃饭，就是幸福',
+  homeHeroTagline: '让家常菜 · 温暖每一餐\n就是最好的时光',
+  homeFooterMessage: '好好吃饭\n就是一家人在一起',
+  cartHeroTagline: '让家常菜 · 温暖每一餐',
+  deliveryMessage: '美味正在路上，用食物，把温暖送到家',
+  pickupMessage: '先在一起，好好吃饭，期待您的到来',
+  cartFooterMessage: '把平凡的日子，过成温暖的诗',
+  profileWelcomeMessage: '好好吃饭，就是幸福'
+});
+const BRAND_COPY_LIMITS = Object.freeze({
+  brandTagline: 120, homeHeroTagline: 120, homeFooterMessage: 120, cartHeroTagline: 120,
+  deliveryMessage: 80, pickupMessage: 80, cartFooterMessage: 120, profileWelcomeMessage: 120
+});
 const VARIANTS = {
   small: { url: 'siteLogoSmallUrl', size: 'siteLogoSmallSize', defaultSize: 32, min: 16, max: 64, asset: 64 },
   standard: { url: 'siteLogoUrl', size: 'siteLogoSize', defaultSize: 56, min: 24, max: 120, asset: 128 },
@@ -23,7 +37,18 @@ function normalizeBranding(raw = {}) {
       ? Math.max(variant.min, Math.min(variant.max, value)) : variant.defaultSize;
   }
   result.siteFaviconUrl = isSafeBrandUrl(raw.siteFaviconUrl) ? raw.siteFaviconUrl : '';
+  result.brandCopy = {};
+  const cachedCopy = raw.brandCopy && typeof raw.brandCopy === 'object' ? raw.brandCopy : {};
+  for (const [key, fallback] of Object.entries(BRAND_COPY_DEFAULTS)) {
+    const candidate = raw[key] == null ? cachedCopy[key] : raw[key];
+    const copy = typeof candidate === 'string' ? candidate.trim() : '';
+    result.brandCopy[key] = copy && copy.length <= BRAND_COPY_LIMITS[key] ? copy : fallback;
+  }
   return result;
+}
+
+function cloneBrand(value) {
+  return { ...value, brandCopy: { ...value.brandCopy } };
 }
 
 function resolveBrandUrl(value, baseUrl = '') {
@@ -50,7 +75,7 @@ function createBrandStore({ load, baseUrl = () => '', now = Date.now, storage = 
   let lastAttempt = -Infinity;
   const listeners = new Set();
   const getOrigin = typeof baseUrl === 'function' ? baseUrl : () => baseUrl;
-  const notify = () => listeners.forEach(listener => listener({ ...value }));
+  const notify = () => listeners.forEach(listener => listener(cloneBrand(value)));
   function selectOrigin() {
     const next = getOrigin() || '';
     if (next !== origin) {
@@ -63,7 +88,7 @@ function createBrandStore({ load, baseUrl = () => '', now = Date.now, storage = 
     }
     return origin;
   }
-  function get() { selectOrigin(); return { ...value }; }
+  function get() { selectOrigin(); return cloneBrand(value); }
   function refresh() {
     const requestOrigin = selectOrigin();
     if (pending) return pending;
@@ -111,17 +136,19 @@ const brandStore = createBrandStore({ load: loadPublicBranding, baseUrl: getApiB
 } });
 
 function withBranding(page, { store = brandStore, navigationTitle = false } = {}) {
+  const initial = normalizeBranding(store.get());
   function unsubscribe(instance) {
     if (instance._unsubscribeBrand) instance._unsubscribeBrand();
     instance._unsubscribeBrand = null;
   }
   return {
     ...page,
-    data: { ...page.data, brandName: store.get().siteName },
+    data: { ...page.data, brandName: initial.siteName, brandCopy: { ...initial.brandCopy } },
     onShow(...args) {
       unsubscribe(this);
       this._unsubscribeBrand = store.subscribe(brand => {
-        this.setData({ brandName: brand.siteName });
+        const normalized = normalizeBranding(brand);
+        this.setData({ brandName: normalized.siteName, brandCopy: { ...normalized.brandCopy } });
         if (navigationTitle && typeof wx !== 'undefined' && wx.setNavigationBarTitle) {
           wx.setNavigationBarTitle({ title: brand.siteName });
         }
@@ -140,4 +167,4 @@ function withBranding(page, { store = brandStore, navigationTitle = false } = {}
   };
 }
 
-module.exports = { BRAND_NAME, VARIANTS, isSafeBrandUrl, normalizeBranding, resolveBrandUrl, resolveLogo, createBrandStore, brandStore, loadPublicBranding, withBranding };
+module.exports = { BRAND_NAME, BRAND_COPY_DEFAULTS, BRAND_COPY_LIMITS, VARIANTS, isSafeBrandUrl, normalizeBranding, resolveBrandUrl, resolveLogo, createBrandStore, brandStore, loadPublicBranding, withBranding };

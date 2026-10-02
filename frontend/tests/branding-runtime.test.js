@@ -17,6 +17,22 @@ test('system-configured names are preserved, only missing names use fallback', (
   assert.equal(normalizeBranding({ siteName: '  祁家小厨  ' }).siteName, '祁家小厨');
 });
 
+test('brand copy uses eight defaults and accepts only bounded nonblank strings', () => {
+  const { BRAND_COPY_DEFAULTS, normalizeBranding } = branding();
+  assert.deepEqual(normalizeBranding().brandCopy, BRAND_COPY_DEFAULTS);
+  assert.equal(Object.keys(normalizeBranding().brandCopy).length, 8);
+  const value = normalizeBranding({
+    pickupMessage: '  自定义自取提示  ',
+    deliveryMessage: ' ',
+    brandTagline: 123,
+    homeFooterMessage: '字'.repeat(121)
+  });
+  assert.equal(value.brandCopy.pickupMessage, '自定义自取提示');
+  assert.equal(value.brandCopy.deliveryMessage, BRAND_COPY_DEFAULTS.deliveryMessage);
+  assert.equal(value.brandCopy.brandTagline, BRAND_COPY_DEFAULTS.brandTagline);
+  assert.equal(value.brandCopy.homeFooterMessage, BRAND_COPY_DEFAULTS.homeFooterMessage);
+});
+
 test('display sizes clamp valid integers and reject malformed values', () => {
   const { normalizeBranding } = branding();
   const value = normalizeBranding({ siteLogoSmallSize: 1000, siteLogoSize: -10, siteLogoLargeSize: 96.3 });
@@ -77,12 +93,16 @@ test('failed refresh retains valid cache and does not poison another API origin'
   const storage = new Map();
   const store = createBrandStore({ baseUrl: () => origin, storage: {
     get: key => storage.get(key), set: (key, value) => storage.set(key, value)
-  }, load: async () => ({ siteName: '第一家' }) });
+  }, load: async () => ({ siteName: '第一家', pickupMessage: '第一家的自取提示' }) });
   await store.refresh();
+  const draft = store.get();
+  draft.brandCopy.pickupMessage = '被页面误改';
+  assert.equal(store.get().brandCopy.pickupMessage, '第一家的自取提示');
   const cached = createBrandStore({ baseUrl: () => origin, storage: {
     get: key => storage.get(key), set() {}
   }, load: async () => { throw new Error('offline'); } });
   assert.equal(cached.get().siteName, '第一家');
+  assert.equal(cached.get().brandCopy.pickupMessage, '第一家的自取提示');
   await cached.refresh();
   assert.equal(cached.get().siteName, '第一家');
   origin = 'https://two.test';
@@ -158,8 +178,8 @@ test('public settings URL follows the mini program backend prefix convention wit
 });
 
 test('page binding uses system name, refreshes on show, preserves lifecycle and stops hidden updates', async () => {
-  const { withBranding } = branding();
-  let current = { siteName: '配置名称甲' }, listener, refreshes = 0, originalShows = 0;
+  const { normalizeBranding, withBranding } = branding();
+  let current = normalizeBranding({ siteName: '配置名称甲', pickupMessage: '甲提示' }), listener, refreshes = 0, originalShows = 0;
   const store = { get: () => current, subscribe(fn) { listener = fn; fn(current); return () => { listener = null; }; }, refresh: async () => { refreshes++; } };
   const titles = [];
   global.wx = { setNavigationBarTitle: ({ title }) => titles.push(title) };
@@ -167,11 +187,13 @@ test('page binding uses system name, refreshes on show, preserves lifecycle and 
   const instance = { ...def, data: { ...def.data }, setData(value) { Object.assign(this.data, value); } };
   instance.onShow();
   assert.equal(instance.data.brandName, '配置名称甲');
-  current = { siteName: '食光知味' }; listener(current);
+  assert.equal(instance.data.brandCopy.pickupMessage, '甲提示');
+  current = normalizeBranding({ siteName: '食光知味', pickupMessage: '乙提示' }); listener(current);
   assert.equal(instance.data.brandName, '食光知味');
+  assert.equal(instance.data.brandCopy.pickupMessage, '乙提示');
   assert.equal(titles.at(-1), '食光知味');
   instance.onHide(); assert.equal(listener, null);
-  current = { siteName: '配置名称乙' }; instance.onShow();
+  current = normalizeBranding({ siteName: '配置名称乙' }); instance.onShow();
   assert.equal(instance.data.brandName, '配置名称乙');
   assert.equal(originalShows, 2); assert.equal(refreshes, 2);
   instance.onUnload(); assert.equal(listener, null);
