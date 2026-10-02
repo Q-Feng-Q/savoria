@@ -7,7 +7,9 @@
 .purchase-title { margin-top: 7rpx; color: var(--sk-ink); font-size: 35rpx; font-weight: 950; }
 .purchase-art { flex: none; width: 112rpx; height: 84rpx; border-radius: 16rpx; }
 .purchase-controls { display: flex; align-items: center; gap: 10rpx; padding: 20rpx 0; overflow-x: auto; border-bottom: 2rpx solid var(--sk-line-soft); }
+.merchant-story .purchase-picker { flex: none; width: auto; min-height: 0; padding: 0; border: 0; border-radius: 14rpx; background: transparent; box-shadow: none; }
 .control-value, .copy-action { display: flex; align-items: center; min-height: 88rpx; box-sizing: border-box; white-space: nowrap; padding: 0 15rpx; border-radius: 14rpx; background: var(--sk-wheat); color: var(--sk-ink); font-size: 21rpx; font-weight: 850; }
+.merchant-story .purchase-picker .control-value { border-color: #d7bc88; background: var(--sk-wheat); }
 .copy-action { background: #b65f2e; color: #fffaf1; }
 .source-summary { display: flex; justify-content: space-between; gap: 16rpx; padding: 20rpx 0; color: #806854; font-size: 21rpx; font-weight: 850; border-bottom: 2rpx solid var(--sk-line-soft); }
 .ingredient-row { padding: 24rpx 0; border-bottom: 2rpx solid var(--sk-line-soft); }

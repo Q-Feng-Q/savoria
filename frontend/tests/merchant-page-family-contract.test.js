@@ -673,6 +673,14 @@ test('merchant fulfillment controls expose accessible 88rpx touch targets', () =
   assert.match(detailStyles, /\.quiet-action[^\{]*\{[^}]*min-height:\s*88rpx/s);
 });
 
+test('purchase picker hosts stay transparent behind the warm controls', () => {
+  const markup = read('pages/merchant/purchase/index.wxml');
+  const styles = read('pages/merchant/purchase/index.wxss');
+
+  assert.equal((markup.match(/<picker class="purchase-picker"/g) || []).length, 2);
+  assert.match(styles, /\.merchant-story \.purchase-picker\s*\{[^}]*padding:\s*0[^}]*border:\s*0[^}]*background:\s*transparent/s);
+});
+
 test('merchant dishes is a searchable root workbench with guarded linear rows', () => {
   const markup = read('pages/merchant/merchant-dishes/index.wxml');
   const source = read('pages/merchant/merchant-dishes/index.js');
