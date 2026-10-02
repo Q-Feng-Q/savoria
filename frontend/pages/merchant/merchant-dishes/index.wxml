@@ -19,9 +19,9 @@
     <input class="search-input" value="{{query}}" bindinput="bindSearch" placeholder="搜索菜名、分类或状态" aria-label="搜索菜品" />
     <picker class="filter" range="{{productTypes}}" range-key="label" value="{{productTypeIndex}}" bindchange="changeProductType" disabled="{{mutationBusy}}"><text>{{productTypes[productTypeIndex].label}} ▾</text></picker>
     <view wx:if="{{scope === 'available'}}" class="filter-row">
-      <view class="filter {{statusFilter === 'all' ? 'filter--active' : ''}}" data-status="all" bindtap="selectStatusFilter" aria-role="button" aria-label="全部菜品" hover-class="ui-button--pressed">全部</view>
       <view class="filter {{statusFilter === 'active' ? 'filter--active' : ''}}" data-status="active" bindtap="selectStatusFilter" aria-role="button" aria-label="已上架菜品" hover-class="ui-button--pressed">已上架</view>
-      <view class="filter {{statusFilter === 'inactive' ? 'filter--active' : ''}}" data-status="inactive" bindtap="selectStatusFilter" aria-role="button" aria-label="已下架菜品" hover-class="ui-button--pressed">已下架</view>
+      <view class="filter {{statusFilter === 'inactive' ? 'filter--active' : ''}}" data-status="inactive" bindtap="selectStatusFilter" aria-role="button" aria-label="未上架菜品" hover-class="ui-button--pressed">未上架</view>
+      <view class="filter {{statusFilter === 'all' ? 'filter--active' : ''}}" data-status="all" bindtap="selectStatusFilter" aria-role="button" aria-label="全部菜品" hover-class="ui-button--pressed">全部</view>
     </view>
     <view class="dish-tool-links"><view class="ingredient-entry" bindtap="openIngredients" aria-role="button" aria-label="打开食材库，共{{ingredientCount}}种食材" hover-class="ui-button--pressed">食材库 · {{ingredientCount}} 种</view><view wx:if="{{reviewEnabled}}" class="ingredient-entry" bindtap="openReviews" aria-role="button" aria-label="查看菜品审核记录" hover-class="ui-button--pressed">审核记录</view></view>
   </view>

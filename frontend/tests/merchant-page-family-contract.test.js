@@ -762,6 +762,25 @@ test('merchant dish search and status changes clear prior selection', async () =
   });
 });
 
+test('merchant dish status filters default to active and render active inactive all', async () => {
+  const markup = read('pages/merchant/merchant-dishes/index.wxml');
+  const activePosition = markup.indexOf('data-status="active"');
+  const inactivePosition = markup.indexOf('data-status="inactive"');
+  const allPosition = markup.indexOf('data-status="all"');
+
+  assert.ok(activePosition >= 0 && activePosition < inactivePosition);
+  assert.ok(inactivePosition < allPosition);
+  assert.match(markup, /data-status="inactive"[^>]*>未上架<\/view>/);
+
+  await withMerchantDishesPage(() => ({ merchant: {} }), async (page) => {
+    assert.equal(page.data.statusFilter, 'active');
+    page.setData({ scope: 'deleted', statusFilter: 'all' });
+    page.load = async () => {};
+    await page.selectScope({ currentTarget: { dataset: { scope: 'available' } } });
+    assert.equal(page.data.statusFilter, 'active');
+  });
+});
+
 test('merchant dish batch mutation deduplicates ids and rejects more than 100', async () => {
   const calls = [];
   await withMerchantDishesPage(() => ({ merchant: {
@@ -1518,10 +1537,27 @@ test('family detail scene preserves zero menu price and chooses the explicit def
       { addressId: 1, contactName: '先录入', addressText: '旧址', defaultAddress: false },
       { addressId: 2, contactName: '默认人', addressText: '默认址', defaultAddress: true }
     ] },
-    familyMenuItems: [{ dishId: 4, dishName: '赠送汤', familyFinalPrice: 0, basePrice: 12, enabled: true }]
+    familyMenuItems: [{ dishId: 4, dishName: '赠送汤', familyFinalPrice: 0, basePrice: 12, enabled: true }],
+    orders: [{
+      orderId: 4,
+      familyId: 8,
+      serviceDate: null,
+      expectedMealTime: '2026-10-02T21:00:00',
+      status: 'PENDING',
+      totalAmount: 20
+    }]
   });
   assert.match(scene.menuPreview[0].priceText, /0\.00/);
   assert.match(scene.family.defaultAddressText, /默认人/);
+  assert.equal(scene.orderPreview[0].mealLabel, '2026-10-02 21:00');
+  assert.doesNotMatch(scene.orderPreview[0].mealLabel, /null/i);
+});
+
+test('family detail order preview renders only the normalized meal label', () => {
+  const markup = read('pages/merchant/merchant-family-detail/index.wxml');
+
+  assert.match(markup, /class="detail-copy">\{\{item\.mealLabel\}\}<\/text>/);
+  assert.doesNotMatch(markup, /\{\{item\.serviceDate\}\}/);
 });
 
 test('family detail rejects non-finite and non-positive family-wallet adjustments before API calls', async () => {

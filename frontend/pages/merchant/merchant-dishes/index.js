@@ -44,7 +44,7 @@ Page({
     dishRows: [],
     filteredDishRows: [],
     query: '',
-    statusFilter: 'all',
+    statusFilter: 'active',
     featuredCount: 0,
     ingredientCount: 0,
     busyDishMap: {},
@@ -124,7 +124,7 @@ Page({
     if (this.data.mutationBusy) return;
     const scope = event.currentTarget.dataset.scope;
     if (!scope || scope === this.data.scope) return;
-    this.setData({ scope, statusFilter: 'all', selectedDishIds: [], allVisibleSelected: false });
+    this.setData({ scope, statusFilter: scope === 'available' ? 'active' : 'all', selectedDishIds: [], allVisibleSelected: false });
     return this.load();
   },
   toggleSelectDish(event) {

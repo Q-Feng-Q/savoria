@@ -73,7 +73,7 @@
       <text wx:elif="{{optionalStates.orders.phase === 'ready' && !orderPreview.length}}" class="empty-line">暂无订单。</text>
       <block wx:else>
         <view wx:for="{{orderPreview}}" wx:key="id" class="preview-row">
-          <view><text class="strong">{{item.orderNo}}</text><text class="detail-copy">{{item.serviceDate}} · {{item.mealLabel}}</text></view><text>{{item.statusLabel}}</text>
+          <view><text class="strong">{{item.orderNo}}</text><text class="detail-copy">{{item.mealLabel}}</text></view><text>{{item.statusLabel}}</text>
         </view>
       </block>
     </view>
