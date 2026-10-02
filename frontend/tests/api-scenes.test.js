@@ -190,7 +190,7 @@ test('buildApiMenuScene merges menu items with shared cart counts', () => {
   const scene = buildApiMenuScene({
     homeData,
     menuItems: [
-      { dishId: 100, categoryId: 3, name: '番茄炒蛋', description: '经典家常', imageUrl: '/uploads/images/tomato.png', price: 18, status: 'ACTIVE' },
+      { dishId: 100, categoryId: 3, name: '番茄炒蛋', description: '经典家常', tasteTags: ['酸甜'], imageUrl: '/uploads/images/tomato.png', price: 18, status: 'ACTIVE' },
       { dishId: 101, categoryId: 4, name: '青菜豆腐汤', description: '清爽', imageUrl: '', price: 22, status: 'ACTIVE' }
     ],
     cart: {
@@ -212,7 +212,9 @@ test('buildApiMenuScene merges menu items with shared cart counts', () => {
   assert.equal(scene.visibleMenuCards.length, 1);
   assert.equal(scene.visibleMenuCards[0].selectedByCurrentMemberCount, 2);
   assert.equal(scene.visibleMenuCards[0].cartLineId, 901);
-  assert.deepEqual(scene.visibleMenuCards[0].displayTags, ['其他菜品', '经典家常']);
+  assert.deepEqual(scene.visibleMenuCards[0].displayTags, ['其他菜品', '酸甜']);
+  assert.equal(scene.visibleMenuCards[0].description, '经典家常');
+  assert.doesNotMatch(scene.visibleMenuCards[0].displayTags.join(' '), /经典家常/);
   assert.equal(scene.visibleMenuCards[0].priceText, '¥18.00');
   assert.equal(scene.visibleMenuCards[0].displayImageUrl, 'http://127.0.0.1:8080/uploads/images/tomato.png');
 });
@@ -247,7 +249,8 @@ test('buildApiMenuScene exposes real categories and combines category selection 
   assert.equal(hot.activeCategoryLabel, '热菜');
   assert.deepEqual(hot.visibleMenuCards.map((item) => item.name), ['番茄牛腩', '板栗烧鸡']);
   assert.deepEqual(searchedSoup.visibleMenuCards.map((item) => item.name), ['山药排骨汤']);
-  assert.deepEqual(hot.visibleMenuCards[0].displayTags, ['热菜', '慢火炖煮']);
+  assert.deepEqual(hot.visibleMenuCards[0].displayTags, ['热菜']);
+  assert.equal(hot.visibleMenuCards[0].description, '慢火炖煮');
 });
 
 test('buildApiMenuScene groups searched dishes into stable ordered scroll sections', () => {

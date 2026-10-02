@@ -255,6 +255,9 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
     const categoryKey = item.categoryId === null || item.categoryId === undefined
       ? 'uncategorized' : String(item.categoryId);
     const categoryLabel = displayText(item.categoryName, '其他菜品');
+    const tasteTags = Array.isArray(item.tasteTags)
+      ? item.tasteTags.map((tag) => String(tag || '').trim()).filter(Boolean)
+      : [];
 
     return {
       id: item.dishId,
@@ -263,13 +266,13 @@ function buildApiMenuScene({ homeData, menuItems = [], cart = null, searchKeywor
       category: categoryLabel,
       badge: categoryLabel,
       productType: item.productType || 'NORMAL',
-      tasteText: item.description || '今日可点',
+      tasteText: tasteTags.join(' · ') || '今日可点',
       soldText: selectedCount > 0 ? `餐篮已选 ${selectedCount} 份` : '还未加入',
       finalPriceText: formatCurrency(item.price),
       artClass: ['warm', 'soft', 'fresh'][index % 3],
       imageUrl: toImageUrl(imageBaseUrl, item.imageUrl),
       displayImageUrl: toImageUrl(imageBaseUrl, item.imageUrl) || '/assets/brand/dish-placeholder.png',
-      displayTags: [categoryLabel, item.description || '今日可点'].slice(0, 2),
+      displayTags: [categoryLabel, ...tasteTags].slice(0, 2),
       priceText: formatCurrency(item.price),
       description: item.description || '今日可点',
       featured: Boolean(item.featured),
