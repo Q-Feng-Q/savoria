@@ -1,0 +1,17 @@
+@import "../../../styles/storybook-merchant.wxss";
+
+.ingredient-form-page { min-height: 100vh; padding-bottom: calc(170rpx + env(safe-area-inset-bottom)); background: #fff3db; }
+.editor-head { padding: 24rpx 0 28rpx; }
+.eyebrow, .editor-title, .editor-copy, .section-title, .label { display: block; }
+.eyebrow { color: #a56f5e; font-size: 22rpx; font-weight: 800; }
+.editor-title { margin-top: 6rpx; color: #4d3024; font-size: 42rpx; font-weight: 900; }
+.editor-copy { margin-top: 8rpx; color: #8a7567; font-size: 24rpx; }
+.form-section { padding: 28rpx; border: 2rpx solid #efd9b8; border-radius: 26rpx; background: #fff5df; }
+.section-title { color: #4d3024; font-size: 30rpx; font-weight: 900; }
+.field { margin-top: 30rpx; }
+.label { margin-bottom: 12rpx; color: #765a46; font-size: 25rpx; font-weight: 700; }
+.required { color: #d76552; }
+input { min-height: 88rpx; padding: 0 22rpx; border: 2rpx solid #ead5b4; border-radius: 16rpx; background: #fff9ed; box-sizing: border-box; color: #4d3024; }
+.reference-note { margin-top: 24rpx; padding: 20rpx 24rpx; border-radius: 18rpx; background: #e3eadf; color: #536e55; font-size: 23rpx; }
+.safe-action-bar { position: fixed; right: auto; bottom: 0; left: 50%; width: 100%; max-width: 720px; padding: 18rpx 28rpx calc(18rpx + env(safe-area-inset-bottom)); border-top: 2rpx solid #e9d7b9; background: #fff3db; box-sizing: border-box; transform: translateX(-50%); z-index: 20; }
+.save-action { min-height: 88rpx; border-radius: 18rpx; background: #df7739; color: #fffaf0; font-weight: 900; }

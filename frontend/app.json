@@ -39,7 +39,8 @@
     "pages/ordering/order-detail/index",
     "pages/ordering/dish-detail/index",
     "pages/merchant/dish-edit/index",
-    "pages/merchant/ingredient-edit/index"
+    "pages/merchant/ingredient-edit/index",
+    "pages/merchant/ingredient-form/index"
   ],
   "window": {
     "navigationBarTitleText": "食光栀味",

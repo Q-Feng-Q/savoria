@@ -160,7 +160,12 @@
     "system.getPublicSettings"
   ],
   "pages/merchant/ingredient-edit/index": [
+    "merchant.deleteIngredient",
+    "merchant.getIngredients"
+  ],
+  "pages/merchant/ingredient-form/index": [
     "merchant.createIngredient",
+    "merchant.getIngredients",
     "merchant.updateIngredient"
   ]
 }

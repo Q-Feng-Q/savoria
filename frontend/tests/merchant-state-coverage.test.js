@@ -7,12 +7,12 @@ const root = path.resolve(__dirname, '..')
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8')
 const merchantPages = [
   'index', 'merchant-orders', 'merchant-order-detail', 'purchase', 'merchant-dishes',
-  'dish-edit', 'ingredient-edit', 'merchant-families', 'merchant-family-detail', 'family-menu'
+  'dish-edit', 'ingredient-edit', 'ingredient-form', 'merchant-families', 'merchant-family-detail', 'family-menu'
 ]
 const pageBase = (page) => page === 'index' ? 'pages/merchant/index' : `pages/merchant/${page}/index`
 
-test('all ten merchant pages start loading and expose retryable page loading and error states', () => {
-  assert.equal(merchantPages.length, 10)
+test('merchant pages start loading and expose retryable page loading and error states', () => {
+  assert.equal(merchantPages.length, 11)
   for (const page of merchantPages) {
     const source = read(`${pageBase(page)}.js`)
     const markup = read(`${pageBase(page)}.wxml`)
@@ -36,7 +36,7 @@ test('merchant list pages distinguish a successful empty result from errors', ()
 test('detail and form pages handle missing identifiers or records intentionally', () => {
   const orderDetail = read('pages/merchant/merchant-order-detail/index.js')
   const dishEdit = read('pages/merchant/dish-edit/index.js')
-  const ingredientEdit = read('pages/merchant/ingredient-edit/index.js')
+  const ingredientEdit = read('pages/merchant/ingredient-form/index.js')
   assert.match(orderDetail, /if\s*\(!this\.data\.id\)[\s\S]*?phase:\s*'error'/)
   assert.match(dishEdit, /this\.data\.id\s*\?\s*runtime\.merchant\.getDishDetail/)
   assert.match(dishEdit, /if\s*\(this\.data\.id\s*&&\s*!detail\)\s*throw/)
@@ -51,7 +51,8 @@ test('merchant mutations expose local busy guards instead of replacing page stat
     purchase: /purchaseBusy[\s\S]*busyItemMap/,
     'merchant-dishes': /busyDishMap/,
     'dish-edit': /saving[\s\S]*uploading/,
-    'ingredient-edit': /saving[\s\S]*busyIngredientId/,
+    'ingredient-edit': /busyIngredientId/,
+    'ingredient-form': /saving/,
     'merchant-family-detail': /deliveryBusy[\s\S]*busyMemberId/,
     'family-menu': /mutationBusy/
   }
@@ -119,7 +120,7 @@ test('merchant mutation refreshes opt into silent loading on every affected page
     'merchant-order-detail': 1,
     purchase: 1,
     'merchant-dishes': 3,
-    'ingredient-edit': 2,
+    'ingredient-edit': 1,
     'merchant-family-detail': 2,
     'family-menu': 4
   }

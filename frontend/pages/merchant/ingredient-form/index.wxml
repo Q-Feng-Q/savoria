@@ -1,0 +1,14 @@
+<view class="merchant-story warm-page ingredient-form-page">
+  <view class="editor-head"><text class="eyebrow">食材库</text><text class="editor-title">{{title}}</text><text class="editor-copy">维护名称、计量单位和所属分类。</text></view>
+  <page-state wx:if="{{phase === 'loading' || phase === 'error'}}" phase="{{phase}}" title="食材信息" description="{{errorMessage}}" bind:retry="retryLoad" />
+  <view wx:else class="form-content">
+    <view class="form-section">
+      <text class="section-title">基本信息</text>
+      <view class="field"><text class="label">名称 <text class="required">*</text></text><input value="{{form.name}}" data-field="name" bindinput="bindField" disabled="{{saving}}" maxlength="100" placeholder="例如：豆腐干" /></view>
+      <view class="field"><text class="label">单位 <text class="required">*</text></text><input value="{{form.unit}}" data-field="unit" bindinput="bindField" disabled="{{saving}}" maxlength="20" placeholder="例如：克、个" /></view>
+      <view class="field"><text class="label">分类 <text class="required">*</text></text><input value="{{form.category}}" data-field="category" bindinput="bindField" disabled="{{saving}}" maxlength="50" placeholder="例如：豆制品" /></view>
+    </view>
+    <view wx:if="{{referenceText}}" class="reference-note">{{referenceText}}</view>
+  </view>
+</view>
+<view wx:if="{{phase === 'ready'}}" class="safe-action-bar merchant-story-bar"><view class="ui-button save-action" bindtap="saveIngredient" aria-role="button" aria-label="保存食材" aria-disabled="{{saving}}" hover-class="ui-button--pressed">{{saving ? '保存中' : '保存食材'}}</view></view>

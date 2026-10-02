@@ -25,6 +25,7 @@ const migratedWxmlFiles = [
   'pages/merchant/family-menu/index.wxml',
   'pages/merchant/index.wxml',
   'pages/merchant/ingredient-edit/index.wxml',
+  'pages/merchant/ingredient-form/index.wxml',
   'pages/merchant/merchant-dishes/index.wxml',
   'pages/merchant/merchant-families/index.wxml',
   'pages/merchant/merchant-family-detail/index.wxml',

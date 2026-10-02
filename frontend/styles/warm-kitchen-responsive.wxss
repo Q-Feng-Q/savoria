@@ -14,6 +14,7 @@
   .dishes-page,
   .editor-page,
   .ingredient-page,
+  .ingredient-form-page,
   .families-page,
   .family-detail-page,
   .family-menu-page { padding-right: 22rpx; padding-left: 22rpx; }
@@ -38,7 +39,6 @@
   .detail-heading,
   .detail-header { grid-column: 1 / -1; width: 100%; }
 
-  .ingredient-workspace { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28rpx; width: 100%; }
 }
 
 @media (max-height: 620px) {
@@ -53,8 +53,7 @@
   .warm-landscape-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28rpx; }
 
   .detail-content,
-  .editor-content,
-  .ingredient-workspace { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28rpx; width: 100%; }
+  .editor-content { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28rpx; width: 100%; }
   .detail-heading,
   .detail-header { grid-column: 1 / -1; width: 100%; }
 }
@@ -72,6 +71,7 @@
 .dishes-page,
 .editor-page,
 .ingredient-page,
+.ingredient-form-page,
 .families-page,
 .family-detail-page,
 .family-menu-page {
@@ -89,6 +89,7 @@
 .dish-list,
 .editor-content,
 .ingredient-workspace,
+.form-content,
 .families-content,
 .menu-content,
 .merchant-identity__copy,
@@ -114,7 +115,7 @@
 
 .detail-page .safe-action-bar,
 .editor-page .safe-action-bar,
-.ingredient-page .safe-action-bar {
+.ingredient-form-page .safe-action-bar {
   width: 100%;
   padding-bottom: calc(18rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;

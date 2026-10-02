@@ -1,26 +1,31 @@
 @import "../../../styles/storybook-merchant.wxss";
 
-.ingredient-page { padding-bottom: calc(180rpx + env(safe-area-inset-bottom)); background: #fffaf4; }
-.editor-head, .form-section { padding: 28rpx 0; border-bottom: 2rpx solid #e9ddd1; }
+.ingredient-page { min-height: 100vh; padding-bottom: calc(56rpx + env(safe-area-inset-bottom)); background: #fff3db; }
+.editor-head { padding: 24rpx 0 22rpx; }
 .eyebrow, .editor-title, .editor-copy, .section-title, .strong, .muted, .reference { display: block; }
 .eyebrow { color: #a56f5e; font-size: 22rpx; font-weight: 800; }
-.editor-title { margin-top: 6rpx; color: #2f2822; font-size: 40rpx; font-weight: 900; }
-.editor-copy { margin-top: 8rpx; color: #7d7065; font-size: 24rpx; }
-.section-head, .ingredient-row { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
-.section-title { margin-bottom: 18rpx; color: #352d27; font-size: 30rpx; font-weight: 900; }
-.section-head .section-title { margin-bottom: 0; }
-.ingredient-row { min-height: 116rpx; border-bottom: 2rpx solid #eee4da; }
-.ingredient-main { flex: 1; min-width: 0; padding: 14rpx 0; }
-.strong { color: #352d27; font-weight: 850; }
-.muted, .reference, .empty-copy { margin-top: 5rpx; color: #82766c; font-size: 23rpx; }
+.editor-title { margin-top: 6rpx; color: #4d3024; font-size: 42rpx; font-weight: 900; }
+.editor-copy { margin-top: 8rpx; color: #8a7567; font-size: 24rpx; }
+.toolbar { display: flex; align-items: center; gap: 14rpx; padding: 12rpx 0 24rpx; }
+.search-input { flex: 1; min-width: 0; min-height: 88rpx; padding: 0 22rpx; border: 2rpx solid #ead5b4; border-radius: 20rpx; background: #fff9ed; box-sizing: border-box; color: #4d3024; }
+.create-action { flex: none; min-height: 88rpx; padding: 0 24rpx; border-radius: 20rpx; background: #df7739; color: #fffaf0; font-weight: 800; }
+.ingredient-workspace { padding: 4rpx 0 16rpx; }
+.list-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 20rpx; padding: 0 0 12rpx; border-bottom: 2rpx solid #ead9ba; }
+.section-title { color: #4d3024; font-size: 29rpx; font-weight: 900; }
+.list-count { color: #9c8169; font-size: 23rpx; }
+.ingredient-row { display: flex; align-items: center; gap: 12rpx; min-height: 132rpx; border-bottom: 2rpx solid #ead9ba; }
+.ingredient-main { flex: 1; min-width: 0; padding: 18rpx 0; }
+.ingredient-main--pressed { opacity: .68; }
+.ingredient-title { display: flex; align-items: baseline; gap: 12rpx; }
+.strong { color: #4d3024; font-size: 29rpx; font-weight: 850; }
+.unit { color: #a38163; font-size: 22rpx; }
+.muted, .reference { margin-top: 4rpx; font-size: 22rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.muted { color: #8a7567; }
 .reference { color: #668269; }
-.text-action, .delete-disabled, .save-action, input { min-height: 88rpx; box-sizing: border-box; }
-.text-action, .delete-disabled, .save-action { display: flex; align-items: center; justify-content: center; flex: none; padding: 0 14rpx; }
-.text-action { color: #d76552; }
-.delete-disabled { max-width: 150rpx; color: #988d84; font-size: 21rpx; text-align: center; }
-.field { margin-top: 18rpx; }
-.label { color: #776b61; font-size: 24rpx; }
-input { margin-top: 10rpx; padding: 0 22rpx; border: 2rpx solid #ddd2c7; border-radius: 14rpx; background: #fff; }
-.safe-action-bar { position: fixed; right: auto; bottom: 0; left: 50%; width: 100%; max-width: 720px; padding: 18rpx 28rpx calc(18rpx + env(safe-area-inset-bottom)); border-top: 2rpx solid #e2d6ca; background: rgba(255,250,244,.97); box-sizing: border-box; transform: translateX(-50%); z-index: 20; }
-.save-action { border-radius: 16rpx; background: #e87561; color: #fff; font-weight: 900; }
-@media (max-width: 320px) { .ingredient-row { align-items: flex-start; } .delete-disabled { max-width: 128rpx; } }
+.row-actions { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; flex: none; }
+.chevron { color: #b48d65; font-size: 36rpx; line-height: 30rpx; }
+.text-action, .delete-disabled { display: flex; align-items: center; justify-content: flex-end; min-height: 88rpx; font-size: 23rpx; }
+.text-action { color: #cb684f; padding: 0 6rpx 0 18rpx; }
+.delete-disabled { color: #a38e78; }
+.empty-copy { margin-top: 34rpx; padding: 28rpx; border-radius: 20rpx; background: #fff8e9; color: #8a7567; font-size: 25rpx; }
+@media (max-width: 320px) { .create-action { padding: 0 16rpx; } .reference { max-width: 440rpx; } }

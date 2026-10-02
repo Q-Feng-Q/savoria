@@ -19,7 +19,7 @@ const asyncPages = [
   'pages/merchant/merchant-dishes/index', 'pages/merchant/family-menu/index',
   'pages/merchant/purchase/index', 'pages/ordering/order-detail/index',
   'pages/ordering/dish-detail/index', 'pages/merchant/dish-edit/index',
-  'pages/merchant/ingredient-edit/index'
+  'pages/merchant/ingredient-edit/index', 'pages/merchant/ingredient-form/index'
 ]
 
 const listPages = [
@@ -27,7 +27,7 @@ const listPages = [
   'pages/ordering/orders/index', 'pages/account/notifications/index', 'pages/family/addresses/index',
   'pages/family/wallet-ledger/index', 'pages/merchant/merchant-families/index',
   'pages/merchant/merchant-family-detail/index', 'pages/merchant/merchant-orders/index',
-  'pages/merchant/merchant-dishes/index', 'pages/merchant/family-menu/index',
+  'pages/merchant/merchant-dishes/index', 'pages/merchant/ingredient-edit/index', 'pages/merchant/family-menu/index',
   'pages/merchant/purchase/index'
 ]
 
@@ -36,7 +36,7 @@ const formPages = [
   'pages/account/profile-edit/index', 'pages/account/account-security/index',
   'pages/family/address-edit/index', 'pages/ordering/cart/index',
   'pages/merchant/merchant-order-detail/index', 'pages/merchant/family-menu/index',
-  'pages/merchant/dish-edit/index', 'pages/merchant/ingredient-edit/index'
+  'pages/merchant/dish-edit/index', 'pages/merchant/ingredient-form/index'
 ]
 
 test('async pages expose loading error and retry state affordances', () => {

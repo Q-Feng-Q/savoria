@@ -30,14 +30,18 @@ test('merchant breakpoints cover compact, large phone, wide phone, and landscape
   assert.doesNotMatch(css, /max-width:\s*\d+rpx/)
 })
 
-test('ingredient editor uses a real two-column workspace at wide and landscape sizes', () => {
+test('ingredient library stays a full-width searchable list while its form is a separate page', () => {
   const markup = read('pages/merchant/ingredient-edit/index.wxml')
+  const form = read('pages/merchant/ingredient-form/index.wxml')
   const css = read('styles/warm-kitchen-responsive.wxss')
-  assert.match(markup, /<view wx:else class="ingredient-workspace">[\s\S]*?class="form-section"[\s\S]*?class="form-section editor-section"/)
+  assert.match(markup, /class="ingredient-workspace"/)
+  assert.match(markup, /class="search-input"/)
+  assert.doesNotMatch(markup, /class="form-section"/)
+  assert.match(form, /class="form-section"/)
   const wide = css.slice(css.search(/@media\s*\(min-width:\s*480px\)/), css.search(/@media\s*\(max-height:/))
   const landscape = css.slice(css.search(/@media\s*\(orientation:\s*landscape\)/), css.search(/\.warm-page, \.page, text/))
   for (const rules of [wide, landscape]) {
-    assert.match(rules, /\.ingredient-workspace\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/)
+    assert.doesNotMatch(rules, /\.ingredient-workspace\s*\{[^}]*grid-template-columns/)
   }
 })
 
@@ -63,14 +67,14 @@ test('merchant fixed actions and navigation reserve safe area without shrinking 
   assert.match(nav, /merchant-workbench-nav__spacer[\s\S]*?env\(safe-area-inset-bottom\)/)
   assert.match(nav, /merchant-workbench-nav__bar[\s\S]*?env\(safe-area-inset-bottom\)/)
   assert.match(foundation, /\.ui-button[\s\S]*?min-height:\s*88rpx/)
-  for (const page of ['dish-edit', 'ingredient-edit', 'merchant-order-detail']) {
+  for (const page of ['dish-edit', 'ingredient-form', 'merchant-order-detail']) {
     const styles = read(`pages/merchant/${page}/index.wxss`)
     const rule = styles.match(/\.safe-action-bar\s*\{([^}]*)\}/)
     assert.ok(rule, `${page}: fixed action rule`)
     for (const property of [/width:\s*100%/, /max-width:\s*720px/, /left:\s*50%/, /right:\s*auto/, /translateX\(-50%\)/]) {
       assert.match(rule[1], property, page)
     }
-    const pageRule = styles.match(/\.(?:editor|ingredient|detail)-page\s*\{([^}]*)\}/)
+    const pageRule = styles.match(/\.(?:editor|ingredient-form|detail)-page\s*\{([^}]*)\}/)
     assert.ok(pageRule, `${page}: page reserve rule`)
     assert.match(pageRule[1], /padding-bottom:\s*calc\([^)]*env\(safe-area-inset-bottom\)/, page)
   }

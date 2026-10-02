@@ -1065,12 +1065,13 @@ test('dish editor busy guard blocks deferred-save mutations', () => {
   assert.match(markup, /disabled="\{\{saving \|\| uploading \|\| stepUploading\}\}"/);
 });
 
-test('ingredient save and delete operations are mutually exclusive', async () => {
-  const source = read('pages/merchant/ingredient-edit/index.js');
-  const markup = read('pages/merchant/ingredient-edit/index.wxml');
-  assert.match(source, /saveIngredient\s*\([^)]*\)\s*\{[\s\S]*?if \(this\.data\.saving \|\| this\.data\.busyIngredientId\) return;/);
-  assert.match(source, /removeIngredient\s*\([^)]*\)\s*\{[\s\S]*?if \(this\.data\.saving\) return;/);
-  assert.match(markup, /disabled="\{\{saving \|\| busyIngredientId\}\}"/);
+test('ingredient list deletion and dedicated form save each guard their own mutation', () => {
+  const list = read('pages/merchant/ingredient-edit/index.js');
+  const form = read('pages/merchant/ingredient-form/index.js');
+  const markup = read('pages/merchant/ingredient-form/index.wxml');
+  assert.match(list, /removeIngredient\s*\([^)]*\)\s*\{[\s\S]*?if \(this\.data\.busyIngredientId\) return;/);
+  assert.match(form, /saveIngredient\s*\([^)]*\)\s*\{[\s\S]*?if \(this\.data\.saving \|\| this\.data\.phase !== 'ready'\) return;/);
+  assert.match(markup, /disabled="\{\{saving\}\}"/);
 });
 
 test('dish editor onShow preserves a dirty form and refreshes only ingredients', async () => {
@@ -1093,29 +1094,30 @@ test('dish editor onShow preserves a dirty form and refreshes only ingredients',
   } finally { delete require.cache[require.resolve(pagePath)]; if (previousRuntime) require.cache[runtimePath] = previousRuntime; else delete require.cache[runtimePath]; if (previousPageApi) require.cache[pageApiPath] = previousPageApi; else delete require.cache[pageApiPath]; global.Page = previousPage; global.wx = previousWx; }
 });
 
-test('ingredient save snapshots mode and does not wipe work started after the request', async () => {
-  const pagePath = path.join(root, 'pages', 'merchant', 'ingredient-edit', 'index.js');
+test('ingredient form prevents duplicate saves while an update is pending', async () => {
+  const pagePath = path.join(root, 'pages', 'merchant', 'ingredient-form', 'index.js');
   const runtimePath = require.resolve(path.join(root, 'utils', 'api-runtime.js'));
   const pageApiPath = require.resolve(path.join(root, 'utils', 'page-api.js'));
   const previousRuntime = require.cache[runtimePath]; const previousPageApi = require.cache[pageApiPath]; const previousPage = global.Page; const previousWx = global.wx;
   const pending = deferred(); const payloads = []; const toasts = []; let definition;
   require.cache[runtimePath] = { exports: { createApiRuntime: () => ({ merchant: { updateIngredient: async (id, payload) => { payloads.push([id, payload]); return pending.promise; }, createIngredient: async () => assert.fail('edit snapshot must update'), getIngredients: async () => [] } }) } };
   require.cache[pageApiPath] = { exports: { requireSession: () => ({ merchantId: 2 }), showApiError: () => {}, resolveApiErrorMessage: (e, f) => e.message || f } };
-  global.Page = (value) => { definition = value; }; global.wx = { showToast: (value) => toasts.push(value) };
+  global.Page = (value) => { definition = value; }; global.wx = { showToast: (value) => toasts.push(value), navigateBack() {} };
   try {
     delete require.cache[require.resolve(pagePath)]; require(pagePath);
     const page = Object.assign({}, definition, { data: JSON.parse(JSON.stringify(definition.data)), setData(update) { this.data = { ...this.data, ...update }; } });
-    page.setData({ editId: 7, form: { name: '盐', unit: '克', category: '调味' } });
+    page.setData({ phase: 'ready', editId: '7', form: { name: '盐', unit: '克', category: '调味' } });
     const save = page.saveIngredient();
-    page.setData({ editId: '', form: { name: '糖', unit: '克', category: '调味' } });
+    await page.saveIngredient();
+    assert.equal(payloads.length, 1);
     pending.resolve(); await save;
-    assert.deepEqual(payloads, [[7, { name: '盐', unit: '克', category: '调味' }]]);
+    assert.deepEqual(payloads, [['7', { name: '盐', unit: '克', category: '调味' }]]);
     assert.equal(toasts.at(-1).title, '已保存修改');
-    assert.deepEqual(page.data.form, { name: '糖', unit: '克', category: '调味' });
+    assert.equal(page.data.saving, false);
   } finally { delete require.cache[require.resolve(pagePath)]; if (previousRuntime) require.cache[runtimePath] = previousRuntime; else delete require.cache[runtimePath]; if (previousPageApi) require.cache[pageApiPath] = previousPageApi; else delete require.cache[pageApiPath]; global.Page = previousPage; global.wx = previousWx; }
 });
 
-test('deleting the currently edited ingredient clears its internal editor state', async () => {
+test('deleting an ingredient refreshes the list while preserving its search query', async () => {
   const pagePath = path.join(root, 'pages', 'merchant', 'ingredient-edit', 'index.js');
   const runtimePath = require.resolve(path.join(root, 'utils', 'api-runtime.js')); const pageApiPath = require.resolve(path.join(root, 'utils', 'page-api.js'));
   const oldRuntime = require.cache[runtimePath]; const oldApi = require.cache[pageApiPath]; const oldPage = global.Page; const oldWx = global.wx; let definition;
@@ -1125,9 +1127,9 @@ test('deleting the currently edited ingredient clears its internal editor state'
   try {
     delete require.cache[require.resolve(pagePath)]; require(pagePath);
     const page = Object.assign({}, definition, { data: JSON.parse(JSON.stringify(definition.data)), setData(update) { this.data = { ...this.data, ...update }; } });
-    page.setData({ editId: 7, ingredients: [{ id: 7, name: '盐', removable: true }], form: { name: '盐', unit: '克', category: '调味', remark: '' } });
+    page.setData({ query: '盐', ingredients: [{ id: 7, name: '盐', removable: true }] });
     await page.removeIngredient({ currentTarget: { dataset: { id: 7 } } });
-    assert.equal(page.data.editId, ''); assert.equal(page.data.form.name, '');
+    assert.equal(page.data.query, '盐'); assert.deepEqual(page.data.visibleIngredients, []);
   } finally { delete require.cache[require.resolve(pagePath)]; if (oldRuntime) require.cache[runtimePath] = oldRuntime; else delete require.cache[runtimePath]; if (oldApi) require.cache[pageApiPath] = oldApi; else delete require.cache[pageApiPath]; global.Page = oldPage; global.wx = oldWx; }
 });
 
@@ -1157,28 +1159,33 @@ test('dish editor uses divided sections, guarded state, upload and safe save act
   assert.equal(config.usingComponents['page-state'], '/components/page-state/index');
 });
 
-test('ingredient editor exposes references, guarded delete and empty-safe editor', () => {
+test('ingredient library shows references while the separate editor provides a guarded save', () => {
   const markup = read('pages/merchant/ingredient-edit/index.wxml');
   const source = read('pages/merchant/ingredient-edit/index.js');
   const styles = read('pages/merchant/ingredient-edit/index.wxss');
   const config = JSON.parse(read('pages/merchant/ingredient-edit/index.json'));
+  const formMarkup = read('pages/merchant/ingredient-form/index.wxml');
+  const formConfig = JSON.parse(read('pages/merchant/ingredient-form/index.json'));
 
   assert.doesNotMatch(markup, /merchant-workbench-nav|<button\b|hero/);
   assert.match(markup, /<page-state[^>]+phase="\{\{phase\}\}"[^>]+bind:retry="retryLoad"/);
   assert.match(markup, /item\.usedByDishCount/);
   assert.match(markup, /item\.usedByDishText/);
   assert.match(markup, /item\.removable/);
-  assert.match(markup, /safe-action-bar/);
+  assert.match(markup, /bindtap="openCreate"/);
+  assert.match(markup, /bindtap="openEdit"/);
+  assert.match(formMarkup, /safe-action-bar/);
+  assert.match(formMarkup, /bindtap="saveIngredient"/);
   assert.match(source, /phase:\s*'loading'/);
   assert.match(source, /retryLoad\s*\(/);
   assert.match(source, /_loadGeneration/);
   assert.match(source, /busyIngredientId/);
-  assert.match(source, /saving/);
   assert.match(source, /resolveApiErrorMessage/);
   assert.match(source, /if\s*\(!ingredient\s*\|\|\s*!ingredient\.removable\)/);
   assert.match(styles, /min-height:\s*88rpx/);
   assert.match(styles, /env\(safe-area-inset-bottom\)/);
   assert.equal(config.usingComponents['page-state'], '/components/page-state/index');
+  assert.equal(formConfig.usingComponents['page-state'], '/components/page-state/index');
 });
 
 test('purchase loads temp items independently and filters selected meals with global rows', async () => {
