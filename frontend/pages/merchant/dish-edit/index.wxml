@@ -21,7 +21,7 @@
     </view>
     <view class="form-section">
       <text class="section-title">菜品图片</text>
-      <view class="image-row"><image wx:if="{{dish.imageUrl}}" class="dish-image" src="{{dish.imageUrl}}" mode="aspectFill" /><image wx:else class="dish-image" src="/assets/brand/dish-placeholder.png" mode="aspectFill" /><view class="ui-button secondary-action" bindtap="chooseDishImage" aria-role="button" aria-label="选择菜品图片" hover-class="ui-button--pressed">{{uploading ? '上传中' : '选择图片'}}</view></view>
+      <view class="image-row"><cloud-image wx:if="{{dish.imageUrl}}" class="dish-image" src="{{dish.imageUrl}}" mode="aspectFill" /><image wx:else class="dish-image" src="/assets/brand/dish-placeholder.png" mode="aspectFill" /><view class="ui-button secondary-action" bindtap="chooseDishImage" aria-role="button" aria-label="选择菜品图片" hover-class="ui-button--pressed">{{uploading ? '上传中' : '选择图片'}}</view></view>
     </view>
     <view class="form-section">
       <view class="section-head"><text class="section-title">原材料</text><view class="text-action" bindtap="openIngredientLibrary" aria-role="button" aria-label="打开食材库" hover-class="ui-button--pressed">食材库</view></view>

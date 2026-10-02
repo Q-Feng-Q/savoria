@@ -1,7 +1,7 @@
 <view class="merchant-story warm-page detail-page">
   <page-state wx:if="{{phase !== 'ready'}}" phase="{{phase}}" title="模板菜品详情" description="{{errorMessage || '正在读取模板'}}" bind:retry="retryLoad" />
   <block wx:if="{{phase === 'ready'}}">
-    <image wx:if="{{detail.hasImage}}" class="detail-image" src="{{detail.imageUrl}}" mode="aspectFill" />
+    <cloud-image wx:if="{{detail.hasImage}}" class="detail-image" src="{{detail.imageUrl}}" mode="aspectFill" />
     <view wx:else class="detail-image detail-image-placeholder"><text>这道菜暂时没有公开图片</text></view>
     <view class="detail-head">
       <text class="detail-category">{{detail.categoryName}}</text>

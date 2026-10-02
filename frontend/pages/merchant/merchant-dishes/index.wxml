@@ -44,7 +44,7 @@
         <view class="dish-selector {{item.selected ? 'dish-selector--selected' : ''}} {{mutationBusy ? 'control--disabled' : ''}}" data-id="{{item.id}}" bindtap="toggleSelectDish" aria-role="checkbox" aria-checked="{{item.selected}}" aria-label="选择{{item.name}}" aria-disabled="{{mutationBusy}}" hover-class="dish-selector--pressed">
           <view class="check-box {{item.selected ? 'check-box--checked' : ''}}">{{item.selected ? '✓' : ''}}</view>
         </view>
-        <image class="dish-thumb" src="{{item.imageUrl}}" mode="aspectFill" />
+        <cloud-image class="dish-thumb" src="{{item.imageUrl}}" mode="aspectFill" />
         <view class="dish-main">
           <view class="dish-heading"><text class="dish-name">{{item.name}}</text><text class="dish-price">{{item.priceText}}</text></view>
           <text class="dish-meta">{{item.productType === 'NOURISHMENT' ? '滋补食品 · ' : ''}}{{item.category}} · {{item.statusText}}</text>

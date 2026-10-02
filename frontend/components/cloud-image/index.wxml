@@ -1,0 +1,8 @@
+<image
+  class="warm-cloud-image"
+  src="{{resolvedSrc || fallback}}"
+  mode="{{mode}}"
+  lazy-load="{{lazyLoad}}"
+  bindload="onNativeLoad"
+  binderror="onNativeError"
+/>

@@ -27,7 +27,7 @@
     <swiper wx:if="{{featuredDishes.length}}" class="home-featured-swiper" autoplay="{{featuredAutoplay}}" circular="{{featuredCircular}}" indicator-dots="{{featuredIndicatorDots}}" interval="{{featuredInterval}}" next-margin="{{featuredNextMargin}}" indicator-color="#dec99c" indicator-active-color="#e87536">
       <swiper-item wx:for="{{featuredDishes}}" wx:key="id" class="home-featured-slide">
         <view class="home-recommendation story-paper" data-id="{{item.id}}" bindtap="openDishDetail" aria-role="button" aria-label="查看{{item.name}}详情" hover-class="home-recommendation--pressed" hover-stay-time="80">
-          <view class="home-dish-photo"><image class="home-dish-image" src="{{item.imageUrl || '/assets/brand/dish-placeholder.png'}}" mode="aspectFill" /><text class="home-dish-ribbon">主厨推荐</text></view>
+          <view class="home-dish-photo"><cloud-image class="home-dish-image" src="{{item.imageUrl || '/assets/brand/dish-placeholder.png'}}" mode="aspectFill" /><text class="home-dish-ribbon">主厨推荐</text></view>
           <view class="home-dish-copy"><text class="home-dish-name">{{item.name}}</text><text class="home-dish-note">{{item.description}}</text><text class="home-dish-price">{{item.priceText}}</text><view class="home-dish-action">♧ 去点这道菜</view><text class="home-taster-note">{{crew.tasterLabel}} · 一起尝尝</text></view>
         </view>
       </swiper-item>

@@ -33,7 +33,7 @@
   <page-state wx:if="{{!items.length}}" phase="empty" title="没有找到模板菜" description="换个分类或关键词试试。" illustration="cart" />
   <view wx:else class="template-list">
     <view wx:for="{{items}}" wx:key="templateId" class="template-row {{item.imported ? 'template-row--imported' : ''}}">
-      <image wx:if="{{item.hasImage}}" class="template-image" src="{{item.imageUrl}}" mode="aspectFill" data-id="{{item.templateId}}" bindtap="openDetail" />
+      <cloud-image wx:if="{{item.hasImage}}" class="template-image" src="{{item.imageUrl}}" mode="aspectFill" data-id="{{item.templateId}}" bindtap="openDetail" />
       <view wx:else class="template-image-placeholder" data-id="{{item.templateId}}" bindtap="openDetail" aria-role="button" aria-label="查看{{item.name}}模板详情" hover-class="ui-button--pressed"><text>暂无图片</text></view>
       <view class="template-main" data-id="{{item.templateId}}" bindtap="openDetail" aria-role="button" aria-label="查看{{item.name}}模板详情" hover-class="ui-button--pressed">
         <text class="template-name">{{item.name}}</text>

@@ -64,7 +64,8 @@ test('shared mini program UI components are globally registered', () => {
     'notification-row': '/components/notification-row/index',
     'status-timeline': '/components/status-timeline/index',
     'bottom-action-bar': '/components/bottom-action-bar/index',
-    'merchant-workbench-nav': '/components/merchant-workbench-nav/index'
+    'merchant-workbench-nav': '/components/merchant-workbench-nav/index',
+    'cloud-image': '/components/cloud-image/index'
   };
 
   assert.deepEqual(app.usingComponents, components);

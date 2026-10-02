@@ -3,7 +3,7 @@
   <view wx:if="{{phase === 'ready'}}">
   <view class="detail-hero">
     <view class="detail-plate">
-      <image class="detail-dish-image" src="{{scene.dish.imageUrl}}" mode="aspectFill" />
+      <cloud-image class="detail-dish-image" src="{{scene.dish.imageUrl}}" mode="aspectFill" />
     </view>
     <view class="detail-copy">
       <text class="eyebrow">{{scene.dish.category}}</text>
