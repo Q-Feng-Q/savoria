@@ -252,6 +252,14 @@ POST /api/admin/dish-template-change-requests/{requestId}/reject
 | siteLogoSmallSize | 小号设计像素边长 | 整数 16～64，数据库空值返回 32 |
 | siteLogoSize | 标准设计像素边长 | 整数 24～120，数据库空值返回 56 |
 | siteLogoLargeSize | 大号设计像素边长 | 整数 48～160，数据库空值返回 96 |
+| brandTagline | 通用品牌标语 | 最长 120 字符；空值返回“好好吃饭，就是幸福” |
+| homeHeroTagline | 家庭首页顶部标语 | 最长 120 字符；允许换行，空值返回内置文案 |
+| homeFooterMessage | 首页及相关页面底部寄语 | 最长 120 字符；允许换行，空值返回内置文案 |
+| cartHeroTagline | 餐篮顶部标语 | 最长 120 字符；空值返回内置文案 |
+| deliveryMessage | 配送氛围提示 | 最长 80 字符；空值返回内置文案 |
+| pickupMessage | 自取氛围提示 | 最长 80 字符；空值返回内置文案 |
+| cartFooterMessage | 餐篮底部寄语 | 最长 120 字符；空值返回内置文案 |
+| profileWelcomeMessage | 个人中心欢迎语 | 最长 120 字符；空值返回内置文案 |
 
 ```http
 PATCH /api/admin/system-settings/branding
@@ -262,11 +270,11 @@ Content-Type: application/json
 
 此入口继续仅允许平台管理员，仅更新非 null 的品牌字段；未提交或 null 表示保留，空 URL 字符串表示清除。尺寸恢复默认需显式提交 32、56、96，不接受小数或字符串。`siteName` 若提交不得为空白。返回更新后的完整管理员配置（SMTP 密码仍脱敏），保留系统配置审计并清除缓存。不会读出旧配置再整体覆盖邮件、维护或绑定开关。
 
-现有 `PUT /api/admin/system-settings` 同样支持这些字段；旧客户端不提交新增字段或提交 null 时保留数据库值。原有标准 Logo 字段继续沿用全量 PUT 的原语义。
+现有 `PUT /api/admin/system-settings` 同样支持 Logo 和上述八项文案字段。文案仅接受纯文本，保留内部换行并裁剪首尾空白；提交 null、空串或纯空白会将数据库字段清空，使公开与管理员读取接口重新返回内置默认文案。原有 Logo 字段继续沿用既有全量 PUT 语义。
 
 四种资源 URL 仅接受具有有效主机的 HTTPS URL 或以单斜杠开头的后端站点相对路径；拒绝协议相对 `//`、控制字符、空格、反斜杠、userinfo、javascript/data/file/http URL。后端不下载资源。客户端使用 API 基址解析相对路径，小程序域名限制由部署配置保障。
 
-迁移文件 `V4__responsive_branding.sql` 新增可空字段，只将旧默认名“食光知味”改为“食光栀味”，不覆盖其他自定义名称。该文件需另行授权部署，本次不执行业务库迁移；应在部署读取新列的后端版本前应用迁移。
+迁移文件 `V4__add_brand_copy_settings.sql` 为八项文案增加可空列，不覆盖现有配置。部署读取新列的后端版本时由 Flyway 自动按顺序应用。
 
 ## 普通菜品与滋补品（2026-09-19）
 
