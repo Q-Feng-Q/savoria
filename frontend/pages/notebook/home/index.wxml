@@ -1,0 +1,30 @@
+<view class="notebook-page warm-page">
+  <view class="notebook-top">
+    <view class="notebook-kicker">私人空间 · 仅你可见</view>
+    <view class="notebook-headline"><text>我的记事</text><view class="notebook-manage" bindtap="openEvents">管理事件 ›</view></view>
+    <view class="notebook-view-switch">
+      <view class="{{view === 'calendar' ? 'active' : ''}}" data-view="calendar" bindtap="switchView">日历</view>
+      <view class="{{view === 'today' ? 'active' : ''}}" data-view="today" bindtap="switchView">今天</view>
+      <view class="{{view === 'timeline' ? 'active' : ''}}" data-view="timeline" bindtap="switchView">时间流</view>
+    </view>
+  </view>
+  <view wx:if="{{phase === 'error'}}" class="notebook-empty"><text>{{errorMessage}}</text><view bindtap="load">重新加载</view></view>
+  <view wx:elif="{{phase === 'loading'}}" class="notebook-empty">正在打开记事…</view>
+  <block wx:else>
+    <scroll-view class="notebook-events" scroll-x>
+      <view wx:for="{{events}}" wx:key="id" class="notebook-event {{item.id === activeEventId ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectEvent">{{item.name}}</view>
+      <view wx:if="{{!events.length}}" class="notebook-event-empty" bindtap="openEvents">+ 创建第一个事件</view>
+    </scroll-view>
+    <block wx:if="{{view === 'calendar'}}">
+      <view class="notebook-month"><view data-offset="-1" bindtap="moveMonth">‹</view><text>{{month}}</text><view data-offset="1" bindtap="moveMonth">›</view></view>
+      <view class="notebook-calendar">
+        <view class="notebook-weekday">一</view><view class="notebook-weekday">二</view><view class="notebook-weekday">三</view><view class="notebook-weekday">四</view><view class="notebook-weekday">五</view><view class="notebook-weekday">六</view><view class="notebook-weekday">日</view>
+        <view wx:for="{{days}}" wx:key="key" class="notebook-day {{item.blank ? 'blank' : ''}} {{item.key === selectedDate ? 'selected' : ''}}" data-date="{{item.key}}" bindtap="selectDate"><text>{{item.day}}</text><view wx:if="{{summary[item.key]}}" class="notebook-dot"></view></view>
+      </view>
+    </block>
+    <view class="notebook-list-heading">{{view === 'today' ? '今天' : view === 'timeline' ? '时间流' : selectedDate}}的记录</view>
+    <view wx:if="{{!visibleRecords.length}}" class="notebook-empty">还没有记录，写下今天想记住的事。</view>
+    <view wx:for="{{visibleRecords}}" wx:key="id" class="notebook-row" data-id="{{item.id}}" bindtap="openRecord"><view><text class="notebook-row__title">{{item.title}}</text><text class="notebook-row__time">{{item.occurredFrom}}</text></view><text>›</text></view>
+  </block>
+  <view class="notebook-add" bindtap="addRecord">＋ 记一笔</view>
+</view>

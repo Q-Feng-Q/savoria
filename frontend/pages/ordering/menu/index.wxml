@@ -8,7 +8,7 @@
 
     <view class="menu-reservation">
       <view><text class="menu-reservation__label">预计用餐时间</text><text class="menu-reservation__value">{{expectedMealTimeText}}</text></view>
-      <text class="menu-reservation__action">餐篮中修改</text>
+      <view class="menu-cart-link ui-button" bindtap="openCart" aria-role="button" aria-label="查看餐篮" hover-class="ui-button--pressed"><text>餐篮</text><text wx:if="{{cartItemCount}}" class="menu-cart-link__count">{{cartItemCount}}</text><text> ›</text></view>
     </view>
 
     <view class="design-menu-search"><text class="design-menu-search__icon">⌕</text><input class="menu-search" value="{{searchKeyword}}" placeholder="搜索菜名或口味" bindinput="handleSearchInput" /><view wx:if="{{searchKeyword}}" class="ui-button clear-search" bindtap="clearSearch" aria-role="button" aria-label="清除" hover-class="ui-button--pressed" hover-stay-time="80">清除</view></view>

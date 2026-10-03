@@ -350,6 +350,7 @@ Content-Type: application/json
 
 | 方法与路径 | 请求 | data |
 | --- | --- | --- |
+| `GET /api/notebook/config` | 无；需登录账号 | `{ maxQueryMonths }`，实时生效的 1～36 月查询/导出跨度上限，不返回用户正文 |
 | `GET /api/notebook/events` | 可选 `includeArchived=false` | 当前账号事件数组；重点关注优先，再按 `sortOrder`、ID 排序 |
 | `POST /api/notebook/events` | `{ name, category?, description?, fields }` | 新事件；同时发布模板版本 1 |
 | `GET /api/notebook/events/{id}` | 无 | 当前账号事件详情 |

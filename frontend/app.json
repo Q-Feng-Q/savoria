@@ -11,6 +11,7 @@
     "pages/family/home/index",
     "pages/ordering/menu/index",
     "pages/ordering/cart/index",
+    "pages/notebook/home/index",
     "pages/ordering/orders/index",
     "pages/account/profile/index",
     "pages/account/notifications/index",
@@ -67,10 +68,10 @@
         "text": "去点菜"
       },
       {
-        "pagePath": "pages/ordering/cart/index",
-        "iconPath": "assets/ui/story/basket-ink.png",
-        "selectedIconPath": "assets/ui/story/basket-orange.png",
-        "text": "餐篮"
+        "pagePath": "pages/notebook/home/index",
+        "iconPath": "assets/ui/story/calendar-ink.png",
+        "selectedIconPath": "assets/ui/story/calendar-orange.png",
+        "text": "记事"
       },
       {
         "pagePath": "pages/ordering/orders/index",

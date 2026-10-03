@@ -61,6 +61,22 @@
       {
         "value": "assets/ui/story/pin-cream.png",
         "type": "file"
+      },
+      {
+        "value": "assets/ui/dish-caramel.png",
+        "type": "file"
+      },
+      {
+        "value": "assets/ui/dish-green.png",
+        "type": "file"
+      },
+      {
+        "value": "assets/ui/dish-soup.png",
+        "type": "file"
+      },
+      {
+        "value": "assets/ui/dish-tomato.png",
+        "type": "file"
       }
     ],
     "include": []

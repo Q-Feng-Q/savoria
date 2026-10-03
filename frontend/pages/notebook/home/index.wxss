@@ -1,0 +1,27 @@
+.notebook-page{min-height:100vh;padding:0 30rpx calc(140rpx + env(safe-area-inset-bottom));box-sizing:border-box;background:#fff7e9;color:#51331f}
+.notebook-top{margin:0 -30rpx;padding:42rpx 30rpx 28rpx;background:#fff0d4}
+.notebook-kicker{font-size:20rpx;color:#806746;letter-spacing:2rpx}
+.notebook-headline{display:flex;align-items:baseline;justify-content:space-between;margin-top:12rpx}
+.notebook-headline>text{font-family:"STKaiti","KaiTi",serif;font-size:58rpx;font-weight:800}
+.notebook-manage{font-size:22rpx;color:#8a6243}
+.notebook-view-switch{display:flex;gap:34rpx;margin-top:34rpx;font-size:26rpx;color:#90765e}
+.notebook-view-switch>view{padding:0 4rpx 12rpx;border-bottom:4rpx solid transparent}
+.notebook-view-switch>.active{color:#c9622f;border-bottom-color:#df7739;font-weight:800}
+.notebook-events{white-space:nowrap;margin:25rpx 0 18rpx}
+.notebook-event,.notebook-event-empty{display:inline-block;margin-right:12rpx;padding:13rpx 22rpx;border-radius:999rpx;background:#f1e5ce;color:#6e583e;font-size:23rpx}
+.notebook-event.active{background:#dfe8ca;color:#4d6537;font-weight:800}
+.notebook-event-empty{border:2rpx dashed #ddba8f;background:transparent;color:#a86742}
+.notebook-month{display:flex;align-items:center;justify-content:space-between;padding:20rpx 10rpx;color:#573923;font-size:32rpx;font-weight:800}
+.notebook-month>view{width:54rpx;text-align:center;color:#a46b42;font-size:46rpx}
+.notebook-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));row-gap:12rpx;padding-bottom:26rpx;border-bottom:2rpx solid #ead8ba}
+.notebook-weekday{text-align:center;color:#9b856f;font-size:20rpx}
+.notebook-day{position:relative;display:flex;align-items:center;justify-content:center;height:74rpx;border-radius:50%;font-size:25rpx}
+.notebook-day.selected{background:#df7739;color:white;font-weight:800}
+.notebook-day.blank{pointer-events:none}
+.notebook-dot{position:absolute;bottom:7rpx;width:7rpx;height:7rpx;border-radius:50%;background:#769151}
+.notebook-day.selected .notebook-dot{background:white}
+.notebook-list-heading{margin:30rpx 0 14rpx;font-size:26rpx;font-weight:800}
+.notebook-row{display:flex;justify-content:space-between;align-items:center;padding:20rpx 4rpx;border-bottom:2rpx solid #ead8ba}
+.notebook-row__title,.notebook-row__time{display:block}.notebook-row__title{font-size:27rpx}.notebook-row__time{margin-top:6rpx;color:#937e67;font-size:19rpx}
+.notebook-empty{padding:50rpx 12rpx;color:#9a8267;text-align:center;font-size:23rpx;line-height:1.7}
+.notebook-add{position:fixed;right:30rpx;bottom:calc(45rpx + env(safe-area-inset-bottom));padding:19rpx 30rpx;border-radius:999rpx;background:#df7739;color:white;font-size:27rpx;font-weight:800;box-shadow:0 10rpx 25rpx rgba(150,80,30,.2)}

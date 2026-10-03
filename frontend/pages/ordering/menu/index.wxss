@@ -23,6 +23,8 @@
 .menu-page .menu-reservation__label { color:#647b3e; }
 .menu-page .menu-reservation__value { font-size:23rpx; color:#51331f; }
 .menu-page .menu-reservation__action { color:#6d7c49; font-size:20rpx; }
+.menu-cart-link { display:flex;align-items:center;justify-content:center;gap:6rpx;flex-shrink:0;min-height:64rpx;padding:0 16rpx;border-radius:999rpx;background:#fff6e2;color:#604829;font-size:22rpx;font-weight:800; }
+.menu-cart-link__count { display:inline-flex;align-items:center;justify-content:center;min-width:28rpx;height:28rpx;padding:0 3rpx;border-radius:999rpx;background:#df7739;color:white;font-size:17rpx; }
 .menu-page .design-menu-search { flex-shrink:0; min-height:66rpx; margin-top:14rpx; border-color:#e7cfa3; border-radius:999rpx; background:#fff5df; }
 .menu-page .menu-search { height:64rpx; }
 .menu-page .menu-category-layout { grid-template-columns:124rpx minmax(0,1fr); gap:14rpx; margin-top:18rpx; }

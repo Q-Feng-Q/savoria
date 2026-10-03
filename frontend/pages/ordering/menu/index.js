@@ -134,6 +134,7 @@ Page({
     });
   },
   noop() {},
+  openCart() { wx.navigateTo({ url: '/pages/ordering/cart/index' }); },
   openDishFromRow(event) { wx.navigateTo({ url: `/pages/ordering/dish-detail/index?id=${event.detail.dish.id}` }); },
   async mutateDish(dish, quantity) {
     if (this.data.mutationBusy || !this.sceneSource) return;
