@@ -44,6 +44,8 @@ Started FamilyKitchenApplication
 
 首次连接空数据库时 Flyway 会执行初始化脚本，因此探针延迟设置为 300 秒。若缺少配置，Spring Boot 会在启动时报告对应配置错误；若数据库网络不可达，继续检查 MySQL 地址、私有网络和安全组。
 
+记事模块由 Flyway 的 `V5`～`V8` 迁移自动安装或升级。另有一份[完整记事 SQL](../backend/src/main/resources/db/notebook/personal_notebook_full.sql)，只供已有 `users`、`system_settings` 的全新数据库手工安装或核对；不要在 Flyway 已执行 `V5`～`V8` 的库上再次运行，以免重复建表。该单文件不在 Flyway 扫描目录中，不影响自动部署。
+
 ## 小程序调用
 
 小程序已通过 `wx.cloud.callContainer` 调用云托管：
