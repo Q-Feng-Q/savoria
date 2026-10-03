@@ -30,6 +30,16 @@ public class NotebookContactMapper {
     return count != null && count > 0;
   }
 
+  /** Checks a contact via a locking current read after ordered account locks.
+   * Unlike a repeatable-read snapshot this observes a committed removal.
+   * @param user account
+   * @param other target account
+   * @return whether the contact still exists */
+  public boolean existsCurrent(long user, long other) {
+    return !sql.query("SELECT id FROM notebook_contacts WHERE user_id=? AND contact_user_id=? "
+        + "FOR UPDATE", (row, ignored) -> row.getLong(1), user, other).isEmpty();
+  }
+
   /** Locks the two account rows in ascending ID order for contact/grant mutations.
    * Call inside one transaction; every paired operation uses this same order.
    * @param user first account

@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.TransactionDefinition;
 
 /** Independent grant capabilities and full interval containment. */
 class NotebookGrantPolicyTest {
@@ -175,6 +176,81 @@ class NotebookGrantPolicyTest {
 
   @Test void removalCannotBeOvertakenByInFlightGrantUpdate() throws Exception {
     assertGrantWriteSerializedWithRemoval(true);
+  }
+
+  @Test void repeatableReadGrantCreateRechecksContactAfterRemovalWins() throws Exception {
+    assertRemovalFirstRejectsGrantWrite(false);
+  }
+
+  @Test void repeatableReadGrantUpdateRechecksContactAfterRemovalWins() throws Exception {
+    assertRemovalFirstRejectsGrantWrite(true);
+  }
+
+  private void assertRemovalFirstRejectsGrantWrite(boolean updating) throws Exception {
+    sql.update("INSERT INTO notebook_contacts(user_id,contact_user_id,source) VALUES (1,2,'LOGIN'),(2,1,'LOGIN')");
+    long grantId = updating ? grants.create(1, 1, request(false, false, false)).id() : 0;
+    var removalPaused = new CountDownLatch(1);
+    var releaseRemoval = new CountDownLatch(1);
+    var writerReachedLock = new CountDownLatch(1);
+    var pausingContacts = new NotebookContactMapper(sql) {
+      @Override public int invalidatePendingPair(long user, long other) {
+        removalPaused.countDown();
+        try {
+          if (!releaseRemoval.await(5, TimeUnit.SECONDS)) throw new AssertionError("removal release timed out");
+        } catch (InterruptedException failure) {
+          Thread.currentThread().interrupt();
+          throw new AssertionError(failure);
+        }
+        return super.invalidatePendingPair(user, other);
+      }
+    };
+    var observedContacts = new NotebookContactMapper(sql) {
+      @Override public void lockPair(long user, long other) {
+        writerReachedLock.countDown();
+        super.lockPair(user, other);
+      }
+    };
+    var removing = new com.familykitchen.notebook.service.NotebookContactService(pausingContacts,
+        mapper, identifier -> 2L);
+    var writing = new NotebookGrantService(events, observedContacts, mapper,
+        new NotebookRangePolicy(() -> 36));
+    var tx = new TransactionTemplate(new DataSourceTransactionManager(source));
+    tx.setIsolationLevel(TransactionDefinition.ISOLATION_REPEATABLE_READ);
+    var pool = Executors.newFixedThreadPool(2);
+    try {
+      var remove = pool.submit(() -> tx.execute(status -> {
+        removing.remove(1, 2);
+        return null;
+      }));
+      assertThat(removalPaused.await(2, TimeUnit.SECONDS)).isTrue();
+      var attempt = pool.submit(() -> {
+        try {
+          tx.execute(status -> {
+            if (updating) writing.update(1, grantId, request(true, true, true));
+            else writing.create(1, 1, request(true, true, true));
+            return null;
+          });
+          return null;
+        } catch (RuntimeException failure) { return failure; }
+      });
+      assertThat(writerReachedLock.await(2, TimeUnit.SECONDS)).isTrue();
+      releaseRemoval.countDown();
+      remove.get(5, TimeUnit.SECONDS);
+      assertThat(attempt.get(5, TimeUnit.SECONDS))
+          .isInstanceOfSatisfying(BusinessException.class,
+              error -> assertThat(error.errorCode()).isIn(ErrorCode.NOT_FOUND,
+                  ErrorCode.STATE_CONFLICT));
+      if (updating) {
+        assertThat(sql.queryForObject("SELECT status FROM notebook_grants WHERE id=?", String.class,
+            grantId)).isEqualTo("REVOKED");
+      } else {
+        assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_grants WHERE event_id=1",
+            Integer.class)).isZero();
+      }
+    } finally {
+      releaseRemoval.countDown();
+      pool.shutdownNow();
+    }
   }
 
   private void assertGrantWriteSerializedWithRemoval(boolean updating) throws Exception {
