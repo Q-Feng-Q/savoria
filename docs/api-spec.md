@@ -348,6 +348,8 @@ Content-Type: application/json
 
 以下路径沿用部署层 `/api` 前缀，均要求已登录；所有权只取当前账号 ID，家庭、商户或平台角色不增加记事访问权。普通响应为 `{ code, message, data }`。非所有者访问事件及模板返回 404。
 
+平台管理员通过现有 `GET /api/admin/system-settings` 读取 `notebookMaxQueryMonths`，通过现有 `PUT /api/admin/system-settings` 保存同名整数字段（1～36，默认 36）。该字段只限制单次查询或导出的跨度，不限制历史记录距今多久；管理端不提供记事正文接口。小程序从登录态 `GET /api/notebook/config` 取得实时有效值。
+
 | 方法与路径 | 请求 | data |
 | --- | --- | --- |
 | `GET /api/notebook/config` | 无；需登录账号 | `{ maxQueryMonths }`，实时生效的 1～36 月查询/导出跨度上限，不返回用户正文 |
