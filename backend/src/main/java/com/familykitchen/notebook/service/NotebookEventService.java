@@ -204,15 +204,19 @@ public class NotebookEventService {
   }
 
   private void retryEventCleanup(long eventId) {
-    try { processCleanup(cursor -> mapper.pendingCleanupForEvent(eventId, cursor, IMAGE_BATCH_SIZE)); }
+    try { processCleanup(cursor -> mapper.pendingCleanupForEvent(eventId, cursor, IMAGE_BATCH_SIZE), 1); }
     catch (RuntimeException failure) {
       log.warn("Notebook event image cleanup will retry eventId={}", eventId, failure);
     }
   }
 
   private void processCleanup(LongFunction<List<NotebookEventMapper.CleanupRow>> fetch) {
+    processCleanup(fetch, Integer.MAX_VALUE);
+  }
+
+  private void processCleanup(LongFunction<List<NotebookEventMapper.CleanupRow>> fetch, int maxBatches) {
     long cursor = 0;
-    while (true) {
+    for (int processed = 0; processed < maxBatches; processed++) {
       long afterId = cursor;
       List<NotebookEventMapper.CleanupRow> batch = cleanupTransactions.execute(
           status -> fetch.apply(afterId));

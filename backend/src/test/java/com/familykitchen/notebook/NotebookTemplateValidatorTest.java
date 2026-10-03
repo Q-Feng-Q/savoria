@@ -7,6 +7,7 @@ import com.familykitchen.common.error.BusinessException;
 import com.familykitchen.notebook.model.NotebookField;
 import com.familykitchen.notebook.model.NotebookFieldInput;
 import com.familykitchen.notebook.service.NotebookTemplateValidator;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -42,6 +43,19 @@ class NotebookTemplateValidatorTest {
     assertThatThrownBy(() -> validator.publish(List.of(new NotebookFieldInput(null, "TEXT", "Name", null,
         List.of(), null)), List.of())).isInstanceOf(BusinessException.class);
     assertThatThrownBy(() -> validator.publish(List.of(input("field_unknown", "TEXT", "Name", List.of())), List.of()))
+        .isInstanceOf(BusinessException.class);
+  }
+
+  @Test void rejectsTemplateThatCannotFitTheStoredJsonColumn() {
+    List<NotebookFieldInput> fields = new ArrayList<>();
+    for (int field = 0; field < 50; field++) {
+      List<String> options = new ArrayList<>();
+      for (int option = 0; option < 30; option++) {
+        options.add("选".repeat(118) + String.format("%02d", option));
+      }
+      fields.add(input(null, "SINGLE_SELECT", "Field " + field, options));
+    }
+    assertThatThrownBy(() -> validator.publish(fields, List.of()))
         .isInstanceOf(BusinessException.class);
   }
 

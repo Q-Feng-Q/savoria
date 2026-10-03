@@ -210,6 +210,10 @@ class NotebookEventServiceTest {
     assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_events WHERE id=?", Integer.class, created.id()))
         .isZero();
     assertThat(Files.exists(first)).isFalse();
+    assertThat(Files.exists(last)).isTrue();
+    assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_image_cleanup", Integer.class))
+        .isEqualTo(4901);
+    service.cleanupPending();
     assertThat(Files.exists(last)).isFalse();
     assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_image_cleanup", Integer.class)).isZero();
   }

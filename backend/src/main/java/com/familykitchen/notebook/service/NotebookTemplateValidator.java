@@ -1,5 +1,7 @@
 package com.familykitchen.notebook.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.familykitchen.common.error.BusinessException;
 import com.familykitchen.common.error.ErrorCode;
 import com.familykitchen.notebook.model.NotebookField;
@@ -16,6 +18,8 @@ import org.springframework.stereotype.Component;
 /** Validates a complete template and assigns keys without changing historical definitions. */
 @Component
 public class NotebookTemplateValidator {
+  private static final int MAX_STORED_JSON_BYTES = 60_000;
+  private static final ObjectMapper JSON = new ObjectMapper();
   private static final Set<String> TYPES = Set.of("TEXT", "LONG_TEXT", "NUMBER", "DATE", "TIME",
       "DATETIME", "SINGLE_SELECT", "MULTI_SELECT", "BOOLEAN", "RATING", "IMAGE");
 
@@ -56,7 +60,15 @@ public class NotebookTemplateValidator {
       result.add(new NotebookField(key, input.type(), input.label().strip(), input.required(),
           List.copyOf(normalized), unit));
     }
-    return List.copyOf(result);
+    List<NotebookField> published = List.copyOf(result);
+    try {
+      if (JSON.writeValueAsBytes(published).length > MAX_STORED_JSON_BYTES) {
+        throw bad("Template is too large");
+      }
+    } catch (JsonProcessingException failure) {
+      throw bad("Invalid template fields");
+    }
+    return published;
   }
 
   private static BusinessException bad(String message) {
