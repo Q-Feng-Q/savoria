@@ -396,7 +396,7 @@ Content-Type: application/json
 | `POST /api/notebook/events/{id}/grants` | 完整授权对象 | 仅事件所有者向已确认联系人授权 |
 | `PATCH /api/notebook/grants/{id}` | 完整授权对象；不能更换接收人 | 更新授权范围、有效期和独立能力开关 |
 | `DELETE /api/notebook/grants/{id}` | 无 | 仅所有者可撤销；后续请求立即失效 |
-| `GET /api/notebook/shared` | 无 | 当前仍有效、联系人仍存在的接收授权；默认空数组 |
+| `GET /api/notebook/shared` | 无 | 当前仍有效、联系人仍存在的接收授权；包含用于辨认的 `eventName`，不包含事件描述；默认空数组 |
 
 授权对象包含 `granteeUserId`、闭区间 `dataFrom` / `dataTo`、必填 IANA `dataTimeZone`、带时区的 `validFrom` / `validTo`，以及独立的 `canCreate`、`canEdit`、`canExport`（省略或 null 均为 false）。数据日期在 `dataTimeZone` 中解释，单次触及月份数须满足当前平台上限 1～36；授权有效时间与数据日期是两个独立约束，且 `validFrom < validTo`。共享者默认只有读权；新增需 `canCreate`，编辑已有记录需 `canEdit`，复制/导出需 `canExport`。共享者不能删记录、改事件或模板、管理授权或转授权。共享读取只返回发生起止时间完整落入授权数据区间的记录；查询日期与授权数据区间须有交集，且每次仍受全局查询月份上限限制。无权限、过期、撤销和区间外请求均返回不揭示资源存在性的 404。
 

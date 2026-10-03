@@ -43,7 +43,7 @@ Page({
     if (!grant || grant.status !== 'ACTIVE') return;
     const index = this.data.contacts.findIndex((item) => item.contactUserId === grant.granteeUserId);
     this.setData({ editingId: grant.id, contactIndex: Math.max(index, 0),
-      draft: draftFromGrant(grant) });
+      draft: draftFromGrant(grant, timeZone()) });
   },
   resetDraft() { this.setData({ editingId: null, contactIndex: 0,
     draft: emptyGrant(dateKey(new Date()), timeZone()) }); },

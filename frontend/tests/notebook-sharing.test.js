@@ -69,6 +69,16 @@ test('editing a grant converts exclusive validity end back to its inclusive loca
   assert.equal(draft.canEdit, true);
 });
 
+test('editing grant validity uses the device zone, not the record data zone', () => {
+  const draft = draftFromGrant({ granteeUserId: 9, dataFrom: '2026-01-01',
+    dataTo: '2026-02-01', dataTimeZone: 'America/New_York',
+    validFrom: '2026-01-01T00:00:00+08:00', validTo: '2026-03-02T00:00:00+08:00',
+    canCreate: false, canEdit: false, canExport: false }, 'Asia/Shanghai');
+  assert.equal(draft.validFromDate, '2026-01-01');
+  assert.equal(draft.validToDate, '2026-03-01');
+  assert.equal(draft.dataTimeZone, 'America/New_York');
+});
+
 test('contact confirmation, external account selection, sharing and shared pages have guarded actions', () => {
   const contacts = source('pages/notebook/detail/contacts/index.js');
   const sharing = source('pages/notebook/detail/sharing/index.js');
@@ -81,6 +91,7 @@ test('contact confirmation, external account selection, sharing and shared pages
   assert.match(shared, /grantCapabilities/);
   assert.match(shared, /capabilities\.create/);
   assert.match(shared, /capabilities\.export/);
+  assert.match(source('pages/notebook/detail/shared/index.wxml'), /item\.eventName/);
   assert.match(source('pages/notebook/detail/record-detail/index.js'), /owner/);
   assert.doesNotMatch(shared, /deleteRecord|publishTemplate|createGrant/);
 });

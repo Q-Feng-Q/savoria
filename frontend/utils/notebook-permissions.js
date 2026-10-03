@@ -40,12 +40,11 @@ function recordWithinGrant(grant, record, now = new Date().toISOString()) {
   } catch (_) { return false; }
 }
 
-function draftFromGrant(grant) {
-  const zone = grant.dataTimeZone;
+function draftFromGrant(grant, validityTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone) {
   return { granteeUserId: grant.granteeUserId, dataFrom: grant.dataFrom,
-    dataTo: grant.dataTo, dataTimeZone: zone,
-    validFromDate: localDayInZone(grant.validFrom, zone),
-    validToDate: localDayInZone(new Date(Date.parse(grant.validTo) - 1), zone),
+    dataTo: grant.dataTo, dataTimeZone: grant.dataTimeZone,
+    validFromDate: localDayInZone(grant.validFrom, validityTimeZone),
+    validToDate: localDayInZone(new Date(Date.parse(grant.validTo) - 1), validityTimeZone),
     canCreate: Boolean(grant.canCreate), canEdit: Boolean(grant.canEdit),
     canExport: Boolean(grant.canExport) };
 }

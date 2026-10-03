@@ -97,8 +97,10 @@ public class NotebookGrantMapper {
    * @param grantee account
    * @return grant candidates */
   public List<NotebookGrantView> forAccount(long grantee) {
-    return sql.query("SELECT " + COLUMNS + " FROM notebook_grants WHERE grantee_user_id=? "
-        + "ORDER BY id", GRANT, grantee);
+    return sql.query("SELECT g.*, e.name AS event_name FROM notebook_grants g "
+        + "JOIN notebook_events e ON e.id=g.event_id WHERE g.grantee_user_id=? "
+        + "ORDER BY g.id", (row, index) -> GRANT.mapRow(row, index)
+        .withEventName(row.getString("event_name")), grantee);
   }
 
   /** Replaces a grant while keeping event and recipients immutable.
