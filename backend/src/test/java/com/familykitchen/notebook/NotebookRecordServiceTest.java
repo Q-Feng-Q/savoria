@@ -111,28 +111,56 @@ class NotebookRecordServiceTest {
         "2026-02-03T10:00:00+00:00"));
     records.create(1, event, create("Early", "2026-01-01T10:00:00+00:00",
         "2026-01-01T10:00:00+00:00"));
-    var first = records.list(1, event, LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28), 0, 1);
+    var first = records.list(1, event, LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28),
+        "UTC", 0, 1);
     assertThat(first.items()).extracting(item -> item.title()).containsExactly("Cross");
     assertThat(first.hasMore()).isTrue();
     assertThat(records.list(1, event, LocalDate.of(2026, 2, 1),
-        LocalDate.of(2026, 2, 28), 1, 1).items()).extracting(item -> item.title())
+        LocalDate.of(2026, 2, 28), "UTC", 1, 1).items()).extracting(item -> item.title())
         .containsExactly("Later");
-    assertThat(records.calendar(1, event, LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 3)))
+    assertThat(records.calendar(1, event, LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 3), "UTC"))
         .extracting(item -> item.recordCount()).containsExactly(1L, 2L, 1L);
     assertThatThrownBy(() -> records.list(2, event, LocalDate.of(2026, 2, 1),
-        LocalDate.of(2026, 2, 28), 0, 10)).isInstanceOf(BusinessException.class);
+        LocalDate.of(2026, 2, 28), "UTC", 0, 10)).isInstanceOf(BusinessException.class);
   }
 
   @Test void permitsThirtySixTouchedMonthsButRejectsThirtySevenAndUnboundedPages() {
     long event = event();
     assertThat(records.list(1, event, LocalDate.of(2024, 1, 1),
-        LocalDate.of(2026, 12, 31), 0, 10).items()).isEmpty();
+        LocalDate.of(2026, 12, 31), "UTC", 0, 10).items()).isEmpty();
     assertThatThrownBy(() -> records.list(1, event, LocalDate.of(2024, 1, 1),
-        LocalDate.of(2027, 1, 1), 0, 10)).isInstanceOf(BusinessException.class);
-    assertThatThrownBy(() -> records.list(1, event, null, null, 0, 10))
+        LocalDate.of(2027, 1, 1), "UTC", 0, 10)).isInstanceOf(BusinessException.class);
+    assertThatThrownBy(() -> records.list(1, event, null, null, "UTC", 0, 10))
         .isInstanceOf(BusinessException.class);
     assertThatThrownBy(() -> records.list(1, event, LocalDate.of(2026, 1, 1),
-        LocalDate.of(2026, 1, 31), 0, 101)).isInstanceOf(BusinessException.class);
+        LocalDate.of(2026, 1, 31), "UTC", 0, 101)).isInstanceOf(BusinessException.class);
+  }
+
+  @Test void localMidnightUsesRequestedIanaZoneAndRejectsInvalidZone() {
+    long event = event();
+    records.create(1, event, create("Shanghai New Year", "2026-01-01T00:30:00+08:00",
+        "2026-01-01T01:00:00+08:00"));
+    assertThat(records.list(1, event, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 1),
+        "Asia/Shanghai", 0, 10).items()).extracting(item -> item.title())
+        .containsExactly("Shanghai New Year");
+    assertThat(records.calendar(1, event, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 1),
+        "Asia/Shanghai")).extracting(item -> item.date()).containsExactly(LocalDate.of(2026, 1, 1));
+    assertThat(records.list(1, event, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 1),
+        "UTC", 0, 10).items()).isEmpty();
+    assertThatThrownBy(() -> records.calendar(1, event, LocalDate.of(2026, 1, 1),
+        LocalDate.of(2026, 1, 1), "Invalid/Zone"))
+        .isInstanceOfSatisfying(BusinessException.class,
+            error -> assertThat(error.errorCode()).isEqualTo(ErrorCode.BAD_REQUEST));
+  }
+
+  @Test void calendarCountsMoreThanOneProjectionBatch() {
+    long event = event();
+    for (int index = 0; index < 205; index++) {
+      records.create(1, event, create("Many " + index, "2026-01-01T12:00:00+00:00",
+          "2026-01-01T12:00:00+00:00"));
+    }
+    assertThat(records.calendar(1, event, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 1),
+        "UTC")).extracting(item -> item.recordCount()).containsExactly(205L);
   }
 
   @Test void deletionQueuesPrivateImageBeforeCascadingItsMetadata() {

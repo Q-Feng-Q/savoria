@@ -368,12 +368,12 @@ Content-Type: application/json
 
 | 方法与路径 | 请求 | data |
 | --- | --- | --- |
-| `GET /api/notebook/events/{id}/records` | 必填闭区间 `from=YYYY-MM-DD&to=YYYY-MM-DD`；可选 `page=0&size=20`，size 1～100 | `{ items, page, size, hasMore }`；按 `(occurredFrom,id)` 升序、发生区间相交的当前账号记录 |
+| `GET /api/notebook/events/{id}/records` | 必填闭区间 `from=YYYY-MM-DD&to=YYYY-MM-DD&timeZone=Asia/Shanghai`；可选 `page=0&size=20`，size 1～100 | `{ items, page, size, hasMore }`；按 `(occurredFrom,id)` 升序、发生区间相交的当前账号记录 |
 | `POST /api/notebook/events/{id}/records` | `{ occurredFrom, occurredTo, title, note?, values }` | 新记录；绑定事件当前模板版本 |
 | `GET /api/notebook/records/{id}` | 无 | 当前账号记录及其创建时的模板 `fields` |
 | `PATCH /api/notebook/records/{id}` | `{ expectedVersion, title?, note?, occurredFrom?, occurredTo?, values? }` | 乐观锁更新；`values` 如提供须为完整对象，仍按记录原模板校验 |
 | `POST /api/notebook/records/{id}/upgrade-template` | `{ expectedVersion, values }` | 显式升级到事件当前模板，并在不可变修订表保留升级前快照 |
 | `DELETE /api/notebook/records/{id}` | 无 | 仅所有者可删除，私有图片键先入持久清理队列 |
-| `GET /api/notebook/events/{id}/calendar` | 必填闭区间 `from`、`to` | 非空日期的 `{ date, recordCount }` 数组，不加载字段值 |
+| `GET /api/notebook/events/{id}/calendar` | 必填闭区间 `from`、`to`、`timeZone` | 非空日期的 `{ date, recordCount }` 数组，以有限批次读取时间区间，不加载字段值 |
 
-时间使用带时区的 ISO 8601，服务端以 UTC 保存和返回。标题去首尾空白后为 1～200 字符，备注最多 20000 字符，发生起止可同日或跨日但不得倒置。字段值以服务器分配的 `key` 为键；必填字段不可缺失。选择值须在选项内，评分为 1～5，图片字段为至多 10 个私有对象键。普通编辑不会改写模板版本；记录和模板版本冲突返回 409。查询必须指定 `from`、`to`，跨度按触及的日历月份计且不超过当前全局上限（默认 36）；无界正文列表不可用。日期查询边界按 UTC 日期解释；客户端显示可转换为本地时间。
+时间使用带时区的 ISO 8601，服务端以 UTC 保存和返回。标题去首尾空白后为 1～200 字符，备注最多 20000 字符，发生起止可同日或跨日但不得倒置。字段值以服务器分配的 `key` 为键；必填字段不可缺失。选择值须在选项内，评分为 1～5，图片字段为至多 10 个私有对象键。普通编辑不会改写模板版本；记录和模板版本冲突返回 409。查询必须指定 `from`、`to` 和 IANA `timeZone`（例如 `Asia/Shanghai`，非法时区返回 400）；跨度按触及的本地日历月份计且不超过当前全局上限（默认 36）；无界正文列表不可用。日期查询边界与日历汇总按请求时区的本地日期解释，含夏令时转换；小程序调用这两个端点也必须传入当前用户时区。

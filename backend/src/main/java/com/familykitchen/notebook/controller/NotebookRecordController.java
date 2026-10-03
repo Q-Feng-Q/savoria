@@ -42,6 +42,7 @@ public class NotebookRecordController {
    * @param eventId event ID
    * @param from inclusive date
    * @param to inclusive date
+   * @param timeZone IANA time-zone ID defining calendar days
    * @param page zero-based page
    * @param size page size
    * @return owner record page */
@@ -49,8 +50,10 @@ public class NotebookRecordController {
   public ApiResponse<NotebookRecordPage> list(HttpServletRequest request, @PathVariable long eventId,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+      @RequestParam String timeZone,
       @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
-    return ApiResponse.ok(service.list(users.require(request).userId(), eventId, from, to, page, size));
+    return ApiResponse.ok(service.list(users.require(request).userId(), eventId, from, to,
+        timeZone, page, size));
   }
 
   /** Returns nonempty date counts without record values.
@@ -58,13 +61,16 @@ public class NotebookRecordController {
    * @param eventId event ID
    * @param from inclusive date
    * @param to inclusive date
+   * @param timeZone IANA time-zone ID defining calendar days
    * @return ordered date summaries */
   @GetMapping("/events/{eventId}/calendar")
   public ApiResponse<List<NotebookCalendarSummary>> calendar(HttpServletRequest request,
       @PathVariable long eventId,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-    return ApiResponse.ok(service.calendar(users.require(request).userId(), eventId, from, to));
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+      @RequestParam String timeZone) {
+    return ApiResponse.ok(service.calendar(users.require(request).userId(), eventId, from, to,
+        timeZone));
   }
 
   /** Creates a record under an owner event.

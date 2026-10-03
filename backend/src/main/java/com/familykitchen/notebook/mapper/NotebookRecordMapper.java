@@ -31,9 +31,10 @@ public class NotebookRecordMapper {
       int templateVersion, String valuesJson, int lockVersion) {}
 
   /** Minimal occurrence interval for calendar projection.
+   * @param id stable keyset cursor
    * @param from UTC start
    * @param to UTC end */
-  public record Interval(Instant from, Instant to) {}
+  public record Interval(long id, Instant from, Instant to) {}
 
   private static final RowMapper<Row> RECORD = (result, ignored) -> new Row(
       result.getLong("id"), result.getLong("event_id"), result.getLong("owner_user_id"),
@@ -142,18 +143,22 @@ public class NotebookRecordMapper {
         Timestamp.from(from), Timestamp.from(toExclusive), limit, offset);
   }
 
-  /** Reads only occurrence intervals for a bounded calendar projection.
+  /** Reads one bounded keyset page of occurrence intervals without body values.
    * @param owner account ID
    * @param eventId event ID
    * @param from inclusive UTC lower bound
    * @param toExclusive exclusive UTC upper bound
+   * @param afterId exclusive record ID cursor
+   * @param limit maximum rows
    * @return matching occurrence intervals */
-  public List<Interval> intervals(long owner, long eventId, Instant from, Instant toExclusive) {
-    return sql.query("SELECT occurred_from,occurred_to FROM notebook_records WHERE owner_user_id=? "
-        + "AND event_id=? AND deleted=FALSE AND occurred_to>=? AND occurred_from<?",
-        (result, ignored) -> new Interval(result.getTimestamp(1).toInstant(),
-            result.getTimestamp(2).toInstant()), owner, eventId, Timestamp.from(from),
-        Timestamp.from(toExclusive));
+  public List<Interval> intervalsAfter(long owner, long eventId, Instant from, Instant toExclusive,
+      long afterId, int limit) {
+    return sql.query("SELECT id,occurred_from,occurred_to FROM notebook_records WHERE owner_user_id=? "
+        + "AND event_id=? AND deleted=FALSE AND occurred_to>=? AND occurred_from<? AND id>? "
+        + "ORDER BY id LIMIT ?",
+        (result, ignored) -> new Interval(result.getLong(1), result.getTimestamp(2).toInstant(),
+            result.getTimestamp(3).toInstant()), owner, eventId, Timestamp.from(from),
+        Timestamp.from(toExclusive), afterId, limit);
   }
 
   /** Records an action without duplicating field content.

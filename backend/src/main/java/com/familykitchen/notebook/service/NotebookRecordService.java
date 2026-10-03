@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** Account-owned record lifecycle with immutable template snapshots. */
 @Service
 public class NotebookRecordService {
+  private static final int CALENDAR_BATCH_SIZE = 200;
   private final NotebookRecordMapper mapper;
   private final NotebookEventMapper events;
   private final NotebookRecordValidator validator;
@@ -163,17 +165,19 @@ public class NotebookRecordService {
    * @param eventId event ID
    * @param from inclusive date
    * @param to inclusive date
+   * @param timeZone IANA time-zone ID defining calendar days
    * @param page zero-based page
    * @param size page size
    * @return matching records */
   public NotebookRecordPage list(long actor, long eventId, LocalDate from, LocalDate to,
-      int page, int size) {
+      String timeZone, int page, int size) {
     requireEvent(actor, eventId);
     ranges.requireAllowed(from, to);
+    ZoneId zone = zone(timeZone);
     if (page < 0 || size < 1 || size > 100 || (long) page * size > Integer.MAX_VALUE) {
       throw bad("Invalid record page");
     }
-    var rows = mapper.page(actor, eventId, dayStart(from), dayStart(to.plusDays(1)),
+    var rows = mapper.page(actor, eventId, dayStart(from, zone), dayEndExclusive(to, zone),
         size + 1, (long) page * size);
     boolean hasMore = rows.size() > size;
     return new NotebookRecordPage(rows.stream().limit(size).map(this::view).toList(), page, size, hasMore);
@@ -184,18 +188,29 @@ public class NotebookRecordService {
    * @param eventId event ID
    * @param from inclusive date
    * @param to inclusive date
+   * @param timeZone IANA time-zone ID defining calendar days
    * @return ordered nonempty calendar days */
-  public List<NotebookCalendarSummary> calendar(long actor, long eventId, LocalDate from, LocalDate to) {
+  public List<NotebookCalendarSummary> calendar(long actor, long eventId, LocalDate from, LocalDate to,
+      String timeZone) {
     requireEvent(actor, eventId);
     ranges.requireAllowed(from, to);
+    ZoneId zone = zone(timeZone);
     Map<LocalDate, Long> counts = new TreeMap<>();
-    for (var interval : mapper.intervals(actor, eventId, dayStart(from), dayStart(to.plusDays(1)))) {
-      LocalDate first = utc(interval.from()).toLocalDate();
-      LocalDate last = utc(interval.to()).toLocalDate();
-      for (LocalDate day = first.isBefore(from) ? from : first;
-          !day.isAfter(last) && !day.isAfter(to); day = day.plusDays(1)) {
-        counts.merge(day, 1L, Long::sum);
+    long cursor = 0;
+    while (true) {
+      var batch = mapper.intervalsAfter(actor, eventId, dayStart(from, zone),
+          dayEndExclusive(to, zone), cursor, CALENDAR_BATCH_SIZE);
+      if (batch.isEmpty()) break;
+      for (var interval : batch) {
+        LocalDate first = interval.from().atZone(zone).toLocalDate();
+        LocalDate last = interval.to().atZone(zone).toLocalDate();
+        for (LocalDate day = first.isBefore(from) ? from : first;
+            !day.isAfter(last) && !day.isAfter(to); day = day.plusDays(1)) {
+          counts.merge(day, 1L, Long::sum);
+        }
       }
+      cursor = batch.get(batch.size() - 1).id();
+      if (batch.size() < CALENDAR_BATCH_SIZE) break;
     }
     List<NotebookCalendarSummary> result = new ArrayList<>();
     counts.forEach((date, count) -> result.add(new NotebookCalendarSummary(date, count)));
@@ -255,7 +270,21 @@ public class NotebookRecordService {
     return value;
   }
 
-  private static Instant dayStart(LocalDate day) { return day.atStartOfDay().toInstant(ZoneOffset.UTC); }
+  private static ZoneId zone(String value) {
+    if (value == null || !ZoneId.getAvailableZoneIds().contains(value)) {
+      throw bad("A valid IANA notebook timeZone is required");
+    }
+    return ZoneId.of(value);
+  }
+
+  private static Instant dayStart(LocalDate day, ZoneId zone) {
+    return day.atStartOfDay(zone).toInstant();
+  }
+
+  private static Instant dayEndExclusive(LocalDate day, ZoneId zone) {
+    if (day.equals(LocalDate.MAX)) throw bad("Invalid notebook date range");
+    return dayStart(day.plusDays(1), zone);
+  }
   private static OffsetDateTime utc(Instant value) { return value.atOffset(ZoneOffset.UTC); }
   private static BusinessException bad(String message) { return new BusinessException(ErrorCode.BAD_REQUEST, message); }
   private static BusinessException missing() { return new BusinessException(ErrorCode.NOT_FOUND, "Notebook record not found"); }
