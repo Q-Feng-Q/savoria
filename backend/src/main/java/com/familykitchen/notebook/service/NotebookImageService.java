@@ -286,6 +286,30 @@ public class NotebookImageService {
             "byteSize", image.byteSize())).toList();
   }
 
+  /** Resolves referenced image keys to authorized IDs for private record preview.
+   * @param actor authenticated account
+   * @param recordId record ID
+   * @return referenced image metadata, without bytes or public URLs */
+  public java.util.List<java.util.Map<String, Object>> previewMetadata(long actor, long recordId) {
+    var record = record(recordId);
+    access.requireRecordRead(actor, record.eventId(), record.from(), record.to());
+    Map<String, Object> values;
+    try { values = JSON.readValue(record.valuesJson(), new TypeReference<>() {}); }
+    catch (com.fasterxml.jackson.core.JsonProcessingException failure) {
+      throw new IllegalStateException("Invalid notebook record values", failure);
+    }
+    var keys = values.values().stream().filter(List.class::isInstance)
+        .flatMap(value -> ((List<?>) value).stream()).filter(String.class::isInstance)
+        .map(String.class::cast).collect(java.util.stream.Collectors.toSet());
+    var metadata = images.forRecord(recordId).stream()
+        .filter(image -> image.ownerUserId() == record.ownerUserId() && keys.contains(image.storageKey()))
+        .map(image -> java.util.Map.<String, Object>of("imageId", image.id(),
+            "valueKey", image.storageKey(), "originalName", image.originalName(),
+            "contentType", image.contentType(), "byteSize", image.byteSize())).toList();
+    audit.record(actor, record.ownerUserId(), record.eventId(), recordId, "IMAGE_METADATA_VIEW");
+    return metadata;
+  }
+
   private NotebookRecordMapper.Row record(long id) {
     var record = records.findAny(id);
     if (record == null) throw missing();

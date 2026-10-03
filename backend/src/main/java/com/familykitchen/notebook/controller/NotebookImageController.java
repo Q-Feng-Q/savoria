@@ -4,6 +4,8 @@ import com.familykitchen.common.api.ApiResponse;
 import com.familykitchen.common.security.CurrentUserProvider;
 import com.familykitchen.notebook.service.NotebookImageService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Map;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -65,6 +67,16 @@ public class NotebookImageController {
     return ResponseEntity.ok().cacheControl(CacheControl.noStore())
         .header("X-Content-Type-Options", "nosniff")
         .contentType(MediaType.parseMediaType(data.contentType())).body(data.bytes());
+  }
+
+  /** Lists only referenced images after a fresh full-range record authorization check.
+   * @param request authenticated request
+   * @param recordId record ID
+   * @return image metadata for private preview */
+  @GetMapping("/records/{recordId}")
+  public ApiResponse<List<Map<String, Object>>> forRecord(HttpServletRequest request,
+      @PathVariable long recordId) {
+    return ApiResponse.ok(service.previewMetadata(users.require(request).userId(), recordId));
   }
 
   /** Deletes metadata and queues private-file cleanup.

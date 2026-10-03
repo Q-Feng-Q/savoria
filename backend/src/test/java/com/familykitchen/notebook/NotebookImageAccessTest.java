@@ -1,6 +1,7 @@
 package com.familykitchen.notebook;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import com.familykitchen.notebook.mapper.NotebookImageMapper;
@@ -87,6 +88,31 @@ class NotebookImageAccessTest {
         Path.of("data/notebook-private"), Path.of("data/uploads"));
     assertThatThrownBy(() -> service.read(2, 5)).isInstanceOf(RuntimeException.class);
     verifyNoInteractions(audit);
+  }
+
+  @Test void imageMetadataListsOnlyReferencedKeysAfterRecordReadAuthorization() {
+    var images = mock(NotebookImageMapper.class);
+    var records = mock(NotebookRecordMapper.class);
+    var access = mock(NotebookAccessPolicy.class);
+    Instant instant = Instant.parse("2026-01-03T00:00:00Z");
+    String used = "00000000-0000-0000-0000-000000000001.png";
+    String unused = "00000000-0000-0000-0000-000000000002.png";
+    when(records.findAny(9)).thenReturn(new NotebookRecordMapper.Row(9, 7, 1, 1, 1,
+        instant, instant, "A", null, 1, "{\"photo\":[\"" + used + "\"]}", 0));
+    when(images.forRecord(9)).thenReturn(java.util.List.of(
+        new NotebookImageMapper.Image(5, 9, 1, used, "used.png", "image/png", 12),
+        new NotebookImageMapper.Image(6, 9, 1, unused, "unused.png", "image/png", 13)));
+    var service = new NotebookImageService(images, records, access,
+        mock(NotebookAuditService.class), Path.of("data/notebook-private"), Path.of("data/uploads"));
+    assertThat(service.previewMetadata(2, 9)).containsExactly(java.util.Map.of(
+        "imageId", 5L, "valueKey", used, "originalName", "used.png",
+        "contentType", "image/png", "byteSize", 12L));
+    verify(access).requireRecordRead(2, 7, instant, instant);
+    reset(access);
+    when(access.requireRecordRead(3, 7, instant, instant)).thenThrow(
+        new com.familykitchen.common.error.BusinessException(
+            com.familykitchen.common.error.ErrorCode.NOT_FOUND, "denied"));
+    assertThatThrownBy(() -> service.previewMetadata(3, 9)).isInstanceOf(RuntimeException.class);
   }
 
   @Test void referencedImageCannotBeDeletedIntoADanglingValue() {

@@ -406,6 +406,7 @@ Content-Type: application/json
 | `POST /api/notebook/events/{id}/export` | `{ from, to, timeZone, mode }`；本地闭区间，IANA 时区，`mode=COPY\|FILE` | 同一完整 JSON 对象供剪贴板或文件流程使用；`schemaVersion=notebook-export/v1`、`exportedAt`、`range`、`event`、`templateVersions`、`records` |
 | `POST /api/notebook/images` | multipart `recordId` 和 `file` | `{ imageId, valueKey }`；`valueKey` 仅供当前记录 `IMAGE` 字段引用，不是公开 URL |
 | `POST /api/notebook/images/staged` | multipart `eventId` 和 `file` | `{ imageId, valueKey }`；创建记录前暂存 24 小时，上传者须有事件新增权限，保存记录时校验事件/账号并绑定 |
+| `GET /api/notebook/images/records/{recordId}` | 无 | 当前账号经整条记录权限检查后，仅返回被该记录引用的 `{ imageId, valueKey, originalName, contentType, byteSize }[]`，供刷新后将私有字段值映射到预览地址；不返回字节或公开 URL |
 | `GET /api/notebook/images/{id}` | 无 | 经过记录完整区间权限检查后返回 JPEG/PNG 字节；`Cache-Control: no-store` |
 | `DELETE /api/notebook/images/{id}` | 无 | 需记录编辑权；仍被记录的 `IMAGE` 字段引用时返回冲突，移除引用后才删除登记并将私有文件键写入持久清理队列 |
 | `GET /api/notebook/audit` | `eventId,from,to,timeZone,page?,size?` | 仅事件所有者读取元数据页 `{ items,page,size,hasMore }`；size 1～100 |
