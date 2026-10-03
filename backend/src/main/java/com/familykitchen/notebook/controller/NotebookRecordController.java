@@ -37,6 +37,16 @@ public class NotebookRecordController {
     this.users = users; this.service = service;
   }
 
+  /** Returns the current record form only to the owner or a live create collaborator.
+   * @param request authenticated request
+   * @param eventId event ID
+   * @return current field definitions */
+  @GetMapping("/events/{eventId}/record-template")
+  public ApiResponse<NotebookRecordService.RecordTemplate> currentTemplate(HttpServletRequest request,
+      @PathVariable long eventId) {
+    return ApiResponse.ok(service.currentTemplate(users.require(request).userId(), eventId));
+  }
+
   /** Lists a bounded, deterministic page of owner records.
    * @param request authenticated request
    * @param eventId event ID

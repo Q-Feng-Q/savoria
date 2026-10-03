@@ -43,6 +43,22 @@
     "pages/merchant/ingredient-edit/index",
     "pages/merchant/ingredient-form/index"
   ],
+  "subPackages": [
+    {
+      "root": "pages/notebook/detail",
+      "pages": [
+        "events/index",
+        "event-edit/index",
+        "event-detail/index",
+        "record-edit/index",
+        "record-detail/index",
+        "contacts/index",
+        "sharing/index",
+        "shared/index",
+        "export/index"
+      ]
+    }
+  ],
   "window": {
     "navigationBarTitleText": "食光栀味",
     "navigationBarBackgroundColor": "#fff4e4",

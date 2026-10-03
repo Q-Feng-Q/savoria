@@ -12,6 +12,7 @@ const { createUserService } = require('../services/user');
 const { createSystemService } = require('../services/system');
 const { createFeedbackService } = require('../services/feedback');
 const { createNotebookService } = require('../services/notebook');
+const { createNotebookImages } = require('./notebook-images');
 const {
   createCloudRequestAdapter,
   createCloudTransferAdapter,
@@ -86,7 +87,9 @@ function createApiRuntime(options = {}) {
     user: createUserService({ request }),
     system: createSystemService({ request }),
     feedback: createFeedbackService({ request, baseUrl, getSession: () => sessionStore.getSession(), upload: uploadAdapter, download: downloadAdapter }),
-    notebook: createNotebookService({ request }),
+    notebook: createNotebookService({ request, images: createNotebookImages({ baseUrl,
+      getSession: () => sessionStore.getSession(), upload: uploadAdapter,
+      download: downloadAdapter }) }),
     family: createFamilyService({ request }),
     cart: createCartService({ request }),
     orders: createOrdersService({ request }),

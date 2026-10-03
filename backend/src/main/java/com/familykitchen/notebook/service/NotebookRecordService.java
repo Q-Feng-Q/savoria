@@ -71,6 +71,28 @@ public class NotebookRecordService {
     this.ranges = ranges; this.json = json; this.access = access; this.images = images;
   }
 
+  /** Current event fields disclosed only to an account allowed to create a record.
+   * @param eventId event ID
+   * @param name event title
+   * @param templateVersion current immutable version
+   * @param fields field definitions */
+  public record RecordTemplate(long eventId, String name, int templateVersion,
+      List<NotebookField> fields) {}
+
+  /** Reads the current form definition for an owner or live create collaborator.
+   * @param actor authenticated account
+   * @param eventId event ID
+   * @return minimal form definition, without event history or record content */
+  public RecordTemplate currentTemplate(long actor, long eventId) {
+    access.requireCreateCapability(actor, eventId);
+    var event = events.findEvent(eventId);
+    if (event == null) throw missing();
+    var template = new RecordTemplate(eventId, event.name(), event.currentTemplateVersion(),
+        fields(eventId, event.currentTemplateVersion()));
+    access.requireCreateCapability(actor, eventId);
+    return template;
+  }
+
   /** Creates a record bound to the current template.
    * @param actor authenticated owner account
    * @param eventId account-owned event

@@ -31,6 +31,7 @@ class NotebookRecordControllerTest {
         42L, 9L, 8L, 42L, "owner", Set.of("PLATFORM_ADMIN"), Set.of("MERCHANT_ADMIN")));
     var mvc = MockMvcBuilders.standaloneSetup(new NotebookRecordController(users, service)).build();
 
+    mvc.perform(get("/notebook/events/7/record-template")).andExpect(status().isOk());
     mvc.perform(get("/notebook/events/7/records?from=2026-01-01&to=2026-01-31&timeZone=Asia/Shanghai&page=0&size=20"))
         .andExpect(status().isOk());
     mvc.perform(get("/notebook/events/7/calendar?from=2026-01-01&to=2026-01-31&timeZone=Asia/Shanghai"))
@@ -53,6 +54,7 @@ class NotebookRecordControllerTest {
 
     verify(service).list(42L, 7L, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31),
         "Asia/Shanghai", 0, 20);
+    verify(service).currentTemplate(42L, 7L);
     verify(service).calendar(42L, 7L, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31),
         "Asia/Shanghai");
     verify(service).create(eq(42L), eq(7L), any());

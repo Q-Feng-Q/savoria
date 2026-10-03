@@ -1,7 +1,7 @@
 const { createQueryString, unwrapData } = require('./_shared');
 
 // Keep every notebook endpoint in one account-scoped module so it can move out later.
-function createNotebookService({ request }) {
+function createNotebookService({ request, images }) {
   const data = (path, method = 'GET', payload) => request(`/api/notebook${path}`,
     { method, ...(payload === undefined ? {} : { data: payload }) }).then(unwrapData);
   return {
@@ -16,9 +16,11 @@ function createNotebookService({ request }) {
     listTemplates: (id) => data(`/events/${id}/templates`),
     publishTemplate: (id, fields) => data(`/events/${id}/templates`, 'POST', { fields }),
     listRecords: (id, query) => data(`/events/${id}/records${createQueryString(query)}`),
+    getRecordTemplate: (id) => data(`/events/${id}/record-template`),
     getCalendar: (id, query) => data(`/events/${id}/calendar${createQueryString(query)}`),
     createRecord: (id, draft) => data(`/events/${id}/records`, 'POST', draft),
     getRecord: (id) => data(`/records/${id}`),
+    listRecordImages: (id) => data(`/images/records/${id}`),
     updateRecord: (id, patch) => data(`/records/${id}`, 'PATCH', patch),
     upgradeRecord: (id, values, expectedVersion) => data(`/records/${id}/upgrade-template`, 'POST',
       { values, expectedVersion }),
@@ -35,7 +37,11 @@ function createNotebookService({ request }) {
     revokeGrant: (id) => data(`/grants/${id}`, 'DELETE'),
     listShared: () => data('/shared'),
     exportEvent: (id, range, mode) => data(`/events/${id}/export`, 'POST', { ...range, mode }),
-    listAudit: (query) => data(`/audit${createQueryString(query)}`)
+    listAudit: (query) => data(`/audit${createQueryString(query)}`),
+    uploadImage: ({ eventId, recordId, filePath }) => recordId
+      ? images.upload(recordId, filePath) : images.stage(eventId, filePath),
+    previewImage: (imageId) => images.preview(imageId),
+    deleteImage: (imageId) => data(`/images/${imageId}`, 'DELETE')
   };
 }
 

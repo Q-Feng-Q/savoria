@@ -372,6 +372,7 @@ Content-Type: application/json
 | 方法与路径 | 请求 | data |
 | --- | --- | --- |
 | `GET /api/notebook/events/{id}/records` | 必填闭区间 `from=YYYY-MM-DD&to=YYYY-MM-DD&timeZone=Asia/Shanghai`；可选 `page=0&size=20`，size 1～100 | `{ items, page, size, hasMore }`；按 `(occurredFrom,id)` 升序、发生区间相交的当前账号记录 |
+| `GET /api/notebook/events/{id}/record-template` | 无 | 所有者或当前具备新增权限的协作者获取 `{ eventId, name, templateVersion, fields }`；仅供新增记录表单，授权前后两次校验，不暴露其他记录或历史模板 |
 | `POST /api/notebook/events/{id}/records` | `{ occurredFrom, occurredTo, title, note?, values }` | 新记录；绑定事件当前模板版本 |
 | `GET /api/notebook/records/{id}` | 无 | 当前账号记录及其创建时的模板 `fields` |
 | `PATCH /api/notebook/records/{id}` | `{ expectedVersion, title?, note?, occurredFrom?, occurredTo?, values? }` | 乐观锁更新；`values` 如提供须为完整对象，仍按记录原模板校验 |

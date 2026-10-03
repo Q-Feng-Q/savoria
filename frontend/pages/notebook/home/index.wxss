@@ -8,6 +8,7 @@
 .notebook-view-switch>view{padding:0 4rpx 12rpx;border-bottom:4rpx solid transparent}
 .notebook-view-switch>.active{color:#c9622f;border-bottom-color:#df7739;font-weight:800}
 .notebook-events{white-space:nowrap;margin:25rpx 0 18rpx}
+.notebook-tools{display:flex;justify-content:space-between;gap:12rpx;padding-top:22rpx;font-size:21rpx;color:#806746}.notebook-tools>view,.notebook-tools picker{padding:10rpx 0}
 .notebook-event,.notebook-event-empty{display:inline-block;margin-right:12rpx;padding:13rpx 22rpx;border-radius:999rpx;background:#f1e5ce;color:#6e583e;font-size:23rpx}
 .notebook-event.active{background:#dfe8ca;color:#4d6537;font-weight:800}
 .notebook-event-empty{border:2rpx dashed #ddba8f;background:transparent;color:#a86742}

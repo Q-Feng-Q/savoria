@@ -1,0 +1,14 @@
+<view class="nb-page warm-page">
+  <view wx:if="{{phase === 'loading'}}" class="nb-empty">正在打开记录…</view>
+  <view wx:elif="{{phase === 'error'}}" class="nb-empty" bindtap="load">{{errorMessage}} · 点击重试</view>
+  <block wx:else>
+    <view class="nb-kicker">私人空间 · 模板 v{{record.templateVersion}}</view><view class="nb-title">{{record.title}}</view>
+    <view class="nb-dates">{{record.occurredFrom}}<text>至</text>{{record.occurredTo}}</view>
+    <view wx:if="{{record.note}}" class="nb-note">{{record.note}}</view>
+    <view class="nb-section">记录内容</view>
+    <view wx:for="{{fields}}" wx:key="key" class="nb-field"><text class="nb-label">{{item.label}}</text><view class="nb-value"><text>{{item.display}}</text><view wx:for="{{item.imageItems}}" wx:for-item="photo" wx:key="imageId" class="nb-image" data-id="{{photo.imageId}}" bindtap="openImage">查看 {{photo.originalName}} ›</view></view></view>
+    <view wx:if="{{imageError}}" class="nb-footnote">{{imageError}}</view>
+    <view class="nb-footnote">创建者 {{record.createdByUserId}} · 最近编辑者 {{record.updatedByUserId}} · 历史字段定义不会被新模板覆盖</view>
+    <view class="nb-actions"><view wx:if="{{canEdit}}" bindtap="edit">编辑记录</view><view wx:if="{{owner}}" class="nb-danger" bindtap="deleteRecord">删除记录</view></view>
+  </block>
+</view>

@@ -32,3 +32,14 @@ test('calendar maps local month and dates without exceeding one month', () => {
   assert.equal(calendar.shiftMonth('2026-12', 1), '2027-01');
   assert.equal(calendar.monthDays('2026-02').filter((day) => !day.blank).length, 28);
 });
+
+test('record template and private image metadata use notebook account routes', async () => {
+  const calls = [];
+  const notebook = createNotebookService({ request: async (path) => {
+    calls.push(path); return { data: {} };
+  } });
+  await notebook.getRecordTemplate(7);
+  await notebook.listRecordImages(9);
+  assert.deepEqual(calls, ['/api/notebook/events/7/record-template',
+    '/api/notebook/images/records/9']);
+});

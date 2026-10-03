@@ -11,9 +11,11 @@
   <view wx:if="{{phase === 'error'}}" class="notebook-empty"><text>{{errorMessage}}</text><view bindtap="load">重新加载</view></view>
   <view wx:elif="{{phase === 'loading'}}" class="notebook-empty">正在打开记事…</view>
   <block wx:else>
+    <view class="notebook-tools"><picker range="{{categories}}" value="{{categoryIndex}}" bindchange="filterCategory"><view>{{selectedCategory || '全部类别'}}　⌄</view></picker><view bindtap="openShared">共享给我的</view><view bindtap="openContacts">联系人</view></view>
     <scroll-view class="notebook-events" scroll-x>
-      <view wx:for="{{events}}" wx:key="id" class="notebook-event {{item.id === activeEventId ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectEvent">{{item.name}}</view>
+      <view wx:for="{{displayEvents}}" wx:key="id" class="notebook-event {{item.id === activeEventId ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectEvent">{{item.name}}</view>
       <view wx:if="{{!events.length}}" class="notebook-event-empty" bindtap="openEvents">+ 创建第一个事件</view>
+      <view wx:if="{{events.length && !displayEvents.length}}" class="notebook-event-empty">该类别暂无事件</view>
     </scroll-view>
     <block wx:if="{{view === 'calendar'}}">
       <view class="notebook-month"><view data-offset="-1" bindtap="moveMonth">‹</view><text>{{month}}</text><view data-offset="1" bindtap="moveMonth">›</view></view>
