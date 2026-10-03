@@ -63,6 +63,8 @@ public class NotebookGrantService {
   @Transactional
   public NotebookGrantView create(long actor, long eventId, NotebookGrantRequest request) {
     requireOwner(actor, eventId);
+    if (request == null || request.granteeUserId() < 1) throw bad("Invalid grant recipient");
+    contacts.lockPair(actor, request.granteeUserId());
     validate(actor, request);
     try {
       return grants.find(grants.insert(actor, eventId, normalized(request)));
@@ -79,8 +81,11 @@ public class NotebookGrantService {
   @Transactional
   public NotebookGrantView update(long actor, long grantId, NotebookGrantRequest request) {
     var old = requireOwnedGrant(actor, grantId);
+    if (request == null || request.granteeUserId() != old.granteeUserId()) {
+      throw bad("Grant recipient cannot change");
+    }
+    contacts.lockPair(actor, old.granteeUserId());
     validate(actor, request);
-    if (old.granteeUserId() != request.granteeUserId()) throw bad("Grant recipient cannot change");
     if (grants.update(actor, grantId, normalized(request)) != 1) throw missing();
     return grants.find(grantId);
   }

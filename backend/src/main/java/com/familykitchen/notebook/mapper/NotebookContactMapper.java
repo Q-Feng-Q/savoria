@@ -30,6 +30,19 @@ public class NotebookContactMapper {
     return count != null && count > 0;
   }
 
+  /** Locks the two account rows in ascending ID order for contact/grant mutations.
+   * Call inside one transaction; every paired operation uses this same order.
+   * @param user first account
+   * @param other second account */
+  public void lockPair(long user, long other) {
+    long first = Math.min(user, other);
+    long second = Math.max(user, other);
+    sql.queryForObject("SELECT id FROM users WHERE id=? FOR UPDATE", Long.class, first);
+    if (second != first) {
+      sql.queryForObject("SELECT id FROM users WHERE id=? FOR UPDATE", Long.class, second);
+    }
+  }
+
   /** Lists confirmed contacts of one account.
    * @param user account
    * @return contacts */
@@ -109,5 +122,16 @@ public class NotebookContactMapper {
   public int removePair(long user, long other) {
     return sql.update("DELETE FROM notebook_contacts WHERE (user_id=? AND contact_user_id=?) "
         + "OR (user_id=? AND contact_user_id=?)", user, other, other, user);
+  }
+
+  /** Invalidates every pre-existing unconsumed invite in either direction.
+   * @param user account
+   * @param other former contact
+   * @return invalidated invites */
+  public int invalidatePendingPair(long user, long other) {
+    return sql.update("UPDATE notebook_contact_invites SET status='REVOKED',responded_at=? "
+        + "WHERE status='PENDING' AND ((inviter_user_id=? AND invitee_user_id=?) "
+        + "OR (inviter_user_id=? AND invitee_user_id=?))", Timestamp.from(Instant.now()),
+        user, other, other, user);
   }
 }

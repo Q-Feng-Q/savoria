@@ -21,10 +21,16 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /** Independent grant capabilities and full interval containment. */
 class NotebookGrantPolicyTest {
@@ -32,9 +38,13 @@ class NotebookGrantPolicyTest {
   private NotebookAccessPolicy policy;
   private JdbcTemplate sql;
   private NotebookRecordService records;
+  private JdbcDataSource source;
+  private NotebookContactMapper contacts;
+  private NotebookGrantMapper mapper;
+  private NotebookEventMapper events;
 
   @BeforeEach void database() throws Exception {
-    var source = new JdbcDataSource();
+    source = new JdbcDataSource();
     source.setURL("jdbc:h2:mem:grants_" + java.util.UUID.randomUUID() + ";MODE=MySQL;DB_CLOSE_DELAY=-1");
     sql = new JdbcTemplate(source);
     sql.execute("CREATE TABLE users (id BIGINT PRIMARY KEY)");
@@ -49,9 +59,9 @@ class NotebookGrantPolicyTest {
     }
     sql.update("INSERT INTO users(id) VALUES (1),(2),(3)");
     sql.update("INSERT INTO notebook_events(owner_user_id,name) VALUES (1,'Private')");
-    var contacts = new NotebookContactMapper(sql);
-    var mapper = new NotebookGrantMapper(sql);
-    var events = new NotebookEventMapper(sql);
+    contacts = new NotebookContactMapper(sql);
+    mapper = new NotebookGrantMapper(sql);
+    events = new NotebookEventMapper(sql);
     policy = new NotebookAccessPolicy(events, contacts, mapper);
     grants = new NotebookGrantService(events, contacts, mapper, new NotebookRangePolicy(() -> 36));
     records = new NotebookRecordService(new NotebookRecordMapper(sql), events,
@@ -157,6 +167,71 @@ class NotebookGrantPolicyTest {
     assertThatThrownBy(() -> records.delete(2, ownerRecord.id())).isInstanceOf(BusinessException.class);
     assertThatThrownBy(() -> records.upgradeTemplate(2, ownerRecord.id(), edited.lockVersion(),
         java.util.Map.of())).isInstanceOf(BusinessException.class);
+  }
+
+  @Test void removalCannotBeOvertakenByInFlightGrantCreate() throws Exception {
+    assertGrantWriteSerializedWithRemoval(false);
+  }
+
+  @Test void removalCannotBeOvertakenByInFlightGrantUpdate() throws Exception {
+    assertGrantWriteSerializedWithRemoval(true);
+  }
+
+  private void assertGrantWriteSerializedWithRemoval(boolean updating) throws Exception {
+    sql.update("INSERT INTO notebook_contacts(user_id,contact_user_id,source) VALUES (1,2,'LOGIN'),(2,1,'LOGIN')");
+    long grantId = updating ? grants.create(1, 1, request(false, false, false)).id() : 0;
+    var paused = new CountDownLatch(1);
+    var release = new CountDownLatch(1);
+    var pausingMapper = new NotebookGrantMapper(sql) {
+      @Override public long insert(long owner, long eventId, NotebookGrantRequest draft) {
+        if (!updating) pause();
+        return super.insert(owner, eventId, draft);
+      }
+      @Override public int update(long owner, long id, NotebookGrantRequest draft) {
+        if (updating) pause();
+        return super.update(owner, id, draft);
+      }
+      private void pause() {
+        paused.countDown();
+        try { if (!release.await(5, TimeUnit.SECONDS)) throw new AssertionError("release timed out"); }
+        catch (InterruptedException failure) { Thread.currentThread().interrupt(); throw new AssertionError(failure); }
+      }
+    };
+    var writing = new NotebookGrantService(events, contacts, pausingMapper,
+        new NotebookRangePolicy(() -> 36));
+    var removing = new com.familykitchen.notebook.service.NotebookContactService(contacts,
+        pausingMapper, identifier -> 2L);
+    var tx = new TransactionTemplate(new DataSourceTransactionManager(source));
+    var pool = Executors.newFixedThreadPool(2);
+    try {
+      var write = pool.submit(() -> tx.execute(status -> {
+        if (updating) writing.update(1, grantId, request(true, true, true));
+        else writing.create(1, 1, request(true, true, true));
+        return null;
+      }));
+      assertThat(paused.await(2, TimeUnit.SECONDS)).isTrue();
+      var removalStarted = new CountDownLatch(1);
+      var remove = pool.submit(() -> tx.execute(status -> {
+        removalStarted.countDown();
+        removing.remove(1, 2);
+        return null;
+      }));
+      assertThat(removalStarted.await(2, TimeUnit.SECONDS)).isTrue();
+      try {
+        assertThatThrownBy(() -> remove.get(300, TimeUnit.MILLISECONDS))
+            .isInstanceOf(TimeoutException.class);
+      } finally { release.countDown(); }
+      write.get(5, TimeUnit.SECONDS);
+      remove.get(5, TimeUnit.SECONDS);
+      assertThat(sql.queryForObject("SELECT status FROM notebook_grants WHERE event_id=1",
+          String.class)).isEqualTo("REVOKED");
+      var freshInvite = removing.invite(1, "bob");
+      removing.accept(2, freshInvite.id(), freshInvite.token());
+      assertThat(policy.shared(2)).isEmpty();
+    } finally {
+      release.countDown();
+      pool.shutdownNow();
+    }
   }
 
   private static NotebookGrantRequest request(boolean create, boolean edit, boolean export) {

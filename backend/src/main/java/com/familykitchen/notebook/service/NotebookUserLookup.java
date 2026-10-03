@@ -13,7 +13,7 @@ public class NotebookUserLookup implements NotebookIdentityLookup {
   public NotebookUserLookup(UserMapper users) { this.users = users; }
 
   /** Finds an account by its existing login identifier.
-   * @param identifier normalized username, mobile or email
+   * @param identifier normalized username or verified email
    * @return account ID or null */
   @Override public Long findUserId(String identifier) {
     var user = users.findByLoginIdentifier(identifier);

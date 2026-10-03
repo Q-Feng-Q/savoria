@@ -47,7 +47,7 @@ public class NotebookContactController {
   }
 
   /** Invite target login identifier.
-   * @param identifier username, mobile or email */
+   * @param identifier username or verified email */
   public record InviteRequest(String identifier) {}
 
   /** Creates an invitation and returns its one-time token.

@@ -84,4 +84,15 @@ class NotebookContactServiceTest {
     assertThat(sql.queryForObject("SELECT status FROM notebook_grants WHERE event_id=1", String.class))
         .isEqualTo("REVOKED");
   }
+
+  @Test void removalInvalidatesBothDirectionsOfOldPendingInvitations() {
+    var aliceInvitesBob = contacts.invite(1, "bob");
+    var bobInvitesAlice = contacts.invite(2, "alice");
+    contacts.accept(2, aliceInvitesBob.id(), aliceInvitesBob.token());
+    contacts.remove(1, 2);
+    assertThatThrownBy(() -> contacts.accept(1, bobInvitesAlice.id(), bobInvitesAlice.token()))
+        .isInstanceOf(BusinessException.class);
+    assertThat(contacts.list(1)).isEmpty();
+    assertThat(contacts.list(2)).isEmpty();
+  }
 }

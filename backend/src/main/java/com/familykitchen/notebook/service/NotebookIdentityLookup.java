@@ -4,7 +4,7 @@ package com.familykitchen.notebook.service;
 @FunctionalInterface
 public interface NotebookIdentityLookup {
   /** Resolves a normalized login identifier without consulting family membership.
-   * @param identifier username, mobile or email
+   * @param identifier username or verified email
    * @return account ID or null */
   Long findUserId(String identifier);
 }

@@ -51,6 +51,7 @@ public class NotebookContactService {
    * @param inviter authenticated sender
    * @param identifier recipient login identifier
    * @return created invite and plaintext token */
+  @Transactional
   public NotebookInviteCreated invite(long inviter, String identifier) {
     if (identifier == null || identifier.isBlank() || identifier.length() > 255) {
       throw bad("Invalid contact identifier");
@@ -58,6 +59,7 @@ public class NotebookContactService {
     Long invitee = identities.findUserId(identifier.strip().toLowerCase(Locale.ROOT));
     if (invitee == null) throw missing();
     if (invitee == inviter) throw bad("Cannot invite your own account");
+    contacts.lockPair(inviter, invitee);
     if (contacts.exists(inviter, invitee)) throw conflict();
     byte[] bytes = new byte[32];
     RANDOM.nextBytes(bytes);
@@ -73,6 +75,9 @@ public class NotebookContactService {
    * @param token one-time secret */
   @Transactional
   public void accept(long invitee, long id, String token) {
+    var pending = contacts.invite(id);
+    if (pending == null || pending.inviteeUserId() != invitee) throw missing();
+    contacts.lockPair(pending.inviterUserId(), invitee);
     respond(invitee, id, token, "ACCEPTED");
     var invite = contacts.invite(id);
     if (invite == null) throw missing();
@@ -95,6 +100,9 @@ public class NotebookContactService {
   @Transactional
   public void remove(long account, long other) {
     if (!contacts.exists(account, other)) throw missing();
+    contacts.lockPair(account, other);
+    if (!contacts.exists(account, other)) throw missing();
+    contacts.invalidatePendingPair(account, other);
     grants.revokePair(account, other);
     contacts.removePair(account, other);
   }

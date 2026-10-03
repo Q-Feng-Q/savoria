@@ -384,10 +384,10 @@ Content-Type: application/json
 | --- | --- | --- |
 | `GET /api/notebook/contacts` | 无 | 当前账号已确认联系人；不依赖家庭关系 |
 | `GET /api/notebook/contacts/invites` | 无 | 发给当前账号的邀请元数据，不含令牌或哈希 |
-| `POST /api/notebook/contacts/invites` | `{ identifier }`，按用户名、手机号或邮箱查找 | `{ id, inviteeUserId, token, expiresAt }`；高熵一次性令牌仅创建时返回，发送方需通过受信渠道交给目标账号 |
+| `POST /api/notebook/contacts/invites` | `{ identifier }`，按用户名或已验证邮箱查找 | `{ id, inviteeUserId, token, expiresAt }`；高熵一次性令牌仅创建时返回，发送方需通过受信渠道交给目标账号 |
 | `POST /api/notebook/contacts/invites/{id}/accept` | `{ token }` | 仅目标账号可确认；令牌哈希验证、7 天过期、一次性消费 |
 | `POST /api/notebook/contacts/invites/{id}/reject` | `{ token }` | 仅目标账号可拒绝；不可再次接受 |
-| `DELETE /api/notebook/contacts/{id}` | 无 | 删除双向联系人并撤销双方之间的记事授权 |
+| `DELETE /api/notebook/contacts/{id}` | 无 | 删除双向联系人、撤销双方之间的记事授权，并作废两个方向的待处理邀请；旧邀请不能重新建立联系 |
 | `GET /api/notebook/events/{id}/grants` | 无 | 仅事件所有者可读取的授权列表 |
 | `POST /api/notebook/events/{id}/grants` | 完整授权对象 | 仅事件所有者向已确认联系人授权 |
 | `PATCH /api/notebook/grants/{id}` | 完整授权对象；不能更换接收人 | 更新授权范围、有效期和独立能力开关 |
