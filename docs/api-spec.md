@@ -395,3 +395,15 @@ Content-Type: application/json
 | `GET /api/notebook/shared` | 无 | 当前仍有效、联系人仍存在的接收授权；默认空数组 |
 
 授权对象包含 `granteeUserId`、闭区间 `dataFrom` / `dataTo`、必填 IANA `dataTimeZone`、带时区的 `validFrom` / `validTo`，以及独立的 `canCreate`、`canEdit`、`canExport`（省略或 null 均为 false）。数据日期在 `dataTimeZone` 中解释，单次触及月份数须满足当前平台上限 1～36；授权有效时间与数据日期是两个独立约束，且 `validFrom < validTo`。共享者默认只有读权；新增需 `canCreate`，编辑已有记录需 `canEdit`，复制/导出需 `canExport`。共享者不能删记录、改事件或模板、管理授权或转授权。共享读取只返回发生起止时间完整落入授权数据区间的记录；查询日期与授权数据区间须有交集，且每次仍受全局查询月份上限限制。无权限、过期、撤销和区间外请求均返回不揭示资源存在性的 404。
+
+### 记事导出、私有图片与审计（登录账号）
+
+| 方法与路径 | 请求 | data |
+| --- | --- | --- |
+| `POST /api/notebook/events/{id}/export` | `{ from, to, timeZone, mode }`；本地闭区间，IANA 时区，`mode=COPY\|FILE` | 同一完整 JSON 对象供剪贴板或文件流程使用；`schemaVersion=notebook-export/v1`、`exportedAt`、`range`、`event`、`templateVersions`、`records` |
+| `POST /api/notebook/images` | multipart `recordId` 和 `file` | `{ imageId, valueKey }`；`valueKey` 仅供当前记录 `IMAGE` 字段引用，不是公开 URL |
+| `GET /api/notebook/images/{id}` | 无 | 经过记录完整区间权限检查后返回 JPEG/PNG 字节；`Cache-Control: no-store` |
+| `DELETE /api/notebook/images/{id}` | 无 | 需记录编辑权；删除登记并将私有文件键写入持久清理队列 |
+| `GET /api/notebook/audit` | `eventId,from,to,timeZone,page?,size?` | 仅事件所有者读取元数据页 `{ items,page,size,hasMore }`；size 1～100 |
+
+导出按 `(occurredFrom,id)` 稳定排序，包含引用的不可变模板版本和每条记录的字段键/值、作者及最后编辑者；图片字段只导出文件名、类型、字节数和图片 ID，不导出私有对象键、公开 URL 或二进制。查询受当前全局 1～36 月上限约束；共享者必须有有效 `canExport` 授权，服务端导出前再次核验，失效返回 404 而不返回部分数据。私有图片仅支持内容签名与 MIME 一致的 JPEG/PNG，最大 4 MiB、2000 万像素；存储目录必须与公开上传目录隔离。动作审计只保存账号、事件、记录的数字 ID、动作、结果和时间，不保存字段值、整段 JSON、图片内容或邀请令牌。

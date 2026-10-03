@@ -69,7 +69,9 @@ public class NotebookGrantService {
     requireOwner(actor, eventId);
     validate(actor, request);
     try {
-      return grants.find(grants.insert(actor, eventId, normalized(request)));
+      var created = grants.find(grants.insert(actor, eventId, normalized(request)));
+      events.audit(actor, actor, eventId, "GRANT_CREATE");
+      return created;
     } catch (DuplicateKeyException duplicate) {
       throw new BusinessException(ErrorCode.STATE_CONFLICT, "Notebook grant already exists");
     }
@@ -88,6 +90,7 @@ public class NotebookGrantService {
     if (request.granteeUserId() != old.granteeUserId()) throw bad("Grant recipient cannot change");
     validate(actor, request);
     if (grants.update(actor, grantId, normalized(request)) != 1) throw missing();
+    events.audit(actor, actor, old.eventId(), "GRANT_UPDATE");
     return grants.find(grantId);
   }
 
@@ -96,8 +99,9 @@ public class NotebookGrantService {
    * @param grantId grant ID */
   @Transactional
   public void revoke(long actor, long grantId) {
-    requireOwnedGrant(actor, grantId);
+    var old = requireOwnedGrant(actor, grantId);
     if (grants.revoke(actor, grantId) != 1) throw missing();
+    events.audit(actor, actor, old.eventId(), "GRANT_REVOKE");
   }
 
   private void validate(long actor, NotebookGrantRequest request) {

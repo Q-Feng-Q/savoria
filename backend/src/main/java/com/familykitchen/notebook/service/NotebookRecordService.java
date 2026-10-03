@@ -94,7 +94,10 @@ public class NotebookRecordService {
    * @param recordId record ID
    * @return record with bound template fields */
   public NotebookRecordView get(long actor, long recordId) {
-    return view(requireRecord(actor, recordId));
+    var row = requireRecord(actor, recordId);
+    var result = view(row);
+    mapper.audit(actor, row.ownerUserId(), row.eventId(), row.id(), "RECORD_VIEW");
+    return result;
   }
 
   /** Edits a record while retaining its original template version.
@@ -190,6 +193,7 @@ public class NotebookRecordService {
     var rows = mapper.page(scope.ownerUserId(), eventId, dayStart(from, zone), dayEndExclusive(to, zone),
         scope.dataFrom(), scope.dataToExclusive(), size + 1, (long) page * size);
     boolean hasMore = rows.size() > size;
+    events.audit(actor, scope.ownerUserId(), eventId, "RECORD_LIST");
     return new NotebookRecordPage(rows.stream().limit(size).map(this::view).toList(), page, size, hasMore);
   }
 
@@ -225,6 +229,7 @@ public class NotebookRecordService {
     }
     List<NotebookCalendarSummary> result = new ArrayList<>();
     counts.forEach((date, count) -> result.add(new NotebookCalendarSummary(date, count)));
+    events.audit(actor, scope.ownerUserId(), eventId, "CALENDAR_VIEW");
     return List.copyOf(result);
   }
 

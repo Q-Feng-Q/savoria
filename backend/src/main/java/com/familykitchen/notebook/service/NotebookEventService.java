@@ -81,7 +81,9 @@ public class NotebookEventService {
    * @param includeArchived include archived events
    * @return ordered event summaries */
   public List<NotebookEventView> list(long owner, boolean includeArchived) {
-    return mapper.listEvents(owner, includeArchived);
+    var results = mapper.listEvents(owner, includeArchived);
+    for (var event : results) mapper.audit(owner, owner, event.id(), "EVENT_LIST_VIEW");
+    return results;
   }
 
   /** Reads one event only for its owning account.
@@ -89,7 +91,9 @@ public class NotebookEventService {
    * @param eventId event ID
    * @return owner event */
   public NotebookEventView get(long owner, long eventId) {
-    return requireOwned(owner, mapper.findEvent(eventId));
+    var event = requireOwned(owner, mapper.findEvent(eventId));
+    mapper.audit(owner, owner, eventId, "EVENT_VIEW");
+    return event;
   }
 
   /** Changes owner-managed event fields without changing ownership.
