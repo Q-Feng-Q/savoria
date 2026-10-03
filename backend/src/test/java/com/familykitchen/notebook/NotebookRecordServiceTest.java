@@ -2,6 +2,8 @@ package com.familykitchen.notebook;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.familykitchen.common.error.BusinessException;
@@ -27,12 +29,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
+import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
 
 /** Record snapshots, ownership and optimistic-write integration tests. */
 class NotebookRecordServiceTest {
   private NotebookEventService events;
   private NotebookRecordService records;
   private JdbcTemplate sql;
+  private NotebookRecordMapper mapper;
+  private DataSourceTransactionManager transactions;
 
   @BeforeEach void database() throws Exception {
     var source = new JdbcDataSource();
@@ -48,11 +55,12 @@ class NotebookRecordServiceTest {
       }
     }
     sql.update("INSERT INTO users(id) VALUES (1),(2)");
-    var tx = new DataSourceTransactionManager(source);
+    transactions = new DataSourceTransactionManager(source);
     var eventMapper = new NotebookEventMapper(sql);
     var json = new ObjectMapper();
-    events = new NotebookEventService(eventMapper, new NotebookTemplateValidator(), json, tx);
-    records = new NotebookRecordService(new NotebookRecordMapper(sql), eventMapper,
+    events = new NotebookEventService(eventMapper, new NotebookTemplateValidator(), json, transactions);
+    mapper = spy(new NotebookRecordMapper(sql));
+    records = new NotebookRecordService(mapper, eventMapper,
         new NotebookRecordValidator(), new NotebookRangePolicy(() -> 36), json);
   }
 
@@ -101,6 +109,33 @@ class NotebookRecordServiceTest {
     assertThatThrownBy(() -> records.delete(2, record.id())).isInstanceOf(BusinessException.class);
     records.delete(1, record.id());
     assertThatThrownBy(() -> records.get(1, record.id())).isInstanceOf(BusinessException.class);
+  }
+
+  @Test void staleUpgradeAfterConcurrentWinnerReturnsConflictAndKeepsOneRevision() {
+    long event = event();
+    var record = records.create(1, event, create("Race", "2026-01-01T10:00:00+08:00",
+        "2026-01-01T10:00:00+08:00"));
+    String key = events.templates(1, event).get(0).fields().get(0).key();
+    events.publishTemplate(1, event, new NotebookTemplateRequest(List.of(
+        new NotebookFieldInput(key, "TEXT", "Revised", true, List.of(), null))));
+    var staleRead = mapper.find(1, record.id());
+    var factory = new ProxyFactory(records);
+    factory.setProxyTargetClass(true);
+    factory.addAdvice(new TransactionInterceptor(transactions,
+        new AnnotationTransactionAttributeSource()));
+    var proxied = (NotebookRecordService) factory.getProxy();
+    proxied.upgradeTemplate(1, record.id(), record.lockVersion(), Map.of(key, "winner"));
+
+    // Model a loser that read the old row before the winner committed.
+    doReturn(staleRead).when(mapper).find(1, record.id());
+    assertThatThrownBy(() -> proxied.upgradeTemplate(1, record.id(), record.lockVersion(),
+        Map.of(key, "loser")))
+        .isInstanceOfSatisfying(BusinessException.class,
+            error -> assertThat(error.errorCode()).isEqualTo(ErrorCode.STATE_CONFLICT));
+    assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_record_revisions WHERE record_id=?",
+        Integer.class, record.id())).isEqualTo(1);
+    assertThat(sql.queryForObject("SELECT values_json FROM notebook_records WHERE id=?", String.class,
+        record.id())).contains("winner");
   }
 
   @Test void queriesOverlapInDeterministicPagesAndProjectsCalendarWithoutValues() {

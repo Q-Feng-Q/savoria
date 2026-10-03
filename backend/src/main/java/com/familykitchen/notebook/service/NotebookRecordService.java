@@ -133,11 +133,11 @@ public class NotebookRecordService {
       throw bad("Record already uses the current template");
     }
     validator.validate(fields(old.eventId(), event.currentTemplateVersion()), values);
-    mapper.revision(old, actor);
     var desired = new NotebookRecordMapper.Row(old.id(), old.eventId(), old.ownerUserId(),
         old.createdByUserId(), actor, old.from(), old.to(), old.title(), old.note(),
         event.currentTemplateVersion(), encode(values), old.lockVersion());
     if (mapper.update(desired, expectedVersion) != 1) throw conflict();
+    mapper.revision(old, actor);
     mapper.audit(actor, old.ownerUserId(), old.eventId(), recordId, "RECORD_TEMPLATE_UPGRADE");
     return get(actor, recordId);
   }
