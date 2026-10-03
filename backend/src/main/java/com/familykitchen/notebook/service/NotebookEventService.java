@@ -188,6 +188,14 @@ public class NotebookEventService {
       lastImageId = batch.get(batch.size() - 1).id();
       if (batch.size() < IMAGE_BATCH_SIZE) break;
     }
+    long lastStagedId = 0;
+    while (true) {
+      var batch = mapper.stagedImageKeysAfter(eventId, lastStagedId, IMAGE_BATCH_SIZE);
+      if (batch.isEmpty()) break;
+      mapper.enqueueImageCleanup(eventId, owner, batch);
+      lastStagedId = batch.get(batch.size() - 1).id();
+      if (batch.size() < IMAGE_BATCH_SIZE) break;
+    }
     mapper.revokeGrants(eventId);
     if (mapper.deleteEvent(owner, eventId) != 1) throw missing();
     mapper.audit(owner, owner, eventId, "EVENT_DELETE");

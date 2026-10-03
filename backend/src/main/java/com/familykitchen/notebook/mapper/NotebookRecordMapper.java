@@ -94,6 +94,14 @@ public class NotebookRecordMapper {
         .stream().findFirst().orElse(null);
   }
 
+  /** Locks a record while deleting an attached image to prevent dangling field values.
+   * @param id record ID
+   * @return locked record or null */
+  public Row lockAny(long id) {
+    return sql.query("SELECT * FROM notebook_records WHERE id=? AND deleted=FALSE FOR UPDATE", RECORD, id)
+        .stream().findFirst().orElse(null);
+  }
+
   /** Applies a version-checked record edit.
    * @param row desired row state
    * @param expectedVersion previously read version

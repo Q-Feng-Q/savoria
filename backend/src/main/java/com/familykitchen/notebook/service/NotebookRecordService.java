@@ -7,6 +7,7 @@ import com.familykitchen.common.error.BusinessException;
 import com.familykitchen.common.error.ErrorCode;
 import com.familykitchen.notebook.NotebookRangePolicy;
 import com.familykitchen.notebook.mapper.NotebookEventMapper;
+import com.familykitchen.notebook.mapper.NotebookImageMapper;
 import com.familykitchen.notebook.mapper.NotebookRecordMapper;
 import com.familykitchen.notebook.model.NotebookCalendarSummary;
 import com.familykitchen.notebook.model.NotebookField;
@@ -37,6 +38,7 @@ public class NotebookRecordService {
   private final NotebookRecordValidator validator;
   private final NotebookRangePolicy ranges;
   private final NotebookAccessPolicy access;
+  private final NotebookImageMapper images;
   private final ObjectMapper json;
 
   /** Creates the record service using the live global month setting.
@@ -45,12 +47,13 @@ public class NotebookRecordService {
    * @param validator field-value validator
    * @param settings global setting service
    * @param json JSON codec
-   * @param access owner and shared grant policy */
+   * @param access owner and shared grant policy
+   * @param images image metadata boundary */
   @Autowired
   public NotebookRecordService(NotebookRecordMapper mapper, NotebookEventMapper events,
       NotebookRecordValidator validator, SystemSettingService settings, ObjectMapper json,
-      NotebookAccessPolicy access) {
-    this(mapper, events, validator, new NotebookRangePolicy(settings::notebookMaxQueryMonths), json, access);
+      NotebookAccessPolicy access, NotebookImageMapper images) {
+    this(mapper, events, validator, new NotebookRangePolicy(settings::notebookMaxQueryMonths), json, access, images);
   }
 
   /** Creates a record service with an explicit range policy for isolated integrations.
@@ -59,12 +62,13 @@ public class NotebookRecordService {
    * @param validator field-value validator
    * @param ranges date-range policy
    * @param json JSON codec
-   * @param access owner and shared grant policy */
+   * @param access owner and shared grant policy
+   * @param images image metadata boundary */
   public NotebookRecordService(NotebookRecordMapper mapper, NotebookEventMapper events,
       NotebookRecordValidator validator, NotebookRangePolicy ranges, ObjectMapper json,
-      NotebookAccessPolicy access) {
+      NotebookAccessPolicy access, NotebookImageMapper images) {
     this.mapper = mapper; this.events = events; this.validator = validator;
-    this.ranges = ranges; this.json = json; this.access = access;
+    this.ranges = ranges; this.json = json; this.access = access; this.images = images;
   }
 
   /** Creates a record bound to the current template.
@@ -85,6 +89,7 @@ public class NotebookRecordService {
     long id = mapper.insert(eventId, scope.ownerUserId(), actor, request.occurredFrom().toInstant(),
         request.occurredTo().toInstant(), title, note, event.currentTemplateVersion(),
         encode(request.values()));
+    bindImages(eventId, id, scope.ownerUserId(), actor, fields, request.values());
     mapper.audit(actor, scope.ownerUserId(), eventId, id, "RECORD_CREATE");
     return get(actor, id);
   }
@@ -123,6 +128,8 @@ public class NotebookRecordService {
         patch.note() == null ? old.note() : note(patch.note()), old.templateVersion(),
         encode(values), old.lockVersion());
     if (mapper.update(desired, patch.expectedVersion()) != 1) throw conflict();
+    bindImages(old.eventId(), old.id(), old.ownerUserId(), actor,
+        fields(old.eventId(), old.templateVersion()), values);
     mapper.audit(actor, old.ownerUserId(), old.eventId(), recordId, "RECORD_UPDATE");
     return get(actor, recordId);
   }
@@ -149,6 +156,8 @@ public class NotebookRecordService {
         old.createdByUserId(), actor, old.from(), old.to(), old.title(), old.note(),
         event.currentTemplateVersion(), encode(values), old.lockVersion());
     if (mapper.update(desired, expectedVersion) != 1) throw conflict();
+    bindImages(old.eventId(), old.id(), old.ownerUserId(), actor,
+        fields(old.eventId(), event.currentTemplateVersion()), values);
     mapper.revision(old, actor);
     mapper.audit(actor, old.ownerUserId(), old.eventId(), recordId, "RECORD_TEMPLATE_UPGRADE");
     return get(actor, recordId);
@@ -257,6 +266,17 @@ public class NotebookRecordService {
   private Map<String, Object> decodeValues(String value) {
     try { return json.readValue(value, new TypeReference<Map<String, Object>>() {}); }
     catch (JsonProcessingException failure) { throw new IllegalStateException("Invalid notebook record JSON", failure); }
+  }
+
+  private void bindImages(long eventId, long recordId, long owner, long actor,
+      List<NotebookField> fields, Map<String, Object> values) {
+    for (NotebookField field : fields) {
+      if (!"IMAGE".equals(field.type())) continue;
+      Object value = values.get(field.key());
+      if (value instanceof List<?> keys) {
+        for (Object key : keys) images.requireAndBind(eventId, recordId, owner, actor, (String) key);
+      }
+    }
   }
 
   private String encode(Map<String, Object> values) {

@@ -43,6 +43,17 @@ public class NotebookImageController {
     return ApiResponse.ok(service.upload(users.require(request).userId(), recordId, file));
   }
 
+  /** Uploads a temporary private image before a new record is saved.
+   * @param request authenticated request
+   * @param eventId event ID
+   * @param file image file
+   * @return staged private image reference */
+  @PostMapping(path = "/staged", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ApiResponse<NotebookImageService.Uploaded> stage(HttpServletRequest request,
+      @RequestParam long eventId, @RequestParam MultipartFile file) {
+    return ApiResponse.ok(service.stage(users.require(request).userId(), eventId, file));
+  }
+
   /** Returns bytes only after full record access is rechecked.
    *
    * @param request authenticated request

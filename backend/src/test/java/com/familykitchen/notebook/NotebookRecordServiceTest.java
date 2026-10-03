@@ -12,6 +12,7 @@ import com.familykitchen.notebook.mapper.NotebookEventMapper;
 import com.familykitchen.notebook.mapper.NotebookRecordMapper;
 import com.familykitchen.notebook.mapper.NotebookContactMapper;
 import com.familykitchen.notebook.mapper.NotebookGrantMapper;
+import com.familykitchen.notebook.mapper.NotebookImageMapper;
 import com.familykitchen.notebook.model.NotebookEventCreate;
 import com.familykitchen.notebook.model.NotebookFieldInput;
 import com.familykitchen.notebook.model.NotebookRecordCreate;
@@ -51,7 +52,7 @@ class NotebookRecordServiceTest {
     sql.execute("CREATE TABLE users (id BIGINT PRIMARY KEY)");
     sql.execute("CREATE TABLE system_settings (id BIGINT PRIMARY KEY)");
     for (String migration : List.of("V5__personal_notebook.sql", "V6__notebook_image_cleanup_queue.sql",
-        "V7__notebook_grant_data_zone.sql")) {
+        "V7__notebook_grant_data_zone.sql", "V8__notebook_staged_images.sql")) {
       try (var stream = getClass().getResourceAsStream("/db/migration/" + migration)) {
         for (String command : new String(stream.readAllBytes(), StandardCharsets.UTF_8).split(";")) {
           if (!command.isBlank()) sql.execute(command);
@@ -66,7 +67,8 @@ class NotebookRecordServiceTest {
     mapper = spy(new NotebookRecordMapper(sql));
     records = new NotebookRecordService(mapper, eventMapper,
         new NotebookRecordValidator(), new NotebookRangePolicy(() -> 36), json,
-        new NotebookAccessPolicy(eventMapper, new NotebookContactMapper(sql), new NotebookGrantMapper(sql)));
+        new NotebookAccessPolicy(eventMapper, new NotebookContactMapper(sql), new NotebookGrantMapper(sql)),
+        new com.familykitchen.notebook.mapper.NotebookImageMapper(sql));
   }
 
   @Test void createsSingleAndCrossDayAndRejectsReversedOrForeignEvent() {
@@ -215,6 +217,32 @@ class NotebookRecordServiceTest {
         String.class, event)).isEqualTo(key);
     assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_images WHERE record_id=?",
         Integer.class, record.id())).isZero();
+  }
+
+  @Test void requiredImageBindsOnlyTheUploadersEventScopedStage() {
+    long event = events.create(1, new NotebookEventCreate("Photos", null, null,
+        List.of(new NotebookFieldInput(null, "IMAGE", "Photo", true, List.of(), null)))).id();
+    String field = events.templates(1, event).get(0).fields().get(0).key();
+    var images = new NotebookImageMapper(sql);
+    String key = "12e45678-e89b-12d3-a456-426614174001.png";
+    images.stage(event, 1, 1, key, "photo.png", "image/png", 4,
+        java.time.Instant.now().plusSeconds(3600));
+    var draft = new NotebookRecordCreate(OffsetDateTime.parse("2026-01-01T10:00:00+08:00"),
+        OffsetDateTime.parse("2026-01-01T10:00:00+08:00"), "Photo", null,
+        Map.of(field, List.of(key)));
+    var saved = records.create(1, event, draft);
+    assertThat(images.forRecord(saved.id())).extracting(NotebookImageMapper.Image::storageKey)
+        .containsExactly(key);
+    assertThat(sql.queryForObject("SELECT COUNT(*) FROM notebook_staged_images", Integer.class)).isZero();
+
+    assertThatThrownBy(() -> records.create(1, event, draft)).isInstanceOf(BusinessException.class);
+
+    String foreign = "12e45678-e89b-12d3-a456-426614174002.png";
+    images.stage(event, 1, 2, foreign, "other.png", "image/png", 4,
+        java.time.Instant.now().plusSeconds(3600));
+    var forged = new NotebookRecordCreate(draft.occurredFrom(), draft.occurredTo(), "Wrong", null,
+        Map.of(field, List.of(foreign)));
+    assertThatThrownBy(() -> records.create(1, event, forged)).isInstanceOf(BusinessException.class);
   }
 
   private long event() {

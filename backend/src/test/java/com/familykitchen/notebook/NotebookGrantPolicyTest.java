@@ -51,7 +51,7 @@ class NotebookGrantPolicyTest {
     sql.execute("CREATE TABLE users (id BIGINT PRIMARY KEY)");
     sql.execute("CREATE TABLE system_settings (id BIGINT PRIMARY KEY)");
     for (String migration : List.of("V5__personal_notebook.sql", "V6__notebook_image_cleanup_queue.sql",
-        "V7__notebook_grant_data_zone.sql")) {
+        "V7__notebook_grant_data_zone.sql", "V8__notebook_staged_images.sql")) {
       try (var stream = getClass().getResourceAsStream("/db/migration/" + migration)) {
         for (String command : new String(stream.readAllBytes(), StandardCharsets.UTF_8).split(";")) {
           if (!command.isBlank()) sql.execute(command);
@@ -66,7 +66,8 @@ class NotebookGrantPolicyTest {
     policy = new NotebookAccessPolicy(events, contacts, mapper);
     grants = new NotebookGrantService(events, contacts, mapper, new NotebookRangePolicy(() -> 36));
     records = new NotebookRecordService(new NotebookRecordMapper(sql), events,
-        new NotebookRecordValidator(), new NotebookRangePolicy(() -> 36), new ObjectMapper(), policy);
+        new NotebookRecordValidator(), new NotebookRangePolicy(() -> 36), new ObjectMapper(), policy,
+        new com.familykitchen.notebook.mapper.NotebookImageMapper(sql));
   }
 
   @Test void grantDefaultsPrivateAndRequiresConfirmedContact() {

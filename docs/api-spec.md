@@ -402,8 +402,9 @@ Content-Type: application/json
 | --- | --- | --- |
 | `POST /api/notebook/events/{id}/export` | `{ from, to, timeZone, mode }`；本地闭区间，IANA 时区，`mode=COPY\|FILE` | 同一完整 JSON 对象供剪贴板或文件流程使用；`schemaVersion=notebook-export/v1`、`exportedAt`、`range`、`event`、`templateVersions`、`records` |
 | `POST /api/notebook/images` | multipart `recordId` 和 `file` | `{ imageId, valueKey }`；`valueKey` 仅供当前记录 `IMAGE` 字段引用，不是公开 URL |
+| `POST /api/notebook/images/staged` | multipart `eventId` 和 `file` | `{ imageId, valueKey }`；创建记录前暂存 24 小时，上传者须有事件新增权限，保存记录时校验事件/账号并绑定 |
 | `GET /api/notebook/images/{id}` | 无 | 经过记录完整区间权限检查后返回 JPEG/PNG 字节；`Cache-Control: no-store` |
-| `DELETE /api/notebook/images/{id}` | 无 | 需记录编辑权；删除登记并将私有文件键写入持久清理队列 |
+| `DELETE /api/notebook/images/{id}` | 无 | 需记录编辑权；仍被记录的 `IMAGE` 字段引用时返回冲突，移除引用后才删除登记并将私有文件键写入持久清理队列 |
 | `GET /api/notebook/audit` | `eventId,from,to,timeZone,page?,size?` | 仅事件所有者读取元数据页 `{ items,page,size,hasMore }`；size 1～100 |
 
-导出按 `(occurredFrom,id)` 稳定排序，包含引用的不可变模板版本和每条记录的字段键/值、作者及最后编辑者；图片字段只导出文件名、类型、字节数和图片 ID，不导出私有对象键、公开 URL 或二进制。查询受当前全局 1～36 月上限约束；共享者必须有有效 `canExport` 授权，服务端导出前再次核验，失效返回 404 而不返回部分数据。私有图片仅支持内容签名与 MIME 一致的 JPEG/PNG，最大 4 MiB、2000 万像素；存储目录必须与公开上传目录隔离。动作审计只保存账号、事件、记录的数字 ID、动作、结果和时间，不保存字段值、整段 JSON、图片内容或邀请令牌。
+导出按 `(occurredFrom,id)` 稳定排序，包含引用的不可变模板版本和每条记录的字段键/值、作者及最后编辑者；图片字段只导出文件名、类型、字节数和图片 ID，不导出私有对象键、公开 URL 或二进制。查询受当前全局 1～36 月上限约束；共享者必须有有效 `canExport` 授权，服务端导出前再次核验，失效返回 404 而不返回部分数据。私有图片仅支持内容签名与 MIME 一致的 JPEG/PNG，最大 4 MiB、2000 万像素；存储目录必须与公开上传目录隔离。暂存图片只能由同一上传者绑定到该事件的记录，过期暂存与删除事件时会进入持久清理队列。动作审计只保存账号、事件、记录的数字 ID、动作、结果和时间，不保存字段值、整段 JSON、图片内容或邀请令牌。

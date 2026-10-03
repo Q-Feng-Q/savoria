@@ -169,6 +169,18 @@ public class NotebookEventMapper {
         eventId, afterId, limit);
   }
 
+  /** Reads one bounded batch of staged image keys before event cascade deletion.
+   * @param eventId event ID
+   * @param afterId exclusive cursor
+   * @param limit maximum rows
+   * @return staged image keys */
+  public List<ImageKeyRow> stagedImageKeysAfter(long eventId, long afterId, int limit) {
+    return sql.query("SELECT id,storage_key FROM notebook_staged_images"
+        + " WHERE event_id=? AND id>? ORDER BY id LIMIT ?",
+        (row, ignored) -> new ImageKeyRow(row.getLong("id"), row.getString("storage_key")),
+        eventId, afterId, limit);
+  }
+
   /** Saves image keys in a durable queue that survives event deletion.
    * @param eventId event ID snapshot
    * @param owner account ID snapshot

@@ -1,5 +1,7 @@
 package com.familykitchen.notebook.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.familykitchen.common.error.BusinessException;
 import com.familykitchen.common.error.ErrorCode;
 import com.familykitchen.notebook.mapper.NotebookImageMapper;
@@ -11,8 +13,11 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -20,6 +25,7 @@ import javax.imageio.stream.MemoryCacheImageInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -29,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class NotebookImageService {
   private static final int MAX_BYTES = 4 * 1024 * 1024;
+  private static final ObjectMapper JSON = new ObjectMapper();
   /** Authorized image bytes with no storage path exposed.
    * @param contentType validated media type
    * @param bytes image bytes */
@@ -91,6 +98,49 @@ public class NotebookImageService {
     var record = record(recordId);
     access.requireEdit(actor, record.eventId(), record.from().atOffset(ZoneOffset.UTC),
         record.to().atOffset(ZoneOffset.UTC));
+    Saved saved = save(file);
+    try {
+      long id = images.insert(recordId, record.ownerUserId(), saved.key(), saved.name(),
+          saved.type(), saved.size());
+      rollbackFile(saved.path());
+      audit.record(actor, record.ownerUserId(), record.eventId(), recordId, "IMAGE_UPLOAD");
+      return new Uploaded(id, saved.key());
+    } catch (RuntimeException failure) {
+      discard(saved.path());
+      throw failure;
+    }
+  }
+
+  /** Uploads privately before record creation; the uploader must bind the key within 24 hours.
+   * @param actor uploading account
+   * @param eventId event ID
+   * @param file image file
+   * @return staged image reference */
+  @Transactional
+  public Uploaded stage(long actor, long eventId, MultipartFile file) {
+    var scope = access.requireCreateCapability(actor, eventId);
+    Saved saved = save(file);
+    try {
+      long id = images.stage(eventId, scope.ownerUserId(), actor, saved.key(), saved.name(),
+          saved.type(), saved.size(), Instant.now().plusSeconds(24 * 3600));
+      rollbackFile(saved.path());
+      audit.record(actor, scope.ownerUserId(), eventId, null, "IMAGE_STAGE");
+      return new Uploaded(id, saved.key());
+    } catch (RuntimeException failure) {
+      discard(saved.path());
+      throw failure;
+    }
+  }
+
+  /** Validated file awaiting a metadata row.
+   * @param path private disk path
+   * @param key private object key
+   * @param name display name
+   * @param type MIME type
+   * @param size file size */
+  private record Saved(Path path, String key, String name, String type, long size) {}
+
+  private Saved save(MultipartFile file) {
     if (file == null || file.isEmpty() || file.getSize() > MAX_BYTES
         || !Set.of("image/png", "image/jpeg").contains(file.getContentType())) throw bad();
     Path path = null;
@@ -122,19 +172,7 @@ public class NotebookImageService {
       if (name == null || name.isBlank()) name = "image";
       name = Path.of(name).getFileName().toString();
       if (name.length() > 255) name = name.substring(0, 255);
-      long id = images.insert(recordId, record.ownerUserId(), path.getFileName().toString(),
-          name, file.getContentType(), bytes.length);
-      Path saved = path;
-      if (TransactionSynchronizationManager.isSynchronizationActive()) {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-          @Override public void afterCompletion(int status) {
-            if (status != STATUS_COMMITTED) try { Files.deleteIfExists(saved); }
-            catch (IOException ignored) { /* orphan cleanup can retry */ }
-          }
-        });
-      }
-      audit.record(actor, record.ownerUserId(), record.eventId(), recordId, "IMAGE_UPLOAD");
-      return new Uploaded(id, path.getFileName().toString());
+      return new Saved(path, path.getFileName().toString(), name, file.getContentType(), bytes.length);
     } catch (IOException failure) {
       if (path != null) try { Files.deleteIfExists(path); } catch (IOException ignored) { /* retry */ }
       throw bad();
@@ -142,6 +180,20 @@ public class NotebookImageService {
       if (path != null) try { Files.deleteIfExists(path); } catch (IOException ignored) { /* retry via orphan scan */ }
       throw failure;
     }
+  }
+
+  private void rollbackFile(Path path) {
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+        @Override public void afterCompletion(int status) {
+          if (status != STATUS_COMMITTED) discard(path);
+        }
+      });
+    }
+  }
+
+  private void discard(Path path) {
+    try { Files.deleteIfExists(path); } catch (IOException ignored) { /* orphan cleanup retries */ }
   }
 
   /** Reads authorized private bytes.
@@ -172,13 +224,31 @@ public class NotebookImageService {
   public void delete(long actor, long imageId) {
     var image = images.find(imageId);
     if (image == null) throw missing();
-    var record = record(image.recordId());
+    var record = records.lockAny(image.recordId());
+    if (record == null) throw missing();
     if (record.ownerUserId() != image.ownerUserId()) throw missing();
     access.requireEdit(actor, record.eventId(), record.from().atOffset(ZoneOffset.UTC),
         record.to().atOffset(ZoneOffset.UTC));
+    try {
+      Map<String, Object> values = JSON.readValue(record.valuesJson(), new TypeReference<>() {});
+      if (values.values().stream().anyMatch(value -> value instanceof List<?> keys
+          && keys.contains(image.storageKey()))) {
+        throw new BusinessException(ErrorCode.STATE_CONFLICT, "Image is still used by this record");
+      }
+    } catch (com.fasterxml.jackson.core.JsonProcessingException failure) {
+      throw new IllegalStateException("Invalid notebook record values", failure);
+    }
     images.enqueueCleanup(image, record.eventId());
     if (images.delete(imageId) != 1) throw missing();
     audit.record(actor, record.ownerUserId(), record.eventId(), record.id(), "IMAGE_DELETE");
+  }
+
+  /** Expires at most one batch of unbound uploads into the durable cleanup queue. */
+  @Scheduled(fixedDelayString = "${family-kitchen.notebook.cleanup-delay-ms:3600000}",
+      initialDelayString = "${family-kitchen.notebook.cleanup-delay-ms:3600000}")
+  @Transactional
+  public void expireStaged() {
+    for (var stage : images.expired(100)) images.expire(stage);
   }
 
   /** Lists image display metadata for an already-authorized record.

@@ -97,6 +97,14 @@ public class NotebookAccessPolicy {
     return contained(scope(actor, eventId, Action.CREATE), from, to);
   }
 
+  /** Allows an event-scoped temporary upload before record dates are chosen.
+   * @param actor uploading account
+   * @param eventId event ID
+   * @return owner or active create-grant scope */
+  public Scope requireCreateCapability(long actor, long eventId) {
+    return scope(actor, eventId, Action.CREATE);
+  }
+
   /** Requires permission to edit a record fully inside granted data dates.
    * @param actor authenticated account
    * @param eventId event ID
