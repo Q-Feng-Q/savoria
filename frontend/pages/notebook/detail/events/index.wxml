@@ -1,0 +1,15 @@
+<view class="nb-page warm-page">
+  <view class="nb-header"><text class="nb-kicker">私人空间 · 事件</text><text class="nb-title">管理事件</text><text class="nb-caption">用事件整理生活片段，记录只属于你的账号。</text></view>
+  <view class="nb-toolbar"><view bindtap="toggleArchived">{{includeArchived ? '隐藏归档' : '查看归档'}} ›</view><view bindtap="createEvent">＋ 新建事件</view></view>
+  <view wx:if="{{phase === 'loading'}}" class="nb-empty">正在加载事件…</view>
+  <view wx:elif="{{phase === 'error'}}" class="nb-empty" bindtap="load">{{errorMessage}} · 点击重试</view>
+  <view wx:elif="{{!events.length}}" class="nb-empty">还没有事件。先创建一个，再为它记下第一笔。</view>
+  <view wx:else class="nb-list">
+    <view wx:for="{{events}}" wx:key="id" class="nb-row">
+      <view class="nb-row-main" data-id="{{item.id}}" bindtap="openEvent"><text class="nb-row-title">{{item.starred ? '★ ' : ''}}{{item.name}}</text><text class="nb-meta">{{item.category || '未分类'}} · 模板 v{{item.currentTemplateVersion}}{{item.archived ? ' · 已归档' : ''}}</text></view>
+      <view class="nb-actions"><text data-id="{{item.id}}" bindtap="editEvent">编辑</text><text data-id="{{item.id}}" data-kind="starred" bindtap="changeEvent">{{item.starred ? '取消关注' : '关注'}}</text><text data-id="{{item.id}}" data-kind="archived" bindtap="changeEvent">{{item.archived ? '恢复' : '归档'}}</text></view>
+      <view class="nb-actions nb-actions-sub"><text data-id="{{item.id}}" data-direction="-1" bindtap="moveEvent">上移</text><text data-id="{{item.id}}" data-direction="1" bindtap="moveEvent">下移</text><text class="nb-danger" data-id="{{item.id}}" bindtap="deleteEvent">删除</text></view>
+    </view>
+  </view>
+  <view class="nb-bottom" bindtap="createEvent">＋ 新建事件</view>
+</view>

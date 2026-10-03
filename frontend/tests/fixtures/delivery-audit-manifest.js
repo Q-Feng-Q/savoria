@@ -24,12 +24,12 @@ module.exports = Object.freeze({
   baseline: Object.freeze({ frontendTests: 348, backendTests: 285, backendSkipped: 12 }),
   serviceModules: Object.freeze([
     '_shared.js', 'auth.js', 'cart.js', 'family.js', 'feedback.js', 'files.js', 'merchant.js',
-    'notifications.js', 'orders.js', 'purchase.js', 'system.js', 'user.js'
+    'notifications.js', 'notebook.js', 'orders.js', 'purchase.js', 'system.js', 'user.js'
   ]),
   backendRouteBoundary: Object.freeze({
     includePrefixes: Object.freeze([
       '/api/auth', '/api/users/me', '/api/family', '/api/merchant',
-      '/api/notifications', '/api/files', '/api/feedback', '/api/public/system-settings'
+      '/api/notifications', '/api/files', '/api/feedback', '/api/public/system-settings', '/api/notebook'
     ]),
     exclusions: Object.freeze([
       Object.freeze({ route: '/api/admin/**', reason: 'admin-web is outside this delivery audit' }),
@@ -80,6 +80,16 @@ module.exports = Object.freeze({
     'pages/merchant/merchant-orders/index': page('merchant', { async: true, list: true, refresh: true, tenantScope: 'merchant' }),
     'pages/merchant/merchant-profile-edit/index': page('merchant', { async: true, form: true, tenantScope: 'merchant' }),
     'pages/merchant/purchase/index': page('merchant', { async: true, list: true, form: true, refresh: true, tenantScope: 'merchant' }),
+    'pages/notebook/home/index': page('notebook', { async: true, list: true, refresh: true }),
+    'pages/notebook/detail/events/index': page('notebook', { async: true, list: true, form: true, refresh: true }),
+    'pages/notebook/detail/event-edit/index': page('notebook', { async: true, form: true }),
+    'pages/notebook/detail/event-detail/index': page('notebook', { async: true, refresh: true }),
+    'pages/notebook/detail/record-edit/index': page('notebook', { async: true, form: true }),
+    'pages/notebook/detail/record-detail/index': page('notebook', { async: true, refresh: true }),
+    'pages/notebook/detail/contacts/index': page('notebook', { async: true, list: true, form: true, refresh: true }),
+    'pages/notebook/detail/sharing/index': page('notebook', { async: true, list: true, form: true, refresh: true }),
+    'pages/notebook/detail/shared/index': page('notebook', { async: true, list: true, refresh: true }),
+    'pages/notebook/detail/export/index': page('notebook', { async: true, form: true, refresh: true }),
     'pages/ordering/cart/index': page('ordering', { async: true, list: true, form: true, refresh: true, tenantScope: 'family' }),
     'pages/ordering/dish-detail/index': page('ordering', { async: true, refresh: true, tenantScope: 'family' }),
     'pages/ordering/menu/index': page('ordering', { async: true, list: true, refresh: true, tenantScope: 'family' }),

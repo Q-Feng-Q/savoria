@@ -12,6 +12,8 @@ import com.familykitchen.system.service.SystemSettingService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.familykitchen.system.security.PlatformSecretCipher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * 系统配置服务实现，以五秒缓存降低高频开关查询的数据库压力。
  *
@@ -20,6 +22,7 @@ import com.familykitchen.system.security.PlatformSecretCipher;
  */
 @Service
 public class SystemSettingServiceImpl implements SystemSettingService {
+  private static final Logger log = LoggerFactory.getLogger(SystemSettingServiceImpl.class);
   private static final String DEFAULT_BRAND_TAGLINE = "好好吃饭，就是幸福";
   private static final String DEFAULT_HOME_HERO_TAGLINE = "让家常菜 · 温暖每一餐\n就是最好的时光";
   private static final String DEFAULT_HOME_FOOTER_MESSAGE = "好好吃饭\n就是一家人在一起";
@@ -61,12 +64,31 @@ public class SystemSettingServiceImpl implements SystemSettingService {
   @Override public boolean emailBindingEnabled(){return Boolean.TRUE.equals(require().getEmailBindingEnabled());}
   /** {@inheritDoc} */
   @Override public boolean wechatBindingEnabled(){return Boolean.TRUE.equals(require().getWechatBindingEnabled());}
+  /** {@inheritDoc} */
+  @Override public int notebookMaxQueryMonths(){
+    try {
+      SystemSettingDO setting=mapper.selectCurrent();
+      if(setting==null||setting.getNotebookMaxQueryMonths()==null){
+        log.warn("Notebook query month limit is missing; using 36 months");
+        return 36;
+      }
+      return months(setting.getNotebookMaxQueryMonths());
+    }
+    catch (RuntimeException exception) {
+      log.warn("Cannot read notebook query month limit; using 36 months", exception);
+      return 36;
+    }
+  }
   /**
    * {@inheritDoc}
    * <p>密码为空或为展示掩码时保留原密文，只有提交新明文时才重新加密，避免读取后原样保存造成密码丢失。</p>
    */
   @Override @Transactional public SystemSettingView update(Long operatorId,SystemSettingRequest r){
+    Integer requestedMonths=r.notebookMaxQueryMonths();
+    if(requestedMonths!=null&&(requestedMonths<1||requestedMonths>36))
+      throw new BusinessException(ErrorCode.BAD_REQUEST,"记事查询月份须在 1 至 36 之间");
     SystemSettingDO e=new SystemSettingDO(); e.setId(1L); e.setSiteName(r.siteName().trim());
+    e.setNotebookMaxQueryMonths(requestedMonths);
     e.setSiteLogoUrl(r.siteLogoUrl()); e.setDishReviewEnabled(r.dishReviewEnabled());
     e.setSiteLogoSmallUrl(r.siteLogoSmallUrl());e.setSiteLogoLargeUrl(r.siteLogoLargeUrl());e.setSiteFaviconUrl(r.siteFaviconUrl());
     e.setSiteLogoSmallSize(r.siteLogoSmallSize());e.setSiteLogoSize(r.siteLogoSize());e.setSiteLogoLargeSize(r.siteLogoLargeSize());
@@ -106,6 +128,7 @@ public class SystemSettingServiceImpl implements SystemSettingService {
   private static String effective(String value,String fallback){return value==null||value.isBlank()?fallback:value.trim();}
   private static String optional(String value){return value==null||value.isBlank()?null:value.trim();}
   private static Integer size(Integer value,int fallback){return value==null?fallback:value;}
+  private static int months(Integer value){return value==null||value<1||value>36?36:value;}
   private static SystemSettingView view(SystemSettingDO e){return new SystemSettingView(siteName(e),
       e.getSiteLogoUrl(),Boolean.TRUE.equals(e.getDishReviewEnabled()),Boolean.TRUE.equals(e.getMaintenanceEnabled()),
       e.getMaintenanceMessage(),Boolean.TRUE.equals(e.getMobileBindingEnabled()),Boolean.TRUE.equals(e.getEmailBindingEnabled()),
@@ -118,5 +141,5 @@ public class SystemSettingServiceImpl implements SystemSettingService {
       effective(e.getHomeFooterMessage(),DEFAULT_HOME_FOOTER_MESSAGE),effective(e.getCartHeroTagline(),DEFAULT_CART_HERO_TAGLINE),
       effective(e.getDeliveryMessage(),DEFAULT_DELIVERY_MESSAGE),effective(e.getPickupMessage(),DEFAULT_PICKUP_MESSAGE),
       effective(e.getCartFooterMessage(),DEFAULT_CART_FOOTER_MESSAGE),
-      effective(e.getProfileWelcomeMessage(),DEFAULT_PROFILE_WELCOME_MESSAGE));}
+      effective(e.getProfileWelcomeMessage(),DEFAULT_PROFILE_WELCOME_MESSAGE),months(e.getNotebookMaxQueryMonths()));}
 }

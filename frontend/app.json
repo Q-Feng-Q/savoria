@@ -11,6 +11,7 @@
     "pages/family/home/index",
     "pages/ordering/menu/index",
     "pages/ordering/cart/index",
+    "pages/notebook/home/index",
     "pages/ordering/orders/index",
     "pages/account/profile/index",
     "pages/account/notifications/index",
@@ -42,6 +43,22 @@
     "pages/merchant/ingredient-edit/index",
     "pages/merchant/ingredient-form/index"
   ],
+  "subPackages": [
+    {
+      "root": "pages/notebook/detail",
+      "pages": [
+        "events/index",
+        "event-edit/index",
+        "event-detail/index",
+        "record-edit/index",
+        "record-detail/index",
+        "contacts/index",
+        "sharing/index",
+        "shared/index",
+        "export/index"
+      ]
+    }
+  ],
   "window": {
     "navigationBarTitleText": "食光栀味",
     "navigationBarBackgroundColor": "#fff4e4",
@@ -67,10 +84,10 @@
         "text": "去点菜"
       },
       {
-        "pagePath": "pages/ordering/cart/index",
-        "iconPath": "assets/ui/story/basket-ink.png",
-        "selectedIconPath": "assets/ui/story/basket-orange.png",
-        "text": "餐篮"
+        "pagePath": "pages/notebook/home/index",
+        "iconPath": "assets/ui/story/calendar-ink.png",
+        "selectedIconPath": "assets/ui/story/calendar-orange.png",
+        "text": "记事"
       },
       {
         "pagePath": "pages/ordering/orders/index",

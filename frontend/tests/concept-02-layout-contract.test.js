@@ -38,11 +38,10 @@ test('menu implements category rail and editorial dish list from concept 02', ()
   assert.doesNotMatch(wxml, /design-cart-dock|bottom-action-bar|primaryText="去餐篮"/)
 })
 
-test('family home opens the shared cart through the dedicated tab', () => {
+test('family home opens the shared cart as a normal page', () => {
   const source = read('pages/family/home/index.js')
 
-  assert.match(source, /openQuickEntry[\s\S]*?wx\.switchTab\(\{ url \}\)/)
-  assert.equal(source.includes("wx.navigateTo({ url: '/pages/ordering/cart/index' })"), false)
+  assert.match(source, /if \(key === 'cart'\) wx\.navigateTo\(\{ url \}\)/)
 })
 
 test('ordering menu category rail is interactive and labels the selected category', () => {

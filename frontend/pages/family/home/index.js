@@ -76,6 +76,7 @@ const { withBranding } = require('../../../utils/branding'); Page(withBranding({
     const key = event.currentTarget.dataset.key;
     const url = QUICK_ENTRY_ROUTES[key];
     if (!url) return;
-    wx.switchTab({ url });
+    if (key === 'cart') wx.navigateTo({ url });
+    else wx.switchTab({ url });
   }
 }));

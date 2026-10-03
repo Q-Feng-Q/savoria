@@ -61,7 +61,56 @@
       {
         "value": "assets/ui/story/pin-cream.png",
         "type": "file"
-      }
+      },
+      {
+        "value": "assets/ui/dish-caramel.png",
+        "type": "file"
+      },
+      {
+        "value": "assets/ui/dish-green.png",
+        "type": "file"
+      },
+      {
+        "value": "assets/ui/dish-soup.png",
+        "type": "file"
+      },
+      {
+        "value": "assets/ui/dish-tomato.png",
+        "type": "file"
+      },
+      { "value": "assets/ui/story/basket-cream.png", "type": "file" },
+      { "value": "assets/ui/story/basket-green.png", "type": "file" },
+      { "value": "assets/ui/story/basket-ink.png", "type": "file" },
+      { "value": "assets/ui/story/calendar-cream.png", "type": "file" },
+      { "value": "assets/ui/story/check-green.png", "type": "file" },
+      { "value": "assets/ui/story/check-ink.png", "type": "file" },
+      { "value": "assets/ui/story/check-orange.png", "type": "file" },
+      { "value": "assets/ui/story/clock-green.png", "type": "file" },
+      { "value": "assets/ui/story/clock-ink.png", "type": "file" },
+      { "value": "assets/ui/story/home-cream.png", "type": "file" },
+      { "value": "assets/ui/story/leaf-cream.png", "type": "file" },
+      { "value": "assets/ui/story/leaf-ink.png", "type": "file" },
+      { "value": "assets/ui/story/leaf-orange.png", "type": "file" },
+      { "value": "assets/ui/story/menu-cream.png", "type": "file" },
+      { "value": "assets/ui/story/menu-green.png", "type": "file" },
+      { "value": "assets/ui/story/orders-cream.png", "type": "file" },
+      { "value": "assets/ui/story/orders-green.png", "type": "file" },
+      { "value": "assets/ui/story/pot-green.png", "type": "file" },
+      { "value": "assets/ui/story/pot-ink.png", "type": "file" },
+      { "value": "assets/ui/story/pot-orange.png", "type": "file" },
+      { "value": "assets/ui/story/profile-cream.png", "type": "file" },
+      { "value": "assets/ui/story/profile-green.png", "type": "file" },
+      { "value": "assets/ui/story/store-cream.png", "type": "file" },
+      { "value": "assets/ui/story/truck-cream.png", "type": "file" },
+      { "value": "assets/ui/story/truck-orange.png", "type": "file" },
+      { "value": "assets/ui/tab-home-active.png", "type": "file" },
+      { "value": "assets/ui/tab-home.png", "type": "file" },
+      { "value": "assets/ui/tab-menu-active.png", "type": "file" },
+      { "value": "assets/ui/tab-menu.png", "type": "file" },
+      { "value": "assets/ui/tab-orders-active.png", "type": "file" },
+      { "value": "assets/ui/tab-orders.png", "type": "file" },
+      { "value": "assets/ui/tab-profile-active.png", "type": "file" },
+      { "value": "assets/ui/tab-profile.png", "type": "file" }
     ],
     "include": []
   },

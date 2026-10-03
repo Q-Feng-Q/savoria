@@ -1,0 +1,10 @@
+<view class="notebook-contacts warm-page">
+  <view class="paper-head"><text class="paper-kicker">PRIVATE CONTACTS</text><text class="paper-title">记事联系人</text><text class="paper-sub">联系人需要双方确认，与家庭身份无关。</text></view>
+  <view wx:if="{{phase === 'loading'}}" class="paper-state">正在加载联系人…</view>
+  <view wx:elif="{{phase === 'error'}}" class="paper-state"><text>{{errorMessage}}</text><view bindtap="load">重试</view></view>
+  <block wx:else>
+    <view class="paper-section"><text class="paper-label">邀请其他账号</text><input placeholder="用户名或已验证邮箱" value="{{identifier}}" bindinput="changeIdentifier" /><view class="paper-button" bindtap="invite">创建邀请</view><text class="paper-hint">令牌仅显示一次，请通过可信渠道交给对方。</text><view wx:if="{{issuedToken}}" class="paper-token" bindtap="copyToken">{{issuedToken}} · 点击复制</view></view>
+    <view class="paper-section"><text class="paper-label">待处理邀请</text><view wx:if="{{!invites.length}}" class="paper-muted">暂无邀请</view><view wx:for="{{invites}}" wx:key="id" class="paper-row"><text>账号 {{item.inviterUserId}} · {{item.status}}</text><input wx:if="{{item.status === 'PENDING'}}" placeholder="输入对方给你的令牌" value="{{token}}" bindinput="changeToken" /><view wx:if="{{item.status === 'PENDING'}}" class="paper-actions"><text data-id="{{item.id}}" data-action="accept" bindtap="respond">确认</text><text data-id="{{item.id}}" data-action="reject" bindtap="respond">拒绝</text></view></view></view>
+    <view class="paper-section"><text class="paper-label">已确认联系人</text><view wx:if="{{!contacts.length}}" class="paper-muted">还没有联系人</view><view wx:for="{{contacts}}" wx:key="contactUserId" class="paper-row"><text>账号 {{item.contactUserId}}</text><text class="paper-danger" data-id="{{item.contactUserId}}" bindtap="removeContact">移除</text></view></view>
+  </block>
+</view>

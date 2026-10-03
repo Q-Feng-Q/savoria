@@ -5,9 +5,15 @@ const path = require('node:path');
 const { collectPackageFiles, reportPackageSize } = require('../scripts/check-package-size.cjs');
 const root = path.resolve(__dirname, '..');
 
-test('upload source package leaves headroom below the 2 MiB compiled limit', () => {
+test('each upload source package leaves headroom below its 2 MiB compiled limit', () => {
   const report = reportPackageSize();
-  assert.ok(report.totalBytes <= 1800 * 1024, `upload sources ${(report.totalBytes / 1024).toFixed(1)} KiB exceed 1800 KiB budget`);
+  assert.ok(report.mainBytes <= 1800 * 1024,
+    `main package ${(report.mainBytes / 1024).toFixed(1)} KiB exceeds 1800 KiB budget`);
+  for (const [root, bytes] of Object.entries(report.subpackages)) {
+    assert.ok(bytes <= 1800 * 1024,
+      `${root} ${(bytes / 1024).toFixed(1)} KiB exceeds 1800 KiB budget`);
+  }
+  assert.ok(report.subpackages['pages/notebook/detail'] > 0, 'notebook detail pages use an isolated subpackage');
 });
 
 test('unreferenced high-resolution welcome source is not uploaded', () => {

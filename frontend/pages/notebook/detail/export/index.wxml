@@ -1,0 +1,6 @@
+<view class="export-page warm-page">
+  <view class="export-head"><text class="export-kicker">KEEP YOUR STORY</text><text class="export-title">复制与导出</text><text class="export-hint">导出的是 JSON 数据，不包含图片文件或公开图片地址。</text></view>
+  <view class="export-sheet"><text class="export-label">选择记录日期</text><view class="export-dates"><picker mode="date" value="{{from}}" data-field="from" bindchange="changeDate"><view>从 {{from}}</view></picker><picker mode="date" value="{{to}}" data-field="to" bindchange="changeDate"><view>到 {{to}}</view></picker></view><text class="export-hint">时区 {{timeZone}} · 最多 {{maxQueryMonths}} 个日历月</text><view class="export-count">{{previewCount === null ? '记录数待预览' : '预计 ' + previewCount + ' 条记录'}}</view><text wx:if="{{errorMessage}}" class="export-error">{{errorMessage}}</text></view>
+  <view class="export-warning">请确认接收者可信。复制或分享出去的数据无法在撤销授权后远程删除。</view>
+  <view class="export-actions"><view class="export-copy" bindtap="copy">{{busy ? '请稍候…' : '复制 JSON'}}</view><view class="export-file" bindtap="download">{{busy ? '请稍候…' : '创建 JSON 文件'}}</view></view>
+</view>

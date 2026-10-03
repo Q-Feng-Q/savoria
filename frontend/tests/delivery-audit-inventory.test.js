@@ -26,9 +26,11 @@ if (fs.existsSync(manifestPath)) {
   const manifest = require(manifestPath)
 
   const normalize = (values) => [...values].sort()
-  const registeredPages = JSON.parse(
+  const appConfig = JSON.parse(
     fs.readFileSync(path.join(frontendRoot, 'app.json'), 'utf8')
-  ).pages
+  )
+  const registeredPages = [...appConfig.pages, ...(appConfig.subPackages || []).flatMap((part) =>
+    part.pages.map((page) => `${part.root}/${page}`))]
   const implementedPages = []
 
   const visit = (directory) => {

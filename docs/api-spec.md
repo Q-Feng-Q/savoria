@@ -343,3 +343,73 @@ Content-Type: application/json
 - 模板缺失字段按稳定步骤键匹配保留；兼容旧客户端基于数据库步骤 ID 生成的键。商户菜品步骤有图但旧请求缺失图片字段时，仅允许步骤数量、顺序及元数据未变化的写入；歧义请求拒绝并提示刷新。缺失整个 `cookingSteps` 保留当前步骤；显式 `cookingSteps: []` 表示删除所有步骤。
 - 新审核快照保存前解析缺失字段，历史快照批准前完成兼容检查；模板导入、组件展开及状态调整保留对应步骤图片。移除引用不删除原图片文件。
 - 数据库前置条件（2026-09-23 空库基线合并）：`V1__init_schema.sql` 已在 `dish_cooking_steps` 与 `dish_template_cooking_steps` 中直接定义可空 JSON 列 `image_urls`；原 V5 已移除。仅供全新空库初始化，不可直接套用已有 Flyway 历史库。未执行当前业务库重建；部署需同步发布后端和客户端。
+
+## 个人记事事件与模板（2026-10-03）
+
+以下路径沿用部署层 `/api` 前缀，均要求已登录；所有权只取当前账号 ID，家庭、商户或平台角色不增加记事访问权。普通响应为 `{ code, message, data }`。非所有者访问事件及模板返回 404。
+
+平台管理员通过现有 `GET /api/admin/system-settings` 读取 `notebookMaxQueryMonths`，通过现有 `PUT /api/admin/system-settings` 保存同名整数字段（1～36，默认 36）。该字段只限制单次查询或导出的跨度，不限制历史记录距今多久；管理端不提供记事正文接口。小程序从登录态 `GET /api/notebook/config` 取得实时有效值。
+
+| 方法与路径 | 请求 | data |
+| --- | --- | --- |
+| `GET /api/notebook/config` | 无；需登录账号 | `{ maxQueryMonths }`，实时生效的 1～36 月查询/导出跨度上限，不返回用户正文 |
+| `GET /api/notebook/events` | 可选 `includeArchived=false` | 当前账号事件数组；重点关注优先，再按 `sortOrder`、ID 排序 |
+| `POST /api/notebook/events` | `{ name, category?, description?, fields }` | 新事件；同时发布模板版本 1 |
+| `GET /api/notebook/events/{id}` | 无 | 当前账号事件详情 |
+| `PATCH /api/notebook/events/{id}` | `{ name?, category?, description?, starred?, archived?, sortOrder? }` | 更新后事件；省略或 null 表示保留原值 |
+| `GET /api/notebook/events/{id}/delete-impact` | 无 | `{ recordCount, templateVersionCount, grantCount }` |
+| `DELETE /api/notebook/events/{id}` | 必填语义 `confirm=true` | 空成功响应；未确认返回 400 |
+| `PUT /api/notebook/events/order` | `{ eventIds: [id, ...] }` | 空成功响应；所有 ID 均须属于当前账号且不得重复 |
+| `GET /api/notebook/events/{id}/templates` | 无 | 按版本升序的完整历史模板数组 |
+| `POST /api/notebook/events/{id}/templates` | `{ fields: [...] }` | 新发布的不可变模板版本 |
+
+事件含 `id`、`ownerUserId`、`name`、`category`、`description`、`sortOrder`、`starred`、`archived`、`currentTemplateVersion`。名称去首尾空白后为 1～120 字符，分类最多 80 字符，描述最多 5000 字符。删除前客户端应显示 `delete-impact` 并取得确认；服务端撤销授权、删除事件及其记录、版本和私有图片登记，保留不含正文的动作审计。私有图片对象键在删除事务中分批写入 `V6__notebook_image_cleanup_queue.sql` 新增的持久清理队列；提交后分批删除文件，失败条目留待定时重试，不限制事件可删除的图片总数。
+
+模板 `fields` 为完整有序数组，最多 50 项。每项含 `key?`、`type`、`label`、`required`、`options?`、`unit?`。初次创建不传 `key`；后续编辑可传当前版本中的 `key`，同类型改名保持键不变，改类型由服务端分配新键；未知或重复键返回 400。支持 `TEXT`、`LONG_TEXT`、`NUMBER`、`DATE`、`TIME`、`DATETIME`、`SINGLE_SELECT`、`MULTI_SELECT`、`BOOLEAN`、`RATING`、`IMAGE`。选项仅用于两种选择类型，必填且最多 30 个；`unit` 仅用于数字类型。每次发布递增版本，历史版本及记录字段定义不改写。
+
+### 记事记录与日历（登录账号）
+
+| 方法与路径 | 请求 | data |
+| --- | --- | --- |
+| `GET /api/notebook/events/{id}/records` | 必填闭区间 `from=YYYY-MM-DD&to=YYYY-MM-DD&timeZone=Asia/Shanghai`；可选 `page=0&size=20`，size 1～100 | `{ items, page, size, hasMore }`；按 `(occurredFrom,id)` 升序、发生区间相交的当前账号记录 |
+| `GET /api/notebook/events/{id}/record-template` | 无 | 所有者或当前具备新增权限的协作者获取 `{ eventId, name, templateVersion, fields }`；仅供新增记录表单，授权前后两次校验，不暴露其他记录或历史模板 |
+| `POST /api/notebook/events/{id}/records` | `{ occurredFrom, occurredTo, title, note?, values }` | 新记录；绑定事件当前模板版本 |
+| `GET /api/notebook/records/{id}` | 无 | 当前账号记录及其创建时的模板 `fields` |
+| `PATCH /api/notebook/records/{id}` | `{ expectedVersion, title?, note?, occurredFrom?, occurredTo?, values? }` | 乐观锁更新；`values` 如提供须为完整对象，仍按记录原模板校验 |
+| `POST /api/notebook/records/{id}/upgrade-template` | `{ expectedVersion, values }` | 显式升级到事件当前模板，并在不可变修订表保留升级前快照 |
+| `DELETE /api/notebook/records/{id}` | 无 | 仅所有者可删除，私有图片键先入持久清理队列 |
+| `GET /api/notebook/events/{id}/calendar` | 必填闭区间 `from`、`to`、`timeZone` | 非空日期的 `{ date, recordCount }` 数组，以有限批次读取时间区间，不加载字段值 |
+
+时间使用带时区的 ISO 8601，服务端以 UTC 保存和返回。标题去首尾空白后为 1～200 字符，备注最多 20000 字符，发生起止可同日或跨日但不得倒置。字段值以服务器分配的 `key` 为键；必填字段不可缺失。选择值须在选项内，评分为 1～5，图片字段为至多 10 个私有对象键。普通编辑不会改写模板版本；记录和模板版本冲突返回 409。查询必须指定 `from`、`to` 和 IANA `timeZone`（例如 `Asia/Shanghai`，非法时区返回 400）；跨度按触及的本地日历月份计且不超过当前全局上限（默认 36）；无界正文列表不可用。日期查询边界与日历汇总按请求时区的本地日期解释，含夏令时转换；小程序调用这两个端点也必须传入当前用户时区。
+
+### 记事联系人与共享（登录账号）
+
+| 方法与路径 | 请求 | data |
+| --- | --- | --- |
+| `GET /api/notebook/contacts` | 无 | 当前账号已确认联系人；不依赖家庭关系 |
+| `GET /api/notebook/contacts/invites` | 无 | 发给当前账号的邀请元数据，不含令牌或哈希 |
+| `POST /api/notebook/contacts/invites` | `{ identifier }`，按用户名或已验证邮箱查找 | `{ id, inviteeUserId, token, expiresAt }`；高熵一次性令牌仅创建时返回，发送方需通过受信渠道交给目标账号 |
+| `POST /api/notebook/contacts/invites/{id}/accept` | `{ token }` | 仅目标账号可确认；令牌哈希验证、7 天过期、一次性消费 |
+| `POST /api/notebook/contacts/invites/{id}/reject` | `{ token }` | 仅目标账号可拒绝；不可再次接受 |
+| `DELETE /api/notebook/contacts/{id}` | 无 | 删除双向联系人、撤销双方之间的记事授权，并作废两个方向的待处理邀请；旧邀请不能重新建立联系 |
+| `GET /api/notebook/events/{id}/grants` | 无 | 仅事件所有者可读取的授权列表 |
+| `POST /api/notebook/events/{id}/grants` | 完整授权对象 | 仅事件所有者向已确认联系人授权 |
+| `PATCH /api/notebook/grants/{id}` | 完整授权对象；不能更换接收人 | 更新授权范围、有效期和独立能力开关 |
+| `DELETE /api/notebook/grants/{id}` | 无 | 仅所有者可撤销；后续请求立即失效 |
+| `GET /api/notebook/shared` | 无 | 当前仍有效、联系人仍存在的接收授权；包含用于辨认的 `eventName`，不包含事件描述；默认空数组 |
+
+授权对象包含 `granteeUserId`、闭区间 `dataFrom` / `dataTo`、必填 IANA `dataTimeZone`、带时区的 `validFrom` / `validTo`，以及独立的 `canCreate`、`canEdit`、`canExport`（省略或 null 均为 false）。数据日期在 `dataTimeZone` 中解释，单次触及月份数须满足当前平台上限 1～36；授权有效时间与数据日期是两个独立约束，且 `validFrom < validTo`。共享者默认只有读权；新增需 `canCreate`，编辑已有记录需 `canEdit`，复制/导出需 `canExport`。共享者不能删记录、改事件或模板、管理授权或转授权。共享读取只返回发生起止时间完整落入授权数据区间的记录；查询日期与授权数据区间须有交集，且每次仍受全局查询月份上限限制。无权限、过期、撤销和区间外请求均返回不揭示资源存在性的 404。
+
+### 记事导出、私有图片与审计（登录账号）
+
+| 方法与路径 | 请求 | data |
+| --- | --- | --- |
+| `POST /api/notebook/events/{id}/export` | `{ from, to, timeZone, mode }`；本地闭区间，IANA 时区，`mode=COPY\|FILE` | 同一完整 JSON 对象供剪贴板或文件流程使用；`schemaVersion=notebook-export/v1`、`exportedAt`、`range`、`event`、`templateVersions`、`records` |
+| `POST /api/notebook/images` | multipart `recordId` 和 `file` | `{ imageId, valueKey }`；`valueKey` 仅供当前记录 `IMAGE` 字段引用，不是公开 URL |
+| `POST /api/notebook/images/staged` | multipart `eventId` 和 `file` | `{ imageId, valueKey }`；创建记录前暂存 24 小时，上传者须有事件新增权限，保存记录时校验事件/账号并绑定 |
+| `GET /api/notebook/images/records/{recordId}` | 无 | 当前账号经整条记录权限检查后，仅返回被该记录引用的 `{ imageId, valueKey, originalName, contentType, byteSize }[]`，供刷新后将私有字段值映射到预览地址；不返回字节或公开 URL |
+| `GET /api/notebook/images/{id}` | 无 | 经过记录完整区间权限检查后返回 JPEG/PNG 字节；`Cache-Control: no-store` |
+| `DELETE /api/notebook/images/{id}` | 无 | 需记录编辑权；仍被记录的 `IMAGE` 字段引用时返回冲突，移除引用后才删除登记并将私有文件键写入持久清理队列 |
+| `GET /api/notebook/audit` | `eventId,from,to,timeZone,page?,size?` | 仅事件所有者读取元数据页 `{ items,page,size,hasMore }`；size 1～100 |
+
+导出按 `(occurredFrom,id)` 稳定排序，包含引用的不可变模板版本和每条记录的字段键/值、作者及最后编辑者；图片字段只导出文件名、类型、字节数和图片 ID，不导出私有对象键、公开 URL 或二进制。查询受当前全局 1～36 月上限约束；共享者必须有有效 `canExport` 授权，服务端导出前再次核验，失效返回 404 而不返回部分数据。私有图片仅支持内容签名与 MIME 一致的 JPEG/PNG，最大 4 MiB、2000 万像素；存储目录必须与公开上传目录隔离。暂存图片只能由同一上传者绑定到该事件的记录，过期暂存与删除事件时会进入持久清理队列。动作审计只保存账号、事件、记录的数字 ID、动作、结果和时间，不保存字段值、整段 JSON、图片内容或邀请令牌。

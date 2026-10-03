@@ -1,0 +1,14 @@
+<view class="sharing-page warm-page">
+  <view class="sharing-head"><text class="sharing-kicker">SHARE WITH CARE</text><text class="sharing-title">共享记事</text><text class="sharing-note">仅已确认的联系人可获得授权。复制或导出的内容无法远程收回。</text></view>
+  <view wx:if="{{phase === 'loading'}}" class="sharing-state">正在读取授权…</view>
+  <view wx:elif="{{phase === 'error'}}" class="sharing-state"><text>{{errorMessage}}</text><view bindtap="load">重试</view></view>
+  <block wx:else>
+    <view class="sharing-sheet"><text class="sharing-label">联系人</text><picker range="{{contacts}}" range-key="contactUserId" value="{{contactIndex}}" bindchange="selectContact"><view class="sharing-picker">{{draft.granteeUserId ? '账号 ' + draft.granteeUserId : '选择已确认联系人'}}</view></picker><view wx:if="{{!contacts.length}}" class="sharing-muted" bindtap="openContacts">请先添加联系人</view>
+      <text class="sharing-label">可查看的记录日期</text><view class="sharing-dates"><picker mode="date" value="{{draft.dataFrom}}" data-field="dataFrom" bindchange="changeDate"><view>从 {{draft.dataFrom}}</view></picker><picker mode="date" value="{{draft.dataTo}}" data-field="dataTo" bindchange="changeDate"><view>到 {{draft.dataTo}}</view></picker></view><text class="sharing-muted">最多覆盖 {{maxQueryMonths}} 个日历月</text>
+      <text class="sharing-label">授权有效日期</text><view class="sharing-dates"><picker mode="date" value="{{draft.validFromDate}}" data-field="validFromDate" bindchange="changeDate"><view>从 {{draft.validFromDate}}</view></picker><picker mode="date" value="{{draft.validToDate}}" data-field="validToDate" bindchange="changeDate"><view>到 {{draft.validToDate}}</view></picker></view>
+      <view class="sharing-switch"><text>允许新增记录</text><switch checked="{{draft.canCreate}}" data-field="canCreate" bindchange="changeSwitch" color="#df7739" /></view><view class="sharing-switch"><text>允许编辑记录</text><switch checked="{{draft.canEdit}}" data-field="canEdit" bindchange="changeSwitch" color="#df7739" /></view><view class="sharing-switch"><text>允许复制或导出</text><switch checked="{{draft.canExport}}" data-field="canExport" bindchange="changeSwitch" color="#df7739" /></view>
+      <view class="sharing-save" bindtap="save">{{editingId ? '保存修改' : '创建授权（默认只读）'}}</view><view wx:if="{{editingId}}" class="sharing-cancel" bindtap="resetDraft">取消编辑</view>
+    </view>
+    <view class="sharing-sheet"><text class="sharing-label">现有授权</text><view wx:if="{{!grants.length}}" class="sharing-muted">暂无授权</view><view wx:for="{{grants}}" wx:key="id" class="sharing-grant"><view><text>账号 {{item.granteeUserId}} · {{item.status}}</text><text>{{item.dataFrom}} 至 {{item.dataTo}}</text></view><view class="sharing-actions"><text data-id="{{item.id}}" bindtap="editGrant">修改</text><text data-id="{{item.id}}" bindtap="revokeGrant">撤销</text></view></view></view>
+  </block>
+</view>

@@ -27,9 +27,10 @@ class BrandSettingMapperTest {
           + "smtp_from VARCHAR(255), brand_tagline VARCHAR(500), home_hero_tagline VARCHAR(500), "
           + "home_footer_message VARCHAR(500), cart_hero_tagline VARCHAR(500), delivery_message VARCHAR(500), "
           + "pickup_message VARCHAR(500), cart_footer_message VARCHAR(500), profile_welcome_message VARCHAR(500), "
-          + "updated_by BIGINT, updated_at TIMESTAMP)");
+          + "notebook_max_query_months INT NOT NULL DEFAULT 36, updated_by BIGINT, updated_at TIMESTAMP)");
       sql.execute("INSERT INTO system_settings (id,site_name,site_logo_url,site_logo_small_url,site_logo_small_size, "
-          + "smtp_host,smtp_password_ciphertext,maintenance_enabled) VALUES (1,'Custom','/standard.png','/small.png',40,'smtp.private','secret',TRUE)");
+          + "smtp_host,smtp_password_ciphertext,maintenance_enabled,notebook_max_query_months) "
+          + "VALUES (1,'Custom','/standard.png','/small.png',40,'smtp.private','secret',TRUE,12)");
     }
     var config = new Configuration(new Environment("isolated-brand-test", new JdbcTransactionFactory(), ds));
     try (var stream = getClass().getResourceAsStream("/mapper/system/SystemSettingMapper.xml")) {
@@ -49,6 +50,7 @@ class BrandSettingMapperTest {
       assertThat(result.getSmtpPasswordCiphertext()).isEqualTo("secret");
       assertThat(result.getMaintenanceEnabled()).isTrue();
       assertThat(result.getUpdatedBy()).isEqualTo(9L);
+      assertThat(result.getNotebookMaxQueryMonths()).isEqualTo(12);
       // Old full PUT leaves new fields null: SQL must preserve their stored values.
       var oldFullPut = new SystemSettingDO();oldFullPut.setSiteName("Changed");oldFullPut.setUpdatedBy(10L);
       oldFullPut.setBrandTagline("好好吃饭，自定义幸福");
@@ -72,6 +74,7 @@ class BrandSettingMapperTest {
       assertThat(reread.getPickupMessage()).isEqualTo("先在一起，再好好吃饭");
       assertThat(reread.getCartFooterMessage()).isEqualTo("把日子过成一首温暖的诗");
       assertThat(reread.getProfileWelcomeMessage()).isEqualTo("欢迎回家吃饭");
+      assertThat(reread.getNotebookMaxQueryMonths()).isEqualTo(12);
 
       oldFullPut.setPickupMessage(null);
       mapper.update(oldFullPut);

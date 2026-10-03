@@ -1,0 +1,351 @@
+package com.familykitchen.notebook.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.familykitchen.common.error.BusinessException;
+import com.familykitchen.common.error.ErrorCode;
+import com.familykitchen.notebook.NotebookRangePolicy;
+import com.familykitchen.notebook.mapper.NotebookEventMapper;
+import com.familykitchen.notebook.mapper.NotebookImageMapper;
+import com.familykitchen.notebook.mapper.NotebookRecordMapper;
+import com.familykitchen.notebook.model.NotebookCalendarSummary;
+import com.familykitchen.notebook.model.NotebookField;
+import com.familykitchen.notebook.model.NotebookRecordCreate;
+import com.familykitchen.notebook.model.NotebookRecordPage;
+import com.familykitchen.notebook.model.NotebookRecordPatch;
+import com.familykitchen.notebook.model.NotebookRecordView;
+import com.familykitchen.system.service.SystemSettingService;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/** Account-owned record lifecycle with immutable template snapshots. */
+@Service
+public class NotebookRecordService {
+  private static final int CALENDAR_BATCH_SIZE = 200;
+  private final NotebookRecordMapper mapper;
+  private final NotebookEventMapper events;
+  private final NotebookRecordValidator validator;
+  private final NotebookRangePolicy ranges;
+  private final NotebookAccessPolicy access;
+  private final NotebookImageMapper images;
+  private final ObjectMapper json;
+
+  /** Creates the record service using the live global month setting.
+   * @param mapper record persistence
+   * @param events event/template persistence
+   * @param validator field-value validator
+   * @param settings global setting service
+   * @param json JSON codec
+   * @param access owner and shared grant policy
+   * @param images image metadata boundary */
+  @Autowired
+  public NotebookRecordService(NotebookRecordMapper mapper, NotebookEventMapper events,
+      NotebookRecordValidator validator, SystemSettingService settings, ObjectMapper json,
+      NotebookAccessPolicy access, NotebookImageMapper images) {
+    this(mapper, events, validator, new NotebookRangePolicy(settings::notebookMaxQueryMonths), json, access, images);
+  }
+
+  /** Creates a record service with an explicit range policy for isolated integrations.
+   * @param mapper record persistence
+   * @param events event/template persistence
+   * @param validator field-value validator
+   * @param ranges date-range policy
+   * @param json JSON codec
+   * @param access owner and shared grant policy
+   * @param images image metadata boundary */
+  public NotebookRecordService(NotebookRecordMapper mapper, NotebookEventMapper events,
+      NotebookRecordValidator validator, NotebookRangePolicy ranges, ObjectMapper json,
+      NotebookAccessPolicy access, NotebookImageMapper images) {
+    this.mapper = mapper; this.events = events; this.validator = validator;
+    this.ranges = ranges; this.json = json; this.access = access; this.images = images;
+  }
+
+  /** Current event fields disclosed only to an account allowed to create a record.
+   * @param eventId event ID
+   * @param name event title
+   * @param templateVersion current immutable version
+   * @param fields field definitions */
+  public record RecordTemplate(long eventId, String name, int templateVersion,
+      List<NotebookField> fields) {}
+
+  /** Reads the current form definition for an owner or live create collaborator.
+   * @param actor authenticated account
+   * @param eventId event ID
+   * @return minimal form definition, without event history or record content */
+  public RecordTemplate currentTemplate(long actor, long eventId) {
+    access.requireCreateCapability(actor, eventId);
+    var event = events.findEvent(eventId);
+    if (event == null) throw missing();
+    var template = new RecordTemplate(eventId, event.name(), event.currentTemplateVersion(),
+        fields(eventId, event.currentTemplateVersion()));
+    access.requireCreateCapability(actor, eventId);
+    return template;
+  }
+
+  /** Creates a record bound to the current template.
+   * @param actor authenticated owner account
+   * @param eventId account-owned event
+   * @param request record draft
+   * @return created record */
+  @Transactional
+  public NotebookRecordView create(long actor, long eventId, NotebookRecordCreate request) {
+    if (request == null) throw bad("Record body is required");
+    checkInterval(request.occurredFrom(), request.occurredTo());
+    var scope = access.requireCreate(actor, eventId, request.occurredFrom(), request.occurredTo());
+    if (events.lockEvent(eventId) == null) throw missing();
+    var event = events.findEvent(eventId);
+    String title = title(request.title());
+    String note = note(request.note());
+    var fields = fields(eventId, event.currentTemplateVersion());
+    validator.validate(fields, request.values());
+    long id = mapper.insert(eventId, scope.ownerUserId(), actor, request.occurredFrom().toInstant(),
+        request.occurredTo().toInstant(), title, note, event.currentTemplateVersion(),
+        encode(request.values()));
+    bindImages(eventId, id, scope.ownerUserId(), actor, fields, request.values());
+    mapper.audit(actor, scope.ownerUserId(), eventId, id, "RECORD_CREATE");
+    return get(actor, id);
+  }
+
+  /** Reads a record and its original field definitions for its owner.
+   * @param actor authenticated owner account
+   * @param recordId record ID
+   * @return record with bound template fields */
+  public NotebookRecordView get(long actor, long recordId) {
+    var row = requireRecord(actor, recordId);
+    var result = view(row);
+    mapper.audit(actor, row.ownerUserId(), row.eventId(), row.id(), "RECORD_VIEW");
+    return result;
+  }
+
+  /** Edits a record while retaining its original template version.
+   * @param actor authenticated owner account
+   * @param recordId record ID
+   * @param patch version-checked edit
+   * @return updated record */
+  @Transactional
+  public NotebookRecordView update(long actor, long recordId, NotebookRecordPatch patch) {
+    var old = requireRecord(actor, recordId);
+    if (patch == null || patch.expectedVersion() == null) throw bad("Expected record version is required");
+    if (patch.expectedVersion() != old.lockVersion()) throw conflict();
+    OffsetDateTime from = patch.occurredFrom() == null ? utc(old.from()) : patch.occurredFrom();
+    OffsetDateTime to = patch.occurredTo() == null ? utc(old.to()) : patch.occurredTo();
+    checkInterval(from, to);
+    access.requireEdit(actor, old.eventId(), utc(old.from()), utc(old.to()));
+    access.requireEdit(actor, old.eventId(), from, to);
+    if (events.lockEvent(old.eventId()) == null) throw missing();
+    Map<String, Object> values = patch.values() == null ? decodeValues(old.valuesJson()) : patch.values();
+    validator.validate(fields(old.eventId(), old.templateVersion()), values);
+    var desired = new NotebookRecordMapper.Row(old.id(), old.eventId(), old.ownerUserId(),
+        old.createdByUserId(), actor, from.toInstant(), to.toInstant(),
+        patch.title() == null ? old.title() : title(patch.title()),
+        patch.note() == null ? old.note() : note(patch.note()), old.templateVersion(),
+        encode(values), old.lockVersion());
+    if (mapper.update(desired, patch.expectedVersion()) != 1) throw conflict();
+    bindImages(old.eventId(), old.id(), old.ownerUserId(), actor,
+        fields(old.eventId(), old.templateVersion()), values);
+    mapper.audit(actor, old.ownerUserId(), old.eventId(), recordId, "RECORD_UPDATE");
+    return get(actor, recordId);
+  }
+
+  /** Explicitly upgrades one record to the event's current template and snapshots its prior state.
+   * @param actor authenticated owner account
+   * @param recordId record ID
+   * @param expectedVersion last observed lock version
+   * @param values complete values for the new template
+   * @return upgraded record */
+  @Transactional
+  public NotebookRecordView upgradeTemplate(long actor, long recordId, Integer expectedVersion,
+      Map<String, Object> values) {
+    var old = requireRecord(actor, recordId);
+    events.lockEvent(old.eventId());
+    access.requireOwner(actor, old.eventId());
+    if (expectedVersion == null) throw bad("Expected record version is required");
+    if (expectedVersion != old.lockVersion()) throw conflict();
+    var event = events.findEvent(old.eventId());
+    if (event.currentTemplateVersion() == old.templateVersion()) {
+      throw bad("Record already uses the current template");
+    }
+    validator.validate(fields(old.eventId(), event.currentTemplateVersion()), values);
+    var desired = new NotebookRecordMapper.Row(old.id(), old.eventId(), old.ownerUserId(),
+        old.createdByUserId(), actor, old.from(), old.to(), old.title(), old.note(),
+        event.currentTemplateVersion(), encode(values), old.lockVersion());
+    if (mapper.update(desired, expectedVersion) != 1) throw conflict();
+    bindImages(old.eventId(), old.id(), old.ownerUserId(), actor,
+        fields(old.eventId(), event.currentTemplateVersion()), values);
+    mapper.revision(old, actor);
+    mapper.audit(actor, old.ownerUserId(), old.eventId(), recordId, "RECORD_TEMPLATE_UPGRADE");
+    return get(actor, recordId);
+  }
+
+  /** Deletes an owner record and records a content-free audit entry.
+   * @param actor authenticated owner account
+   * @param recordId record ID */
+  @Transactional
+  public void delete(long actor, long recordId) {
+    var prior = requireRecord(actor, recordId);
+    events.lockEvent(prior.eventId());
+    var old = mapper.lockAny(recordId);
+    if (old == null) throw missing();
+    access.requireOwner(actor, old.eventId());
+    long lastImageId = 0;
+    while (true) {
+      var batch = mapper.imageKeysAfter(recordId, lastImageId, 100);
+      if (batch.isEmpty()) break;
+      events.enqueueImageCleanup(old.eventId(), old.ownerUserId(), batch);
+      lastImageId = batch.get(batch.size() - 1).id();
+      if (batch.size() < 100) break;
+    }
+    if (mapper.delete(actor, recordId) != 1) throw missing();
+    mapper.audit(actor, old.ownerUserId(), old.eventId(), recordId, "RECORD_DELETE");
+  }
+
+  /** Returns a bounded and deterministic owner record page.
+   * @param actor authenticated owner account
+   * @param eventId event ID
+   * @param from inclusive date
+   * @param to inclusive date
+   * @param timeZone IANA time-zone ID defining calendar days
+   * @param page zero-based page
+   * @param size page size
+   * @return matching records */
+  public NotebookRecordPage list(long actor, long eventId, LocalDate from, LocalDate to,
+      String timeZone, int page, int size) {
+    ranges.requireAllowed(from, to);
+    ZoneId zone = zone(timeZone);
+    var scope = access.requireRead(actor, eventId, from, to, timeZone);
+    if (page < 0 || size < 1 || size > 100 || (long) page * size > Integer.MAX_VALUE) {
+      throw bad("Invalid record page");
+    }
+    var rows = mapper.page(scope.ownerUserId(), eventId, dayStart(from, zone), dayEndExclusive(to, zone),
+        scope.dataFrom(), scope.dataToExclusive(), size + 1, (long) page * size);
+    boolean hasMore = rows.size() > size;
+    events.audit(actor, scope.ownerUserId(), eventId, "RECORD_LIST");
+    return new NotebookRecordPage(rows.stream().limit(size).map(this::view).toList(), page, size, hasMore);
+  }
+
+  /** Projects date counts without loading values or template fields.
+   * @param actor authenticated owner account
+   * @param eventId event ID
+   * @param from inclusive date
+   * @param to inclusive date
+   * @param timeZone IANA time-zone ID defining calendar days
+   * @return ordered nonempty calendar days */
+  public List<NotebookCalendarSummary> calendar(long actor, long eventId, LocalDate from, LocalDate to,
+      String timeZone) {
+    ranges.requireAllowed(from, to);
+    ZoneId zone = zone(timeZone);
+    var scope = access.requireRead(actor, eventId, from, to, timeZone);
+    Map<LocalDate, Long> counts = new TreeMap<>();
+    long cursor = 0;
+    while (true) {
+      var batch = mapper.intervalsAfter(scope.ownerUserId(), eventId, dayStart(from, zone),
+          dayEndExclusive(to, zone), scope.dataFrom(), scope.dataToExclusive(), cursor,
+          CALENDAR_BATCH_SIZE);
+      if (batch.isEmpty()) break;
+      for (var interval : batch) {
+        LocalDate first = interval.from().atZone(zone).toLocalDate();
+        LocalDate last = interval.to().atZone(zone).toLocalDate();
+        for (LocalDate day = first.isBefore(from) ? from : first;
+            !day.isAfter(last) && !day.isAfter(to); day = day.plusDays(1)) {
+          counts.merge(day, 1L, Long::sum);
+        }
+      }
+      cursor = batch.get(batch.size() - 1).id();
+      if (batch.size() < CALENDAR_BATCH_SIZE) break;
+    }
+    List<NotebookCalendarSummary> result = new ArrayList<>();
+    counts.forEach((date, count) -> result.add(new NotebookCalendarSummary(date, count)));
+    events.audit(actor, scope.ownerUserId(), eventId, "CALENDAR_VIEW");
+    return List.copyOf(result);
+  }
+
+  private NotebookRecordMapper.Row requireRecord(long actor, long recordId) {
+    var row = mapper.findAny(recordId);
+    if (row == null) throw missing();
+    access.requireRecordRead(actor, row.eventId(), row.from(), row.to());
+    return row;
+  }
+
+  private NotebookRecordView view(NotebookRecordMapper.Row row) {
+    return new NotebookRecordView(row.id(), row.eventId(), row.ownerUserId(), row.createdByUserId(),
+        row.updatedByUserId(), utc(row.from()), utc(row.to()), row.title(), row.note(),
+        row.templateVersion(), decodeValues(row.valuesJson()), fields(row.eventId(), row.templateVersion()),
+        row.lockVersion());
+  }
+
+  private List<NotebookField> fields(long eventId, int version) {
+    var template = events.template(eventId, version);
+    if (template == null) throw new IllegalStateException("Notebook record template is missing");
+    try { return json.readValue(template.fieldsJson(), new TypeReference<List<NotebookField>>() {}); }
+    catch (JsonProcessingException failure) { throw new IllegalStateException("Invalid notebook template JSON", failure); }
+  }
+
+  private Map<String, Object> decodeValues(String value) {
+    try { return json.readValue(value, new TypeReference<Map<String, Object>>() {}); }
+    catch (JsonProcessingException failure) { throw new IllegalStateException("Invalid notebook record JSON", failure); }
+  }
+
+  private void bindImages(long eventId, long recordId, long owner, long actor,
+      List<NotebookField> fields, Map<String, Object> values) {
+    for (NotebookField field : fields) {
+      if (!"IMAGE".equals(field.type())) continue;
+      Object value = values.get(field.key());
+      if (value instanceof List<?> keys) {
+        for (Object key : keys) images.requireAndBind(eventId, recordId, owner, actor, (String) key);
+      }
+    }
+  }
+
+  private String encode(Map<String, Object> values) {
+    try { return json.writeValueAsString(values); }
+    catch (JsonProcessingException failure) { throw bad("Invalid notebook record values"); }
+  }
+
+  private static void checkInterval(OffsetDateTime from, OffsetDateTime to) {
+    if (from == null || to == null || from.toInstant().isAfter(to.toInstant())) {
+      throw bad("Invalid notebook occurrence interval");
+    }
+  }
+
+  private static String title(String value) {
+    if (value == null || value.isBlank() || value.strip().length() > 200) throw bad("Invalid record title");
+    return value.strip();
+  }
+
+  private static String note(String value) {
+    if (value == null || value.isBlank()) return null;
+    if (value.length() > 20000) throw bad("Record note is too long");
+    return value;
+  }
+
+  private static ZoneId zone(String value) {
+    if (value == null || !ZoneId.getAvailableZoneIds().contains(value)) {
+      throw bad("A valid IANA notebook timeZone is required");
+    }
+    return ZoneId.of(value);
+  }
+
+  private static Instant dayStart(LocalDate day, ZoneId zone) {
+    return day.atStartOfDay(zone).toInstant();
+  }
+
+  private static Instant dayEndExclusive(LocalDate day, ZoneId zone) {
+    if (day.equals(LocalDate.MAX)) throw bad("Invalid notebook date range");
+    return dayStart(day.plusDays(1), zone);
+  }
+  private static OffsetDateTime utc(Instant value) { return value.atOffset(ZoneOffset.UTC); }
+  private static BusinessException bad(String message) { return new BusinessException(ErrorCode.BAD_REQUEST, message); }
+  private static BusinessException missing() { return new BusinessException(ErrorCode.NOT_FOUND, "Notebook record not found"); }
+  private static BusinessException conflict() { return new BusinessException(ErrorCode.STATE_CONFLICT, "Notebook record changed; reload it"); }
+}
