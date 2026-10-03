@@ -26,6 +26,11 @@
         <div class="settings-grid"><label class="form-field settings-grid__wide"><span>维护提示</span><input v-model.trim="form.maintenanceMessage" required /></label></div>
         <div class="setting-switches setting-switches--compact"><label class="setting-switch"><span><strong>菜品审核</strong></span><input v-model="form.dishReviewEnabled" type="checkbox" /></label><label class="setting-switch"><span><strong>维护模式</strong></span><input v-model="form.maintenanceEnabled" type="checkbox" /></label></div>
       </SectionCard>
+      <SectionCard title="记事范围" subtitle="全平台统一限制，每次查看或导出的日期跨度不能超过此设置">
+        <div class="settings-grid">
+          <label class="form-field"><span>记事最长查看时间（月）</span><input v-model.number="form.notebookMaxQueryMonths" type="number" min="1" max="36" step="1" required :disabled="saving || loading" /></label>
+        </div>
+      </SectionCard>
       <p v-if="message" class="form-hint settings-message">{{ message }}</p>
     </form>
   </div>
@@ -38,11 +43,12 @@ import BrandCopySettings from '../../components/BrandCopySettings.vue';
 import { BRAND_COPY_DEFAULTS, BRAND_DEFAULTS, brandCopyPayload, brandPayload, normalizeBrandCopy, normalizeBranding } from '../../utils/branding';
 import { setBranding } from '../../stores/branding';
 import { getSystemSettings, updateSystemSettings, sendTestEmail } from '../../api/system-settings';
-const form=reactive({...BRAND_DEFAULTS,...BRAND_COPY_DEFAULTS,dishReviewEnabled:true,maintenanceEnabled:false,maintenanceMessage:'系统维护中，请稍后再试',mobileBindingEnabled:true,emailBindingEnabled:true,wechatBindingEnabled:true,smtpHost:'',smtpPort:587,smtpUsername:'',smtpPassword:'',smtpPasswordConfigured:false,smtpTlsEnabled:true,smtpFrom:''});
+import { validateNotebookMonths } from '../../utils/notebook-settings';
+const form=reactive({...BRAND_DEFAULTS,...BRAND_COPY_DEFAULTS,dishReviewEnabled:true,maintenanceEnabled:false,maintenanceMessage:'系统维护中，请稍后再试',mobileBindingEnabled:true,emailBindingEnabled:true,wechatBindingEnabled:true,smtpHost:'',smtpPort:587,smtpUsername:'',smtpPassword:'',smtpPasswordConfigured:false,smtpTlsEnabled:true,smtpFrom:'',notebookMaxQueryMonths:36});
 const saving=ref(false),testing=ref(false),testRecipient=ref(''),message=ref('');
 const brandSaving=ref(false),loading=ref(true);
 async function load(){try{const result=await getSystemSettings();Object.assign(form,result,normalizeBranding(result),normalizeBrandCopy(result));form.smtpPassword='';setBranding(result);loading.value=false;}catch(error){message.value=error?.message||'加载配置失败，请刷新后重试';}}
-async function save(){if(saving.value||brandSaving.value||loading.value)return;saving.value=true;message.value='';try{const result=await updateSystemSettings({...form,...brandPayload(form),...brandCopyPayload(form),smtpPassword:form.smtpPassword||''});Object.assign(form,result,normalizeBranding(result),normalizeBrandCopy(result));setBranding(result);form.smtpPassword='';message.value='配置已保存';}catch(error){message.value=error?.message||'保存失败，输入已保留';}finally{saving.value=false;}}
+async function save(){if(saving.value||brandSaving.value||loading.value)return;if(!validateNotebookMonths(form.notebookMaxQueryMonths)){message.value='记事最长查看时间须为 1–36 的整数月';return;}saving.value=true;message.value='';try{const result=await updateSystemSettings({...form,...brandPayload(form),...brandCopyPayload(form),smtpPassword:form.smtpPassword||''});Object.assign(form,result,normalizeBranding(result),normalizeBrandCopy(result));setBranding(result);form.smtpPassword='';message.value='配置已保存';}catch(error){message.value=error?.message||'保存失败，输入已保留';}finally{saving.value=false;}}
 async function testMail(){testing.value=true;message.value='';try{await sendTestEmail(testRecipient.value);message.value='测试邮件已发送，请检查收件箱';}finally{testing.value=false;}}
 onMounted(load);
 </script>
