@@ -40,6 +40,15 @@ public class NotebookImageMapper {
    * @param sql JDBC client */
   public NotebookImageMapper(JdbcTemplate sql) { this.sql = sql; }
 
+  /** Locks an event row before writing a staged or attached image.
+   * @param eventId event ID */
+  public void lockEvent(long eventId) {
+    if (sql.query("SELECT id FROM notebook_events WHERE id=? FOR UPDATE",
+        (row, ignored) -> row.getLong(1), eventId).isEmpty()) {
+      throw new BusinessException(ErrorCode.NOT_FOUND, "Notebook event not found");
+    }
+  }
+
   /** Adds metadata for an authorized record image.
    *
    * @param record record ID

@@ -164,7 +164,7 @@ public class NotebookEventMapper {
   public List<ImageKeyRow> imageKeysAfter(long eventId, long afterId, int limit) {
     return sql.query("SELECT image.id,image.storage_key FROM notebook_images image "
         + "JOIN notebook_records record ON record.id=image.record_id "
-        + "WHERE record.event_id=? AND image.id>? ORDER BY image.id LIMIT ?",
+        + "WHERE record.event_id=? AND image.id>? ORDER BY image.id LIMIT ? FOR UPDATE",
         (row, ignored) -> new ImageKeyRow(row.getLong("id"), row.getString("storage_key")),
         eventId, afterId, limit);
   }
@@ -176,7 +176,7 @@ public class NotebookEventMapper {
    * @return staged image keys */
   public List<ImageKeyRow> stagedImageKeysAfter(long eventId, long afterId, int limit) {
     return sql.query("SELECT id,storage_key FROM notebook_staged_images"
-        + " WHERE event_id=? AND id>? ORDER BY id LIMIT ?",
+        + " WHERE event_id=? AND id>? ORDER BY id LIMIT ? FOR UPDATE",
         (row, ignored) -> new ImageKeyRow(row.getLong("id"), row.getString("storage_key")),
         eventId, afterId, limit);
   }

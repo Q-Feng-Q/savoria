@@ -81,6 +81,7 @@ public class NotebookRecordService {
     if (request == null) throw bad("Record body is required");
     checkInterval(request.occurredFrom(), request.occurredTo());
     var scope = access.requireCreate(actor, eventId, request.occurredFrom(), request.occurredTo());
+    if (events.lockEvent(eventId) == null) throw missing();
     var event = events.findEvent(eventId);
     String title = title(request.title());
     String note = note(request.note());
@@ -120,6 +121,7 @@ public class NotebookRecordService {
     checkInterval(from, to);
     access.requireEdit(actor, old.eventId(), utc(old.from()), utc(old.to()));
     access.requireEdit(actor, old.eventId(), from, to);
+    if (events.lockEvent(old.eventId()) == null) throw missing();
     Map<String, Object> values = patch.values() == null ? decodeValues(old.valuesJson()) : patch.values();
     validator.validate(fields(old.eventId(), old.templateVersion()), values);
     var desired = new NotebookRecordMapper.Row(old.id(), old.eventId(), old.ownerUserId(),
@@ -144,6 +146,7 @@ public class NotebookRecordService {
   public NotebookRecordView upgradeTemplate(long actor, long recordId, Integer expectedVersion,
       Map<String, Object> values) {
     var old = requireRecord(actor, recordId);
+    events.lockEvent(old.eventId());
     access.requireOwner(actor, old.eventId());
     if (expectedVersion == null) throw bad("Expected record version is required");
     if (expectedVersion != old.lockVersion()) throw conflict();
@@ -168,7 +171,10 @@ public class NotebookRecordService {
    * @param recordId record ID */
   @Transactional
   public void delete(long actor, long recordId) {
-    var old = requireRecord(actor, recordId);
+    var prior = requireRecord(actor, recordId);
+    events.lockEvent(prior.eventId());
+    var old = mapper.lockAny(recordId);
+    if (old == null) throw missing();
     access.requireOwner(actor, old.eventId());
     long lastImageId = 0;
     while (true) {

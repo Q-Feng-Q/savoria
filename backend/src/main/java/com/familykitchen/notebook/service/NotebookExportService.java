@@ -127,7 +127,8 @@ public class NotebookExportService {
       row.put("updatedByUserId", record.updatedByUserId()); row.put("images", imageMetadata);
       rows.add(row);
     }
-    access.requireExport(actor, eventId, from, to, timeZone);
+    var finalScope = access.requireExport(actor, eventId, from, to, timeZone);
+    if (!scope.equals(finalScope)) throw missing();
     Map<String, Object> payload = new LinkedHashMap<>();
     payload.put("schemaVersion", "notebook-export/v1");
     payload.put("exportedAt", Instant.now().toString());

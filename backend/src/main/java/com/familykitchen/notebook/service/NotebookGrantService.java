@@ -100,6 +100,7 @@ public class NotebookGrantService {
   @Transactional
   public void revoke(long actor, long grantId) {
     var old = requireOwnedGrant(actor, grantId);
+    lockPair(actor, old.granteeUserId());
     if (grants.revoke(actor, grantId) != 1) throw missing();
     events.audit(actor, actor, old.eventId(), "GRANT_REVOKE");
   }

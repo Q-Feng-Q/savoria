@@ -75,6 +75,16 @@ public class NotebookGrantMapper {
         + "AND grantee_user_id=?", GRANT, eventId, grantee).stream().findFirst().orElse(null);
   }
 
+  /** Reads the current grant after mutation locks, ignoring an older RR snapshot.
+   * @param eventId event ID
+   * @param grantee recipient account
+   * @return current grant or null */
+  public NotebookGrantView forGranteeCurrent(long eventId, long grantee) {
+    return sql.query("SELECT " + COLUMNS + " FROM notebook_grants WHERE event_id=? "
+        + "AND grantee_user_id=? FOR UPDATE", GRANT, eventId, grantee)
+        .stream().findFirst().orElse(null);
+  }
+
   /** Lists all grants managed by an event owner.
    * @param eventId event ID
    * @return grants */

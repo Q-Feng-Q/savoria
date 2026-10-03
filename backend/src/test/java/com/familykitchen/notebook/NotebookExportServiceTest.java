@@ -89,4 +89,34 @@ class NotebookExportServiceTest {
         .isInstanceOf(com.familykitchen.common.error.BusinessException.class);
     verifyNoInteractions(audit);
   }
+
+  @Test void narrowingGrantDuringSerializationReturnsNoOldScopeRows() {
+    var access = mock(NotebookAccessPolicy.class);
+    var events = mock(NotebookEventMapper.class);
+    var records = mock(NotebookRecordService.class);
+    var images = mock(NotebookImageService.class);
+    var audit = mock(NotebookAuditService.class);
+    var from = LocalDate.of(2026, 1, 1);
+    var to = LocalDate.of(2026, 1, 31);
+    var wide = new NotebookAccessPolicy.Scope(1,
+        OffsetDateTime.parse("2026-01-01T00:00:00+08:00").toInstant(),
+        OffsetDateTime.parse("2026-02-01T00:00:00+08:00").toInstant(), false);
+    var narrow = new NotebookAccessPolicy.Scope(1,
+        OffsetDateTime.parse("2026-01-15T00:00:00+08:00").toInstant(),
+        wide.dataToExclusive(), false);
+    when(access.requireExport(2, 7, from, to, "Asia/Shanghai")).thenReturn(wide, narrow);
+    when(events.findEvent(7)).thenReturn(new NotebookEventView(7, 1, "Private", null, null,
+        0, false, false, 1));
+    when(events.template(7, 1)).thenReturn(new NotebookEventMapper.TemplateRow(7, 1, "[]"));
+    when(records.list(2, 7, from, to, "Asia/Shanghai", 0, 100)).thenReturn(new NotebookRecordPage(
+        List.of(new NotebookRecordView(9, 7, 1, 1, 1,
+            OffsetDateTime.parse("2026-01-03T10:00:00+08:00"),
+            OffsetDateTime.parse("2026-01-03T10:00:00+08:00"), "Earlier", null, 1,
+            Map.of(), List.of(), 0)), 0, 100, false));
+    var service = new NotebookExportService(access, events, records, images, audit,
+        new NotebookRangePolicy(() -> 36), new ObjectMapper());
+    assertThatThrownBy(() -> service.export(2, 7, from, to, "Asia/Shanghai", "COPY"))
+        .isInstanceOf(com.familykitchen.common.error.BusinessException.class);
+    verifyNoInteractions(audit);
+  }
 }

@@ -95,7 +95,12 @@ public class NotebookImageService {
    * @return opaque image ID and record value key */
   @Transactional
   public Uploaded upload(long actor, long recordId, MultipartFile file) {
-    var record = record(recordId);
+    var prior = record(recordId);
+    access.requireEdit(actor, prior.eventId(), prior.from().atOffset(ZoneOffset.UTC),
+        prior.to().atOffset(ZoneOffset.UTC));
+    images.lockEvent(prior.eventId());
+    var record = records.lockAny(recordId);
+    if (record == null) throw missing();
     access.requireEdit(actor, record.eventId(), record.from().atOffset(ZoneOffset.UTC),
         record.to().atOffset(ZoneOffset.UTC));
     Saved saved = save(file);
@@ -119,6 +124,7 @@ public class NotebookImageService {
   @Transactional
   public Uploaded stage(long actor, long eventId, MultipartFile file) {
     var scope = access.requireCreateCapability(actor, eventId);
+    images.lockEvent(eventId);
     Saved saved = save(file);
     try {
       long id = images.stage(eventId, scope.ownerUserId(), actor, saved.key(), saved.name(),
@@ -224,6 +230,10 @@ public class NotebookImageService {
   public void delete(long actor, long imageId) {
     var image = images.find(imageId);
     if (image == null) throw missing();
+    var prior = record(image.recordId());
+    access.requireEdit(actor, prior.eventId(), prior.from().atOffset(ZoneOffset.UTC),
+        prior.to().atOffset(ZoneOffset.UTC));
+    images.lockEvent(prior.eventId());
     var record = records.lockAny(image.recordId());
     if (record == null) throw missing();
     if (record.ownerUserId() != image.ownerUserId()) throw missing();

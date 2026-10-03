@@ -178,7 +178,7 @@ public class NotebookEventService {
    * @param confirmed whether the owner acknowledged the delete impact */
   @Transactional
   public void delete(long owner, long eventId, boolean confirmed) {
-    get(owner, eventId);
+    requireOwned(owner, mapper.lockEvent(eventId));
     if (!confirmed) throw bad("Confirm permanent notebook event deletion");
     long lastImageId = 0;
     while (true) {

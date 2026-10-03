@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.stereotype.Component;
 
 /** Account- and grant-scoped access boundary for private notebook content. */
@@ -48,7 +49,7 @@ public class NotebookAccessPolicy {
    * @param actor authenticated account
    * @return active grants */
   public List<NotebookGrantView> shared(long actor) {
-    return grants.forAccount(actor).stream().filter(grant -> active(actor, grant)).toList();
+    return grants.forAccount(actor).stream().filter(grant -> active(actor, grant, false)).toList();
   }
 
   /** Requires read access to an interval intersecting the requested local-date window.
@@ -145,22 +146,38 @@ public class NotebookAccessPolicy {
   private Scope scope(long actor, long eventId, Action action) {
     var event = events.findEvent(eventId);
     if (event == null) throw missing();
-    if (event.ownerUserId() == actor) return new Scope(actor, null, null, true);
-    var grant = grants.forGrantee(eventId, actor);
-    if (grant == null || !active(actor, grant)
-        || action == Action.CREATE && !grant.canCreate()
-        || action == Action.EDIT && !grant.canEdit()
-        || action == Action.EXPORT && !grant.canExport()) throw missing();
-    ZoneId zone = zone(grant.dataTimeZone());
-    return new Scope(event.ownerUserId(), grant.dataFrom().atStartOfDay(zone).toInstant(),
-        grant.dataTo().plusDays(1).atStartOfDay(zone).toInstant(), false);
+    boolean mutation = action == Action.CREATE || action == Action.EDIT;
+    if (event.ownerUserId() == actor) {
+      if (mutation && events.lockEvent(eventId) == null) throw missing();
+      return new Scope(actor, null, null, true);
+    }
+    try {
+      if (mutation) {
+        contacts.lockPair(event.ownerUserId(), actor);
+        if (events.lockEvent(eventId) == null) throw missing();
+      }
+      var grant = action == Action.READ ? grants.forGrantee(eventId, actor)
+          : grants.forGranteeCurrent(eventId, actor);
+      if (grant == null || !active(actor, grant, action != Action.READ)
+          || action == Action.CREATE && !grant.canCreate()
+          || action == Action.EDIT && !grant.canEdit()
+          || action == Action.EXPORT && !grant.canExport()) throw missing();
+      ZoneId zone = zone(grant.dataTimeZone());
+      return new Scope(event.ownerUserId(), grant.dataFrom().atStartOfDay(zone).toInstant(),
+          grant.dataTo().plusDays(1).atStartOfDay(zone).toInstant(), false);
+    } catch (CannotAcquireLockException changed) {
+      throw new BusinessException(ErrorCode.STATE_CONFLICT, "Notebook sharing changed; retry");
+    }
   }
 
-  private boolean active(long actor, NotebookGrantView grant) {
+  private boolean active(long actor, NotebookGrantView grant, boolean current) {
     Instant now = Instant.now();
     return grant.granteeUserId() == actor && grant.status().equals("ACTIVE")
         && !now.isBefore(grant.validFrom().toInstant()) && now.isBefore(grant.validTo().toInstant())
-        && contacts.exists(grant.ownerUserId(), actor) && contacts.exists(actor, grant.ownerUserId());
+        && (current ? contacts.existsCurrent(grant.ownerUserId(), actor)
+            && contacts.existsCurrent(actor, grant.ownerUserId())
+            : contacts.exists(grant.ownerUserId(), actor)
+            && contacts.exists(actor, grant.ownerUserId()));
   }
 
   private static ZoneId zone(String value) {

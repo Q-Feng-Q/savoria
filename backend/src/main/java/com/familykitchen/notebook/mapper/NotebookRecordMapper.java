@@ -139,7 +139,7 @@ public class NotebookRecordMapper {
    * @return image keys */
   public List<ImageKeyRow> imageKeysAfter(long recordId, long afterId, int limit) {
     return sql.query("SELECT id,storage_key FROM notebook_images WHERE record_id=? AND id>? "
-        + "ORDER BY id LIMIT ?", (row, ignored) -> new ImageKeyRow(row.getLong(1),
+        + "ORDER BY id LIMIT ? FOR UPDATE", (row, ignored) -> new ImageKeyRow(row.getLong(1),
         row.getString(2)), recordId, afterId, limit);
   }
 

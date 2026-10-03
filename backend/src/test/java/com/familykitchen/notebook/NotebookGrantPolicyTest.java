@@ -87,6 +87,29 @@ class NotebookGrantPolicyTest {
             error -> assertThat(error.errorCode()).isEqualTo(ErrorCode.NOT_FOUND));
   }
 
+  @Test void repeatableReadSnapshotCannotAuthorizeAfterConcurrentRevoke() throws Exception {
+    sql.update("INSERT INTO notebook_contacts(user_id,contact_user_id,source)"
+        + " VALUES (1,2,'LOGIN'),(2,1,'LOGIN')");
+    long grantId = grants.create(1, 1, request(false, true, false)).id();
+    var tx = new TransactionTemplate(new DataSourceTransactionManager(source));
+    tx.setIsolationLevel(TransactionDefinition.ISOLATION_REPEATABLE_READ);
+    var pool = Executors.newSingleThreadExecutor();
+    try {
+      tx.execute(status -> {
+        assertThat(sql.queryForObject("SELECT status FROM notebook_grants WHERE id=?",
+            String.class, grantId)).isEqualTo("ACTIVE");
+        try {
+          pool.submit(() -> sql.update("UPDATE notebook_grants SET status='REVOKED' WHERE id=?",
+              grantId)).get(5, TimeUnit.SECONDS);
+        } catch (Exception failure) { throw new AssertionError(failure); }
+        var time = instant("2026-01-10T12:00:00+08:00");
+        assertThatThrownBy(() -> policy.requireEdit(2, 1, time, time))
+            .isInstanceOf(BusinessException.class);
+        return null;
+      });
+    } finally { pool.shutdownNow(); }
+  }
+
   @Test void independentCapabilitiesAndFullLocalContainment() {
     sql.update("INSERT INTO notebook_contacts(user_id,contact_user_id,source) VALUES (1,2,'LOGIN'),(2,1,'LOGIN')");
     grants.create(1, 1, request(true, false, true));
