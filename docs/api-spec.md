@@ -377,3 +377,21 @@ Content-Type: application/json
 | `GET /api/notebook/events/{id}/calendar` | 必填闭区间 `from`、`to`、`timeZone` | 非空日期的 `{ date, recordCount }` 数组，以有限批次读取时间区间，不加载字段值 |
 
 时间使用带时区的 ISO 8601，服务端以 UTC 保存和返回。标题去首尾空白后为 1～200 字符，备注最多 20000 字符，发生起止可同日或跨日但不得倒置。字段值以服务器分配的 `key` 为键；必填字段不可缺失。选择值须在选项内，评分为 1～5，图片字段为至多 10 个私有对象键。普通编辑不会改写模板版本；记录和模板版本冲突返回 409。查询必须指定 `from`、`to` 和 IANA `timeZone`（例如 `Asia/Shanghai`，非法时区返回 400）；跨度按触及的本地日历月份计且不超过当前全局上限（默认 36）；无界正文列表不可用。日期查询边界与日历汇总按请求时区的本地日期解释，含夏令时转换；小程序调用这两个端点也必须传入当前用户时区。
+
+### 记事联系人与共享（登录账号）
+
+| 方法与路径 | 请求 | data |
+| --- | --- | --- |
+| `GET /api/notebook/contacts` | 无 | 当前账号已确认联系人；不依赖家庭关系 |
+| `GET /api/notebook/contacts/invites` | 无 | 发给当前账号的邀请元数据，不含令牌或哈希 |
+| `POST /api/notebook/contacts/invites` | `{ identifier }`，按用户名、手机号或邮箱查找 | `{ id, inviteeUserId, token, expiresAt }`；高熵一次性令牌仅创建时返回，发送方需通过受信渠道交给目标账号 |
+| `POST /api/notebook/contacts/invites/{id}/accept` | `{ token }` | 仅目标账号可确认；令牌哈希验证、7 天过期、一次性消费 |
+| `POST /api/notebook/contacts/invites/{id}/reject` | `{ token }` | 仅目标账号可拒绝；不可再次接受 |
+| `DELETE /api/notebook/contacts/{id}` | 无 | 删除双向联系人并撤销双方之间的记事授权 |
+| `GET /api/notebook/events/{id}/grants` | 无 | 仅事件所有者可读取的授权列表 |
+| `POST /api/notebook/events/{id}/grants` | 完整授权对象 | 仅事件所有者向已确认联系人授权 |
+| `PATCH /api/notebook/grants/{id}` | 完整授权对象；不能更换接收人 | 更新授权范围、有效期和独立能力开关 |
+| `DELETE /api/notebook/grants/{id}` | 无 | 仅所有者可撤销；后续请求立即失效 |
+| `GET /api/notebook/shared` | 无 | 当前仍有效、联系人仍存在的接收授权；默认空数组 |
+
+授权对象包含 `granteeUserId`、闭区间 `dataFrom` / `dataTo`、必填 IANA `dataTimeZone`、带时区的 `validFrom` / `validTo`，以及独立的 `canCreate`、`canEdit`、`canExport`（省略或 null 均为 false）。数据日期在 `dataTimeZone` 中解释，单次触及月份数须满足当前平台上限 1～36；授权有效时间与数据日期是两个独立约束，且 `validFrom < validTo`。共享者默认只有读权；新增需 `canCreate`，编辑已有记录需 `canEdit`，复制/导出需 `canExport`。共享者不能删记录、改事件或模板、管理授权或转授权。共享读取只返回发生起止时间完整落入授权数据区间的记录；查询日期与授权数据区间须有交集，且每次仍受全局查询月份上限限制。无权限、过期、撤销和区间外请求均返回不揭示资源存在性的 404。

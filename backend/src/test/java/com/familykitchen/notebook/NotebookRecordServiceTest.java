@@ -10,6 +10,8 @@ import com.familykitchen.common.error.BusinessException;
 import com.familykitchen.common.error.ErrorCode;
 import com.familykitchen.notebook.mapper.NotebookEventMapper;
 import com.familykitchen.notebook.mapper.NotebookRecordMapper;
+import com.familykitchen.notebook.mapper.NotebookContactMapper;
+import com.familykitchen.notebook.mapper.NotebookGrantMapper;
 import com.familykitchen.notebook.model.NotebookEventCreate;
 import com.familykitchen.notebook.model.NotebookFieldInput;
 import com.familykitchen.notebook.model.NotebookRecordCreate;
@@ -18,6 +20,7 @@ import com.familykitchen.notebook.model.NotebookTemplateRequest;
 import com.familykitchen.notebook.service.NotebookEventService;
 import com.familykitchen.notebook.service.NotebookRecordService;
 import com.familykitchen.notebook.service.NotebookRecordValidator;
+import com.familykitchen.notebook.service.NotebookAccessPolicy;
 import com.familykitchen.notebook.service.NotebookTemplateValidator;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -47,7 +50,8 @@ class NotebookRecordServiceTest {
     sql = new JdbcTemplate(source);
     sql.execute("CREATE TABLE users (id BIGINT PRIMARY KEY)");
     sql.execute("CREATE TABLE system_settings (id BIGINT PRIMARY KEY)");
-    for (String migration : List.of("V5__personal_notebook.sql", "V6__notebook_image_cleanup_queue.sql")) {
+    for (String migration : List.of("V5__personal_notebook.sql", "V6__notebook_image_cleanup_queue.sql",
+        "V7__notebook_grant_data_zone.sql")) {
       try (var stream = getClass().getResourceAsStream("/db/migration/" + migration)) {
         for (String command : new String(stream.readAllBytes(), StandardCharsets.UTF_8).split(";")) {
           if (!command.isBlank()) sql.execute(command);
@@ -61,7 +65,8 @@ class NotebookRecordServiceTest {
     events = new NotebookEventService(eventMapper, new NotebookTemplateValidator(), json, transactions);
     mapper = spy(new NotebookRecordMapper(sql));
     records = new NotebookRecordService(mapper, eventMapper,
-        new NotebookRecordValidator(), new NotebookRangePolicy(() -> 36), json);
+        new NotebookRecordValidator(), new NotebookRangePolicy(() -> 36), json,
+        new NotebookAccessPolicy(eventMapper, new NotebookContactMapper(sql), new NotebookGrantMapper(sql)));
   }
 
   @Test void createsSingleAndCrossDayAndRejectsReversedOrForeignEvent() {
@@ -127,7 +132,7 @@ class NotebookRecordServiceTest {
     proxied.upgradeTemplate(1, record.id(), record.lockVersion(), Map.of(key, "winner"));
 
     // Model a loser that read the old row before the winner committed.
-    doReturn(staleRead).when(mapper).find(1, record.id());
+    doReturn(staleRead).when(mapper).findAny(record.id());
     assertThatThrownBy(() -> proxied.upgradeTemplate(1, record.id(), record.lockVersion(),
         Map.of(key, "loser")))
         .isInstanceOfSatisfying(BusinessException.class,

@@ -36,6 +36,7 @@ public class NotebookRecordService {
   private final NotebookEventMapper events;
   private final NotebookRecordValidator validator;
   private final NotebookRangePolicy ranges;
+  private final NotebookAccessPolicy access;
   private final ObjectMapper json;
 
   /** Creates the record service using the live global month setting.
@@ -43,11 +44,13 @@ public class NotebookRecordService {
    * @param events event/template persistence
    * @param validator field-value validator
    * @param settings global setting service
-   * @param json JSON codec */
+   * @param json JSON codec
+   * @param access owner and shared grant policy */
   @Autowired
   public NotebookRecordService(NotebookRecordMapper mapper, NotebookEventMapper events,
-      NotebookRecordValidator validator, SystemSettingService settings, ObjectMapper json) {
-    this(mapper, events, validator, new NotebookRangePolicy(settings::notebookMaxQueryMonths), json);
+      NotebookRecordValidator validator, SystemSettingService settings, ObjectMapper json,
+      NotebookAccessPolicy access) {
+    this(mapper, events, validator, new NotebookRangePolicy(settings::notebookMaxQueryMonths), json, access);
   }
 
   /** Creates a record service with an explicit range policy for isolated integrations.
@@ -55,11 +58,13 @@ public class NotebookRecordService {
    * @param events event/template persistence
    * @param validator field-value validator
    * @param ranges date-range policy
-   * @param json JSON codec */
+   * @param json JSON codec
+   * @param access owner and shared grant policy */
   public NotebookRecordService(NotebookRecordMapper mapper, NotebookEventMapper events,
-      NotebookRecordValidator validator, NotebookRangePolicy ranges, ObjectMapper json) {
+      NotebookRecordValidator validator, NotebookRangePolicy ranges, ObjectMapper json,
+      NotebookAccessPolicy access) {
     this.mapper = mapper; this.events = events; this.validator = validator;
-    this.ranges = ranges; this.json = json;
+    this.ranges = ranges; this.json = json; this.access = access;
   }
 
   /** Creates a record bound to the current template.
@@ -69,17 +74,18 @@ public class NotebookRecordService {
    * @return created record */
   @Transactional
   public NotebookRecordView create(long actor, long eventId, NotebookRecordCreate request) {
-    var event = requireEvent(actor, eventId);
     if (request == null) throw bad("Record body is required");
     checkInterval(request.occurredFrom(), request.occurredTo());
+    var scope = access.requireCreate(actor, eventId, request.occurredFrom(), request.occurredTo());
+    var event = events.findEvent(eventId);
     String title = title(request.title());
     String note = note(request.note());
     var fields = fields(eventId, event.currentTemplateVersion());
     validator.validate(fields, request.values());
-    long id = mapper.insert(eventId, event.ownerUserId(), actor, request.occurredFrom().toInstant(),
+    long id = mapper.insert(eventId, scope.ownerUserId(), actor, request.occurredFrom().toInstant(),
         request.occurredTo().toInstant(), title, note, event.currentTemplateVersion(),
         encode(request.values()));
-    mapper.audit(actor, event.ownerUserId(), eventId, id, "RECORD_CREATE");
+    mapper.audit(actor, scope.ownerUserId(), eventId, id, "RECORD_CREATE");
     return get(actor, id);
   }
 
@@ -104,6 +110,8 @@ public class NotebookRecordService {
     OffsetDateTime from = patch.occurredFrom() == null ? utc(old.from()) : patch.occurredFrom();
     OffsetDateTime to = patch.occurredTo() == null ? utc(old.to()) : patch.occurredTo();
     checkInterval(from, to);
+    access.requireEdit(actor, old.eventId(), utc(old.from()), utc(old.to()));
+    access.requireEdit(actor, old.eventId(), from, to);
     Map<String, Object> values = patch.values() == null ? decodeValues(old.valuesJson()) : patch.values();
     validator.validate(fields(old.eventId(), old.templateVersion()), values);
     var desired = new NotebookRecordMapper.Row(old.id(), old.eventId(), old.ownerUserId(),
@@ -126,9 +134,10 @@ public class NotebookRecordService {
   public NotebookRecordView upgradeTemplate(long actor, long recordId, Integer expectedVersion,
       Map<String, Object> values) {
     var old = requireRecord(actor, recordId);
+    access.requireOwner(actor, old.eventId());
     if (expectedVersion == null) throw bad("Expected record version is required");
     if (expectedVersion != old.lockVersion()) throw conflict();
-    var event = requireEvent(actor, old.eventId());
+    var event = events.findEvent(old.eventId());
     if (event.currentTemplateVersion() == old.templateVersion()) {
       throw bad("Record already uses the current template");
     }
@@ -148,6 +157,7 @@ public class NotebookRecordService {
   @Transactional
   public void delete(long actor, long recordId) {
     var old = requireRecord(actor, recordId);
+    access.requireOwner(actor, old.eventId());
     long lastImageId = 0;
     while (true) {
       var batch = mapper.imageKeysAfter(recordId, lastImageId, 100);
@@ -171,14 +181,14 @@ public class NotebookRecordService {
    * @return matching records */
   public NotebookRecordPage list(long actor, long eventId, LocalDate from, LocalDate to,
       String timeZone, int page, int size) {
-    requireEvent(actor, eventId);
     ranges.requireAllowed(from, to);
     ZoneId zone = zone(timeZone);
+    var scope = access.requireRead(actor, eventId, from, to, timeZone);
     if (page < 0 || size < 1 || size > 100 || (long) page * size > Integer.MAX_VALUE) {
       throw bad("Invalid record page");
     }
-    var rows = mapper.page(actor, eventId, dayStart(from, zone), dayEndExclusive(to, zone),
-        size + 1, (long) page * size);
+    var rows = mapper.page(scope.ownerUserId(), eventId, dayStart(from, zone), dayEndExclusive(to, zone),
+        scope.dataFrom(), scope.dataToExclusive(), size + 1, (long) page * size);
     boolean hasMore = rows.size() > size;
     return new NotebookRecordPage(rows.stream().limit(size).map(this::view).toList(), page, size, hasMore);
   }
@@ -192,14 +202,15 @@ public class NotebookRecordService {
    * @return ordered nonempty calendar days */
   public List<NotebookCalendarSummary> calendar(long actor, long eventId, LocalDate from, LocalDate to,
       String timeZone) {
-    requireEvent(actor, eventId);
     ranges.requireAllowed(from, to);
     ZoneId zone = zone(timeZone);
+    var scope = access.requireRead(actor, eventId, from, to, timeZone);
     Map<LocalDate, Long> counts = new TreeMap<>();
     long cursor = 0;
     while (true) {
-      var batch = mapper.intervalsAfter(actor, eventId, dayStart(from, zone),
-          dayEndExclusive(to, zone), cursor, CALENDAR_BATCH_SIZE);
+      var batch = mapper.intervalsAfter(scope.ownerUserId(), eventId, dayStart(from, zone),
+          dayEndExclusive(to, zone), scope.dataFrom(), scope.dataToExclusive(), cursor,
+          CALENDAR_BATCH_SIZE);
       if (batch.isEmpty()) break;
       for (var interval : batch) {
         LocalDate first = interval.from().atZone(zone).toLocalDate();
@@ -217,15 +228,10 @@ public class NotebookRecordService {
     return List.copyOf(result);
   }
 
-  private com.familykitchen.notebook.model.NotebookEventView requireEvent(long actor, long eventId) {
-    var event = events.findEvent(eventId);
-    if (event == null || event.ownerUserId() != actor) throw missing();
-    return event;
-  }
-
   private NotebookRecordMapper.Row requireRecord(long actor, long recordId) {
-    var row = mapper.find(actor, recordId);
+    var row = mapper.findAny(recordId);
     if (row == null) throw missing();
+    access.requireRecordRead(actor, row.eventId(), row.from(), row.to());
     return row;
   }
 

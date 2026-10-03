@@ -86,6 +86,14 @@ public class NotebookRecordMapper {
         RECORD, id, owner).stream().findFirst().orElse(null);
   }
 
+  /** Reads an undeleted record before the access policy checks it.
+   * @param id record ID
+   * @return row or null */
+  public Row findAny(long id) {
+    return sql.query("SELECT * FROM notebook_records WHERE id=? AND deleted=FALSE", RECORD, id)
+        .stream().findFirst().orElse(null);
+  }
+
   /** Applies a version-checked record edit.
    * @param row desired row state
    * @param expectedVersion previously read version
@@ -132,15 +140,21 @@ public class NotebookRecordMapper {
    * @param eventId event ID
    * @param from inclusive UTC lower bound
    * @param toExclusive exclusive UTC upper bound
+   * @param containedFrom optional inclusive grant bound
+   * @param containedToExclusive optional exclusive grant bound
    * @param limit rows including one lookahead
    * @param offset page offset
    * @return matching rows */
   public List<Row> page(long owner, long eventId, Instant from, Instant toExclusive,
-      int limit, long offset) {
-    return sql.query("SELECT * FROM notebook_records WHERE owner_user_id=? AND event_id=? "
-        + "AND deleted=FALSE AND occurred_to>=? AND occurred_from<? "
+      Instant containedFrom, Instant containedToExclusive, int limit, long offset) {
+    String base = "SELECT * FROM notebook_records WHERE owner_user_id=? AND event_id=? "
+        + "AND deleted=FALSE AND occurred_to>=? AND occurred_from<? ";
+    if (containedFrom == null) return sql.query(base + "ORDER BY occurred_from,id LIMIT ? OFFSET ?",
+        RECORD, owner, eventId, Timestamp.from(from), Timestamp.from(toExclusive), limit, offset);
+    return sql.query(base + "AND occurred_from>=? AND occurred_to<? "
         + "ORDER BY occurred_from,id LIMIT ? OFFSET ?", RECORD, owner, eventId,
-        Timestamp.from(from), Timestamp.from(toExclusive), limit, offset);
+        Timestamp.from(from), Timestamp.from(toExclusive), Timestamp.from(containedFrom),
+        Timestamp.from(containedToExclusive), limit, offset);
   }
 
   /** Reads one bounded keyset page of occurrence intervals without body values.
@@ -148,17 +162,22 @@ public class NotebookRecordMapper {
    * @param eventId event ID
    * @param from inclusive UTC lower bound
    * @param toExclusive exclusive UTC upper bound
+   * @param containedFrom optional inclusive grant bound
+   * @param containedToExclusive optional exclusive grant bound
    * @param afterId exclusive record ID cursor
    * @param limit maximum rows
    * @return matching occurrence intervals */
   public List<Interval> intervalsAfter(long owner, long eventId, Instant from, Instant toExclusive,
-      long afterId, int limit) {
-    return sql.query("SELECT id,occurred_from,occurred_to FROM notebook_records WHERE owner_user_id=? "
-        + "AND event_id=? AND deleted=FALSE AND occurred_to>=? AND occurred_from<? AND id>? "
-        + "ORDER BY id LIMIT ?",
-        (result, ignored) -> new Interval(result.getLong(1), result.getTimestamp(2).toInstant(),
-            result.getTimestamp(3).toInstant()), owner, eventId, Timestamp.from(from),
-        Timestamp.from(toExclusive), afterId, limit);
+      Instant containedFrom, Instant containedToExclusive, long afterId, int limit) {
+    String base = "SELECT id,occurred_from,occurred_to FROM notebook_records WHERE owner_user_id=? "
+        + "AND event_id=? AND deleted=FALSE AND occurred_to>=? AND occurred_from<? AND id>? ";
+    RowMapper<Interval> interval = (result, ignored) -> new Interval(result.getLong(1),
+        result.getTimestamp(2).toInstant(), result.getTimestamp(3).toInstant());
+    if (containedFrom == null) return sql.query(base + "ORDER BY id LIMIT ?", interval, owner,
+        eventId, Timestamp.from(from), Timestamp.from(toExclusive), afterId, limit);
+    return sql.query(base + "AND occurred_from>=? AND occurred_to<? ORDER BY id LIMIT ?",
+        interval, owner, eventId, Timestamp.from(from), Timestamp.from(toExclusive), afterId,
+        Timestamp.from(containedFrom), Timestamp.from(containedToExclusive), limit);
   }
 
   /** Records an action without duplicating field content.
