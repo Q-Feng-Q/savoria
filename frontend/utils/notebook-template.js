@@ -2,6 +2,12 @@ const FIELD_TYPES = [
   'TEXT', 'LONG_TEXT', 'NUMBER', 'DATE', 'TIME', 'DATETIME',
   'SINGLE_SELECT', 'MULTI_SELECT', 'BOOLEAN', 'RATING', 'IMAGE'
 ];
+const FIELD_TYPE_LABELS = {
+  TEXT: '文本', LONG_TEXT: '长文本', NUMBER: '数字', DATE: '日期', TIME: '时间',
+  DATETIME: '日期时间', SINGLE_SELECT: '单选', MULTI_SELECT: '多选',
+  BOOLEAN: '是/否', RATING: '评分', IMAGE: '图片'
+};
+const fieldTypeLabel = (type) => FIELD_TYPE_LABELS[type] || type;
 const editorFor = (type) => ({ TEXT: 'input', LONG_TEXT: 'textarea', NUMBER: 'number',
   DATE: 'date', TIME: 'time', DATETIME: 'datetime', SINGLE_SELECT: 'picker',
   MULTI_SELECT: 'checks', BOOLEAN: 'switch', RATING: 'rating', IMAGE: 'image' })[type];
@@ -77,5 +83,5 @@ function normalizeValues(fields, values) {
   return output;
 }
 
-module.exports = { FIELD_TYPES, editorFor, validateFields, prepareFields,
+module.exports = { FIELD_TYPES, fieldTypeLabel, editorFor, validateFields, prepareFields,
   validateValues, normalizeValues };

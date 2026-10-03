@@ -11,7 +11,7 @@
     <view class="nb-label">备注</view><textarea class="nb-input nb-area" value="{{note}}" maxlength="20000" data-key="note" bindinput="onText" placeholder="可以补充一些细节（选填）"/>
     <view class="nb-section">记录字段 · 模板 v{{upgradeMode ? currentVersion : templateVersion}}</view>
     <view wx:for="{{fields}}" wx:key="key" class="nb-field">
-      <view class="nb-label">{{item.label}}{{item.required ? ' *' : ''}}<text class="nb-type">{{item.type}}{{item.unit ? ' · ' + item.unit : ''}}</text></view>
+      <view class="nb-label">{{item.label}}{{item.required ? ' *' : ''}}<text class="nb-type">{{item.typeLabel}}{{item.unit ? ' · ' + item.unit : ''}}</text></view>
       <input wx:if="{{item.editor === 'input' || item.editor === 'number'}}" class="nb-input" type="{{item.editor === 'number' ? 'digit' : 'text'}}" value="{{item.displayValue}}" data-key="{{item.key}}" bindinput="onField" placeholder="请输入"/>
       <textarea wx:elif="{{item.editor === 'textarea'}}" class="nb-input nb-area" value="{{item.displayValue}}" data-key="{{item.key}}" bindinput="onField" placeholder="请输入"/>
       <view wx:elif="{{item.editor === 'datetime'}}" class="nb-time"><picker mode="date" value="{{item.datetimeDate}}" data-key="{{item.key}}" data-part="date" bindchange="onFieldDatetime"><view>{{item.datetimeDate || '选择日期'}}</view></picker><picker mode="time" value="{{item.datetimeTime}}" data-key="{{item.key}}" data-part="time" bindchange="onFieldDatetime"><view>{{item.datetimeTime || '选择时间'}}</view></picker></view>

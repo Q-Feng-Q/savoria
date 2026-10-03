@@ -3,7 +3,7 @@ const { requireSession, showApiError } = require('../../../../utils/page-api');
 const { createDirtyForm } = require('../../../../utils/dirty-form');
 const { createIdentityLoadGuard } = require('../../../../utils/identity-load');
 const { recordWithinGrant } = require('../../../../utils/notebook-permissions');
-const { validateValues, normalizeValues, editorFor } = require('../../../../utils/notebook-template');
+const { validateValues, normalizeValues, editorFor, fieldTypeLabel } = require('../../../../utils/notebook-template');
 const calendar = require('../../../../utils/notebook-calendar');
 
 const localDate = (value) => calendar.dateKey(new Date(value));
@@ -86,6 +86,7 @@ Page({
   },
   decorate(fields, values = {}) {
     return (fields || []).map((field) => ({ ...field, editor: editorFor(field.type),
+      typeLabel: fieldTypeLabel(field.type),
       displayValue: values[field.key] == null ? '' : values[field.key],
       datetimeDate: values[field.key] ? localDate(values[field.key]) : '',
       datetimeTime: values[field.key] ? localTime(values[field.key]) : '',

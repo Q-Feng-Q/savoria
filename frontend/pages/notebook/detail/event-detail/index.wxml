@@ -6,7 +6,7 @@
     <view class="nb-description">{{event.description || '还没有添加说明。'}}</view>
     <view class="nb-actions"><view bindtap="edit">编辑事件</view><view bindtap="toggleFocus">{{event.starred ? '★ 已关注' : '☆ 关注'}}</view><view bindtap="share">共享设置</view></view>
     <view class="nb-section">字段版本</view>
-    <view wx:for="{{versions}}" wx:key="version" class="nb-version"><view>版本 {{item.version}}{{item.version === event.currentTemplateVersion ? ' · 当前' : ' · 历史'}}</view><view class="nb-meta">{{item.fields.length}} 个字段 · 历史定义保持不变</view><view wx:for="{{item.fields}}" wx:for-item="field" wx:key="key" class="nb-template-field">{{field.label}} · {{field.type}}{{field.required ? ' · 必填' : ''}}</view></view>
+    <view wx:for="{{versions}}" wx:key="version" class="nb-version"><view>版本 {{item.version}}{{item.version === event.currentTemplateVersion ? ' · 当前' : ' · 历史'}}</view><view class="nb-meta">{{item.fields.length}} 个字段 · 历史定义保持不变</view><view wx:for="{{item.fields}}" wx:for-item="field" wx:key="key" class="nb-template-field">{{field.label}} · {{field.typeLabel}}{{field.required ? ' · 必填' : ''}}</view></view>
     <view class="nb-note">已有记录按创建时的模板显示。要采用新字段，请在记录编辑页显式升级。</view>
     <view class="nb-section">历史记录</view>
     <view class="nb-dates"><picker mode="date" value="{{from}}" data-field="from" bindchange="changeRange"><view>从 {{from}}</view></picker><picker mode="date" value="{{to}}" data-field="to" bindchange="changeRange"><view>到 {{to}}</view></picker></view>

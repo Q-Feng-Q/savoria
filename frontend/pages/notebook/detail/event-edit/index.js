@@ -8,7 +8,7 @@ Page({
   identityLoad: createIdentityLoadGuard(),
   data: { phase: 'ready', editing: false, id: null, name: '', category: '', description: '',
     fields: [{ type: 'TEXT', typeIndex: 0, label: '', required: false, options: [], optionsText: '', unit: null }],
-    types: template.FIELD_TYPES, errorMessage: '', busy: false },
+    typeLabels: template.FIELD_TYPES.map(template.fieldTypeLabel), errorMessage: '', busy: false },
   onLoad(options) {
     this.form = createDirtyForm(wx);
     const session = requireSession();

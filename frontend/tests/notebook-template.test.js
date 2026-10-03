@@ -2,6 +2,21 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const template = require('../utils/notebook-template');
 
+test('field type labels are Chinese while saved field codes stay unchanged', () => {
+  assert.deepEqual(template.FIELD_TYPES.map(template.fieldTypeLabel), [
+    '文本', '长文本', '数字', '日期', '时间', '日期时间',
+    '单选', '多选', '是/否', '评分', '图片'
+  ]);
+  assert.equal(template.prepareFields([{ type: 'TEXT', label: '备注' }])[0].type, 'TEXT');
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const editor = fs.readFileSync(path.join(__dirname,
+    '../pages/notebook/detail/event-edit/index.wxml'), 'utf8');
+  assert.match(editor, /range="{{typeLabels}}"/);
+  assert.match(editor, /typeLabels\[item\.typeIndex\]/);
+  assert.doesNotMatch(editor, /{{item\.type}}/);
+});
+
 test('all eleven field types have an editor and required values are checked', () => {
   const types = ['TEXT', 'LONG_TEXT', 'NUMBER', 'DATE', 'TIME', 'DATETIME',
     'SINGLE_SELECT', 'MULTI_SELECT', 'BOOLEAN', 'RATING', 'IMAGE'];

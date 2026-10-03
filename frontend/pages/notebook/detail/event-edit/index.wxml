@@ -10,14 +10,14 @@
     <view wx:for="{{fields}}" wx:key="index" class="nb-field">
       <view class="nb-field-head"><text>字段 {{index + 1}}</text><view class="nb-field-move"><text data-index="{{index}}" data-direction="-1" bindtap="moveField">上移</text><text data-index="{{index}}" data-direction="1" bindtap="moveField">下移</text><text class="nb-remove" data-index="{{index}}" bindtap="removeField">移除</text></view></view>
       <input class="nb-input" value="{{item.label}}" data-index="{{index}}" data-key="label" bindinput="fieldInput" placeholder="字段名称"/>
-      <picker range="{{types}}" value="{{item.typeIndex}}" data-index="{{index}}" bindchange="fieldType"><view class="nb-input">{{item.type}}　⌄</view></picker>
+      <picker range="{{typeLabels}}" value="{{item.typeIndex}}" data-index="{{index}}" bindchange="fieldType"><view class="nb-input">{{typeLabels[item.typeIndex]}}　⌄</view></picker>
       <view class="nb-required"><text>必填</text><switch checked="{{item.required}}" color="#779155" data-index="{{index}}" bindchange="fieldRequired"/></view>
       <input wx:if="{{item.type === 'SINGLE_SELECT' || item.type === 'MULTI_SELECT'}}" class="nb-input" value="{{item.optionsText}}" data-index="{{index}}" data-key="optionsText" bindinput="fieldInput" placeholder="用逗号分隔选项"/>
       <input wx:if="{{item.type === 'NUMBER'}}" class="nb-input" value="{{item.unit}}" data-index="{{index}}" data-key="unit" bindinput="fieldInput" placeholder="单位（可选）"/>
     </view>
     <view class="nb-section">新记录表单预览</view>
     <view wx:if="{{!fields.length}}" class="nb-note">无自定义字段，记录仍可填写标题与备注。</view>
-    <view wx:for="{{fields}}" wx:key="index" class="nb-preview"><text>{{item.label || '未命名字段'}}{{item.required ? ' *' : ''}}</text><text>{{item.type}}{{item.unit ? ' · ' + item.unit : ''}}</text></view>
+    <view wx:for="{{fields}}" wx:key="index" class="nb-preview"><text>{{item.label || '未命名字段'}}{{item.required ? ' *' : ''}}</text><text>{{typeLabels[item.typeIndex]}}{{item.unit ? ' · ' + item.unit : ''}}</text></view>
     <view class="nb-note">调整字段会发布新版本；已有记录保留原来的字段定义。</view>
   </block>
   <view class="nb-bottom" bindtap="save">{{busy ? '保存中…' : '保存事件'}}</view>

@@ -2,6 +2,7 @@ const { createApiRuntime } = require('../../../../utils/api-runtime');
 const { requireSession, showApiError } = require('../../../../utils/page-api');
 const { createIdentityLoadGuard } = require('../../../../utils/identity-load');
 const calendar = require('../../../../utils/notebook-calendar');
+const { fieldTypeLabel } = require('../../../../utils/notebook-template');
 
 function validRange(from, to, maxQueryMonths) {
   const months = (Number(to.slice(0, 4)) - Number(from.slice(0, 4))) * 12
@@ -31,7 +32,9 @@ Page({
         notebook.getEvent(this.data.id), notebook.listTemplates(this.data.id), notebook.getConfig()
       ]);
       if (!this.identityLoad.isCurrent(ticket)) return;
-      this.setData({ event, versions: versions || [], maxQueryMonths: config.maxQueryMonths || 36,
+      this.setData({ event, versions: (versions || []).map((version) => ({ ...version,
+        fields: (version.fields || []).map((field) => ({ ...field,
+          typeLabel: fieldTypeLabel(field.type) })) })), maxQueryMonths: config.maxQueryMonths || 36,
         phase: 'ready' });
       await this.loadRecords(0, ticket);
     } catch (error) {
