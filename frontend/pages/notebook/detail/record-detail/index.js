@@ -2,6 +2,7 @@ const { createApiRuntime } = require('../../../../utils/api-runtime');
 const { requireSession, showApiError } = require('../../../../utils/page-api');
 const { createIdentityLoadGuard } = require('../../../../utils/identity-load');
 const { recordWithinGrant } = require('../../../../utils/notebook-permissions');
+const calendar = require('../../../../utils/notebook-calendar');
 
 function display(field, value) {
   if (field.type === 'IMAGE') return `${Array.isArray(value) ? value.length : 0} 张私有图片`;
@@ -33,7 +34,9 @@ Page({
       if (!this.identityLoad.isCurrent(ticket)) return;
       const canEdit = owner || (grants || []).some((grant) => grant.eventId === record.eventId
         && recordWithinGrant(grant, record));
-      this.setData({ phase: 'ready', record, owner, canEdit, images,
+      this.setData({ phase: 'ready', record: { ...record,
+        displayRange: calendar.formatRecordRange(record.occurredFrom, record.occurredTo) },
+        owner, canEdit, images,
         imageError: (record.fields || []).some((field) => field.type === 'IMAGE'
           && ((record.values || {})[field.key] || []).length)
           && !images.length ? '图片暂不可预览，请稍后重试' : '',

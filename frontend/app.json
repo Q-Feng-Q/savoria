@@ -55,7 +55,8 @@
         "contacts/index",
         "sharing/index",
         "shared/index",
-        "export/index"
+        "export/index",
+        "history/index"
       ]
     }
   ],

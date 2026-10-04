@@ -2,6 +2,7 @@ const { createApiRuntime } = require('../../../../utils/api-runtime');
 const { requireSession, showApiError } = require('../../../../utils/page-api');
 const { createIdentityLoadGuard } = require('../../../../utils/identity-load');
 const { grantCapabilities, boundedGrantRange, validSharedRange } = require('../../../../utils/notebook-permissions');
+const calendar = require('../../../../utils/notebook-calendar');
 
 Page({
   identityLoad: createIdentityLoadGuard(),
@@ -48,7 +49,9 @@ Page({
       timeZone: grant.dataTimeZone, page, size: 50
     });
     if (!this.identityLoad.isCurrent(ticket) || this.data.selectedId !== grant.id) return;
-    this.setData({ records: page ? [...this.data.records, ...(result.items || [])] : result.items || [],
+    const items = (result.items || []).map((record) => ({ ...record,
+      displayRange: calendar.formatRecordRange(record.occurredFrom, record.occurredTo) }));
+    this.setData({ records: page ? [...this.data.records, ...items] : items,
       page, hasMore: Boolean(result.hasMore) });
   },
   async selectGrant(event) {

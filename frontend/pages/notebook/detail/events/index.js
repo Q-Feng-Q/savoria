@@ -12,9 +12,10 @@ Page({
     const ticket = this.identityLoad.begin(session);
     this.setData({ phase: 'loading', errorMessage: '' });
     try {
-      const events = await createApiRuntime().notebook.listEvents(this.data.includeArchived);
+      const archiveView = this.data.includeArchived;
+      const events = await createApiRuntime().notebook.listEvents(archiveView);
       if (!this.identityLoad.isCurrent(ticket)) return;
-      this.setData({ events: events || [], phase: 'ready' });
+      this.setData({ events: (events || []).filter((item) => Boolean(item.archived) === archiveView), phase: 'ready' });
     } catch (error) {
       if (!this.identityLoad.isCurrent(ticket)) return;
       this.setData({ phase: 'error', errorMessage: error.message || '事件加载失败' });

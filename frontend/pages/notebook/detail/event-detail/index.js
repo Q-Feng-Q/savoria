@@ -60,7 +60,9 @@ Page({
       const result = await createApiRuntime().notebook.listRecords(this.data.id,
         { from, to, timeZone: calendar.timeZone(), page, size: 50 });
       if (!this.identityLoad.isCurrent(ticket)) return;
-      this.setData({ records: page ? [...this.data.records, ...(result.items || [])] : result.items || [],
+      const items = (result.items || []).map((record) => ({ ...record,
+        displayRange: calendar.formatRecordRange(record.occurredFrom, record.occurredTo) }));
+      this.setData({ records: page ? [...this.data.records, ...items] : items,
         page, hasMore: Boolean(result.hasMore) });
     } catch (error) {
       if (this.identityLoad.isCurrent(ticket)) this.setData({ recordsError: error.message || '历史记录加载失败' });
@@ -74,6 +76,9 @@ Page({
   openExport() {
     if (!validRange(this.data.from, this.data.to, this.data.maxQueryMonths)) return;
     wx.navigateTo({ url: `/pages/notebook/detail/export/index?eventId=${this.data.id}&from=${this.data.from}&to=${this.data.to}` });
+  },
+  openHistory() {
+    wx.navigateTo({ url: `/pages/notebook/detail/history/index?eventId=${this.data.id}` });
   },
   edit() { wx.navigateTo({ url: `/pages/notebook/detail/event-edit/index?id=${this.data.id}` }); },
   addRecord() { wx.navigateTo({ url: `/pages/notebook/detail/record-edit/index?eventId=${this.data.id}` }); },

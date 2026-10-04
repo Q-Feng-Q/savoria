@@ -13,7 +13,7 @@ const instant = (day, time) => new Date(`${day}T${time}:00`).toISOString();
 Page({
   identityLoad: createIdentityLoadGuard(),
   data: { phase: 'loading', eventId: null, recordId: null, title: '', note: '',
-    occurredDate: '', startTime: '12:00', endDate: '', endTime: '12:00',
+    occurredDate: '', startTime: '00:00', endDate: '', endTime: '23:59',
     fields: [], values: {}, imageRefs: {}, templateVersion: 1, currentVersion: 1,
     upgradeMode: false, busy: false, errorMessage: '' },
   onLoad(options) {
@@ -72,7 +72,7 @@ Page({
       this.setData({ phase: 'ready', eventId, fields: this.decorate(fields, values),
         currentVersion: form ? form.templateVersion : record.templateVersion,
         templateVersion: record ? record.templateVersion : form.templateVersion,
-        title: record ? record.title : '', note: record && record.note || '',
+        title: record ? record.title : form.name, note: record && record.note || '',
         values, imageRefs,
         occurredDate: from ? localDate(from) : this.data.occurredDate,
         startTime: from ? localTime(from) : this.data.startTime,

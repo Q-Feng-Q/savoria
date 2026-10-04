@@ -1,14 +1,20 @@
 const { createApiRuntime } = require('../../../../utils/api-runtime');
 const { requireSession, showApiError } = require('../../../../utils/page-api');
 const template = require('../../../../utils/notebook-template');
+const presets = require('../../../../utils/notebook-presets');
 const { createDirtyForm } = require('../../../../utils/dirty-form');
 const { createIdentityLoadGuard } = require('../../../../utils/identity-load');
+
+const presetCatalog = presets.listPresets();
+const presetCategories = ['全部', ...new Set(presetCatalog.map((item) => item.category))];
 
 Page({
   identityLoad: createIdentityLoadGuard(),
   data: { phase: 'ready', editing: false, id: null, name: '', category: '', description: '',
     fields: [{ type: 'TEXT', typeIndex: 0, label: '', required: false, options: [], optionsText: '', unit: null }],
-    typeLabels: template.FIELD_TYPES.map(template.fieldTypeLabel), errorMessage: '', busy: false },
+    typeLabels: template.FIELD_TYPES.map(template.fieldTypeLabel), errorMessage: '', busy: false,
+    showPresetPicker: false, presetCount: presetCatalog.length, presetCategories, presetCategory: '全部',
+    visiblePresets: presetCatalog, selectedPreset: null, selectedPresetFields: [] },
   onLoad(options) {
     this.form = createDirtyForm(wx);
     const session = requireSession();
@@ -50,6 +56,48 @@ Page({
   onText(event) {
     const key = event.currentTarget.dataset.key;
     this.setData({ [key]: event.detail.value }); this.form.markDirty();
+  },
+  openPresetPicker() {
+    if (this.data.editing) return;
+    this.setData({ showPresetPicker: true });
+  },
+  closePresetPicker() { this.setData({ showPresetPicker: false }); },
+  choosePresetCategory(event) {
+    const category = event.currentTarget.dataset.category;
+    if (!presetCategories.includes(category)) return;
+    this.setData({ presetCategory: category, visiblePresets: category === '全部'
+      ? presetCatalog : presetCatalog.filter((item) => item.category === category),
+    selectedPreset: null, selectedPresetFields: [] });
+  },
+  selectPreset(event) {
+    const preset = presets.getPreset(event.currentTarget.dataset.id);
+    if (!preset) return;
+    this.setData({ selectedPreset: preset, selectedPresetFields: preset.fields.map((field) => ({
+      label: field.label, typeLabel: template.fieldTypeLabel(field.type), unit: field.unit,
+      required: field.required, optionsText: (field.options || []).join('、') })) });
+  },
+  hasDraftContent() {
+    const { name, category, description, fields } = this.data;
+    const blankField = fields.length === 1 && fields[0].type === 'TEXT' && !fields[0].label &&
+      !fields[0].required && !(fields[0].options || []).length && !fields[0].unit;
+    return Boolean(String(name).trim() || String(category).trim() || String(description).trim() ||
+      !blankField || this.form && this.form.isDirty());
+  },
+  async importPreset() {
+    if (this.data.editing || !this.data.selectedPreset) return;
+    const draft = presets.copyPresetToEvent(this.data.selectedPreset.id);
+    if (!draft) return;
+    if (this.hasDraftContent()) {
+      const decision = await wx.showModal({ title: '替换当前内容？',
+        content: '导入模板会替换尚未保存的事件名称、分类、说明和字段。',
+        confirmText: '导入模板' });
+      if (!decision.confirm) return;
+    }
+    this.setData({ name: draft.name, category: draft.category, description: draft.description,
+      fields: draft.fields.map((field) => ({ ...field,
+        typeIndex: template.FIELD_TYPES.indexOf(field.type), optionsText: field.options.join('，') })),
+      showPresetPicker: false });
+    this.form.markDirty();
   },
   fieldInput(event) {
     const index = Number(event.currentTarget.dataset.index);

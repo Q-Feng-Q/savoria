@@ -2,13 +2,23 @@ const { createApiRuntime } = require('../../../utils/api-runtime');
 const { requireSession, showApiError } = require('../../../utils/page-api');
 const { createIdentityLoadGuard } = require('../../../utils/identity-load');
 const calendar = require('../../../utils/notebook-calendar');
+const { MAX_SELECTED_EVENTS, reconcileSelection, assignSelectionTones,
+  visibleSelectedEvents, mergeEventMonths, calendarHeartSources, groupTimelineRecords } =
+  require('../../../utils/notebook-overview');
 
 Page({
   identityLoad: createIdentityLoadGuard(),
+  selectionUserId: null,
+  hasManualSelection: false,
   data: {
     phase: 'loading', view: 'calendar', month: '', selectedDate: '', days: [],
     events: [], displayEvents: [], categories: ['全部类别'], categoryIndex: 0,
-    selectedCategory: '', activeEventId: null, records: [], visibleRecords: [], summary: {}, maxQueryMonths: 36,
+    selectedCategory: '', selectedEventIds: [], selectedEventMap: {},
+    selectedEventToneMap: {}, visibleSelectedEventIds: [],
+    records: [], visibleRecords: [], timelineGroups: [], summary: {}, dayTones: {},
+    calendarHeartSrc: {},
+    maxQueryMonths: 36,
+    showRecordEventPicker: false, recordEventOptions: [],
     errorMessage: '', isPrivate: true
   },
   onShow() { this.load(); },
@@ -16,10 +26,20 @@ Page({
     const session = requireSession();
     if (!session) return;
     const loadToken = this.identityLoad.begin(session);
+    if (this.selectionUserId !== session.userId) {
+      this.selectionUserId = session.userId;
+      this.hasManualSelection = false;
+      this.setData({ selectedEventIds: [], selectedEventMap: {},
+        selectedEventToneMap: {}, selectedCategory: '' });
+    }
     const now = new Date();
     const month = this.data.month || calendar.monthKey(now);
     const selectedDate = this.data.selectedDate || calendar.dateKey(now);
-    this.setData({ phase: 'loading', errorMessage: '', month, selectedDate, days: calendar.monthDays(month) });
+    this.setData({ phase: 'loading', errorMessage: '', month, selectedDate,
+      days: calendar.monthDays(month), records: [], visibleRecords: [], timelineGroups: [],
+      summary: {}, dayTones: {},
+      calendarHeartSrc: calendarHeartSources({}, {}, selectedDate),
+      showRecordEventPicker: false });
     try {
       const notebook = createApiRuntime().notebook;
       const [config, events] = await Promise.all([notebook.getConfig(), notebook.listEvents()]);
@@ -29,11 +49,16 @@ Page({
         ? this.data.selectedCategory : '';
       const displayEvents = (events || []).filter((event) => !selectedCategory
         || event.category === selectedCategory);
-      const activeEventId = displayEvents.some((event) => event.id === this.data.activeEventId)
-        ? this.data.activeEventId : (displayEvents[0] || {}).id || null;
+      const selectedEventIds = reconcileSelection(events, this.data.selectedEventIds,
+        this.hasManualSelection);
+      const visibleSelectedEventIds = visibleSelectedEvents(displayEvents,
+        selectedEventIds).map((event) => event.id);
       this.setData({ maxQueryMonths: config.maxQueryMonths || 36, events: events || [],
         displayEvents, categories, selectedCategory,
-        categoryIndex: Math.max(0, categories.indexOf(selectedCategory)), activeEventId });
+        categoryIndex: Math.max(0, categories.indexOf(selectedCategory)),
+        selectedEventIds, selectedEventMap: Object.fromEntries(selectedEventIds.map((id) => [id, true])),
+        selectedEventToneMap: assignSelectionTones(selectedEventIds, this.data.selectedEventToneMap),
+        visibleSelectedEventIds });
       await this.loadMonth(loadToken);
       if (!this.identityLoad.isCurrent(loadToken)) return;
       this.setData({ phase: 'ready' });
@@ -44,27 +69,46 @@ Page({
     }
   },
   async loadMonth(loadToken = this.identityLoad.begin(requireSession())) {
-    const id = this.data.activeEventId;
-    if (!id) { this.setData({ summary: {}, records: [], visibleRecords: [] }); return; }
+    const selected = visibleSelectedEvents(this.data.displayEvents, this.data.selectedEventIds);
+    if (!selected.length) {
+      this.setData({ visibleSelectedEventIds: [], summary: {}, dayTones: {},
+        calendarHeartSrc: calendarHeartSources({}, {}, this.data.selectedDate),
+        records: [], visibleRecords: [], timelineGroups: [] });
+      return;
+    }
     const notebook = createApiRuntime().notebook;
     const bounds = calendar.monthBounds(this.data.month);
     const query = { ...bounds, timeZone: calendar.timeZone() };
-    const summaryPromise = notebook.getCalendar(id, query);
-    const records = [];
-    let page = 0;
-    let hasMore = true;
-    while (hasMore) {
-      const batch = await notebook.listRecords(id, { ...query, page, size: 100 });
+    const results = [];
+    for (let index = 0; index < selected.length; index += 3) {
+      const batch = await Promise.all(selected.slice(index, index + 3).map((event) =>
+        this.loadEventMonth(notebook, event, query, loadToken)));
       if (!this.identityLoad.isCurrent(loadToken)) return;
-      records.push(...((batch && batch.items) || []));
-      hasMore = Boolean(batch && batch.hasMore);
-      page += 1;
+      results.push(...batch);
     }
-    const summary = await summaryPromise;
-    if (!this.identityLoad.isCurrent(loadToken)) return;
-    const counts = {};
-    (summary || []).forEach((item) => { counts[item.date] = item.recordCount; });
-    this.setData({ summary: counts, records }, () => this.syncVisible());
+    const combined = mergeEventMonths(results, this.data.selectedEventToneMap);
+    this.setData({ visibleSelectedEventIds: selected.map((event) => event.id),
+      summary: combined.summary, dayTones: combined.dayTones,
+      calendarHeartSrc: calendarHeartSources(combined.summary, combined.dayTones,
+        this.data.selectedDate), records: combined.records }, () => this.syncVisible());
+  },
+  async loadEventMonth(notebook, event, query, loadToken) {
+    const summaryPromise = notebook.getCalendar(event.id, query);
+    const recordsPromise = (async () => {
+      const records = [];
+      let page = 0;
+      let hasMore = true;
+      while (hasMore) {
+        const batch = await notebook.listRecords(event.id, { ...query, page, size: 100 });
+        if (!this.identityLoad.isCurrent(loadToken)) return records;
+        records.push(...((batch && batch.items) || []));
+        hasMore = Boolean(batch && batch.hasMore);
+        page += 1;
+      }
+      return records;
+    })();
+    const [summary, records] = await Promise.all([summaryPromise, recordsPromise]);
+    return { event, summary, records };
   },
   syncVisible() {
     const target = this.data.view === 'today' ? calendar.dateKey(new Date()) : this.data.selectedDate;
@@ -74,26 +118,55 @@ Page({
       const to = calendar.dateKey(new Date(record.occurredTo));
       return from <= target && target <= to;
     });
-    this.setData({ visibleRecords: visible });
+    const visibleRecords = visible.map((record) => ({ ...record,
+      displayRange: calendar.formatRecordRange(record.occurredFrom, record.occurredTo) }));
+    this.setData({ visibleRecords, timelineGroups: this.data.view === 'timeline'
+      ? groupTimelineRecords(visibleRecords) : [] });
   },
   async moveMonth(event) {
     const offset = Number(event.currentTarget.dataset.offset || 0);
     const month = calendar.shiftMonth(this.data.month, offset);
-    this.setData({ month, selectedDate: `${month}-01`, days: calendar.monthDays(month) });
+    const selectedDate = `${month}-01`;
+    this.setData({ month, selectedDate, days: calendar.monthDays(month), summary: {},
+      dayTones: {}, calendarHeartSrc: calendarHeartSources({}, {}, selectedDate),
+      records: [], visibleRecords: [], timelineGroups: [] });
     try { await this.loadMonth(); } catch (error) { showApiError(error, '日历加载失败'); }
   },
-  selectDate(event) { this.setData({ selectedDate: event.currentTarget.dataset.date }, () => this.syncVisible()); },
+  selectDate(event) {
+    const selectedDate = event.currentTarget.dataset.date;
+    this.setData({ selectedDate,
+      calendarHeartSrc: calendarHeartSources(this.data.summary, this.data.dayTones,
+        selectedDate) }, () => this.syncVisible());
+  },
   async switchView(event) {
     const view = event.currentTarget.dataset.view || 'calendar';
     if (view === 'today') {
       const today = new Date();
-      this.setData({ view, month: calendar.monthKey(new Date()), selectedDate: calendar.dateKey(today),
-        days: calendar.monthDays(calendar.monthKey(today)) });
+      const month = calendar.monthKey(new Date());
+      const selectedDate = calendar.dateKey(today);
+      this.setData({ view, month, selectedDate, days: calendar.monthDays(month),
+        calendarHeartSrc: calendarHeartSources(this.data.summary, this.data.dayTones,
+          selectedDate) });
       try { await this.loadMonth(); } catch (error) { showApiError(error, '今天的记录加载失败'); }
     } else this.setData({ view }, () => this.syncVisible());
   },
   async selectEvent(event) {
-    this.setData({ activeEventId: Number(event.currentTarget.dataset.id) });
+    const id = Number(event.currentTarget.dataset.id);
+    if (!this.data.displayEvents.some((item) => item.id === id)) return;
+    if (!this.data.selectedEventIds.includes(id)
+      && this.data.selectedEventIds.length >= MAX_SELECTED_EVENTS) {
+      wx.showToast({ title: `最多同时选择 ${MAX_SELECTED_EVENTS} 个事件`, icon: 'none' });
+      return;
+    }
+    this.hasManualSelection = true;
+    const selectedEventIds = this.data.selectedEventIds.includes(id)
+      ? this.data.selectedEventIds.filter((item) => item !== id)
+      : [...this.data.selectedEventIds, id];
+    this.setData({ selectedEventIds,
+      selectedEventMap: Object.fromEntries(selectedEventIds.map((item) => [item, true])),
+      selectedEventToneMap: assignSelectionTones(selectedEventIds, this.data.selectedEventToneMap),
+      visibleSelectedEventIds: visibleSelectedEvents(this.data.displayEvents,
+        selectedEventIds).map((item) => item.id) });
     try { await this.loadMonth(); } catch (error) { showApiError(error, '记录加载失败'); }
   },
   async filterCategory(event) {
@@ -102,15 +175,34 @@ Page({
     const displayEvents = this.data.events.filter((item) => !selectedCategory
       || item.category === selectedCategory);
     this.setData({ categoryIndex, selectedCategory, displayEvents,
-      activeEventId: (displayEvents[0] || {}).id || null });
+      visibleSelectedEventIds: visibleSelectedEvents(displayEvents,
+        this.data.selectedEventIds).map((item) => item.id) });
     try { await this.loadMonth(); } catch (error) { showApiError(error, '类别加载失败'); }
   },
   openEvents() { wx.navigateTo({ url: '/pages/notebook/detail/events/index' }); },
+  openHistory() {
+    const selected = visibleSelectedEvents(this.data.displayEvents, this.data.selectedEventIds);
+    const eventId = selected.length === 1 ? selected[0].id : null;
+    wx.navigateTo({ url: `/pages/notebook/detail/history/index${eventId ? `?eventId=${eventId}` : ''}` });
+  },
   openContacts() { wx.navigateTo({ url: '/pages/notebook/detail/contacts/index' }); },
   openShared() { wx.navigateTo({ url: '/pages/notebook/detail/shared/index' }); },
   addRecord() {
-    if (!this.data.activeEventId) return this.openEvents();
-    wx.navigateTo({ url: `/pages/notebook/detail/record-edit/index?eventId=${this.data.activeEventId}&date=${this.data.selectedDate}` });
+    const selected = visibleSelectedEvents(this.data.displayEvents, this.data.selectedEventIds);
+    if (selected.length === 1) return this.navigateToRecordEditor(selected[0].id);
+    const recordEventOptions = selected.length ? selected : this.data.displayEvents;
+    if (!recordEventOptions.length) return this.openEvents();
+    this.setData({ showRecordEventPicker: true, recordEventOptions });
+  },
+  closeRecordEventPicker() { this.setData({ showRecordEventPicker: false }); },
+  chooseRecordEvent(event) {
+    const id = Number(event.currentTarget.dataset.id);
+    if (!this.data.recordEventOptions.some((item) => item.id === id)) return;
+    this.setData({ showRecordEventPicker: false });
+    this.navigateToRecordEditor(id);
+  },
+  navigateToRecordEditor(eventId) {
+    wx.navigateTo({ url: `/pages/notebook/detail/record-edit/index?eventId=${eventId}&date=${this.data.selectedDate}` });
   },
   openRecord(event) { wx.navigateTo({ url: `/pages/notebook/detail/record-detail/index?id=${event.currentTarget.dataset.id}` }); }
 });

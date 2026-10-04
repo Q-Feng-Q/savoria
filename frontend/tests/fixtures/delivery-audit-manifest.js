@@ -90,6 +90,7 @@ module.exports = Object.freeze({
     'pages/notebook/detail/sharing/index': page('notebook', { async: true, list: true, form: true, refresh: true }),
     'pages/notebook/detail/shared/index': page('notebook', { async: true, list: true, refresh: true }),
     'pages/notebook/detail/export/index': page('notebook', { async: true, form: true, refresh: true }),
+    'pages/notebook/detail/history/index': page('notebook', { async: true, list: true, form: true, refresh: true }),
     'pages/ordering/cart/index': page('ordering', { async: true, list: true, form: true, refresh: true, tenantScope: 'family' }),
     'pages/ordering/dish-detail/index': page('ordering', { async: true, refresh: true, tenantScope: 'family' }),
     'pages/ordering/menu/index': page('ordering', { async: true, list: true, refresh: true, tenantScope: 'family' }),

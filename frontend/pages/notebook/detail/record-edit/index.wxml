@@ -5,11 +5,9 @@
   <block wx:else>
     <view wx:if="{{recordId && currentVersion !== templateVersion && !upgradeMode}}" class="nb-history"><text>正在编辑历史模板 v{{templateVersion}}</text><text bindtap="beginUpgrade">升级到 v{{currentVersion}} ›</text></view>
     <view wx:if="{{upgradeMode}}" class="nb-history"><text>升级模式 · 保存后会保留旧版本快照</text><text bindtap="cancelUpgrade">取消升级 ›</text></view>
-    <view class="nb-label">标题</view><input class="nb-input" value="{{title}}" maxlength="200" data-key="title" bindinput="onText" placeholder="这件事叫什么？"/>
+    <view class="nb-label">标题</view><input class="nb-input" value="{{title}}" maxlength="200" data-key="title" bindinput="onText" placeholder="请输入标题"/>
     <view class="nb-label">开始</view><view class="nb-time"><picker mode="date" value="{{occurredDate}}" data-key="occurredDate" bindchange="onDate"><view>{{occurredDate}}</view></picker><picker mode="time" value="{{startTime}}" data-key="startTime" bindchange="onDate"><view>{{startTime}}</view></picker></view>
     <view class="nb-label">结束</view><view class="nb-time"><picker mode="date" value="{{endDate}}" data-key="endDate" bindchange="onDate"><view>{{endDate}}</view></picker><picker mode="time" value="{{endTime}}" data-key="endTime" bindchange="onDate"><view>{{endTime}}</view></picker></view>
-    <view class="nb-label">备注</view><textarea class="nb-input nb-area" value="{{note}}" maxlength="20000" data-key="note" bindinput="onText" placeholder="可以补充一些细节（选填）"/>
-    <view class="nb-section">记录字段 · 模板 v{{upgradeMode ? currentVersion : templateVersion}}</view>
     <view wx:for="{{fields}}" wx:key="key" class="nb-field">
       <view class="nb-label">{{item.label}}{{item.required ? ' *' : ''}}<text class="nb-type">{{item.typeLabel}}{{item.unit ? ' · ' + item.unit : ''}}</text></view>
       <input wx:if="{{item.editor === 'input' || item.editor === 'number'}}" class="nb-input" type="{{item.editor === 'number' ? 'digit' : 'text'}}" value="{{item.displayValue}}" data-key="{{item.key}}" bindinput="onField" placeholder="请输入"/>
@@ -22,6 +20,7 @@
       <picker wx:elif="{{item.editor === 'rating'}}" range="{{[1,2,3,4,5]}}" value="{{item.ratingIndex}}" data-key="{{item.key}}" bindchange="onField"><view class="nb-input">{{item.displayValue || '请选择评分'}}　⌄</view></picker>
       <view wx:elif="{{item.editor === 'image'}}"><view wx:for="{{item.imageKeys}}" wx:for-item="imageKey" wx:key="*this" class="nb-image-row"><text data-value="{{imageKey}}" bindtap="previewImage">查看私有图片 ›</text><text data-key="{{item.key}}" data-value="{{imageKey}}" bindtap="removeImage">移除</text></view><view class="nb-image-add" data-key="{{item.key}}" bindtap="addImage">＋ 选择私有图片</view></view>
     </view>
+    <view class="nb-label">备注</view><textarea class="nb-input nb-area" value="{{note}}" maxlength="20000" data-key="note" bindinput="onText" placeholder="可以补充一些细节（选填）"/>
   </block>
   <view wx:if="{{phase === 'ready'}}" class="nb-bottom" bindtap="save">{{busy ? '保存中…' : upgradeMode ? '升级并保存' : '保存记录'}}</view>
 </view>

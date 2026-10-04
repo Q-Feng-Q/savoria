@@ -1,0 +1,47 @@
+<view class="history-page warm-page">
+  <view class="history-header">
+    <view class="history-kicker">私人空间 · 历史记录</view>
+    <view class="history-title">历史查询</view>
+    <view class="history-subtitle">选择事件和日期范围，看看哪些日子留下了记录。</view>
+  </view>
+  <view wx:if="{{phase === 'loading'}}" class="history-state">正在加载历史查询…</view>
+  <view wx:elif="{{phase === 'error'}}" class="history-state" bindtap="load">{{errorMessage}} · 点击重试</view>
+  <block wx:else>
+    <view wx:if="{{!events.length}}" class="history-state">还没有事件，请先创建事件再查询。</view>
+    <block wx:else>
+      <view class="history-form">
+        <view class="history-label">指定事件</view>
+        <picker range="{{events}}" range-key="name" value="{{eventIndex}}" bindchange="changeEvent"><view class="history-select">{{events[eventIndex].name}} <text>⌄</text></view></picker>
+        <view class="history-date-row">
+          <view class="history-date-field"><view class="history-label">开始日期</view><picker mode="date" value="{{from}}" data-field="from" bindchange="changeRange"><view class="history-date">{{from}}</view></picker></view>
+          <view class="history-date-field"><view class="history-label">结束日期</view><picker mode="date" value="{{to}}" data-field="to" bindchange="changeRange"><view class="history-date">{{to}}</view></picker></view>
+        </view>
+        <view class="history-hint">精确到日 · 单次最多 {{maxQueryMonths}} 个日历月</view>
+        <view wx:if="{{queryError}}" class="history-error">{{queryError}}</view>
+        <view class="history-search" bindtap="search">{{queryBusy ? '查询中…' : '查询历史'}}</view>
+      </view>
+      <view wx:if="{{months.length}}" class="history-summary">{{from}} 至 {{to}} <view class="history-summary-legend"><image class="history-summary-heart" src="/assets/ui/notebook-heart-outline.png" mode="aspectFit"/><text>有记录</text></view></view>
+      <view class="history-months">
+        <view wx:for="{{months}}" wx:for-item="month" wx:key="key" class="history-month">
+          <view class="history-month-title">{{month.key}}</view>
+          <view class="history-calendar-grid">
+            <view class="history-weekday">一</view><view class="history-weekday">二</view><view class="history-weekday">三</view><view class="history-weekday">四</view><view class="history-weekday">五</view><view class="history-weekday">六</view><view class="history-weekday">日</view>
+            <view wx:for="{{month.days}}" wx:for-item="day" wx:key="key" class="history-day {{day.blank ? 'blank' : ''}} {{day.outsideRange ? 'outside' : ''}} {{day.hasRecord ? 'has-record' : ''}} {{day.key === selectedDate ? 'selected' : ''}}" data-date="{{day.key}}" bindtap="selectDay">
+              <image wx:if="{{day.hasRecord || day.key === selectedDate}}" class="history-day-heart" src="{{day.key === selectedDate ? '/assets/ui/notebook-heart-filled.png' : '/assets/ui/notebook-heart-outline.png'}}" mode="aspectFit"/><text class="history-day-number">{{day.day}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{hasMoreMonths}}" class="history-more" bindtap="loadMoreMonths">加载更多月份</view>
+    </block>
+  </block>
+  <view wx:if="{{phase === 'ready' && selectedDate}}" class="history-sheet-mask" bindtap="closeDay"></view>
+  <view wx:if="{{phase === 'ready' && selectedDate}}" class="history-sheet" catchtap="noop">
+    <view class="history-sheet-head"><text>{{selectedDate}} 的记录</text><text class="history-close" bindtap="closeDay">关闭</text></view>
+    <view wx:if="{{recordsBusy && !records.length}}" class="history-sheet-state">正在加载…</view>
+    <view wx:elif="{{recordsError}}" class="history-sheet-state">{{recordsError}}</view>
+    <view wx:elif="{{!records.length}}" class="history-sheet-state">这一天没有记录</view>
+    <view wx:for="{{records}}" wx:key="id" class="history-record" data-id="{{item.id}}" bindtap="openRecord"><view><text class="history-record-title">{{item.title}}</text><text class="history-record-time">{{item.displayRange}}</text></view><text>›</text></view>
+    <view wx:if="{{hasMoreRecords}}" class="history-more" bindtap="loadMoreRecords">{{recordsBusy ? '加载中…' : '加载更多记录'}}</view>
+  </view>
+</view>

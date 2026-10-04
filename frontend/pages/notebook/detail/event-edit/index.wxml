@@ -3,6 +3,13 @@
   <view wx:if="{{phase === 'loading'}}" class="nb-empty">正在加载…</view>
   <view wx:elif="{{phase === 'error'}}" class="nb-empty" bindtap="load">{{errorMessage}} · 点击重试</view>
   <block wx:else>
+    <view wx:if="{{!editing}}" class="nb-preset-trigger" bindtap="openPresetPicker"><view><text class="nb-preset-trigger-title">从模板开始</text><text class="nb-preset-trigger-hint">{{presetCount}} 个常用模板，也可以从空白创建</text></view><text class="nb-preset-trigger-action">导入模板 ›</text></view>
+    <view wx:if="{{!editing && showPresetPicker}}" class="nb-preset-panel">
+      <view class="nb-preset-heading"><text>选择一个模板</text><text class="nb-preset-close" bindtap="closePresetPicker">关闭 ×</text></view>
+      <scroll-view scroll-x class="nb-preset-categories"><view class="nb-preset-category-row"><view wx:for="{{presetCategories}}" wx:key="*this" class="nb-preset-category {{presetCategory === item ? 'is-active' : ''}}" data-category="{{item}}" bindtap="choosePresetCategory">{{item}}</view></view></scroll-view>
+      <scroll-view scroll-y class="nb-preset-list"><view wx:for="{{visiblePresets}}" wx:key="id" class="nb-preset-row {{selectedPreset && selectedPreset.id === item.id ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="selectPreset"><view class="nb-preset-row-title">{{item.name}}<text>{{item.fields.length}} 个字段</text></view><view class="nb-preset-row-desc">{{item.description}}</view></view></scroll-view>
+      <view wx:if="{{selectedPreset}}" class="nb-preset-preview"><view class="nb-preset-preview-title">{{selectedPreset.name}} · 字段预览</view><view wx:for="{{selectedPresetFields}}" wx:key="label" class="nb-preset-preview-field"><view class="nb-preset-preview-row"><text>{{item.label}}</text><text>{{item.typeLabel}}{{item.unit ? ' · ' + item.unit : ''}}</text></view><view wx:if="{{item.optionsText}}" class="nb-preset-preview-options">选项：{{item.optionsText}}</view></view><view class="nb-preset-import" bindtap="importPreset">导入并继续编辑</view></view>
+    </view>
     <view class="nb-label">事件名称</view><input class="nb-input" maxlength="120" value="{{name}}" data-key="name" bindinput="onText" placeholder="例如：旅行、读书、宝宝成长"/>
     <view class="nb-label">分类</view><input class="nb-input" maxlength="80" value="{{category}}" data-key="category" bindinput="onText" placeholder="选填"/>
     <view class="nb-label">说明</view><textarea class="nb-input nb-area" maxlength="5000" value="{{description}}" data-key="description" bindinput="onText" placeholder="这件事有什么特别？"/>

@@ -1,0 +1,45 @@
+.history-page{min-height:100vh;padding:0 30rpx calc(70rpx + env(safe-area-inset-bottom));box-sizing:border-box;background:#fff7e9;color:#51331f}
+.history-header{margin:0 -30rpx;padding:42rpx 30rpx 32rpx;background:#fff0d4}
+.history-kicker{font-size:20rpx;color:#806746;letter-spacing:2rpx}
+.history-title{margin-top:12rpx;font-family:"STKaiti","KaiTi",serif;font-size:56rpx;font-weight:800}
+.history-subtitle{margin-top:10rpx;color:#8c725b;font-size:22rpx}
+.history-state{padding:90rpx 15rpx;color:#987f63;text-align:center;font-size:24rpx;line-height:1.6}
+.history-form{padding:26rpx 0 32rpx;border-bottom:2rpx solid #ead8ba}
+.history-label{margin-bottom:10rpx;color:#755a3e;font-size:22rpx;font-weight:700}
+.history-page picker{display:block;width:100%;min-height:0;padding:0;border:0;border-radius:0;background:transparent;box-sizing:border-box}
+.history-select,.history-date{display:flex;align-items:center;justify-content:space-between;min-height:76rpx;padding:0 20rpx;box-sizing:border-box;border:2rpx solid #e5d3b4;border-radius:13rpx;background:#fffdf8;color:#51331f;font-size:24rpx}
+.history-select text{color:#9b8167}
+.history-date-row{display:flex;gap:16rpx;margin-top:22rpx}
+.history-date-field{flex:1;min-width:0}
+.history-date{font-size:21rpx;white-space:nowrap}
+.history-hint{margin-top:16rpx;color:#927e69;font-size:20rpx}
+.history-error{margin-top:12rpx;color:#b6493a;font-size:21rpx}
+.history-search{margin-top:23rpx;padding:21rpx 15rpx;border-radius:999rpx;background:#df7739;color:#fff;font-size:25rpx;font-weight:800;text-align:center}
+.history-summary{display:flex;justify-content:space-between;align-items:center;gap:15rpx;margin:27rpx 0 4rpx;color:#62462d;font-size:22rpx;font-weight:700}
+.history-summary-legend{display:flex;align-items:center;gap:6rpx;flex:none;color:#c84643;font-size:20rpx;font-weight:400}
+.history-summary-heart{width:24rpx;height:24rpx}
+.history-months{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18rpx}
+.history-month{min-width:0;padding:24rpx 0 22rpx;border-bottom:2rpx solid #ead8ba}
+.history-month-title{margin-bottom:13rpx;text-align:center;font-size:28rpx;font-weight:800}
+.history-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));row-gap:4rpx}
+.history-weekday{text-align:center;color:#a28b73;font-size:18rpx}
+.history-day{position:relative;display:flex;align-items:center;justify-content:center;height:54rpx;box-sizing:border-box;border:2rpx solid transparent;border-radius:10rpx;color:#826c56;font-size:20rpx}
+.history-day.blank{pointer-events:none}
+.history-day.outside{opacity:.35;pointer-events:none}
+.history-day.selected{font-weight:800}
+.history-day-heart{position:absolute;top:5rpx;left:50%;width:43rpx;height:43rpx;transform:translateX(-50%)}
+.history-day-number{position:relative;z-index:1}
+.history-day.has-record .history-day-number,.history-day.selected .history-day-number{transform:translateY(-3rpx)}
+.history-day.has-record .history-day-number{color:#a8383d;font-weight:800}
+.history-day.selected .history-day-number{color:#fff}
+.history-more{padding:25rpx;color:#5f7950;font-size:22rpx;text-align:center}
+.history-sheet-mask{position:fixed;z-index:10;top:0;right:0;bottom:0;left:0;background:rgba(51,35,25,.35)}
+.history-sheet{position:fixed;z-index:11;left:0;right:0;bottom:0;max-height:70vh;padding:30rpx 30rpx calc(35rpx + env(safe-area-inset-bottom));box-sizing:border-box;overflow-y:auto;border-radius:26rpx 26rpx 0 0;background:#fff7e9}
+.history-sheet-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:18rpx;border-bottom:2rpx solid #ead8ba;font-size:28rpx;font-weight:800}
+.history-close{color:#936e4e;font-size:21rpx;font-weight:400}
+.history-sheet-state{padding:50rpx 10rpx;color:#967d63;font-size:22rpx;text-align:center}
+.history-record{display:flex;justify-content:space-between;align-items:center;padding:20rpx 4rpx;border-bottom:2rpx solid #ead8ba}
+.history-record-title,.history-record-time{display:block}
+.history-record-title{font-size:25rpx}
+.history-record-time{margin-top:5rpx;color:#937e67;font-size:19rpx}
+@media(max-width:360px){.history-page{padding-left:20rpx;padding-right:20rpx}.history-header{margin-left:-20rpx;margin-right:-20rpx;padding-left:20rpx;padding-right:20rpx}.history-months{column-gap:8rpx}.history-day{height:49rpx;font-size:18rpx}.history-day-heart{top:4rpx;width:40rpx;height:40rpx}.history-day.has-record .history-day-number,.history-day.selected .history-day-number{transform:translateY(-2rpx)}}

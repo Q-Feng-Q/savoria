@@ -2,18 +2,18 @@
   <view class="notebook-top">
     <view class="notebook-kicker">私人空间 · 仅你可见</view>
     <view class="notebook-headline"><text>我的记事</text><view class="notebook-manage" bindtap="openEvents">管理事件 ›</view></view>
+    <view wx:if="{{phase === 'ready'}}" class="notebook-tools"><picker class="notebook-category-picker" range="{{categories}}" value="{{categoryIndex}}" bindchange="filterCategory"><view class="notebook-category-value">{{selectedCategory || '全部类别'}}　⌄</view></picker><view bindtap="openHistory">历史查询</view><view bindtap="openShared">共享给我的</view><view bindtap="openContacts">联系人</view></view>
+  </view>
+  <view wx:if="{{phase === 'error'}}" class="notebook-empty"><text>{{errorMessage}}</text><view bindtap="load">重新加载</view></view>
+  <view wx:elif="{{phase === 'loading'}}" class="notebook-empty">正在打开记事…</view>
+  <block wx:else>
     <view class="notebook-view-switch">
       <view class="{{view === 'calendar' ? 'active' : ''}}" data-view="calendar" bindtap="switchView">日历</view>
       <view class="{{view === 'today' ? 'active' : ''}}" data-view="today" bindtap="switchView">今天</view>
       <view class="{{view === 'timeline' ? 'active' : ''}}" data-view="timeline" bindtap="switchView">时间流</view>
     </view>
-  </view>
-  <view wx:if="{{phase === 'error'}}" class="notebook-empty"><text>{{errorMessage}}</text><view bindtap="load">重新加载</view></view>
-  <view wx:elif="{{phase === 'loading'}}" class="notebook-empty">正在打开记事…</view>
-  <block wx:else>
-    <view class="notebook-tools"><picker range="{{categories}}" value="{{categoryIndex}}" bindchange="filterCategory"><view>{{selectedCategory || '全部类别'}}　⌄</view></picker><view bindtap="openShared">共享给我的</view><view bindtap="openContacts">联系人</view></view>
     <scroll-view class="notebook-events" scroll-x>
-      <view wx:for="{{displayEvents}}" wx:key="id" class="notebook-event {{item.id === activeEventId ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectEvent">{{item.name}}</view>
+      <view wx:for="{{displayEvents}}" wx:key="id" class="notebook-event {{selectedEventMap[item.id] ? 'active' : ''}} {{item.starred ? 'starred' : ''}} tone-{{selectedEventToneMap[item.id] || 0}}" data-id="{{item.id}}" bindtap="selectEvent"><text wx:if="{{item.starred}}" class="notebook-event-star">★</text>{{item.name}}</view>
       <view wx:if="{{!events.length}}" class="notebook-event-empty" bindtap="openEvents">+ 创建第一个事件</view>
       <view wx:if="{{events.length && !displayEvents.length}}" class="notebook-event-empty">该类别暂无事件</view>
     </scroll-view>
@@ -21,12 +21,28 @@
       <view class="notebook-month"><view data-offset="-1" bindtap="moveMonth">‹</view><text>{{month}}</text><view data-offset="1" bindtap="moveMonth">›</view></view>
       <view class="notebook-calendar">
         <view class="notebook-weekday">一</view><view class="notebook-weekday">二</view><view class="notebook-weekday">三</view><view class="notebook-weekday">四</view><view class="notebook-weekday">五</view><view class="notebook-weekday">六</view><view class="notebook-weekday">日</view>
-        <view wx:for="{{days}}" wx:key="key" class="notebook-day {{item.blank ? 'blank' : ''}} {{item.key === selectedDate ? 'selected' : ''}}" data-date="{{item.key}}" bindtap="selectDate"><text>{{item.day}}</text><view wx:if="{{summary[item.key]}}" class="notebook-dot"></view></view>
+        <view wx:for="{{days}}" wx:key="key" class="notebook-day {{item.blank ? 'blank' : ''}} {{summary[item.key] ? 'has-record' : ''}} {{item.key === selectedDate ? 'selected' : ''}}" data-date="{{item.key}}" bindtap="selectDate"><image wx:if="{{summary[item.key] || item.key === selectedDate}}" class="notebook-day-heart" src="{{calendarHeartSrc[item.key]}}" mode="aspectFit"/><text class="notebook-day-number">{{item.day}}</text><view wx:if="{{dayTones[item.key] && dayTones[item.key].length > 1}}" class="notebook-day-tones"><view wx:for="{{dayTones[item.key]}}" wx:for-item="tone" wx:key="*this" class="notebook-day-tone tone-{{tone}}"></view></view></view>
       </view>
     </block>
     <view class="notebook-list-heading">{{view === 'today' ? '今天' : view === 'timeline' ? '时间流' : selectedDate}}的记录</view>
-    <view wx:if="{{!visibleRecords.length}}" class="notebook-empty">还没有记录，写下今天想记住的事。</view>
-    <view wx:for="{{visibleRecords}}" wx:key="id" class="notebook-row" data-id="{{item.id}}" bindtap="openRecord"><view><text class="notebook-row__title">{{item.title}}</text><text class="notebook-row__time">{{item.occurredFrom}}</text></view><text>›</text></view>
+    <view wx:if="{{!visibleSelectedEventIds.length && events.length}}" class="notebook-empty">请选择要查看的事件；关注的事件会自动选中。</view>
+    <view wx:elif="{{!visibleRecords.length}}" class="notebook-empty">还没有记录，写下今天想记住的事。</view>
+    <block wx:if="{{view === 'timeline'}}">
+      <view wx:for="{{timelineGroups}}" wx:for-item="group" wx:key="date" class="notebook-timeline-day">
+        <view class="notebook-timeline-date"><text>{{group.date}}</text><text class="notebook-timeline-count">{{group.records.length}} 条记录</text></view>
+        <view wx:for="{{group.records}}" wx:for-item="record" wx:key="id" class="notebook-row" data-id="{{record.id}}" bindtap="openRecord"><view><text class="notebook-row__event tone-{{selectedEventToneMap[record.eventId] || 0}}">{{record.eventName}}</text><text class="notebook-row__title">{{record.title}}</text><text class="notebook-row__time">{{record.displayRange}}</text></view><text>›</text></view>
+      </view>
+    </block>
+    <block wx:else>
+      <view wx:for="{{visibleRecords}}" wx:key="id" class="notebook-row" data-id="{{item.id}}" bindtap="openRecord"><view><text class="notebook-row__event tone-{{selectedEventToneMap[item.eventId] || 0}}">{{item.eventName}}</text><text class="notebook-row__title">{{item.title}}</text><text class="notebook-row__time">{{item.displayRange}}</text></view><text>›</text></view>
+    </block>
   </block>
-  <view class="notebook-add" bindtap="addRecord">＋ 记一笔</view>
+  <view class="notebook-add" bindtap="addRecord">＋ 新增记录</view>
+  <view wx:if="{{showRecordEventPicker}}" class="notebook-picker-mask" bindtap="closeRecordEventPicker"></view>
+  <view wx:if="{{showRecordEventPicker}}" class="notebook-picker-panel">
+    <view class="notebook-picker-title"><text>选择要记录的事件</text><text class="notebook-picker-close" bindtap="closeRecordEventPicker">取消</text></view>
+    <scroll-view scroll-y class="notebook-picker-list">
+      <view wx:for="{{recordEventOptions}}" wx:key="id" class="notebook-picker-option" data-id="{{item.id}}" bindtap="chooseRecordEvent"><text wx:if="{{item.starred}}" class="notebook-event-star">★</text>{{item.name}}<text class="notebook-picker-arrow">›</text></view>
+    </scroll-view>
+  </view>
 </view>

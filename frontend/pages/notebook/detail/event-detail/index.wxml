@@ -9,13 +9,14 @@
     <view wx:for="{{versions}}" wx:key="version" class="nb-version"><view>版本 {{item.version}}{{item.version === event.currentTemplateVersion ? ' · 当前' : ' · 历史'}}</view><view class="nb-meta">{{item.fields.length}} 个字段 · 历史定义保持不变</view><view wx:for="{{item.fields}}" wx:for-item="field" wx:key="key" class="nb-template-field">{{field.label}} · {{field.typeLabel}}{{field.required ? ' · 必填' : ''}}</view></view>
     <view class="nb-note">已有记录按创建时的模板显示。要采用新字段，请在记录编辑页显式升级。</view>
     <view class="nb-section">历史记录</view>
+    <view class="nb-history-calendar" bindtap="openHistory">按日历查询历史 ›</view>
     <view class="nb-dates"><picker mode="date" value="{{from}}" data-field="from" bindchange="changeRange"><view>从 {{from}}</view></picker><picker mode="date" value="{{to}}" data-field="to" bindchange="changeRange"><view>到 {{to}}</view></picker></view>
     <view class="nb-meta">单次最多查看 {{maxQueryMonths}} 个日历月，历史时间不限。</view>
     <view wx:if="{{recordsError}}" class="nb-note">{{recordsError}}</view>
     <view wx:if="{{!records.length && !recordsBusy && !recordsError}}" class="nb-note">这段时间还没有记录。</view>
-    <view wx:for="{{records}}" wx:key="id" class="nb-record" data-id="{{item.id}}" bindtap="openRecord"><text>{{item.title}}</text><text>{{item.occurredFrom}} ›</text></view>
+    <view wx:for="{{records}}" wx:key="id" class="nb-record" data-id="{{item.id}}" bindtap="openRecord"><text>{{item.title}}</text><text>{{item.displayRange}} ›</text></view>
     <view wx:if="{{hasMore}}" class="nb-more" bindtap="loadMore">{{recordsBusy ? '加载中…' : '加载更多'}}</view>
     <view class="nb-export" bindtap="openExport">复制 / 导出这段时间的 JSON</view>
   </block>
-  <view class="nb-bottom" bindtap="addRecord">＋ 为这件事记一笔</view>
+  <view class="nb-bottom" bindtap="addRecord">＋ 新增记录</view>
 </view>
