@@ -12,7 +12,7 @@ Page(withBranding({
   async submitRegister() {
     if (this.data.loading) return;
     const form = { ...this.data.form, username: String(this.data.form.username || '').trim(), name: String(this.data.form.name || '').trim(), mobile: String(this.data.form.mobile || '').trim() };
-    if (!/^[A-Za-z0-9_]{3,50}$/.test(form.username)) return wx.showToast({ title: '账号名需为3-50位字母、数字或下划线', icon: 'none' });
+    if (!/^[A-Za-z0-9_]{2,50}$/.test(form.username)) return wx.showToast({ title: '账号名需为2-50位字母、数字或下划线', icon: 'none' });
     if (String(form.password).length < 6 || String(form.password).length > 64) return wx.showToast({ title: '密码长度需为6-64位', icon: 'none' });
     if (!form.name) return wx.showToast({ title: '请输入姓名', icon: 'none' });
     const runtime = createApiRuntime(); this.setData({ loading: true });

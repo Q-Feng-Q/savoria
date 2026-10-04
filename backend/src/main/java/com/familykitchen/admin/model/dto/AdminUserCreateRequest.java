@@ -14,7 +14,7 @@ import jakarta.validation.constraints.Size;
  * @param platformAdmin platform平台管理
  */
 public record AdminUserCreateRequest(
-    @NotBlank @Size(min=3,max=50) @Pattern(regexp="^[A-Za-z0-9_]+$") String username,
+    @NotBlank @Size(min=2,max=50) @Pattern(regexp="^[A-Za-z0-9_]+$") String username,
     @NotBlank @Size(min=6,max=64) String password,
     @NotBlank @Size(max=80) String name,
     @Size(max=32) String mobile,

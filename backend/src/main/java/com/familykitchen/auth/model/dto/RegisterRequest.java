@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Size;
  */
 @Schema(description = "独立用户注册请求")
 public record RegisterRequest(
-    @NotBlank @Size(min = 3, max = 50)
+    @NotBlank @Size(min = 2, max = 50)
     @Pattern(regexp = "^[A-Za-z0-9_]+$") String username,
     @NotBlank @Size(min = 6, max = 64) String password,
     @NotBlank @Size(max = 80) String name,

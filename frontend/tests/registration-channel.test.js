@@ -17,6 +17,14 @@ test('mini program owns the public registration channel', () => {
   assert.match(register, /password\)\.length > 64/);
 });
 
+test('mini registration accepts two-character account names and advertises the same limit', () => {
+  const register = read('pages/auth/register/index.js');
+  const template = read('pages/auth/register/index.wxml');
+  assert.match(register, /\^\[A-Za-z0-9_\]\{2,50\}\$/);
+  assert.match(register, /账号名需为2-50位/);
+  assert.match(template, /2-50位字母、数字或下划线/);
+});
+
 test('auth service posts registration to latest backend endpoint', async () => {
   const calls = [];
   const { createAuthService } = require('../services/auth');

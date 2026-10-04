@@ -5,5 +5,5 @@ import jakarta.validation.constraints.Size;
 /** 用户名唯一一次修改请求。 
  * @param username 用户名
  */
-public record ChangeUsernameRequest(@NotBlank @Size(min=3,max=50)
+public record ChangeUsernameRequest(@NotBlank @Size(min=2,max=50)
   @Pattern(regexp="^[A-Za-z0-9_]+$") String username) {}

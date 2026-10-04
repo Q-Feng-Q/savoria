@@ -9,7 +9,7 @@
   </view>
   <view class="register-form">
       <text class="register-form__title">创建你的账户</text>
-      <label class="register-field"><text>账户名</text><input value="{{form.username}}" placeholder="3-50位字母、数字或下划线" bindinput="onUsernameInput" /></label>
+      <label class="register-field"><text>账户名</text><input value="{{form.username}}" placeholder="2-50位字母、数字或下划线" bindinput="onUsernameInput" /></label>
       <label class="register-field"><text>密码</text><input password value="{{form.password}}" placeholder="6-64位密码" bindinput="onPasswordInput" /></label>
       <label class="register-field"><text>姓名</text><input value="{{form.name}}" placeholder="请输入姓名" bindinput="onNameInput" /></label>
       <!-- <label class="register-field"><text>手机号（可选）</text><input type="number" value="{{form.mobile}}" placeholder="请输入手机号" bindinput="onMobileInput" /></label> -->
