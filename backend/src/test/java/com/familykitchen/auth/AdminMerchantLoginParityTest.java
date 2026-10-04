@@ -30,6 +30,8 @@ class AdminMerchantLoginParityTest {
     when(passwords.matches("password", "hash")).thenReturn(true);
     when(identities.findPlatformRoles(7L)).thenReturn(List.of());
     when(sessions.create(7L)).thenReturn("session");
+    when(sessions.createRenewable(7L)).thenReturn(
+        new SessionService.RenewableSession(7L, "mini-session", "mini-refresh"));
   }
 
   @Test void merchantWithoutPlatformRoleGetsSameIdentityOnBothClients() {
@@ -38,7 +40,11 @@ class AdminMerchantLoginParityTest {
     var mini = member.login(new UserLoginRequest("cook", "password"));
     assertEquals(9L, pc.merchantId());
     assertEquals("merchant_admin", pc.roleTemplate());
-    assertEquals(mini, pc);
+    assertEquals(mini.userId(), pc.userId());
+    assertEquals(mini.merchantId(), pc.merchantId());
+    assertEquals(mini.roleTemplate(), pc.roleTemplate());
+    assertNull(pc.refreshToken());
+    assertEquals("mini-refresh", mini.refreshToken());
   }
 
   @Test void familyMerchantIdDoesNotGrantBackendAccessOrCreateSession() {

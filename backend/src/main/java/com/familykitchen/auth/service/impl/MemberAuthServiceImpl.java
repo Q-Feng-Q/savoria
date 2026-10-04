@@ -155,7 +155,34 @@ public class MemberAuthServiceImpl implements MemberAuthService {
     if (backendOnly && merchant == null && !platformAdmin) {
       throw new BusinessException(ErrorCode.FORBIDDEN, "该用户没有后台权限");
     }
-    String sessionId = sessionService.create(userId);
+    SessionService.RenewableSession renewable = backendOnly ? null : sessionService.createRenewable(userId);
+    String sessionId = backendOnly ? sessionService.create(userId) : renewable.sessionId();
+    return sessionResponse(userId, sessionId, renewable == null ? null : renewable.refreshToken(),
+        family, merchant, roles);
+  }
+
+  /** Rotates a mini-program credential after checking current account status.
+   * @param refreshToken presented credential
+   * @return renewed login response */
+  @Override
+  public LoginResponse refresh(String refreshToken) {
+    SessionService.RenewableSession renewed = sessionService.rotateRefresh(refreshToken);
+    UserDO user = userMapper.findById(renewed.userId());
+    if (user == null || !"ACTIVE".equals(user.getStatus())
+        || !"ACTIVE".equals(user.getCredentialStatus())) {
+      sessionService.revoke(renewed.userId(), renewed.sessionId());
+      throw new BusinessException(ErrorCode.UNAUTHORIZED, "账号不可用，请重新登录");
+    }
+    return sessionResponse(renewed.userId(), renewed.sessionId(), renewed.refreshToken(),
+        authContextMapper.findActiveFamily(renewed.userId()),
+        authContextMapper.findActiveMerchant(renewed.userId()),
+        Set.copyOf(authContextMapper.findPlatformRoles(renewed.userId())));
+  }
+
+  private LoginResponse sessionResponse(Long userId, String sessionId, String refreshToken,
+      AuthContextMapper.FamilyContext family, AuthContextMapper.MerchantContext merchant,
+      Set<String> roles) {
+    boolean platformAdmin = roles.stream().anyMatch(role -> "platform_admin".equalsIgnoreCase(role));
     Long merchantId = merchant != null ? merchant.merchantId() : (family == null ? null : family.merchantId());
     Long familyId = family == null ? null : family.familyId();
     String roleTemplate;
@@ -170,7 +197,7 @@ public class MemberAuthServiceImpl implements MemberAuthService {
       userId, merchantId, familyId, userId, roleTemplate, backendRoles, scopes, sessionId
     );
     return new LoginResponse(tokenService.issue(context), userId, merchantId, familyId, userId,
-      roleTemplate, backendRoles, scopes);
+      roleTemplate, backendRoles, scopes, refreshToken);
   }
 
   private static Set<String> mergeRoles(Set<String> roles, String merchantRole) {

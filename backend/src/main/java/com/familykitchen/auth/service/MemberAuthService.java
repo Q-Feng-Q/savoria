@@ -34,4 +34,9 @@ public interface MemberAuthService {
    * @return 处理Login后的结果
    */
   LoginResponse wechatLogin(WechatLoginRequest request);
+
+  /** Rotates a valid mini-program refresh credential and keeps its account session.
+   * @param refreshToken presented credential
+   * @return renewed login response */
+  LoginResponse refresh(String refreshToken);
 }

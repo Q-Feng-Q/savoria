@@ -14,6 +14,7 @@ import java.util.Set;
  * @param roleTemplate 角色Template
  * @param backendRoles backendRoles
  * @param merchantAdminScopes 商户平台管理Scopes
+ * @param refreshToken 小程序轮换续期凭证，管理端为 null
  */
 @Schema(description = "登录成功后的认证返回对象")
 public record LoginResponse(
@@ -32,6 +33,8 @@ public record LoginResponse(
     @Schema(description = "后台角色列表")
     Set<String> backendRoles,
     @Schema(description = "商户后台权限范围")
-    Set<String> merchantAdminScopes
+    Set<String> merchantAdminScopes,
+    @Schema(description = "仅小程序返回的轮换续期凭证")
+    String refreshToken
 ) {
 }

@@ -30,6 +30,14 @@
     "controllerMethod": "logoutAll"
   },
   {
+    "operation": "auth.refresh",
+    "pages": ["shared/runtime/auth"],
+    "method": "POST",
+    "backendRoute": "/auth/refresh",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "refresh"
+  },
+  {
     "operation": "auth.portalLogin",
     "pages": [
       "shared/runtime/auth"

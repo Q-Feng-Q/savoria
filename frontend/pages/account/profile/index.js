@@ -189,6 +189,8 @@ const { withBranding } = require('../../../utils/branding'); Page(withBranding({
     } catch (error) {
       // Local logout must still succeed when the session has already expired.
     } finally {
+        sessionStore.setAutoLoginSuppressed(true);
+        sessionStore.setAutoLoginTarget(null);
       sessionStore.clearSession();
       wx.reLaunch({ url: '/pages/auth/entry/index' });
     }

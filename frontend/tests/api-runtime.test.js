@@ -6,6 +6,38 @@ const {
   isApiSession,
   resolveNotificationScope
 } = require('../utils/api-runtime');
+const { createSessionStore } = require('../utils/session');
+
+test('runtime rotates the mini-program session before retrying an expired request', async () => {
+  const values = new Map();
+  const sessionStore = createSessionStore({ storage: {
+    get: (key) => values.get(key) || null,
+    set: (key, value) => values.set(key, value),
+    remove: (key) => values.delete(key)
+  } });
+  sessionStore.setSession({ userId: 7, accessToken: 'old-access', refreshToken: 'session-id.old-refresh' });
+  const calls = [];
+  const runtime = createApiRuntime({ baseUrl: 'https://kitchen.test', sessionStore,
+    request: async (options) => {
+      calls.push([options.url, options.header.Authorization || '']);
+      if (options.url.endsWith('/auth/refresh')) return { statusCode: 200, data: {
+        code: 0, data: { userId: 7, accessToken: 'new-access', refreshToken: 'session-id.new-refresh' }
+      } };
+      if (options.header.Authorization === 'Bearer old-access') return {
+        statusCode: 401, data: { code: 40101, message: 'expired' }
+      };
+      return { statusCode: 200, data: { code: 0, data: [] } };
+    }
+  });
+
+  assert.deepEqual(await runtime.notebook.listEvents(), []);
+  assert.deepEqual(calls, [
+    ['https://kitchen.test/notebook/events?includeArchived=false', 'Bearer old-access'],
+    ['https://kitchen.test/auth/refresh', ''],
+    ['https://kitchen.test/notebook/events?includeArchived=false', 'Bearer new-access']
+  ]);
+  assert.equal(sessionStore.getSession().refreshToken, 'session-id.new-refresh');
+});
 
 test('isApiSession only enables live mode for api sessions', () => {
   assert.equal(isApiSession(null), false);

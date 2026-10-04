@@ -65,3 +65,17 @@ test('missing explicit modes retain legacy compatibility inference', () => {
   session.setSession({ userId: 2, accessToken: 'token', familyId: 1, merchantId: 2 });
   assert.deepEqual(session.getSession().availableModes, ['family', 'merchant']);
 });
+
+test('manual logout can suppress automatic WeChat login until the next successful login', () => {
+  const session = createSessionStore({ storage: createMemoryStorage() });
+  assert.equal(session.isAutoLoginSuppressed(), false);
+  session.setAutoLoginSuppressed(true);
+  session.clearSession();
+  assert.equal(session.isAutoLoginSuppressed(), true);
+  session.setAutoLoginSuppressed(false);
+  assert.equal(session.isAutoLoginSuppressed(), false);
+  session.setAutoLoginTarget(7);
+  assert.equal(session.getAutoLoginTarget(), 7);
+  session.setAutoLoginTarget(null);
+  assert.equal(session.getAutoLoginTarget(), null);
+});

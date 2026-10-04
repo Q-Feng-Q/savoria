@@ -13,6 +13,7 @@ const { createSystemService } = require('../services/system');
 const { createFeedbackService } = require('../services/feedback');
 const { createNotebookService } = require('../services/notebook');
 const { createNotebookImages } = require('./notebook-images');
+const { renewSession } = require('./session-renewal');
 const {
   createCloudRequestAdapter,
   createCloudTransferAdapter,
@@ -70,11 +71,14 @@ function createApiRuntime(options = {}) {
       transfer: options.downloadFile
     })
     : undefined);
+  const unauthenticatedRequest = createApiClient({ baseUrl, request: requestAdapter });
+  const refresh = createAuthService({ request: unauthenticatedRequest }).refresh;
   const request = createApiClient({
     baseUrl,
     request: requestAdapter,
     getSession: () => sessionStore.getSession(),
-    getToken: () => sessionStore.getToken()
+    getToken: () => sessionStore.getToken(),
+    refreshSession: () => renewSession(sessionStore, (refreshToken) => refresh({ refreshToken }))
   });
 
   return {

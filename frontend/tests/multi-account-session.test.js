@@ -23,6 +23,17 @@ test('switching and removing accounts updates the active session',()=>{
  assert.equal(store.listAccounts().length,1);
 });
 
+test('removing a pending account clears its automatic login target',()=>{
+ const store=createSessionStore({storage:storage()});
+ store.setSession({userId:1,accessToken:'a'});
+ store.setAutoLoginTarget(1);
+ store.removeAccount(1);
+ assert.equal(store.getAutoLoginTarget(),null);
+ store.setAutoLoginTarget(2);
+ store.clearAllAccounts();
+ assert.equal(store.getAutoLoginTarget(),null);
+});
+
 test('clearing current session does not erase saved account list unless requested',()=>{
  const store=createSessionStore({storage:storage()});store.setSession({userId:1,username:'alice',accessToken:'a'});
  store.clearSession();assert.equal(store.getSession(),null);assert.equal(store.listAccounts().length,1);

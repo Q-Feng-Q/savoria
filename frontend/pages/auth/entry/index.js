@@ -27,44 +27,87 @@ Page(withBranding({
   },
   onShow() {
     const session = sessionStore.getSession();
-    if (session && !this.data.addingAccount) { redirectBySession(session); return; }
+    if (session && !session.requiresLogin && !this.data.addingAccount) {
+      redirectBySession(session); return;
+    }
     this.setData({ loading: false });
+    if (!this.data.addingAccount && !sessionStore.isAutoLoginSuppressed()
+        && typeof wx.login === 'function') {
+      const targetUserId = session && session.requiresLogin
+        ? session.userId : sessionStore.getAutoLoginTarget();
+      return this.tryWechatAutoLogin(targetUserId);
+    }
   },
   onUsernameInput(event) { this.setData({ 'form.username': event.detail.value }); },
   onPasswordInput(event) { this.setData({ 'form.password': event.detail.value }); },
   openRegister() { wx.navigateTo({ url: '/pages/auth/register/index' }); },
   openPasswordRecovery() { wx.navigateTo({ url: '/pages/auth/password-recovery/index' }); },
+  async completeLogin(loginSession, { username = '', previousSession = null, quiet = false } = {}) {
+    const runtime = createApiRuntime();
+    sessionStore.setSession({ ...loginSession, loginMode: 'api' }, { save: false });
+    const context = await runtime.user.getContext();
+    const platformRoles = context.platformRoles || [];
+    const session = {
+      ...loginSession, ...context,
+      memberId: loginSession.memberId || context.userId,
+      roleTemplate: context.merchantId ? 'merchant_admin' : (context.familyRole || (platformRoles.length ? 'platform_admin' : 'user')).toLowerCase(),
+      backendRoles: Array.from(new Set([...(loginSession.backendRoles || []), ...platformRoles])),
+      merchantAdminScopes: context.merchantId ? ['merchant'] : (loginSession.merchantAdminScopes || [])
+    };
+    const evaluation = evaluateLoginSession(session);
+    if (!evaluation.allowed) {
+      if (previousSession) sessionStore.setSession(previousSession, { save: false });
+      else sessionStore.clearSession();
+      if (!quiet) {
+        const isPlatformAdmin = session.roleTemplate === 'platform_admin' || (session.backendRoles || []).some((role) => String(role).toLowerCase() === 'platform_admin');
+        if (isPlatformAdmin) await showPlatformAdminNotice(evaluation.message);
+        else wx.showToast({ title: evaluation.message, icon: 'none' });
+      }
+      return false;
+    }
+    const storedSession = sessionStore.setSession({ ...session, username, loginMode: 'api' });
+    sessionStore.setAutoLoginSuppressed(false);
+    sessionStore.setAutoLoginTarget(null);
+    redirectBySession(storedSession);
+    return true;
+  },
+  async tryWechatAutoLogin(targetUserId = null) {
+    if (this.data.loading) return;
+    this.setData({ loading: true });
+    let receivedSession = false;
+    try {
+      const result = await new Promise((resolve, reject) => wx.login({ success: resolve, fail: reject }));
+      if (!result || !result.code) return;
+      const loginSession = await createApiRuntime().auth.wechatLogin({ code: result.code });
+      receivedSession = true;
+      if (targetUserId !== undefined && targetUserId !== null
+          && String(loginSession.userId) !== String(targetUserId)) {
+        const previousSession = sessionStore.getSession();
+        sessionStore.setSession(loginSession, { save: false });
+        try { await createApiRuntime().auth.logout(); } catch (_) { /* Revoke is best-effort. */ }
+        if (previousSession) sessionStore.setSession(previousSession, { save: false });
+        else sessionStore.clearSession();
+        receivedSession = false;
+        return;
+      }
+      await this.completeLogin(loginSession, { quiet: true });
+    } catch (_) {
+      if (receivedSession) sessionStore.clearSession();
+      // Unbound WeChat accounts continue with the normal password form.
+    } finally { this.setData({ loading: false }); }
+  },
   async submitLogin() {
     if (this.data.loading) return;
     const username = String(this.data.form.username || '').trim();
     const password = String(this.data.form.password || '');
     if (!username || !password) { wx.showToast({ title: '请输入账号和密码', icon: 'none' }); return; }
     const previousSession = this.data.addingAccount ? sessionStore.getSession() : null;
-    const runtime = createApiRuntime();
     let loginCompleted = false;
     this.setData({ loading: true });
     try {
-      const loginSession = await loginWithPermissionFallback(runtime.auth, { username, password });
+      const loginSession = await loginWithPermissionFallback(createApiRuntime().auth, { username, password });
       loginCompleted = true;
-      sessionStore.setSession({ ...loginSession, loginMode: 'api' }, { save: false });
-      const context = await runtime.user.getContext();
-      const platformRoles = context.platformRoles || [];
-      const session = {
-        ...loginSession, ...context,
-        memberId: loginSession.memberId || context.userId,
-        roleTemplate: context.merchantId ? 'merchant_admin' : (context.familyRole || (platformRoles.length ? 'platform_admin' : 'user')).toLowerCase(),
-        backendRoles: Array.from(new Set([...(loginSession.backendRoles || []), ...platformRoles])),
-        merchantAdminScopes: context.merchantId ? ['merchant'] : (loginSession.merchantAdminScopes || [])
-      };
-      const evaluation = evaluateLoginSession(session);
-      if (!evaluation.allowed) {
-        if (previousSession) sessionStore.setSession(previousSession, { save: false }); else sessionStore.clearSession();
-        const isPlatformAdmin = session.roleTemplate === 'platform_admin' || (session.backendRoles || []).some((role) => String(role).toLowerCase() === 'platform_admin');
-        if (isPlatformAdmin) await showPlatformAdminNotice(evaluation.message); else wx.showToast({ title: evaluation.message, icon: 'none' });
-        return;
-      }
-      const storedSession = sessionStore.setSession({ ...session, username, loginMode: 'api' });
-      redirectBySession(storedSession);
+      await this.completeLogin(loginSession, { username, previousSession });
     } catch (error) {
       if (previousSession) sessionStore.setSession(previousSession, { save: false }); else sessionStore.clearSession();
       if (loginCompleted) showApiError(error, '登录后账号信息加载失败'); else showLoginError(error);

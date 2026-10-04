@@ -12,6 +12,12 @@ function createAuthService({ request }) {
       }));
     },
 
+    async refresh(payload) {
+      return unwrapData(await request('/api/auth/refresh', {
+        method: 'POST', data: payload
+      }));
+    },
+
     async portalLogin(payload) {
       return unwrapData(await request('/api/auth/login', {
         method: 'POST',

@@ -60,37 +60,69 @@ function buildAuthHeaders(session) {
   return header;
 }
 
+function loginIdentity(session) {
+  if (!session) return '';
+  const refreshToken = String(session.refreshToken || '');
+  return refreshToken ? refreshToken.split('.')[0] : String(session.accessToken || '');
+}
+
 function createApiClient(options = {}) {
   const requestAdapter = options.request || defaultRequestAdapter;
   const getToken = options.getToken || (() => '');
   const getSession = options.getSession || (() => null);
   const baseUrl = trimTrailingSlash(options.baseUrl || '');
+  const refreshSession = options.refreshSession;
 
   return async function request(pathname, requestOptions = {}) {
-    const session = getSession();
-    const token = getToken();
-    const header = {
-      ...(requestOptions.header || {}),
-      ...buildAuthHeaders(session)
-    };
-
-    if (token && !header.Authorization) {
-      header.Authorization = `Bearer ${token}`;
-    }
-
     const backendPath = normalizeBackendPath(pathname);
-    const response = await requestAdapter({
-      ...requestOptions,
-      url: `${baseUrl}${backendPath}`,
-      header
-    });
-
-    const payload = response.data || {};
-    if (response.statusCode >= 400 || payload.code !== 0) {
-      throw normalizeError(response.statusCode, payload);
+    const origin = getSession();
+    const sameIdentity = () => {
+      if (!origin) return true;
+      const current = getSession();
+      return Boolean(current && String(current.userId) === String(origin.userId)
+        && current.activeMode === origin.activeMode
+        && loginIdentity(current) === loginIdentity(origin));
+    };
+    const accountSwitched = () => {
+      const error = new Error('账号已切换，已取消旧请求');
+      error.code = 'ACCOUNT_SWITCHED';
+      return error;
+    };
+    async function send() {
+      if (!sameIdentity()) throw accountSwitched();
+      const session = getSession();
+      const token = getToken();
+      const header = { ...(requestOptions.header || {}), ...buildAuthHeaders(session) };
+      if (token && !header.Authorization) header.Authorization = `Bearer ${token}`;
+      const response = await requestAdapter({
+        ...requestOptions, url: `${baseUrl}${backendPath}`, header
+      });
+      if (!sameIdentity()) throw accountSwitched();
+      const payload = response.data || {};
+      if (response.statusCode >= 400 || payload.code !== 0) {
+        throw normalizeError(response.statusCode, payload);
+      }
+      return payload;
     }
 
-    return payload;
+    try { return await send(); }
+    catch (error) {
+      const unauthorized = error.code === 40101 || error.code === 401 || error.statusCode === 401;
+      if (unauthorized && !sameIdentity()) throw accountSwitched();
+      const renewalAllowed = !backendPath.startsWith('/auth/')
+        || backendPath === '/auth/logout' || backendPath === '/auth/logout-all';
+      if (!unauthorized || !refreshSession || !renewalAllowed) throw error;
+      let renewed = false;
+      try { renewed = await refreshSession(); } catch (refreshError) {
+        const invalidRefresh = refreshError.code === 40101 || refreshError.code === 401
+          || refreshError.statusCode === 401;
+        if (invalidRefresh) throw error;
+        throw refreshError;
+      }
+      if (!sameIdentity()) throw accountSwitched();
+      if (!renewed) throw error;
+      return send();
+    }
   };
 }
 

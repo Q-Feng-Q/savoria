@@ -52,6 +52,22 @@
     "scope": "public"
   },
   {
+    "key": "auth.refresh",
+    "service": "auth",
+    "function": "refresh",
+    "kind": "request",
+    "args": [{ "refreshToken": "contract-refresh" }],
+    "method": "POST",
+    "path": "/api/auth/refresh",
+    "route": "/api/auth/refresh",
+    "backendRoute": "/auth/refresh",
+    "controllerClass": "AuthController",
+    "controllerFqcn": "com.familykitchen.auth.controller.AuthController",
+    "controllerMethod": "refresh",
+    "scope": "public",
+    "data": { "refreshToken": "contract-refresh" }
+  },
+  {
     "key": "auth.portalLogin",
     "service": "auth",
     "function": "portalLogin",

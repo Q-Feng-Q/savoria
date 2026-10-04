@@ -3,6 +3,13 @@
 <mapper namespace="com.familykitchen.auth.mapper.UserSessionMapper">
   <insert id="insert">INSERT INTO user_sessions(id,user_id,token_hash,status,expires_at)
     VALUES(#{id},#{userId},#{tokenHash},'ACTIVE',DATE_ADD(NOW(),INTERVAL 2 HOUR))</insert>
+  <insert id="insertRenewable">INSERT INTO user_sessions(id,user_id,token_hash,status,expires_at)
+    VALUES(#{id},#{userId},#{tokenHash},'ACTIVE',DATE_ADD(NOW(),INTERVAL 7 DAY))</insert>
+  <select id="findRenewableUser" resultType="java.lang.Long">SELECT user_id FROM user_sessions
+    WHERE id=#{id} AND status='ACTIVE' AND expires_at&gt;NOW()</select>
+  <update id="rotateRefresh">UPDATE user_sessions SET token_hash=#{newHash},
+    expires_at=DATE_ADD(NOW(),INTERVAL 7 DAY) WHERE id=#{id} AND user_id=#{userId}
+    AND status='ACTIVE' AND expires_at&gt;NOW() AND token_hash=#{oldHash}</update>
   <select id="countActive" resultType="int">SELECT COUNT(*) FROM user_sessions WHERE id=#{id}
     AND user_id=#{userId} AND status='ACTIVE' AND expires_at&gt;NOW()</select>
   <update id="revoke">UPDATE user_sessions SET status='REVOKED',revoked_at=NOW()

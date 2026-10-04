@@ -6,6 +6,7 @@ import com.familykitchen.auth.model.dto.PasswordResetCodeRequest;
 import com.familykitchen.auth.model.dto.PasswordResetRequest;
 import com.familykitchen.auth.model.dto.UserLoginRequest;
 import com.familykitchen.auth.model.dto.WechatLoginRequest;
+import com.familykitchen.auth.model.dto.RefreshTokenRequest;
 import com.familykitchen.auth.model.vo.LoginResponse;
 import com.familykitchen.auth.service.AdminAuthApplicationService;
 import com.familykitchen.auth.service.MemberAuthService;
@@ -99,6 +100,15 @@ public class AuthController {
   @Operation(summary = "微信登录", description = "使用微信临时登录码换取用户登录态。")
   public ApiResponse<LoginResponse> wechatLogin(@Valid @RequestBody WechatLoginRequest body) {
     return ApiResponse.ok(memberAuthService.wechatLogin(body));
+  }
+
+  /** Renews only a mini-program session with a valid rotating credential.
+   * @param body current refresh credential
+   * @return new access and refresh credentials */
+  @PostMapping("/refresh")
+  @Operation(summary = "小程序续期", description = "每次续期轮换凭证，七天未使用后失效。")
+  public ApiResponse<LoginResponse> refresh(@Valid @RequestBody RefreshTokenRequest body) {
+    return ApiResponse.ok(memberAuthService.refresh(body.refreshToken()));
   }
 
   /**

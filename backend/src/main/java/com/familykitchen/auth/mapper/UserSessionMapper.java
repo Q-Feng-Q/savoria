@@ -12,6 +12,24 @@ import org.apache.ibatis.annotations.Param;
    * @return 新增结果后的结果
    */
   int insert(@Param("id")String id,@Param("userId")Long userId,@Param("tokenHash")String tokenHash);
+  /** Inserts a seven-day renewable session.
+   * @param id database session ID
+   * @param userId account ID
+   * @param tokenHash refresh credential digest
+   * @return affected rows */
+  int insertRenewable(@Param("id")String id,@Param("userId")Long userId,@Param("tokenHash")String tokenHash);
+  /** Finds the owner of an unexpired renewable session.
+   * @param id database session ID
+   * @return account ID, or null */
+  Long findRenewableUser(@Param("id")String id);
+  /** Atomically rotates a refresh credential and extends its idle deadline.
+   * @param id database session ID
+   * @param userId account ID
+   * @param oldHash presented credential digest
+   * @param newHash replacement credential digest
+   * @return affected rows */
+  int rotateRefresh(@Param("id")String id,@Param("userId")Long userId,
+      @Param("oldHash")String oldHash,@Param("newHash")String newHash);
   /**
    * 统计Active。
    *

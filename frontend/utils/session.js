@@ -1,5 +1,7 @@
 const SESSION_KEY = 'family_kitchen_session_v1';
 const ACCOUNTS_KEY = 'family_kitchen_accounts_v1';
+const AUTO_LOGIN_SUPPRESSED_KEY = 'family_kitchen_auto_login_suppressed_v1';
+const AUTO_LOGIN_TARGET_KEY = 'family_kitchen_auto_login_target_v1';
 
 function defaultStorage() {
   return {
@@ -88,6 +90,24 @@ function createSessionStore(options = {}) {
     storage.remove(SESSION_KEY);
   }
 
+  function isAutoLoginSuppressed() {
+    return storage.get(AUTO_LOGIN_SUPPRESSED_KEY) === true;
+  }
+
+  function setAutoLoginSuppressed(value) {
+    if (value) storage.set(AUTO_LOGIN_SUPPRESSED_KEY, true);
+    else storage.remove(AUTO_LOGIN_SUPPRESSED_KEY);
+  }
+
+  function getAutoLoginTarget() {
+    return storage.get(AUTO_LOGIN_TARGET_KEY);
+  }
+
+  function setAutoLoginTarget(userId) {
+    if (userId === undefined || userId === null) storage.remove(AUTO_LOGIN_TARGET_KEY);
+    else storage.set(AUTO_LOGIN_TARGET_KEY, userId);
+  }
+
   function getToken() {
     const session = getSession();
     return session && session.accessToken ? session.accessToken : '';
@@ -109,6 +129,7 @@ function createSessionStore(options = {}) {
   }
   function switchAccount(userId){return activateAccount(userId);}
   function markRequiresLogin(userId,required=true){
+    if(required)setAutoLoginTarget(userId);
     const accounts=rawAccounts();
     const index=accounts.findIndex(item=>String(item.userId)===String(userId));
     if(index<0)return null;
@@ -119,13 +140,17 @@ function createSessionStore(options = {}) {
     if(current&&String(current.userId)===String(userId))storage.set(SESSION_KEY,updated);
     return updated;
   }
-  function removeAccount(userId){const current=getSession();const remaining=listAccounts().filter(item=>String(item.userId)!==String(userId));saveAccounts(remaining);if(current&&String(current.userId)===String(userId)){if(remaining.length)storage.set(SESSION_KEY,remaining[0]);else storage.remove(SESSION_KEY);}return remaining;}
-  function clearAllAccounts(){storage.remove(ACCOUNTS_KEY);storage.remove(SESSION_KEY);}
+  function removeAccount(userId){const current=getSession();const remaining=listAccounts().filter(item=>String(item.userId)!==String(userId));saveAccounts(remaining);if(String(getAutoLoginTarget())===String(userId))setAutoLoginTarget(null);if(current&&String(current.userId)===String(userId)){if(remaining.length)storage.set(SESSION_KEY,remaining[0]);else storage.remove(SESSION_KEY);}return remaining;}
+  function clearAllAccounts(){storage.remove(ACCOUNTS_KEY);storage.remove(SESSION_KEY);setAutoLoginTarget(null);}
 
   return {
     getSession,
     setSession,
     clearSession,
+    isAutoLoginSuppressed,
+    setAutoLoginSuppressed,
+    getAutoLoginTarget,
+    setAutoLoginTarget,
     getToken,listAccounts,getAccount,activateAccount,switchAccount,markRequiresLogin,removeAccount,clearAllAccounts
   };
 }

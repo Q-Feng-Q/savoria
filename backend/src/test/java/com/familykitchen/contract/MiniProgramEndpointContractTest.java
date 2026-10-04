@@ -56,7 +56,7 @@ class MiniProgramEndpointContractTest {
       assertNotNull(input, "missing mini-program-api-contract.json");
       List<EndpointContract> contracts = objectMapper.readValue(
           input, new TypeReference<List<EndpointContract>>() { });
-      assertEquals(125, contracts.size());
+      assertEquals(126, contracts.size());
       Set<String> operationKeys = new HashSet<>();
       for (EndpointContract contract : contracts) {
         assertTrue(operationKeys.add(contract.operation()), contract.operation());

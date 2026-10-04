@@ -79,6 +79,8 @@ Page({
         currentPassword: this.data.currentPassword,
         newPassword: this.data.newPassword
       })
+      sessionStore.setAutoLoginSuppressed(true)
+      sessionStore.setAutoLoginTarget(null)
       sessionStore.clearSession()
       wx.showModal({
         title: '密码已修改',

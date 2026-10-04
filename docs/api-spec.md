@@ -23,11 +23,24 @@
 | HTTP | 含义 | 前端处理 |
 | --- | --- | --- |
 | 400 | 参数格式、枚举或快照结构错误 | 直接展示 `message` |
-| 401 | 未登录或会话失效 | 清理会话并重新登录 |
+| 401 | 未登录或会话失效 | 小程序先尝试续期；续期失败后清理会话并重新登录 |
 | 403 | 缺少商户或平台权限 | 禁止进入对应后台 |
 | 404 | 模板、菜品、申请或图片资源不存在 | 返回列表并刷新 |
 | 409 | 版本过期、重复申请或状态已变化 | 刷新详情后重新操作 |
 | 422 | 业务数据不满足导入、审核或采购要求 | 直接展示 `message` |
+
+### 小程序登录续期
+
+`POST /api/auth/login`、`POST /api/auth/register` 和 `POST /api/auth/wechat/login` 为小程序会话返回 `accessToken` 与 `refreshToken`。访问令牌有效期由 `family-kitchen.jwt.expires-in-seconds` 控制（当前为 2 小时）；续期凭证连续 7 天未使用则失效。`POST /api/auth/admin/login` 不返回续期凭证。
+
+```http
+POST /api/auth/refresh
+Content-Type: application/json
+
+{"refreshToken":"<上次登录或续期返回的凭证>"}
+```
+
+续期返回与登录相同的账户身份和新 `accessToken`、`refreshToken`。旧续期凭证立即失效；并发请求只应发起一次续期，随后重试原请求一次。退出当前设备或全部设备会撤销对应数据库会话，续期随即失效。已绑定微信的用户可用 `wx.login` 临时 code 调用微信登录接口获取新的小程序会话；未绑定账户仍需密码登录。
 
 ## 2. 公共枚举
 
