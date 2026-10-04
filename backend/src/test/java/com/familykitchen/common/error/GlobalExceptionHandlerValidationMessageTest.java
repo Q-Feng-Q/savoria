@@ -1,7 +1,12 @@
 package com.familykitchen.common.error;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.familykitchen.admin.model.dto.AdminUserCreateRequest;
+import com.familykitchen.auth.model.dto.RegisterRequest;
 import com.familykitchen.order.model.enums.DeliveryMode;
+import com.familykitchen.user.model.dto.ChangeUsernameRequest;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -19,6 +24,35 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 class GlobalExceptionHandlerValidationMessageTest {
 
   private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
+  private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+  private String validationMessage(Object request) {
+    var binding = new BeanPropertyBindingResult(request, "request");
+    validator.validate(request).forEach(violation -> binding.addError(new FieldError(
+        "request", violation.getPropertyPath().toString(), violation.getMessage())));
+    var exception = new MethodArgumentNotValidException(mock(MethodParameter.class), binding);
+    return handler.handleMethodArgumentNotValid(exception).getBody().message();
+  }
+
+  @Test
+  void usernameLengthErrorsNameTheTwoToFiftyCharacterRangeAtEveryEntry() {
+    assertThat(validationMessage(new RegisterRequest("a", "123456", "用户", null)))
+        .isEqualTo("用户名：长度需为 2-50 个字符");
+    assertThat(validationMessage(new AdminUserCreateRequest("a", "123456", "用户", null, false)))
+        .isEqualTo("用户名：长度需为 2-50 个字符");
+    assertThat(validationMessage(new ChangeUsernameRequest("a")))
+        .isEqualTo("用户名：长度需为 2-50 个字符");
+  }
+
+  @Test
+  void usernameCharacterErrorsExplainTheAllowedCharacters() {
+    assertThat(validationMessage(new RegisterRequest("中文", "123456", "用户", null)))
+        .isEqualTo("用户名：只能使用英文字母、数字或下划线");
+    assertThat(validationMessage(new AdminUserCreateRequest("中文", "123456", "用户", null, false)))
+        .isEqualTo("用户名：只能使用英文字母、数字或下划线");
+    assertThat(validationMessage(new ChangeUsernameRequest("中文")))
+        .isEqualTo("用户名：只能使用英文字母、数字或下划线");
+  }
 
   @Test
   void missingQueryParameterNamesTheRequiredParameter() {
