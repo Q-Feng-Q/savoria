@@ -20,5 +20,6 @@ test('PC merchant backend exposes template market route and real APIs', () => {
   assert.match(view, /价格待完善/);
   assert.match(view, /cookingSteps/);
   assert.match(view, /item\.importable/);
-  assert.match(view, /待完善后导入/);
+  assert.match(view, /待完善.*可导入/);
+  assert.match(view, /confirmAction/);
 });

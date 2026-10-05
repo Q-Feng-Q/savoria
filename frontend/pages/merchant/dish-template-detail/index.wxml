@@ -9,6 +9,7 @@
       <text class="detail-description">{{detail.descriptionText}}</text>
       <view class="detail-meta"><text>{{detail.priceText}}</text><text wx:if="{{detail.tasteText}}">{{detail.tasteText}}</text><text wx:if="{{detail.mealText}}">{{detail.mealText}}</text></view>
       <view class="source-line"><text>{{detail.sourceLabel}}</text><text>{{detail.dataStatus === 'READY' ? '采购数据完整' : '数据待完善'}}</text></view>
+      <view wx:if="{{detail.completionText}}" class="detail-completion">{{detail.completionText}}。可以导入后补充；缺少价格时会先下架。</view>
     </view>
     <view wx:for="{{detail.nourishmentSections}}" wx:key="key">
       <text class="section-title">{{item.label}}</text>
@@ -20,7 +21,7 @@
     </view>
     <text class="section-title">制作步骤</text>
     <view wx:if="{{detail.hasCookingSteps}}" class="step-list">
-      <view wx:for="{{detail.cookingSteps}}" wx:key="stepNo" class="step-row"><text class="step-number">{{item.stepNo}}</text><view><text class="step-title">{{item.titleText}}</text><text class="step-content">{{item.content}}</text><step-images images="{{item.imageUrls}}" /><text wx:if="{{item.heatLevel || item.temperatureText || item.durationSeconds}}" class="step-meta">{{item.heatLevel}} {{item.temperatureText}} {{item.durationSeconds ? item.durationSeconds + ' 秒' : ''}}</text></view></view>
+      <view wx:for="{{detail.cookingSteps}}" wx:key="stepNo" class="step-row"><text class="step-number">{{item.stepNo}}</text><view><text class="step-title">{{item.titleText}}</text><text class="step-content">{{item.content}}</text><step-images images="{{item.imageUrls}}" /><text wx:if="{{item.metaText}}" class="step-meta">{{item.metaText}}</text></view></view>
     </view>
     <view wx:else class="step-empty">制作步骤待补充，仍可申请完善模板。</view>
     <view class="source-note">图片信息：{{detail.imageCreditText}}</view>

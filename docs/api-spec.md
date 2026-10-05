@@ -53,7 +53,7 @@ Content-Type: application/json
 - 修改申请状态：`PENDING`、`APPROVED`、`REJECTED`、`WITHDRAWN`。
 - 图片资源状态：`INTERNAL_REVIEW`、`PUBLISHED`、`REJECTED`。
 
-模板的 `referencePrice`、`description`、`imageUrl` 可为 null。`procurementReady=false` 表示该模板不能可靠生成采购清单，前端不能自行推断为可采购。商户列表和详情统一返回 `sourceType` 与服务端计算的 `importable`；只有 `importable=true` 才能勾选导入。
+模板的 `referencePrice`、`description`、`imageUrl` 可为 null。`procurementReady=false` 表示该模板不能可靠生成采购清单，前端不能自行推断为可采购。商户列表和详情统一返回 `sourceType` 与服务端计算的 `importable`；启用的成品模板即使资料待完善也可导入，客户端须提示待补信息。
 
 ## 3. 商户模板市场
 
@@ -99,7 +99,7 @@ Content-Type: application/json
 {"templateIds":[1,2,3]}
 ```
 
-去重后最大 100 个 ID。服务端只导入启用、类型为 `DISH`、价格不为 null 且 `procurementReady=true` 的模板。导入会复制菜品资料、采购食材和制作步骤；已导入模板进入 `skippedIds`，不会覆盖商户已经修改的副本。
+去重后最大 100 个 ID。服务端导入启用且类型为 `DISH` 的模板，允许资料待完善。缺少参考价格时以 0 元占位并将商户菜品设为下架；价格已知时不因其他字段待完善而强制下架。仅在采购用量可可靠计算时复制采购食材；否则不伪造数量，商户需在导入后补充。已提供的制作步骤仍会复制，组件引用循环时跳过循环边。已导入模板进入 `skippedIds`，不会覆盖商户已经修改的副本。
 
 ```json
 {

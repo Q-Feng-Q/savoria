@@ -32,6 +32,12 @@ Page({
     if (this.data.importing || !this.data.detail || this.data.detail.imported) return;
     this.setData({ importing: true });
     try {
+      if (this.data.detail.completionHints.length) {
+        const confirmation = await wx.showModal({ title: '模板资料待完善',
+          content: `${this.data.detail.completionText}。导入后请补充；缺少价格的菜品会自动下架。仍要导入吗？`,
+          confirmText: '继续导入' });
+        if (!confirmation || !confirmation.confirm) return;
+      }
       await createApiRuntime().merchant.importDishTemplates([this.templateId]);
       wx.showToast({ title: '已导入', icon: 'success' }); await this.load();
     } catch (error) { showApiError(error, '模板导入失败'); }

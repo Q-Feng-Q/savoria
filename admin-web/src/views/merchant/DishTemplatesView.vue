@@ -40,12 +40,12 @@
         <tbody>
           <tr v-for="item in page.items" :key="item.templateId" :class="{ imported: item.imported }">
             <td><input type="checkbox" :checked="selectedIds.includes(item.templateId)" :disabled="item.imported || !item.importable" @change="toggle(item)" /></td>
-            <td><div class="dish-cell"><img v-if="item.imageUrl" :src="resolveAssetUrl(item.imageUrl)" :alt="item.name" /><span v-else class="dish-image-empty">暂无图片</span><div><strong>{{ item.name }}</strong><span>{{ item.description || '暂无菜谱简介' }}</span><small>{{ item.sourceType === 'COOK_LIKE_HOC' ? 'CookLikeHOC' : '平台菜谱' }} · {{ item.missingSteps ? '步骤待补充' : '含制作步骤' }}</small></div></div></td>
+            <td><div class="dish-cell"><img v-if="item.imageUrl" :src="resolveAssetUrl(item.imageUrl)" :alt="item.name" /><span v-else class="dish-image-empty">暂无图片</span><div><strong>{{ item.name }}</strong><span>{{ item.description || '暂无菜谱简介' }}</span><small>{{ item.sourceType === 'COOK_LIKE_HOC' ? 'CookLikeHOC' : '平台菜谱' }} · {{ item.missingSteps ? '步骤待补充' : '含制作步骤' }}</small><small v-if="completionHints(item).length">待补：{{ completionHints(item).join('、') }}</small></div></div></td>
             <td>{{ item.categoryName }}<ProductTypeBadge :value="item.productType" :template-type="item.templateType" /></td>
             <td>{{ (item.tasteTags || []).join('、') || '家常' }}</td>
             <td>{{ item.ingredientCount }} 种</td>
             <td>{{ item.referencePrice == null ? '价格待完善' : `¥${item.referencePrice}` }}</td>
-            <td><span :class="item.imported ? 'status-imported' : item.importable ? 'status-ready' : 'status-pending'">{{ item.imported ? '已导入' : item.importable ? '可导入' : '待完善后导入' }}</span></td>
+            <td><span :class="item.imported ? 'status-imported' : completionHints(item).length ? 'status-pending' : 'status-ready'">{{ item.imported ? '已导入' : completionHints(item).length ? '待完善 · 可导入' : '可导入' }}</span></td>
             <td><button class="text-button" type="button" @click="openDetail(item.templateId)">详情</button><button class="text-button" type="button" @click="openChangeEditor(item.templateId)">申请修改</button></td>
           </tr>
         </tbody>
@@ -165,9 +165,29 @@ function selectCurrentPage() {
   selectedIds.value = Array.from(new Set([...selectedIds.value, ...available])).slice(0, 100);
 }
 
+function completionHints(item) {
+  const hints = [];
+  if (item.referencePrice == null) hints.push('价格');
+  if (item.procurementReady === false) hints.push('食材用量');
+  if (item.missingSteps) hints.push('制作步骤');
+  if (item.dataStatus && item.dataStatus !== 'READY' && !hints.length) hints.push('模板资料');
+  return hints;
+}
+
 async function submitImport() {
+  if (importing.value || !selectedIds.value.length) return;
   importing.value = true;
   try {
+    const selected = page.items.filter(item => selectedIds.value.includes(item.templateId));
+    const hints = [...new Set(selected.flatMap(completionHints))];
+    const hasUnseen = selected.length < selectedIds.value.length;
+    if (hints.length || hasUnseen) {
+      const warning = hints.length ? `待补：${hints.join('、')}。` : '所选模板可能含有待完善资料。';
+      const confirmed = await confirmAction({ title: '导入前请核对模板资料',
+        message: `${warning}导入后请补充；缺少价格的菜品会自动下架。仍要导入吗？`,
+        confirmText: '继续导入' });
+      if (!confirmed) return;
+    }
     const result = await importDishTemplates(selectedIds.value);
     notify(`导入完成：成功 ${result.importedCount || 0} 道，跳过 ${result.skippedCount || 0} 道`, 'success');
     selectedIds.value = [];

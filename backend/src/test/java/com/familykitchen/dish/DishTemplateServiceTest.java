@@ -111,6 +111,106 @@ class DishTemplateServiceTest {
   }
 
   @Test
+  void incompleteTemplateWithoutPriceImportsInactiveWithoutInventingPurchaseQuantities() {
+    DishTemplateMapper templateMapper = mock(DishTemplateMapper.class);
+    DishMapper dishMapper = mock(DishMapper.class);
+    DishTemplateEntity template = template(2L, "待补全菜", "家常热菜");
+    template.setDataStatus("INCOMPLETE");
+    template.setProcurementReady(false);
+    template.setReferencePrice(null);
+    DishTemplateIngredientEntity ingredient = ingredient(2L, "排骨");
+    ingredient.setQuantityStatus("MISSING");
+    ingredient.setQuantity(null);
+    ingredient.setUnit(null);
+    ingredient.setCalcType(null);
+    DishCategoryEntity category = new DishCategoryEntity();
+    category.setId(8L);
+    when(templateMapper.selectTemplate(11L, 2L)).thenReturn(template);
+    when(templateMapper.selectTemplatesByIds(List.of(2L))).thenReturn(List.of(template));
+    when(templateMapper.selectImportedTemplateIds(11L, List.of(2L))).thenReturn(List.of());
+    when(templateMapper.selectEligibleTemplateForUpdate(2L)).thenReturn(template);
+    when(templateMapper.selectTemplateIngredients(2L)).thenReturn(List.of(ingredient));
+    when(templateMapper.selectTemplateCookingSteps(2L)).thenReturn(List.of(step(21L, 2L, 1, "炖煮")));
+    when(templateMapper.selectMerchantCategoryByName(11L, "家常热菜")).thenReturn(category);
+    when(templateMapper.insertImportedDishIgnore(any())).thenAnswer(invocation -> {
+      invocation.<com.familykitchen.dish.model.entity.DishEntity>getArgument(0).setId(99L);
+      return 1;
+    });
+
+    DishTemplateServiceImpl service = service(templateMapper, dishMapper);
+    assertTrue(service.detail(USER, 2L).importable());
+    assertEquals(1, service.importTemplates(USER, List.of(2L)).importedCount());
+    var dishCaptor = ArgumentCaptor.forClass(com.familykitchen.dish.model.entity.DishEntity.class);
+    verify(templateMapper).insertImportedDishIgnore(dishCaptor.capture());
+    assertEquals("inactive", dishCaptor.getValue().getStatus());
+    assertEquals(BigDecimal.ZERO, dishCaptor.getValue().getBasePrice());
+    verify(dishMapper, never()).insertDishIngredient(any());
+    verify(dishMapper).insertCookingStep(any());
+  }
+
+  @Test
+  void incompleteTemplateWithPriceRemainsActiveAfterImport() {
+    DishTemplateMapper templateMapper = mock(DishTemplateMapper.class);
+    DishMapper dishMapper = mock(DishMapper.class);
+    DishTemplateEntity template = template(2L, "待补全菜", "家常热菜");
+    template.setDataStatus("INCOMPLETE");
+    template.setProcurementReady(false);
+    DishCategoryEntity category = new DishCategoryEntity();
+    category.setId(8L);
+    when(templateMapper.selectTemplatesByIds(List.of(2L))).thenReturn(List.of(template));
+    when(templateMapper.selectImportedTemplateIds(11L, List.of(2L))).thenReturn(List.of());
+    when(templateMapper.selectEligibleTemplateForUpdate(2L)).thenReturn(template);
+    when(templateMapper.selectTemplateIngredients(2L)).thenReturn(List.of());
+    when(templateMapper.selectTemplateCookingSteps(2L)).thenReturn(List.of());
+    when(templateMapper.selectMerchantCategoryByName(11L, "家常热菜")).thenReturn(category);
+    when(templateMapper.insertImportedDishIgnore(any())).thenAnswer(invocation -> {
+      invocation.<com.familykitchen.dish.model.entity.DishEntity>getArgument(0).setId(99L);
+      return 1;
+    });
+
+    assertEquals(1, service(templateMapper, dishMapper).importTemplates(USER, List.of(2L)).importedCount());
+    var dishCaptor = ArgumentCaptor.forClass(com.familykitchen.dish.model.entity.DishEntity.class);
+    verify(templateMapper).insertImportedDishIgnore(dishCaptor.capture());
+    assertEquals("active", dishCaptor.getValue().getStatus());
+    assertEquals(BigDecimal.valueOf(18), dishCaptor.getValue().getBasePrice());
+    verify(dishMapper, never()).insertDishIngredient(any());
+  }
+
+  @Test
+  void missingComponentQuantityDoesNotDiscardAvailableComponentCookingSteps() {
+    DishTemplateMapper templateMapper = mock(DishTemplateMapper.class);
+    DishMapper dishMapper = mock(DishMapper.class);
+    DishTemplateEntity dish = template(2L, "组合菜", "家常热菜");
+    DishTemplateEntity component = template(9L, "酱汁", "配料组件");
+    DishTemplateIngredientEntity reference = ingredient(2L, "酱汁");
+    reference.setComponentTemplateId(9L);
+    reference.setComponentMultiplier(null);
+    DishCategoryEntity category = new DishCategoryEntity();
+    category.setId(8L);
+    when(templateMapper.selectTemplatesByIds(List.of(2L))).thenReturn(List.of(dish));
+    when(templateMapper.selectImportedTemplateIds(11L, List.of(2L))).thenReturn(List.of());
+    when(templateMapper.selectEligibleTemplateForUpdate(2L)).thenReturn(dish);
+    when(templateMapper.selectTemplateForUpdate(9L)).thenReturn(component);
+    when(templateMapper.selectTemplateIngredients(2L)).thenReturn(List.of(reference));
+    when(templateMapper.selectTemplateIngredients(9L)).thenReturn(List.of());
+    when(templateMapper.selectTemplateCookingSteps(9L)).thenReturn(List.of(step(91L, 9L, 1, "拌酱汁")));
+    when(templateMapper.selectTemplateCookingSteps(2L)).thenReturn(List.of(step(21L, 2L, 1, "装盘")));
+    when(templateMapper.selectMerchantCategoryByName(11L, "家常热菜")).thenReturn(category);
+    when(templateMapper.insertImportedDishIgnore(any())).thenAnswer(invocation -> {
+      invocation.<com.familykitchen.dish.model.entity.DishEntity>getArgument(0).setId(99L);
+      return 1;
+    });
+
+    service(templateMapper, dishMapper).importTemplates(USER, List.of(2L));
+
+    var steps = ArgumentCaptor.forClass(DishCookingStepEntity.class);
+    verify(dishMapper, times(2)).insertCookingStep(steps.capture());
+    assertEquals(List.of(91L, 21L), steps.getAllValues().stream()
+        .map(DishCookingStepEntity::getSourceTemplateStepId).toList());
+    verify(dishMapper, never()).insertDishIngredient(any());
+  }
+
+  @Test
   void importSkipsTemplateAlreadyOwnedByMerchant() {
     DishTemplateMapper templateMapper = mock(DishTemplateMapper.class);
     when(templateMapper.selectTemplatesByIds(List.of(2L))).thenReturn(List.of(template(2L, "番茄炒蛋", "家常热菜")));
@@ -226,7 +326,7 @@ class DishTemplateServiceTest {
         () -> service(templateMapper, dishMapper).importTemplates(USER, List.of(2L)));
 
     assertEquals(ErrorCode.BUSINESS_INVALID, error.errorCode());
-    assertTrue(error.getMessage().contains("价格或采购数据已变化"));
+    assertTrue(error.getMessage().contains("已停用或不可导入"));
     verify(templateMapper, never()).insertImportedDishIgnore(any());
   }
 

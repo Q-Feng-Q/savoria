@@ -82,7 +82,7 @@
     not exists (select 1 from dish_template_cooking_steps ts where ts.template_id=t.id) missing_steps
   </sql>
   <sql id="MerchantEligibleTemplateFilter">
-    t.template_type='DISH' and t.data_status='READY' and t.procurement_ready=1 and t.reference_price is not null and t.enabled=1
+    t.template_type='DISH' and t.enabled=1
   </sql>
   <sql id="MerchantVisibleTemplateFilter">
     t.template_type='DISH' and t.enabled=1

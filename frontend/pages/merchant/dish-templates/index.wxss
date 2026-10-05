@@ -19,8 +19,13 @@
 .category-item--active { color:#fff; background:#6faa7b; font-weight:800; }
 .filter-row { display:flex; align-items:center; gap:20rpx; margin:24rpx 0 18rpx; font-size:23rpx; }
 .filter-item { color:#947e6a; }
+.filter-row .filter-item { flex:none; white-space:nowrap; }
+.merchant-story.template-page .product-type-filter { display:flex; align-items:center; width:160rpx; min-height:88rpx; padding:10rpx 0; border:0; background:transparent; box-sizing:border-box; }
+.product-type-filter__control { display:flex; align-items:center; justify-content:space-between; gap:6rpx; width:100%; height:68rpx; padding:0 12rpx; border:2rpx solid #eadbc8; border-radius:16rpx; background:#fff; box-sizing:border-box; }
+.product-type-filter__value { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#947e6a; font-size:23rpx; line-height:1.2; }
+.product-type-filter__arrow { flex:none; width:12rpx; height:12rpx; border-right:3rpx solid #947e6a; border-bottom:3rpx solid #947e6a; transform:translateY(-3rpx) rotate(45deg); }
 .filter-item--active { color:#3f8d5d; font-weight:900; }
-.page-select { margin-left:auto; color:#3f8d5d; font-weight:800; }
+.page-select { margin-left:auto; color:#3f8d5d; font-weight:800; white-space:nowrap; }
 .template-list { background:#fffdf8; border-top:2rpx solid #f0e4d6; }
 .template-row { display:flex; align-items:center; gap:20rpx; min-height:176rpx; padding:20rpx 4rpx; border-bottom:2rpx solid #f0e4d6; box-sizing:border-box; }
 .template-row--imported { opacity:.62; }
@@ -32,6 +37,7 @@
 .template-name { color:#2c2118; font-size:30rpx; font-weight:900; }
 .template-meta,.template-tags { margin-top:10rpx; color:#907967; font-size:23rpx; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .template-tags { color:#4c9165; }
+.template-completion { display:block; margin-top:8rpx; color:#ad6d2b; font-size:21rpx; }
 .check-control { display:flex; align-items:center; justify-content:center; width:46rpx; height:46rpx; flex:none; border:3rpx solid #b9cdbd; border-radius:12rpx; color:white; font-size:28rpx; font-weight:900; }
 .check-control--active { border-color:#54ac74; background:#54ac74; }
 .imported-label { flex:none; color:#8c7a69; font-size:22rpx; }

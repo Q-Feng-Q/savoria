@@ -115,7 +115,7 @@ public class DishTemplateServiceImpl implements DishTemplateService {
     List<Long> unavailable = requested.stream().filter(id -> !foundIds.contains(id)).toList();
     if (!unavailable.isEmpty()) {
       throw new BusinessException(ErrorCode.BUSINESS_INVALID,
-          "以下模板不存在、已停用或采购数据尚未完善，暂不能导入：" + unavailable);
+          "以下模板不存在、已停用或不是成品菜，暂不能导入：" + unavailable);
     }
     return importResolvedTemplates(user, templates);
   }
@@ -145,15 +145,11 @@ public class DishTemplateServiceImpl implements DishTemplateService {
       DishTemplateEntity locked = templateMapper.selectEligibleTemplateForUpdate(template.getId());
       if (locked == null) {
         throw new BusinessException(ErrorCode.BUSINESS_INVALID,
-            "模板菜品价格或采购数据已变化，请刷新后重试：" + template.getId());
+            "模板菜品已停用或不可导入，请刷新后重试：" + template.getId());
       }
       RecipeGraph graph = loadRecipeGraph(locked);
       var readiness = procurementEvaluator.evaluate(locked.getId(),
           List.copyOf(graph.templates().values()), List.copyOf(graph.ingredients()));
-      if (!readiness.ready()) {
-        throw new BusinessException(ErrorCode.BUSINESS_INVALID,
-            "模板菜品采购数据不可用：" + String.join("；", readiness.blockingReasons()));
-      }
       DishCategoryEntity category = categoryCache.computeIfAbsent(locked.getCategoryName(),
           name -> requireMerchantCategory(user.merchantId(), name, locked.getSortOrder()));
       DishEntity dish = toImportedDish(user.merchantId(), category.getId(), locked);
@@ -192,7 +188,10 @@ public class DishTemplateServiceImpl implements DishTemplateService {
     dish.setProductType(template.getProductType());
     dish.setNourishmentDescription(template.getNourishmentDescription());
     dish.setServingAdvice(template.getServingAdvice()); dish.setPrecautions(template.getPrecautions());
-    dish.setBasePrice(template.getReferencePrice()); dish.setSourceTemplateId(template.getId()); dish.setStatus("active");
+    dish.setBasePrice(template.getReferencePrice() == null
+        ? java.math.BigDecimal.ZERO : template.getReferencePrice());
+    dish.setSourceTemplateId(template.getId());
+    dish.setStatus(template.getReferencePrice() == null ? "inactive" : "active");
     return dish;
   }
 
@@ -220,7 +219,7 @@ public class DishTemplateServiceImpl implements DishTemplateService {
 
   private void copyCookingSteps(Long dishId, DishTemplateEntity root, RecipeGraph graph) {
     List<DishCookingStepEntity> expanded = new ArrayList<>();
-    appendComponentSteps(root.getId(), dishId, graph, expanded);
+    appendComponentSteps(root.getId(), dishId, graph, expanded, new LinkedHashSet<>());
     for (DishTemplateCookingStepEntity step : graph.steps().getOrDefault(root.getId(), List.of())) {
       expanded.add(toDishCookingStep(dishId, expanded.size() + 1, step, null, null));
     }
@@ -228,19 +227,21 @@ public class DishTemplateServiceImpl implements DishTemplateService {
   }
 
   private void appendComponentSteps(Long templateId, Long dishId, RecipeGraph graph,
-      List<DishCookingStepEntity> expanded) {
+      List<DishCookingStepEntity> expanded, Set<Long> path) {
+    if (!path.add(templateId)) return;
     for (DishTemplateIngredientEntity row : graph.ingredients().stream()
         .filter(item -> templateId.equals(item.getTemplateId()) && item.getComponentTemplateId() != null)
         .toList()) {
       DishTemplateEntity component = graph.templates().get(row.getComponentTemplateId());
-      if (component == null) continue;
-      appendComponentSteps(component.getId(), dishId, graph, expanded);
+      if (component == null || path.contains(component.getId())) continue;
+      appendComponentSteps(component.getId(), dishId, graph, expanded, path);
       for (DishTemplateCookingStepEntity step
           : graph.steps().getOrDefault(component.getId(), List.of())) {
         expanded.add(toDishCookingStep(dishId, expanded.size() + 1, step,
             component.getName(), component.getId()));
       }
     }
+    path.remove(templateId);
   }
 
   private static DishCookingStepEntity toDishCookingStep(Long dishId, int stepNo,
@@ -286,9 +287,6 @@ public class DishTemplateServiceImpl implements DishTemplateService {
 
   private static boolean isImportable(DishTemplateEntity template) {
     return "DISH".equals(template.getTemplateType())
-        && "READY".equals(template.getDataStatus())
-        && Boolean.TRUE.equals(template.getProcurementReady())
-        && template.getReferencePrice() != null
         && Boolean.TRUE.equals(template.getEnabled());
   }
 

@@ -32,12 +32,11 @@ class DishTemplateMapperContractTest {
   }
 
   @Test
-  void merchantMarketShowsAllEnabledDishesWhileImportsRemainStrictlyEligible() throws Exception {
+  void merchantMarketAndImportsAllowAllEnabledDishes() throws Exception {
     String xml = Files.readString(
         Path.of("src/main/resources/mapper/dish/DishTemplateMapper.xml"), StandardCharsets.UTF_8)
         .replaceAll("\\s+", " ");
-    String predicate = "t.template_type='DISH' and t.data_status='READY' and "
-        + "t.procurement_ready=1 and t.reference_price is not null and t.enabled=1";
+    String predicate = "t.template_type='DISH' and t.enabled=1";
     String visiblePredicate = "t.template_type='DISH' and t.enabled=1";
     assertTrue(xml.contains("<sql id=\"MerchantEligibleTemplateFilter\"> " + predicate));
     assertTrue(xml.contains("<sql id=\"MerchantVisibleTemplateFilter\"> " + visiblePredicate));

@@ -11,7 +11,7 @@ function createDishTemplateSelection(initialIds = []) {
   return {
     toggle(item) {
       const id = Number(item && item.templateId);
-      if (!Number.isFinite(id) || item.imported || item.importable === false) return state();
+      if (!Number.isFinite(id) || item.imported || item.enabled === false) return state();
       if (selectedIds.includes(id)) selectedIds = selectedIds.filter(value => value !== id);
       else if (selectedIds.length < 100) selectedIds.push(id);
       return state(selectedIds.length >= 100);
@@ -20,7 +20,7 @@ function createDishTemplateSelection(initialIds = []) {
       let limitReached = false;
       for (const item of items || []) {
         const id = Number(item.templateId);
-        if (!Number.isFinite(id) || item.imported || item.importable === false || selectedIds.includes(id)) continue;
+        if (!Number.isFinite(id) || item.imported || item.enabled === false || selectedIds.includes(id)) continue;
         if (selectedIds.length >= 100) { limitReached = true; break; }
         selectedIds.push(id);
       }
@@ -42,13 +42,21 @@ function templatePriceText(value) {
   return Number.isFinite(price) ? `¥${price.toFixed(0)}` : '价格待完善';
 }
 
+function completionHints(item) {
+  const hints = [];
+  if (item.referencePrice === null || item.referencePrice === undefined) hints.push('价格');
+  if (item.procurementReady === false) hints.push('食材用量');
+  if (item.missingSteps) hints.push('制作步骤');
+  if (item.dataStatus && item.dataStatus !== 'READY' && !hints.length) hints.push('模板资料');
+  return hints;
+}
+
 function decorateTemplateRows(rows, selectedIds = [], imageResolver = (value) => value || '') {
   const selected = new Set((selectedIds || []).map(Number));
   return (rows || []).map((item) => {
     const rawImageUrl = item.imageUrl || '';
-    const importable = typeof item.importable === 'boolean' ? item.importable
-      : item.dataStatus === 'READY' && item.procurementReady === true
-        && item.referencePrice !== null && item.referencePrice !== undefined;
+    const importable = item.templateType !== 'COMPONENT' && item.enabled !== false;
+    const hints = completionHints(item);
     return {
       ...item,
       imageUrl: imageResolver(rawImageUrl),
@@ -59,7 +67,9 @@ function decorateTemplateRows(rows, selectedIds = [], imageResolver = (value) =>
       sourceLabel: SOURCE_LABELS[item.sourceType] || item.sourceCategory || '平台菜谱',
       stepsLabel: item.missingSteps ? '步骤待补充' : '含制作步骤',
       importable,
-      readinessLabel: importable ? '可导入' : '待完善后导入'
+      completionHints: hints,
+      completionText: hints.length ? `待补：${hints.join('、')}` : '',
+      readinessLabel: hints.length ? '待完善 · 可导入' : '可导入'
     };
   });
 }
@@ -74,13 +84,16 @@ function ingredientQuantityText(item = {}) {
 }
 
 function decorateTemplateDetail(detail = {}, imageResolver = (value) => value || '') {
-  const row = decorateTemplateRows([detail], [], imageResolver)[0];
   const cookingSteps = (detail.cookingSteps || []).slice()
     .sort((left, right) => Number(left.stepNo || 0) - Number(right.stepNo || 0))
     .map((item, index) => ({
       ...item,
-      titleText: item.title || `步骤 ${item.stepNo || index + 1}`
+      titleText: item.title || `步骤 ${item.stepNo || index + 1}`,
+      metaText: [item.heatLevel, item.temperatureText,
+        item.durationSeconds === null || item.durationSeconds === undefined
+          ? '' : `${item.durationSeconds} 秒`].filter(Boolean).join(' · ')
     }));
+  const row = decorateTemplateRows([{ ...detail, missingSteps: !cookingSteps.length }], [], imageResolver)[0];
   return {
     ...row,
     descriptionText: detail.description || '暂无菜谱简介',

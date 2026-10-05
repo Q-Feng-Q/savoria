@@ -9,7 +9,7 @@ const {
 } = require('../utils/dish-template-selection');
 const { createMerchantService } = require('../services/merchant');
 
-test('template selection ignores imported and incomplete items and caps selection at 100', () => {
+test('template selection ignores imported items but allows incomplete items and caps selection at 100', () => {
   const selection = createDishTemplateSelection();
   const rows = Array.from({ length: 103 }, (_, index) => ({
     templateId: index + 1,
@@ -19,7 +19,7 @@ test('template selection ignores imported and incomplete items and caps selectio
   const result = selection.selectPage(rows);
   assert.equal(result.selectedIds.length, 100);
   assert.equal(result.selectedIds.includes(1), false);
-  assert.equal(result.selectedIds.includes(2), false);
+  assert.equal(result.selectedIds.includes(2), true);
   assert.equal(result.limitReached, true);
 });
 
@@ -44,8 +44,8 @@ test('template view models keep null image and price explicit', () => {
   assert.equal(rows[0].priceText, '价格待完善');
   assert.equal(rows[0].sourceLabel, 'CookLikeHOC');
   assert.equal(rows[0].stepsLabel, '步骤待补充');
-  assert.equal(rows[0].importable, false);
-  assert.equal(rows[0].readinessLabel, '待完善后导入');
+  assert.equal(rows[0].importable, true);
+  assert.match(rows[0].readinessLabel, /待完善/);
 
   const detail = decorateTemplateDetail({
     imageUrl: null,
@@ -59,6 +59,26 @@ test('template view models keep null image and price explicit', () => {
   assert.equal(detail.sourceLabel, '本地扩展');
   assert.equal(detail.ingredients[0].quantityText, '用量待完善');
   assert.deepEqual(detail.cookingSteps.map((item) => item.stepNo), [1, 2]);
+});
+
+test('detail hides missing cooking metadata instead of rendering null', () => {
+  const detail = decorateTemplateDetail({
+    templateType: 'DISH', enabled: true,
+    cookingSteps: [
+      { stepNo: 1, heatLevel: null, temperatureText: null, durationSeconds: 350 },
+      { stepNo: 2, heatLevel: '大火', temperatureText: null, durationSeconds: null }
+    ]
+  });
+  assert.deepEqual(detail.cookingSteps.map((step) => step.metaText), ['350 秒', '大火']);
+  const markup = fs.readFileSync(path.join(__dirname, '../pages/merchant/dish-template-detail/index.wxml'), 'utf8');
+  assert.match(markup, /item\.metaText/);
+  assert.doesNotMatch(markup, /\{\{item\.heatLevel\}\} \{\{item\.temperatureText\}\}/);
+});
+
+test('detail without cooking steps warns even when the detail API omits missingSteps', () => {
+  const detail = decorateTemplateDetail({ templateType: 'DISH', enabled: true,
+    referencePrice: 26, procurementReady: true, dataStatus: 'READY', cookingSteps: [] });
+  assert.deepEqual(detail.completionHints, ['制作步骤']);
 });
 
 test('merchant service calls real template endpoints', async () => {
@@ -160,6 +180,46 @@ test('confirmed import all reports imported and skipped counts then refreshes', 
       assert.deepEqual(page.data.selectedIds, []);
       assert.match(modals[1].content, /成功 190 道，跳过 8 道/);
       assert.equal(page.data.importingAll, false);
+    }
+  });
+});
+
+test('selected incomplete templates warn before import but can still be confirmed', async () => {
+  const prompts = [];
+  const requests = [];
+  await withTemplatePage({
+    merchant: { importDishTemplates: async (ids) => {
+      requests.push(ids);
+      return { importedCount: 1, skippedCount: 0 };
+    } },
+    wxMock: { showModal: async (options) => {
+      prompts.push(options);
+      return { confirm: prompts.length > 1 };
+    } },
+    run: async (page) => {
+      page.load = async () => {};
+      page.setData({ selectedIds: [7], items: [{ templateId: 7,
+        completionHints: ['价格', '食材用量'], imported: false }] });
+      await page.importSelected();
+      assert.deepEqual(requests, []);
+      assert.match(prompts[0].content, /价格.*下架/);
+      await page.importSelected();
+      assert.deepEqual(requests, [[7]]);
+    }
+  });
+});
+
+test('selected templates on another page still trigger a completion warning', async () => {
+  const prompts = [];
+  let imports = 0;
+  await withTemplatePage({
+    merchant: { importDishTemplates: async () => { imports += 1; } },
+    wxMock: { showModal: async (options) => { prompts.push(options); return { confirm: false }; } },
+    run: async (page) => {
+      page.setData({ selectedIds: [7], items: [{ templateId: 8, completionHints: [] }] });
+      await page.importSelected();
+      assert.equal(imports, 0);
+      assert.match(prompts[0].content, /可能含有待完善资料/);
     }
   });
 });
@@ -327,6 +387,44 @@ test('silent template refresh replaces page one without hiding the current list'
       assert.equal(page.data.items[0].templateId, 1);
     }
   });
+});
+
+test('template filters keep the page and current results visible while fetching replacements', async () => {
+  for (const [name, applyFilter] of [
+    ['type', (page) => page.changeProductType({ detail: { value: 2 } })],
+    ['category', (page) => page.chooseCategory({ currentTarget: { dataset: { id: 7 } } })],
+    ['imported', (page) => page.changeImported({ currentTarget: { dataset: { value: 'true' } } })],
+    ['search', (page) => page.search()]
+  ]) {
+    let resolveRows;
+    const pendingRows = new Promise((resolve) => { resolveRows = resolve; });
+    await withTemplatePage({
+      merchant: {
+        getDishTemplateCategories: async () => [],
+        getDishTemplates: () => pendingRows
+      },
+      wxMock: {},
+      run: async (page) => {
+        page.setData({ phase: 'ready', loading: false, items: [{ templateId: 99, name: '当前菜品' }] });
+        const refresh = applyFilter(page);
+        assert.equal(page.data.phase, 'ready', `${name} must not replace the entire page`);
+        assert.equal(page.data.loading, false, `${name} must not trigger the initial-page loader`);
+        assert.equal(page.data.items[0].templateId, 99, `${name} keeps results until replacements arrive`);
+        assert.equal(page.data.refreshing, true);
+        resolveRows({ items: [{ templateId: 1, name: '筛选结果' }], page: 1, total: 1 });
+        await refresh;
+        assert.deepEqual(page.data.items.map((item) => item.templateId), [1]);
+        assert.equal(page.data.refreshing, false);
+      }
+    });
+  }
+});
+
+test('template market shows local filtering feedback without showing a stale empty state', () => {
+  const markup = fs.readFileSync(path.join(__dirname, '../pages/merchant/dish-templates/index.wxml'), 'utf8');
+  assert.match(markup, /wx:if="\{\{refreshing\}\}"[^>]*>正在筛选菜品/);
+  assert.match(markup, /<page-state wx:if="\{\{!items\.length && !refreshing\}\}"/);
+  assert.match(markup, /<view wx:if="\{\{items\.length\}\}" class="template-list"/);
 });
 
 test('page reach-bottom delegates to guarded template load more', () => {

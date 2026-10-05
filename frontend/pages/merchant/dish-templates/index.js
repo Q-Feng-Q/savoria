@@ -100,12 +100,12 @@ Page({
     if (!option) return;
     this.syncSelection(this.selection.clear());
     this.setData({ productType: option.value, productTypeIndex: index });
-    return this.load({ reset: true });
+    return this.load({ reset: true, silent: true });
   },
-  chooseCategory(event) { this.setData({ categoryId: event.currentTarget.dataset.id }); this.load({ reset: true }); },
+  chooseCategory(event) { this.setData({ categoryId: event.currentTarget.dataset.id }); return this.load({ reset: true, silent: true }); },
   inputKeyword(event) { this.setData({ keyword: event.detail.value }); },
-  search() { this.load({ reset: true }); },
-  changeImported(event) { this.setData({ imported: event.currentTarget.dataset.value }); this.load({ reset: true }); },
+  search() { return this.load({ reset: true, silent: true }); },
+  changeImported(event) { this.setData({ imported: event.currentTarget.dataset.value }); return this.load({ reset: true, silent: true }); },
   toggleSelection(event) {
     const row = this.data.items.find(item => Number(item.templateId) === Number(event.currentTarget.dataset.id));
     const state = this.selection.toggle(row);
@@ -122,9 +122,27 @@ Page({
   },
   openDetail(event) { wx.navigateTo({ url: `/pages/merchant/dish-template-detail/index?id=${event.currentTarget.dataset.id}` }); },
   openChangeRequests() { wx.navigateTo({ url: '/pages/merchant/dish-template-changes/index' }); },
-  isImportBusy() { return this.data.importing || this.data.importingAll; },
+  isImportBusy() { return this.data.importing || this.data.importingAll
+    || this._confirmingSelected || this._confirmingAll; },
   async importSelected() {
     if (!this.data.selectedIds.length || this.isImportBusy()) return;
+    const selected = new Set(this.data.selectedIds.map(Number));
+    const hasUnseen = this.data.items.filter((item) => selected.has(Number(item.templateId))).length
+      < selected.size;
+    const incomplete = this.data.items.filter((item) => selected.has(Number(item.templateId))
+      && item.completionHints && item.completionHints.length);
+    if (incomplete.length || hasUnseen) {
+      this._confirmingSelected = true;
+      let confirmation;
+      try {
+        const hints = [...new Set(incomplete.flatMap((item) => item.completionHints))];
+        const warning = hints.length ? `待补：${hints.join('、')}。` : '所选模板可能含有待完善资料。';
+        confirmation = await wx.showModal({ title: '模板资料待完善',
+          content: `${warning}导入后请补充；缺少价格的菜品会自动下架。仍要导入吗？`,
+          confirmText: '继续导入' });
+      } finally { this._confirmingSelected = false; }
+      if (!confirmation || !confirmation.confirm || this.isImportBusy()) return;
+    }
     this.setData({ importing: true });
     try {
       const result = await createApiRuntime().merchant.importDishTemplates(this.data.selectedIds);
@@ -141,7 +159,7 @@ Page({
     try {
       confirmation = await wx.showModal({
         title: '导入全部系统菜品',
-        content: '将导入全部未导入菜品；已经导入的菜品会自动跳过，不会覆盖你修改过的内容。',
+        content: '将导入全部未导入菜品；待完善的模板也会导入，请之后补齐资料。缺少价格的菜品会自动下架；已导入菜品不会覆盖。',
         confirmText: '确认导入'
       });
     } finally {
